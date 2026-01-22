@@ -6,7 +6,7 @@ from minifw_ai.feeds import FeedMatcher
 from minifw_ai.netutil import ip_in_any_subnet
 from minifw_ai.events import Event, EventWriter, now_iso
 from minifw_ai.enforce import ipset_create, ipset_add, nft_apply_forward_drop
-from minifw_ai.collector_dnsmasq import stream_dns_events
+from minifw_ai.collector_dnsmasq import stream_dns_events_file
 from minifw_ai.collector_zeek import stream_zeek_sni_events
 from minifw_ai.burst import BurstTracker
 
@@ -85,7 +85,8 @@ def run():
             except Exception:
                 break
 
-    for client_ip, domain in stream_dns_events(dns_log):
+    # Main Event Loop (File Driven)
+    for client_ip, domain in stream_dns_events_file(log_path=dns_log):
         pump_zeek()
 
         segment = segment_for_ip(client_ip, seg_map)

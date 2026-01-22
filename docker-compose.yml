@@ -1,16 +1,18 @@
 services:
   dnsmasq:
-    image: strm/dnsmasq
+    build: ./docker/dnsmasq
     container_name: minifw_dns
     cap_add:
       - NET_ADMIN
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
     ports:
       - "53:53/udp"
       - "53:53/tcp"
     volumes:
       - ./config/dnsmasq.conf:/etc/dnsmasq.conf
-      - ./shared_dns_logs:/var/log/
-    command: ["-q", "--log-facility=/var/log/dnsmasq.log", "--server=8.8.8.8", "--user=root", "--log-dhcp"]
+      - ./shared_dns_logs:/var/log
     restart: unless-stopped
 
   minifw_daemon:
@@ -18,10 +20,12 @@ services:
     container_name: minifw_daemon
     privileged: true
     network_mode: host
+    env_file:
+      - .env
     environment:
-      - MINIFW_SECRET_KEY=super-secure-docker-key
       - PYTHONPATH=/app:/app/app
       - MINIFW_LOG=/app/logs/events.jsonl
+      - PYTHONUNBUFFERED=1
     volumes:
       - ./app:/app/app
       - ./config:/app/config
@@ -37,11 +41,15 @@ services:
   minifw_web:
     build: .
     container_name: minifw_web
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
     ports:
       # CHANGED: Mapping external port 8080 to internal 8000
       - "8080:8000"
+    env_file:
+      - .env
     environment:
-      - MINIFW_SECRET_KEY=super-secure-docker-key
       - PYTHONPATH=/app:/app/app
     volumes:
       - ./app:/app/app
@@ -51,5 +59,5 @@ services:
       - ./logs:/app/logs
       - ./shared_dns_logs:/var/log/
       - ./scripts:/app/scripts
-    command: uvicorn app.web.app:app --host 0.0.0.0 --port 8000 --reload
+    command: uvicorn app.web.app:app --host 0.0.0.0 --port 8000
 
