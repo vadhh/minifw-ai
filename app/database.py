@@ -4,7 +4,7 @@ from pathlib import Path
 
 # Database path
 BASE_DIR = Path(__file__).resolve().parent.parent
-DATABASE_PATH = BASE_DIR / "data" / "minifw.db"
+DATABASE_PATH = BASE_DIR / "minifw.db"
 SQLALCHEMY_DATABASE_URL = f"sqlite:///{DATABASE_PATH}"
 
 # Create engine
