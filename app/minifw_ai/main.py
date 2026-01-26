@@ -14,15 +14,35 @@ from minifw_ai.burst import BurstTracker
 # NEW: Import flow collector
 from minifw_ai.collector_flow import FlowTracker, build_feature_vector_24
 
+# NEW: Import MLP engine
+try:
+    from minifw_ai.utils.mlp_engine import get_mlp_detector
+    MLP_AVAILABLE = True
+except ImportError:
+    MLP_AVAILABLE = False
+    get_mlp_detector = None
+
+# NEW: Import YARA scanner
+try:
+    from minifw_ai.utils.yara_scanner import get_yara_scanner
+    YARA_AVAILABLE = True
+except ImportError:
+    YARA_AVAILABLE = False
+    get_yara_scanner = None
+
 def segment_for_ip(ip: str, mapping: dict[str, list[str]]) -> str:
     for seg, cidrs in mapping.items():
         if ip_in_any_subnet(ip, cidrs):
             return seg
     return "default"
 
-def score_and_decide(domain: str, denied: bool, sni_denied: bool, asn_denied: bool, burst_hit: int, weights: dict, thresholds):
+def score_and_decide(domain: str, denied: bool, sni_denied: bool, asn_denied: bool, burst_hit: int, weights: dict, thresholds, mlp_score: int = 0, yara_score: int = 0, hard_threat_override: bool = False):
     score = 0
     reasons = []
+    
+    # CRITICAL: Hard threat override bypasses normal scoring
+    if hard_threat_override:
+        return 100, ["hard_threat_gate_override"], "block"
 
     if denied:
         score += int(weights.get("dns_weight", 40)); reasons.append("dns_denied_domain")
@@ -32,6 +52,18 @@ def score_and_decide(domain: str, denied: bool, sni_denied: bool, asn_denied: bo
         score += int(weights.get("asn_weight", 15)); reasons.append("asn_denied")
     if burst_hit:
         score += int(weights.get("burst_weight", 10)); reasons.append("burst_behavior")
+    
+    # NEW: Add MLP score (weight configurable, default 30)
+    if mlp_score > 0:
+        mlp_weight = int(weights.get("mlp_weight", 30))
+        score += mlp_score * mlp_weight // 100  # mlp_score is 0-100
+        reasons.append(f"mlp_threat_score_{mlp_score}")
+    
+    # NEW: Add YARA score (weight configurable, default 35)
+    if yara_score > 0:
+        yara_weight = int(weights.get("yara_weight", 35))
+        score += yara_score * yara_weight // 100  # yara_score is 0-100
+        reasons.append(f"yara_match_score_{yara_score}")
 
     score = max(0, min(100, score))
 
@@ -55,6 +87,51 @@ def run():
     
     # NEW: Initialize flow tracker
     flow_tracker = FlowTracker(flow_timeout=300)
+    
+    # NEW: Initialize MLP detector if available
+    mlp_detector = None
+    mlp_enabled = False
+    if MLP_AVAILABLE:
+        mlp_model_path = os.environ.get("MINIFW_MLP_MODEL")
+        mlp_threshold = float(os.environ.get("MINIFW_MLP_THRESHOLD", "0.5"))
+        
+        if mlp_model_path and Path(mlp_model_path).exists():
+            try:
+                mlp_detector = get_mlp_detector(
+                    model_path=mlp_model_path,
+                    threshold=mlp_threshold
+                )
+                if mlp_detector.model_loaded:
+                    mlp_enabled = True
+                    print(f"[MLP] Loaded model from: {mlp_model_path}")
+                    print(f"[MLP] Threshold: {mlp_threshold}")
+            except Exception as e:
+                print(f"[MLP] Failed to load model: {e}")
+        else:
+            print("[MLP] No model configured (set MINIFW_MLP_MODEL environment variable)")
+    else:
+        print("[MLP] MLP engine not available (install scikit-learn)")
+    
+    # NEW: Initialize YARA scanner if available
+    yara_scanner = None
+    yara_enabled = False
+    if YARA_AVAILABLE:
+        yara_rules_dir = os.environ.get("MINIFW_YARA_RULES")
+        
+        if yara_rules_dir and Path(yara_rules_dir).exists():
+            try:
+                yara_scanner = get_yara_scanner(rules_dir=yara_rules_dir)
+                if yara_scanner.rules_loaded:
+                    yara_enabled = True
+                    print(f"[YARA] Loaded rules from: {yara_rules_dir}")
+                    stats = yara_scanner.get_stats()
+                    print(f"[YARA] Rules loaded: {stats['rules_loaded']}")
+            except Exception as e:
+                print(f"[YARA] Failed to load rules: {e}")
+        else:
+            print("[YARA] No rules configured (set MINIFW_YARA_RULES environment variable)")
+    else:
+        print("[YARA] YARA scanner not available (install yara-python)")
     
     # NEW: Create flow records writer
     from pathlib import Path
@@ -124,8 +201,84 @@ def run():
 
         qpm = burst.add(client_ip)
         burst_hit = 1 if (qpm >= block_qpm or qpm >= monitor_qpm) else 0
+        
+        # NEW: HARD THREAT GATES (Must override MLP)
+        # These are absolute behavioral rules that indicate saturation attacks
+        hard_threat = False
+        hard_threat_reason = None
+        
+        # Get flow for hard threat detection
+        flow = flow_tracker.get_flow(client_ip, "", 0, "tcp") if mlp_enabled or yara_enabled else None
+        
+        if flow and flow.pkt_count >= 5:
+            # Rule 1: PPS Saturation (>200 packets/sec)
+            if flow.pkts_per_sec > 200:
+                hard_threat = True
+                hard_threat_reason = "pps_saturation"
+                logger.warning(f"[HARD_GATE] PPS saturation detected: {flow.pkts_per_sec:.2f} pps from {client_ip}")
+            
+            # Rule 2: Burst Flood (>300 packets in 1 second)
+            elif flow.max_burst_pkts_1s > 300:
+                hard_threat = True
+                hard_threat_reason = "burst_flood"
+                logger.warning(f"[HARD_GATE] Burst flood detected: {flow.max_burst_pkts_1s} pkts/s from {client_ip}")
+            
+            # Rule 3: Bot-like Small Packets (>95% small packets + short duration)
+            elif flow.small_pkt_ratio > 0.95 and flow.duration < 3:
+                hard_threat = True
+                hard_threat_reason = "bot_like_small_packets"
+                logger.warning(f"[HARD_GATE] Bot-like pattern: {flow.small_pkt_ratio:.2%} small pkts from {client_ip}")
+            
+            # Rule 4: Extreme Interarrival Regularity (std < 5ms with high PPS)
+            elif hasattr(flow, 'interarrival_std_ms') and flow.interarrival_std_ms < 5 and flow.pkts_per_sec > 100:
+                hard_threat = True
+                hard_threat_reason = "bot_regular_timing"
+                logger.warning(f"[HARD_GATE] Bot timing pattern: {flow.interarrival_std_ms:.2f}ms std from {client_ip}")
+        
+        # If hard threat detected, force BLOCK regardless of MLP
+        if hard_threat:
+            # Force maximum score
+            mlp_score = 100
+            mlp_proba = 1.0
+            reasons.append(hard_threat_reason)
+            logger.info(f"[HARD_GATE] Forcing BLOCK: {client_ip} - {hard_threat_reason}")
+        else:
+            # NEW: Get MLP score for this flow (if MLP enabled)
+            mlp_score = 0
+            mlp_proba = 0.0
+            if mlp_enabled and mlp_detector and flow and flow.pkt_count >= 5:
+                is_threat, proba = mlp_detector.is_suspicious(flow, return_probability=True)
+                mlp_proba = proba
+                if is_threat:
+                    mlp_score = int(proba * 100)  # Convert to 0-100 scale
+        
+        # NEW: YARA scanning on domain/payload (if YARA enabled)
+        yara_score = 0
+        yara_matches = []
+        if yara_enabled and yara_scanner:
+            # Scan domain name as payload
+            # In real SSL interception, this would be decrypted payload
+            payload = f"{domain} {sni}".encode('utf-8')
+            matches = yara_scanner.scan_payload(payload, timeout=5)
+            
+            if matches:
+                yara_matches = matches
+                # Calculate score based on severity
+                severity_scores = {'critical': 100, 'high': 75, 'medium': 50, 'low': 25}
+                max_severity_score = max(
+                    severity_scores.get(m.get_severity(), 25) for m in matches
+                )
+                yara_score = max_severity_score
+                
+                # Add match details to reasons (will be used later)
+                for match in matches[:3]:  # Top 3 matches
+                    reasons.append(f"yara_{match.rule}")
 
-        score, reasons, action = score_and_decide(domain, denied, sni_denied, asn_denied, burst_hit, weights, thr)
+        score, reasons, action = score_and_decide(
+            domain, denied, sni_denied, asn_denied, burst_hit, 
+            weights, thr, mlp_score, yara_score, 
+            hard_threat_override=hard_threat
+        )
 
         if action == "block":
             ipset_add(set_name, client_ip, timeout)
@@ -169,6 +322,19 @@ def run():
                         # Include decision info if available
                         'action': action if flow.client_ip == client_ip else None,
                         'score': score if flow.client_ip == client_ip else None,
+                        # NEW: AI Verdict (auditability)
+                        'ai_verdict': 'threat' if (mlp_score > 50 or yara_score > 50) else 'normal',
+                        'ai_confidence': max(mlp_proba, yara_score / 100.0) if flow.client_ip == client_ip else None,
+                        'hard_threat_override': hard_threat if flow.client_ip == client_ip else None,
+                        'hard_threat_reason': hard_threat_reason if (flow.client_ip == client_ip and hard_threat) else None,
+                        # NEW: Include MLP prediction if available
+                        'mlp_enabled': mlp_enabled,
+                        'mlp_proba': mlp_proba if flow.client_ip == client_ip else None,
+                        'mlp_score': mlp_score if flow.client_ip == client_ip else None,
+                        # NEW: Include YARA matches if available
+                        'yara_enabled': yara_enabled,
+                        'yara_score': yara_score if flow.client_ip == client_ip else None,
+                        'yara_matches': [m.to_dict() for m in yara_matches] if (flow.client_ip == client_ip and yara_matches) else [],
                         'label': None,  # To be labeled later for training
                         'label_reason': None
                     }
