@@ -98,6 +98,42 @@ class FlowStats:
         duration = self.get_duration()
         return self.pkt_count / duration if duration > 0 else 0.0
     
+    # Property shortcuts for convenience (used in hard gates)
+    @property
+    def duration(self) -> float:
+        """Shortcut for get_duration()"""
+        return self.get_duration()
+    
+    @property
+    def pkts_per_sec(self) -> float:
+        """Shortcut for get_pkts_per_sec()"""
+        return self.get_pkts_per_sec()
+    
+    @property
+    def bytes_per_sec(self) -> float:
+        """Shortcut for get_bytes_per_sec()"""
+        return self.get_bytes_per_sec()
+    
+    @property
+    def max_burst_pkts_1s(self) -> int:
+        """Shortcut for get_max_burst_pkts_1s()"""
+        return self.get_max_burst_pkts_1s()
+    
+    @property
+    def max_burst_bytes_1s(self) -> int:
+        """Shortcut for get_max_burst_bytes_1s()"""
+        return self.get_max_burst_bytes_1s()
+    
+    @property
+    def small_pkt_ratio(self) -> float:
+        """Shortcut for get_small_pkt_ratio()"""
+        return self.get_small_pkt_ratio()
+    
+    @property
+    def interarrival_std_ms(self) -> float:
+        """Shortcut for get_interarrival_std()"""
+        return self.get_interarrival_std()
+    
     def get_avg_pkt_size(self) -> float:
         """Calculate average packet size"""
         if not self.pkt_sizes:
