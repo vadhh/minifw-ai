@@ -1,5 +1,6 @@
 from __future__ import annotations
 import os
+import json
 
 from minifw_ai.policy import Policy
 from minifw_ai.feeds import FeedMatcher
@@ -9,6 +10,9 @@ from minifw_ai.enforce import ipset_create, ipset_add, nft_apply_forward_drop
 from minifw_ai.collector_dnsmasq import stream_dns_events
 from minifw_ai.collector_zeek import stream_zeek_sni_events
 from minifw_ai.burst import BurstTracker
+
+# NEW: Import flow collector
+from minifw_ai.collector_flow import FlowTracker, build_feature_vector_24
 
 def segment_for_ip(ip: str, mapping: dict[str, list[str]]) -> str:
     for seg, cidrs in mapping.items():
@@ -41,10 +45,21 @@ def run():
     policy_path = os.environ.get("MINIFW_POLICY", "/opt/minifw_ai/config/policy.json")
     feeds_dir = os.environ.get("MINIFW_FEEDS", "/opt/minifw_ai/config/feeds")
     log_path = os.environ.get("MINIFW_LOG", "/opt/minifw_ai/logs/events.jsonl")
+    
+    # NEW: Flow records output path
+    flow_records_path = os.environ.get("MINIFW_FLOW_RECORDS", "/opt/minifw_ai/logs/flow_records.jsonl")
 
     pol = Policy(policy_path)
     feeds = FeedMatcher(feeds_dir)
     writer = EventWriter(log_path)
+    
+    # NEW: Initialize flow tracker
+    flow_tracker = FlowTracker(flow_timeout=300)
+    
+    # NEW: Create flow records writer
+    from pathlib import Path
+    flow_records_file = Path(flow_records_path)
+    flow_records_file.parent.mkdir(parents=True, exist_ok=True)
 
     enf = pol.enforcement()
     set_name = enf.get("ipset_name_v4", "minifw_block_v4")
@@ -82,8 +97,14 @@ def run():
             try:
                 client_ip, sni = next(zeek_iter)
                 last_sni[client_ip] = sni
+                # NEW: Enrich flows with SNI
+                flow_tracker.enrich_with_sni(client_ip, sni)
             except Exception:
                 break
+    
+    # NEW: Counter for flow record exports
+    flow_export_counter = 0
+    flow_export_interval = 100  # Export flow records every 100 DNS queries
 
     for client_ip, domain in stream_dns_events(dns_log):
         pump_zeek()
@@ -111,6 +132,55 @@ def run():
 
         writer.write(Event(ts=now_iso(), segment=segment, client_ip=client_ip, domain=domain,
                            action=action, score=score, reasons=reasons))
+        
+        # NEW: Enrich flow tracker with DNS domain
+        flow_tracker.enrich_with_dns(client_ip, domain)
+        
+        # NEW: Export flow records periodically
+        flow_export_counter += 1
+        if flow_export_counter >= flow_export_interval:
+            # Cleanup old flows
+            cleaned = flow_tracker.cleanup_old_flows()
+            
+            # Export active flows with features
+            active_flows = flow_tracker.get_all_active_flows()
+            
+            with flow_records_file.open('a', encoding='utf-8') as f:
+                for flow in active_flows:
+                    # Only export flows with reasonable data
+                    if flow.pkt_count < 5:  # Skip very small flows
+                        continue
+                    
+                    features = build_feature_vector_24(flow)
+                    
+                    record = {
+                        'timestamp': flow.first_seen,
+                        'client_ip': flow.client_ip,
+                        'dst_ip': flow.dst_ip,
+                        'dst_port': flow.dst_port,
+                        'proto': flow.proto,
+                        'domain': flow.domain,
+                        'sni': flow.sni,
+                        'segment': segment_for_ip(flow.client_ip, seg_map),
+                        'features': features,
+                        'duration': flow.get_duration(),
+                        'packets': flow.pkt_count,
+                        'bytes': flow.get_total_bytes(),
+                        # Include decision info if available
+                        'action': action if flow.client_ip == client_ip else None,
+                        'score': score if flow.client_ip == client_ip else None,
+                        'label': None,  # To be labeled later for training
+                        'label_reason': None
+                    }
+                    
+                    f.write(json.dumps(record, ensure_ascii=False) + '\n')
+            
+            # Reset counter
+            flow_export_counter = 0
+            
+            # Print status
+            if len(active_flows) > 0:
+                print(f"[FlowCollector] Exported {len(active_flows)} flows, cleaned {cleaned} old flows")
 
 if __name__ == "__main__":
     run()
