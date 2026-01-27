@@ -1,6 +1,11 @@
 from __future__ import annotations
 import os
 import json
+import logging
+import subprocess
+from pathlib import Path
+from collections import OrderedDict
+from typing import Any
 
 from minifw_ai.policy import Policy
 from minifw_ai.feeds import FeedMatcher
@@ -30,11 +35,29 @@ except ImportError:
     YARA_AVAILABLE = False
     get_yara_scanner = None
 
+# NEW: Import Sector Lock system
+try:
+    from minifw_ai.sector_lock import get_sector_lock, get_sector_config
+    from minifw_ai.sector_config import get_threshold_adjustment, is_iomt_priority
+    SECTOR_LOCK_AVAILABLE = True
+except ImportError:
+    SECTOR_LOCK_AVAILABLE = False
+    get_sector_lock = None
+
 def segment_for_ip(ip: str, mapping: dict[str, list[str]]) -> str:
     for seg, cidrs in mapping.items():
         if ip_in_any_subnet(ip, cidrs):
             return seg
     return "default"
+
+def _safe_int_cast(value: Any, default: int) -> int:
+    """Safely cast a value to int, returning default on failure."""
+    if value is None:
+        return default
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return default
 
 def score_and_decide(domain: str, denied: bool, sni_denied: bool, asn_denied: bool, burst_hit: int, weights: dict, thresholds, mlp_score: int = 0, yara_score: int = 0, hard_threat_override: bool = False):
     score = 0
@@ -93,6 +116,44 @@ def run():
     feeds = FeedMatcher(feeds_dir)
     writer = EventWriter(log_path)
     
+    # NEW: Initialize Sector Lock (Factory-Set Configuration)
+    sector_lock = None
+    sector_config = {}
+    sector_name = "unknown"
+    iomt_subnets = []  # For hospital sector
+    
+    if SECTOR_LOCK_AVAILABLE:
+        try:
+            sector_lock = get_sector_lock()
+            sector_config = sector_lock.get_sector_config()
+            sector_name = sector_lock.get_sector()
+            
+            logging.info(f"[SECTOR_LOCK] Device sector: {sector_name} (LOCKED)")
+            logging.info(f"[SECTOR_LOCK] Config: {sector_config.get('description', 'N/A')}")
+            
+            # Load sector-specific feeds
+            extra_feeds = sector_config.get('extra_feeds', [])
+            if extra_feeds:
+                loaded = feeds.load_sector_feeds(extra_feeds)
+                logging.info(f"[SECTOR_LOCK] Loaded {loaded} sector-specific feed patterns")
+            
+            # Get IoMT subnets for hospital sector (from policy.json, not hardcoded)
+            if sector_lock.is_hospital():
+                iomt_subnets = pol.cfg.get('iomt_subnets', [])
+                if iomt_subnets:
+                    logging.info(f"[SECTOR_LOCK] Hospital mode: IoMT subnets = {iomt_subnets}")
+                else:
+                    logging.warning("[SECTOR_LOCK] Hospital mode but no iomt_subnets in policy.json")
+            
+        except RuntimeError as e:
+            logging.critical(f"[SECTOR_LOCK] FATAL: {e}")
+            logging.critical("[SECTOR_LOCK] Device cannot start without valid sector config")
+            return
+        except Exception as e:
+            logging.error(f"[SECTOR_LOCK] Warning: {e} - continuing without sector lock")
+    else:
+        logging.warning("[SECTOR_LOCK] Sector lock module not available")
+    
     # NEW: Initialize flow tracker
     flow_tracker = FlowTracker(flow_timeout=300)
     
@@ -142,7 +203,6 @@ def run():
         print("[YARA] YARA scanner not available (install yara-python)")
     
     # NEW: Create flow records writer
-    from pathlib import Path
     flow_records_file = Path(flow_records_path)
     flow_records_file.parent.mkdir(parents=True, exist_ok=True)
 
@@ -199,11 +259,23 @@ def run():
     flow_export_counter = 0
     flow_export_interval = 100  # Export flow records every 100 DNS queries
 
-    for client_ip, domain in stream_dns_events(dns_log):
+    for client_ip, domain in stream_dns_events_file(dns_log):
         pump_zeek()
-
+        try:
             segment = segment_for_ip(client_ip, seg_map)
             thr = pol.thresholds(segment)
+            
+            # NEW: Apply sector-specific threshold adjustments
+            if sector_config:
+                block_adj = sector_config.get('block_threshold_adjustment', 0)
+                monitor_adj = sector_config.get('monitor_threshold_adjustment', 0)
+                if block_adj or monitor_adj:
+                    # Create adjusted thresholds
+                    from minifw_ai.policy import SegmentThreshold
+                    thr = SegmentThreshold(
+                        max(10, thr.block_threshold + block_adj),
+                        max(10, thr.monitor_threshold + monitor_adj)
+                    )
 
             if feeds.domain_allowed(domain):
                 denied = False
@@ -215,100 +287,106 @@ def run():
 
             asn_denied = False  # placeholder for offline ASN integration
 
-        qpm = burst.add(client_ip)
-        burst_hit = 1 if (qpm >= block_qpm or qpm >= monitor_qpm) else 0
-        
-        # NEW: HARD THREAT GATES (Must override MLP)
-        # These are absolute behavioral rules that indicate saturation attacks
-        hard_threat = False
-        hard_threat_reason = None
-        
-        # Get flow for hard threat detection
-        flow = flow_tracker.get_flow(client_ip, "", 0, "tcp") if mlp_enabled or yara_enabled else None
-        
-        if flow and flow.pkt_count >= 5:
-            # Rule 1: PPS Saturation (>200 packets/sec)
-            if flow.pkts_per_sec > 200:
-                hard_threat = True
-                hard_threat_reason = "pps_saturation"
-                logger.warning(f"[HARD_GATE] PPS saturation detected: {flow.pkts_per_sec:.2f} pps from {client_ip}")
+            qpm = burst.add(client_ip)
+            burst_hit = 1 if (qpm >= block_qpm or qpm >= monitor_qpm) else 0
             
-            # Rule 2: Burst Flood (>300 packets in 1 second)
-            elif flow.max_burst_pkts_1s > 300:
-                hard_threat = True
-                hard_threat_reason = "burst_flood"
-                logger.warning(f"[HARD_GATE] Burst flood detected: {flow.max_burst_pkts_1s} pkts/s from {client_ip}")
+            # NEW: HARD THREAT GATES (Must override MLP)
+            # These are absolute behavioral rules that indicate saturation attacks
+            hard_threat = False
+            hard_threat_reason = None
             
-            # Rule 3: Bot-like Small Packets (>95% small packets + short duration)
-            elif flow.small_pkt_ratio > 0.95 and flow.duration < 3:
-                hard_threat = True
-                hard_threat_reason = "bot_like_small_packets"
-                logger.warning(f"[HARD_GATE] Bot-like pattern: {flow.small_pkt_ratio:.2%} small pkts from {client_ip}")
+            # Get flow for hard threat detection
+            flow = flow_tracker.get_flow(client_ip, "", 0, "tcp") if mlp_enabled or yara_enabled else None
             
-            # Rule 4: Extreme Interarrival Regularity (std < 5ms with high PPS)
-            elif hasattr(flow, 'interarrival_std_ms') and flow.interarrival_std_ms < 5 and flow.pkts_per_sec > 100:
-                hard_threat = True
-                hard_threat_reason = "bot_regular_timing"
-                logger.warning(f"[HARD_GATE] Bot timing pattern: {flow.interarrival_std_ms:.2f}ms std from {client_ip}")
-        
-        # If hard threat detected, force BLOCK regardless of MLP
-        if hard_threat:
-            # Force maximum score
-            mlp_score = 100
-            mlp_proba = 1.0
-            reasons.append(hard_threat_reason)
-            logger.info(f"[HARD_GATE] Forcing BLOCK: {client_ip} - {hard_threat_reason}")
-        else:
-            # NEW: Get MLP score for this flow (if MLP enabled)
-            mlp_score = 0
-            mlp_proba = 0.0
-            if mlp_enabled and mlp_detector and flow and flow.pkt_count >= 5:
-                is_threat, proba = mlp_detector.is_suspicious(flow, return_probability=True)
-                mlp_proba = proba
-                if is_threat:
-                    mlp_score = int(proba * 100)  # Convert to 0-100 scale
-        
-        # NEW: YARA scanning on domain/payload (if YARA enabled)
-        yara_score = 0
-        yara_matches = []
-        if yara_enabled and yara_scanner:
-            # Scan domain name as payload
-            # In real SSL interception, this would be decrypted payload
-            payload = f"{domain} {sni}".encode('utf-8')
-            matches = yara_scanner.scan_payload(payload, timeout=5)
-            
-            if matches:
-                yara_matches = matches
-                # Calculate score based on severity
-                severity_scores = {'critical': 100, 'high': 75, 'medium': 50, 'low': 25}
-                max_severity_score = max(
-                    severity_scores.get(m.get_severity(), 25) for m in matches
-                )
-                yara_score = max_severity_score
+            if flow and flow.pkt_count >= 5:
+                # Rule 1: PPS Saturation (>200 packets/sec)
+                if flow.pkts_per_sec > 200:
+                    hard_threat = True
+                    hard_threat_reason = "pps_saturation"
+                    logging.warning(f"[HARD_GATE] PPS saturation detected: {flow.pkts_per_sec:.2f} pps from {client_ip}")
                 
-                # Add match details to reasons (will be used later)
-                for match in matches[:3]:  # Top 3 matches
-                    reasons.append(f"yara_{match.rule}")
+                # Rule 2: Burst Flood (>300 packets in 1 second)
+                elif flow.max_burst_pkts_1s > 300:
+                    hard_threat = True
+                    hard_threat_reason = "burst_flood"
+                    logging.warning(f"[HARD_GATE] Burst flood detected: {flow.max_burst_pkts_1s} pkts/s from {client_ip}")
+                
+                # Rule 3: Bot-like Small Packets (>95% small packets + short duration)
+                elif flow.small_pkt_ratio > 0.95 and flow.duration < 3:
+                    hard_threat = True
+                    hard_threat_reason = "bot_like_small_packets"
+                    logging.warning(f"[HARD_GATE] Bot-like pattern: {flow.small_pkt_ratio:.2%} small pkts from {client_ip}")
+                
+                # Rule 4: Extreme Interarrival Regularity (std < 5ms with high PPS)
+                elif hasattr(flow, 'interarrival_std_ms') and flow.interarrival_std_ms < 5 and flow.pkts_per_sec > 100:
+                    hard_threat = True
+                    hard_threat_reason = "bot_regular_timing"
+                    logging.warning(f"[HARD_GATE] Bot timing pattern: {flow.interarrival_std_ms:.2f}ms std from {client_ip}")
+            
+            # If hard threat detected, force BLOCK regardless of MLP
+            if hard_threat:
+                # Force maximum score
+                mlp_score = 100
+                mlp_proba = 1.0
+                reasons.append(hard_threat_reason)
+                logging.info(f"[HARD_GATE] Forcing BLOCK: {client_ip} - {hard_threat_reason}")
+            else:
+                # NEW: Get MLP score for this flow (if MLP enabled)
+                mlp_score = 0
+                mlp_proba = 0.0
+                if mlp_enabled and mlp_detector and flow and flow.pkt_count >= 5:
+                    is_threat, proba = mlp_detector.is_suspicious(flow, return_probability=True)
+                    mlp_proba = proba
+                    if is_threat:
+                        mlp_score = int(proba * 100)  # Convert to 0-100 scale
+            
+            # NEW: YARA scanning on domain/payload (if YARA enabled)
+            yara_score = 0
+            yara_matches = []
+            if yara_enabled and yara_scanner:
+                # Scan domain name as payload
+                # In real SSL interception, this would be decrypted payload
+                payload = f"{domain} {sni}".encode('utf-8')
+                matches = yara_scanner.scan_payload(payload, timeout=5)
+                
+                if matches:
+                    yara_matches = matches
+                    # Calculate score based on severity
+                    severity_scores = {'critical': 100, 'high': 75, 'medium': 50, 'low': 25}
+                    max_severity_score = max(
+                        severity_scores.get(m.get_severity(), 25) for m in matches
+                    )
+                    yara_score = max_severity_score
+                    
+                    # Add match details to reasons (will be used later)
+                    for match in matches[:3]:  # Top 3 matches
+                        reasons.append(f"yara_{match.rule}")
 
-        score, reasons, action = score_and_decide(
-            domain, denied, sni_denied, asn_denied, burst_hit, 
-            weights, thr, mlp_score, yara_score, 
-            hard_threat_override=hard_threat
-        )
+            score, reasons, action = score_and_decide(
+                domain, denied, sni_denied, asn_denied, burst_hit, 
+                weights, thr, mlp_score, yara_score, 
+                hard_threat_override=hard_threat
+            )
 
             if action == "block":
                 ipset_add(set_name, client_ip, timeout)
+            
+            # NEW: Hospital sector IoMT high-priority alerting
+            if sector_lock and sector_lock.is_hospital() and iomt_subnets:
+                if ip_in_any_subnet(client_ip, iomt_subnets):
+                    if score >= thr.monitor_threshold:
+                        logging.critical(f"[IOMT_ALERT] Medical device anomaly: {client_ip} -> {domain} (score={score})")
+                        # Add IoMT flag to reasons
+                        if 'iomt_device_alert' not in reasons:
+                            reasons.append('iomt_device_alert')
 
             writer.write(Event(ts=now_iso(), segment=segment, client_ip=client_ip, domain=domain,
-                               action=action, score=score, reasons=reasons))
+                               action=action, score=score, reasons=reasons, sector=sector_name))
         except KeyboardInterrupt:
             logging.info("Caught KeyboardInterrupt, shutting down.")
             break
         except Exception:
             logging.error("Unhandled exception in main event loop", exc_info=True)
-
-        writer.write(Event(ts=now_iso(), segment=segment, client_ip=client_ip, domain=domain,
-                           action=action, score=score, reasons=reasons))
         
         # NEW: Enrich flow tracker with DNS domain
         flow_tracker.enrich_with_dns(client_ip, domain)

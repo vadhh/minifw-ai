@@ -16,12 +16,13 @@ class UserRole(str, enum.Enum):
 
 
 class SectorType(str, enum.Enum):
-    """Sector classifications for different organization types"""
+    """Sector classifications for different organization types (Factory-Set)"""
     HOSPITAL = "hospital"
     SCHOOL = "school"
     GOVERNMENT = "government"
-    CORPORATE = "corporate"
-    GENERAL = "general"
+    FINANCE = "finance"
+    LEGAL = "legal"
+    ESTABLISHMENT = "establishment"
 
 
 class User(Base):
@@ -35,7 +36,7 @@ class User(Base):
     
     # Role-Based Access Control (RBAC)
     role = Column(String(20), default=UserRole.VIEWER.value, nullable=False)
-    sector = Column(String(20), default=SectorType.GENERAL.value, nullable=False)
+    sector = Column(String(20), default=SectorType.ESTABLISHMENT.value, nullable=False)
     
     # Account status
     is_active = Column(Boolean, default=True)

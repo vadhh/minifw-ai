@@ -463,3 +463,62 @@ def export_audit_logs(
     end_date: Optional[str] = None
 ):
     return export_audit_logs_controller(db, current_user, format, start_date, end_date)
+
+
+# ============================================================
+# SECTOR LOCK ROUTES (Factory-Set Configuration)
+# ============================================================
+
+@router.get("/api/sector-lock")
+def get_sector_lock_status():
+    """
+    Get the factory-set sector lock status.
+    
+    This endpoint returns the immutable sector configuration.
+    The sector CANNOT be changed via the Admin UI.
+    
+    Returns:
+        - sector: Current sector (school, hospital, government, finance, legal, establishment)
+        - locked: Always True (factory-set)
+        - config: Sector-specific policy configuration
+        - description: Human-readable sector description
+    """
+    try:
+        from app.minifw_ai.sector_lock import get_sector_lock
+        
+        lock = get_sector_lock()
+        config = lock.get_sector_config()
+        
+        return {
+            "success": True,
+            "sector": lock.get_sector(),
+            "locked": True,  # Always locked - factory-set
+            "description": config.get("description", "Factory-set sector"),
+            "config": {
+                # Only expose safe-to-display config items
+                "force_safesearch": config.get("force_safesearch", False),
+                "block_vpns": config.get("block_vpns", False),
+                "iomt_high_priority": config.get("iomt_high_priority", False),
+                "block_tor": config.get("block_tor", False),
+                "geo_ip_strict": config.get("geo_ip_strict", False),
+                "data_exfiltration_watch": config.get("data_exfiltration_watch", False),
+                "extra_feeds": config.get("extra_feeds", []),
+            },
+            "message": "Sector is factory-set and cannot be modified via UI"
+        }
+    except RuntimeError as e:
+        return {
+            "success": False,
+            "sector": "unknown",
+            "locked": False,
+            "error": str(e),
+            "message": "Sector not configured - device may be unprovisioned"
+        }
+    except ImportError:
+        return {
+            "success": False,
+            "sector": "unknown", 
+            "locked": False,
+            "error": "Sector lock module not available",
+            "message": "Sector lock system not installed"
+        }

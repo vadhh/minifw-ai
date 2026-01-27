@@ -24,6 +24,7 @@ def login_page(request: Request):
 
 @router.post("/login")
 def login(
+    request: Request,
     username: str = Form(...),
     password: str = Form(...),
     db: Session = Depends(get_db)
@@ -34,7 +35,7 @@ def login(
     if not user:
         return templates.TemplateResponse(
             "auth/login.html",
-            {"request": {}, "error": "Invalid username or password"}
+            {"request": request, "error": "Invalid username or password"}
         )
     
     # If 2FA enabled, redirect to 2FA page
@@ -60,8 +61,8 @@ def twofa_page(request: Request):
 
 @router.post("/2fa/verify")
 def verify_2fa(
+    request: Request,
     totp_code: str = Form(...),
-    request: Request = None,
     db: Session = Depends(get_db)
 ):
     """Verify 2FA code"""
@@ -113,10 +114,10 @@ def change_password_page(request: Request):
 
 @router.post("/change-password")
 def change_password(
+    request: Request,
     current_password: str = Form(...),
     new_password: str = Form(...),
     confirm_password: str = Form(...),
-    request: Request = None,
     db: Session = Depends(get_db)
 ):
     """Handle change password"""

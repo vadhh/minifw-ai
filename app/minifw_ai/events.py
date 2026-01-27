@@ -13,6 +13,7 @@ class Event:
     action: str
     score: int
     reasons: list[str]
+    sector: str = "unknown"  # Factory-set sector (from sector lock)
 
 def now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()

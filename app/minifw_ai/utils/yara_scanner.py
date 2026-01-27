@@ -223,10 +223,22 @@ class YARAScanner:
                 # Extract matched strings if requested
                 matched_strings = []
                 if return_strings and match.strings:
-                    matched_strings = [
-                        (s[0], s[1], s[2].decode('utf-8', errors='ignore'))
-                        for s in match.strings
-                    ]
+                    for s in match.strings:
+                        # Handle new yara-python object structure (v4.x+)
+                        if hasattr(s, 'instances'):
+                            for i in s.instances:
+                                matched_strings.append((
+                                    i.offset, 
+                                    s.identifier, 
+                                    i.matched_data.decode('utf-8', errors='ignore')
+                                ))
+                        # Handle legacy tuple structure (offset, identifier, data)
+                        elif isinstance(s, tuple) and len(s) >= 3:
+                             matched_strings.append((
+                                s[0], 
+                                s[1], 
+                                s[2].decode('utf-8', errors='ignore')
+                             ))
                 
                 yara_match = YARAMatch(
                     rule=match.rule,
