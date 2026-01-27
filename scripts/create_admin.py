@@ -1,33 +1,32 @@
 import sys
-import os
 from pathlib import Path
 
-# Add app to python path
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+# Add parent directory to path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from app.database import SessionLocal
-from app.services.auth.user_service import create_user, get_user_by_username
+from app.database import SessionLocal, init_db
+from app.services.auth.user_service import create_user
 
-def create_admin_user(username="admin", password="password123", email="admin@example.com"):
+def create_admin():
+    """Create default admin user"""
+    init_db()
     db = SessionLocal()
+    
     try:
-        user = get_user_by_username(db, username)
-        if user:
-            print(f"User {username} already exists.")
-            return
-
-        print(f"Creating user: {username}")
-        create_user(db, username, email, password)
-        print(f"User {username} created successfully.")
+        admin = create_user(
+            db=db,
+            username="admin",
+            email="admin@minifw.local",
+            password="admin123"  # GANTI password ini!
+        )
+        print(f"✅ Admin user created: {admin.username}")
+        print(f"   Email: {admin.email}")
+        print(f"   Password: admin12345")
+        print(f"\n⚠️  PLEASE CHANGE THE DEFAULT PASSWORD!")
     except Exception as e:
-        print(f"Error creating user: {e}")
+        print(f"❌ Error: {e}")
     finally:
         db.close()
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1:
-        username = sys.argv[1]
-        password = sys.argv[2] if len(sys.argv) > 2 else "password123"
-        create_admin_user(username, password)
-    else:
-        create_admin_user()
+    create_admin()

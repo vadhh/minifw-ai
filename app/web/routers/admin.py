@@ -31,6 +31,7 @@ from app.controllers.admin.deny_domain_controller import (
 
 from app.controllers.admin.events_controller import events_controller
 from app.controllers.admin.events_api_controller import events_datatable_controller
+from app.controllers.admin.download_events_controller import download_events_controller
 from app.controllers.admin.policy_controller import (
     policy_controller,
     add_segment_controller,
@@ -41,6 +42,25 @@ from app.controllers.admin.policy_controller import (
     update_collectors_controller,
     update_burst_controller
 )
+from app.controllers.admin.user_management_controller import (
+    user_management_page_controller,
+    get_all_users_controller,
+    create_user_controller,
+    update_user_controller,
+    change_password_controller,
+    delete_user_controller,
+    get_current_user_info_controller
+)
+from app.controllers.admin.audit_logs_controller import (
+    audit_logs_page_controller,
+    get_all_audit_logs_controller,
+    get_audit_statistics_controller,
+    export_audit_logs_controller
+)
+
+from typing import Optional  # <-- ADD THIS
+from sqlalchemy.orm import Session  # <-- ADD THIS
+from app.database import get_db  # <-- ADD THIS
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 templates = Jinja2Templates(directory="app/web/templates")
@@ -116,6 +136,30 @@ class UpdateCollectorsRequest(BaseModel):
 class UpdateBurstRequest(BaseModel):
     dns_queries_per_minute_monitor: int
     dns_queries_per_minute_block: int
+    
+class CreateUserRequest(BaseModel):
+    username: str
+    email: str
+    password: str
+    role: str
+    sector: str
+    full_name: Optional[str] = None
+    department: Optional[str] = None
+    phone: Optional[str] = None
+    must_change_password: bool = True
+
+class UpdateUserRequest(BaseModel):
+    email: Optional[str] = None
+    role: Optional[str] = None
+    sector: Optional[str] = None
+    full_name: Optional[str] = None
+    department: Optional[str] = None
+    phone: Optional[str] = None
+    is_active: Optional[bool] = None
+
+class ChangePasswordRequest(BaseModel):
+    new_password: str
+    must_change_password: bool = True
 
 
 @router.get("/")
@@ -229,6 +273,13 @@ def api_get_events(
         order_dir=order_dir
     )
 
+
+# Events Download API
+@router.get("/api/events/download")
+def api_download_events(action_filter: str = "all"):
+    """API endpoint for downloading events as Excel report"""
+    return download_events_controller(action_filter)
+
 # Policy Configuration routes
 @router.get("/policy")
 def get_policy(request: Request):
@@ -268,3 +319,147 @@ def post_collectors(payload: UpdateCollectorsRequest):
 def post_burst(payload: UpdateBurstRequest):
     update_burst_controller(payload.dns_queries_per_minute_monitor, payload.dns_queries_per_minute_block)
     return {"message": "Burst detection configuration updated successfully"}
+
+# User Management Page
+@router.get("/users")
+def get_user_management_page(request: Request):
+    """User management page (Super Admin only)"""
+    return user_management_page_controller(request)
+
+# Get Current User Info (for permission check)
+@router.get("/api/auth/current-user")
+def get_current_user_info(current_user: User = Depends(get_current_user)):
+    """Get current user information"""
+    return get_current_user_info_controller(current_user)
+
+# Get All Users
+@router.get("/api/users")
+def get_all_users(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get all users (Super Admin only)"""
+    return get_all_users_controller(db, current_user)
+
+# Create User
+@router.post("/api/users")
+def create_user(
+    payload: CreateUserRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Create new user (Super Admin only)"""
+    return create_user_controller(
+        db=db,
+        current_user=current_user,
+        username=payload.username,
+        email=payload.email,
+        password=payload.password,
+        role=payload.role,
+        sector=payload.sector,
+        full_name=payload.full_name,
+        department=payload.department,
+        phone=payload.phone,
+        must_change_password=payload.must_change_password
+    )
+
+# Update User
+@router.put("/api/users/{user_id}")
+def update_user(
+    user_id: int,
+    payload: UpdateUserRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Update user (Super Admin only)"""
+    return update_user_controller(
+        db=db,
+        current_user=current_user,
+        user_id=user_id,
+        email=payload.email,
+        role=payload.role,
+        sector=payload.sector,
+        full_name=payload.full_name,
+        department=payload.department,
+        phone=payload.phone,
+        is_active=payload.is_active
+    )
+
+# Change User Password
+@router.put("/api/users/{user_id}/password")
+def change_user_password(
+    user_id: int,
+    payload: ChangePasswordRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Change user password (Super Admin only)"""
+    return change_password_controller(
+        db=db,
+        current_user=current_user,
+        user_id=user_id,
+        new_password=payload.new_password,
+        must_change_password=payload.must_change_password
+    )
+
+# Delete User
+@router.delete("/api/users/{user_id}")
+def delete_user(
+    user_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Delete user (Super Admin only)"""
+    return delete_user_controller(db, current_user, user_id)
+
+# ============================================================
+# AUDIT LOGS ROUTES
+# ============================================================
+
+@router.get("/audit-logs")
+def get_audit_logs_page(request: Request):
+    return audit_logs_page_controller(request)
+
+@router.get("/api/audit/logs")
+def get_audit_logs(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    limit: int = 100,
+    offset: int = 0,
+    action: Optional[str] = None,
+    severity: Optional[str] = None,
+    username: Optional[str] = None,
+    resource_type: Optional[str] = None,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None
+):
+    return get_all_audit_logs_controller(
+        db=db,
+        current_user=current_user,
+        limit=limit,
+        offset=offset,
+        action=action,
+        severity=severity,
+        username=username,
+        resource_type=resource_type,
+        start_date=start_date,
+        end_date=end_date
+    )
+
+@router.get("/api/audit/statistics")
+def get_audit_statistics(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    days: int = 7
+):
+    return get_audit_statistics_controller(db, current_user, days)
+
+@router.get("/api/audit/export")
+def export_audit_logs(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    format: str = "json",
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None
+):
+    return export_audit_logs_controller(db, current_user, format, start_date, end_date)

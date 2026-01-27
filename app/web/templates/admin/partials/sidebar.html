@@ -97,6 +97,41 @@
             <p>Policy Configuration</p>
           </a>
         </li>
+
+        <!-- Divider -->
+        <li class="nav-header">ADMINISTRATION</li>
+
+        <!-- User Management (Super Admin Only) -->
+        <li class="nav-item">
+          <a
+            href="/admin/users"
+            class="nav-link {% if request.url.path == '/admin/users' %}active{% endif %}"
+          >
+            <i class="nav-icon bi bi-people"></i>
+            <p>
+              User Management
+              <span class="badge badge-warning right">
+                <i class="bi bi-shield-lock"></i>
+              </span>
+            </p>
+          </a>
+        </li>
+
+        <!-- Audit Logs -->
+        <li class="nav-item">
+          <a
+            href="/admin/audit-logs"
+            class="nav-link {% if request.url.path == '/admin/audit-logs' %}active{% endif %}"
+          >
+            <i class="nav-icon bi bi-file-text"></i>
+            <p>
+              Audit Logs
+              <span class="badge badge-info right">
+                <i class="bi bi-eye"></i>
+              </span>
+            </p>
+          </a>
+        </li>
       </ul>
     </nav>
   </div>

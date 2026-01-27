@@ -15,6 +15,9 @@
       </div>
       <div class="col-md-4 text-end">
         <div class="btn-group" role="group">
+          <button type="button" class="btn btn-sm btn-success" id="downloadBtn">
+            <i class="bi bi-download"></i> Download
+          </button>
           <button type="button" class="btn btn-sm btn-outline-primary" id="autoRefreshToggle">
             <i class="bi bi-arrow-clockwise"></i> Auto-Refresh: <span id="autoRefreshStatus">ON</span>
           </button>
@@ -356,6 +359,62 @@ $(document).ready(function() {
     }
   });
 
+  // Download button handler
+  $('#downloadBtn').on('click', function() {
+    Swal.fire({
+      title: '<strong><i class="bi bi-download"></i> Download Events Report</strong>',
+      html: `
+        <div class="text-start">
+          <p class="mb-3">Select which events to download:</p>
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="radio" name="downloadFilter" id="filterAll" value="all" checked>
+            <label class="form-check-label" for="filterAll">
+              <strong>All Events</strong> - Download all security events
+            </label>
+          </div>
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="radio" name="downloadFilter" id="filterAllow" value="allow">
+            <label class="form-check-label" for="filterAllow">
+              <strong>Allowed Events</strong> - Only allowed traffic
+            </label>
+          </div>
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="radio" name="downloadFilter" id="filterDeny" value="deny">
+            <label class="form-check-label" for="filterDeny">
+              <strong>Denied Events</strong> - Only denied traffic
+            </label>
+          </div>
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="radio" name="downloadFilter" id="filterBlock" value="block">
+            <label class="form-check-label" for="filterBlock">
+              <strong>Blocked Events</strong> - Only blocked traffic
+            </label>
+          </div>
+          <hr>
+          <small class="text-muted">
+            <i class="bi bi-info-circle"></i> The report will be downloaded as an Excel (.xlsx) file with statistics and detailed event information.
+          </small>
+        </div>
+      `,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: '<i class="bi bi-download"></i> Download',
+      cancelButtonText: '<i class="bi bi-x-circle"></i> Cancel',
+      confirmButtonColor: '#198754',
+      cancelButtonColor: '#6c757d',
+      width: '500px',
+      preConfirm: () => {
+        const selectedFilter = document.querySelector('input[name="downloadFilter"]:checked').value;
+        return selectedFilter;
+      }
+    }).then((result) => {
+      if (result.isConfirmed) {
+        const filter = result.value;
+        downloadEvents(filter);
+      }
+    });
+  });
+
   // Start auto-refresh
   if (autoRefresh) {
     startAutoRefresh();
@@ -552,6 +611,44 @@ function viewEventDetails(event) {
       popup: 'swal-wide'
     }
   });
+}
+
+// Download events as Excel
+function downloadEvents(filter) {
+  console.log('Downloading events with filter:', filter);
+  
+  // Show loading toast
+  Swal.fire({
+    title: 'Generating Report...',
+    html: 'Please wait while we prepare your download.',
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    didOpen: () => {
+      Swal.showLoading();
+    }
+  });
+  
+  // Trigger download
+  const downloadUrl = `/admin/api/events/download?action_filter=${filter}`;
+  
+  // Create temporary link and trigger download
+  const link = document.createElement('a');
+  link.href = downloadUrl;
+  link.download = '';  // Filename will be set by server
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  
+  // Close loading and show success
+  setTimeout(() => {
+    Swal.fire({
+      title: 'Download Started!',
+      text: 'Your Excel report is being downloaded.',
+      icon: 'success',
+      timer: 2000,
+      showConfirmButton: false
+    });
+  }, 500);
 }
 
 // Cleanup on page unload
