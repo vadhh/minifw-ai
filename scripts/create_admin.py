@@ -1,4 +1,5 @@
 import sys
+import os
 from pathlib import Path
 
 # Add parent directory to path
@@ -13,16 +14,20 @@ def create_admin():
     db = SessionLocal()
     
     try:
+        password = os.environ.get("MINIFW_ADMIN_PASSWORD")
+        if not password:
+            print("❌ Error: MINIFW_ADMIN_PASSWORD environment variable is not set.")
+            sys.exit(1)
+            
         admin = create_user(
             db=db,
             username="admin",
             email="admin@minifw.local",
-            password="admin123"  # GANTI password ini!
+            password=password
         )
         print(f"✅ Admin user created: {admin.username}")
         print(f"   Email: {admin.email}")
-        print(f"   Password: admin12345")
-        print(f"\n⚠️  PLEASE CHANGE THE DEFAULT PASSWORD!")
+        print(f"   Password: [REDACTED] (from env)")
     except Exception as e:
         print(f"❌ Error: {e}")
     finally:

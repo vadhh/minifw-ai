@@ -25,7 +25,7 @@ LOCK_FILE_PATH = Path(os.environ.get(
 ))
 
 # Development fallback path (relative to project)
-DEV_LOCK_FILE_PATH = Path(__file__).parent.parent.parent.parent / "config" / "sector_lock.json"
+DEV_LOCK_FILE_PATH = Path(__file__).parent.parent.parent / "config" / "sector_lock.json"
 
 
 class SectorLock:
