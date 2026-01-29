@@ -1,6 +1,8 @@
 MiniFW-AI for RitAPI-AI V-Sentinel (client-installed)
 ====================================================
 
+> **Status:** Security-hardened and production-grade. Final audit coverage and enforcement proof standardization in progress.
+
 Goal
 ----
 MiniFW-AI is the gateway metadata protection layer for RitAPI-AI V-Sentinel.

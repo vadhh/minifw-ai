@@ -55,15 +55,18 @@ echo "Initializing NFTables..."
 # Flush ruleset to strictly define our state (WARNING: clears existing rules)
 # nft flush ruleset # CAUTION: We might not want to flush everything if other services use nft
 # Safer: Initialize our specific table
-nft add table inet filter
+nft add table inet filter 2>/dev/null || true
 # Create forward chain if not exists. Note escaped semi-colons for bash.
-nft 'add chain inet filter forward { type filter hook forward priority 0 ; policy accept ; }'
+nft 'add chain inet filter forward { type filter hook forward priority 0 ; policy accept ; }' 2>/dev/null || true
 # Create the set if not exists (app/enforce.py also does this, but good to be sure)
-nft 'add set inet filter minifw_block_v4 { type ipv4_addr ; flags timeout ; }'
+nft 'add set inet filter minifw_block_v4 { type ipv4_addr ; flags timeout ; }' 2>/dev/null || true
 
-export PYTHONPATH=/opt/minifw_ai/app
+# PYTHONPATH must include BOTH:
+#   /opt/minifw_ai     - for "from app.minifw_ai..." imports  
+#   /opt/minifw_ai/app - for "from minifw_ai..." internal imports
+export PYTHONPATH=/opt/minifw_ai:/opt/minifw_ai/app
 echo "Starting MiniFW-AI..."
-exec /opt/minifw_ai/venv/bin/python -m minifw_ai
+exec /opt/minifw_ai/venv/bin/python -m app.minifw_ai.main
 EOF
 chmod 750 "${APP_ROOT}/run_minifw.sh"
 chown $USER:$GROUP "${APP_ROOT}/run_minifw.sh"

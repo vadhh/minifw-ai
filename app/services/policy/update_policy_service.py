@@ -29,6 +29,11 @@ def _save_policy(policy_data: Dict[str, Any]):
             f.flush()
             os.fsync(f.fileno())
         os.rename(temp_path, policy_path)
+        
+        # Audit trail: Policy cannot be saved without logging
+        from app.minifw_ai.utils.audit_logger import log_policy_change
+        log_policy_change(action="POLICY_UPDATED", path=policy_path)
+        
     except Exception as e:
         if os.path.exists(temp_path):
             os.remove(temp_path)

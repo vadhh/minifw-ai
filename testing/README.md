@@ -2,6 +2,43 @@
 
 This directory contains all test scripts for the MiniFW-AI Flow Collector system.
 
+## 🚀 Unified Test Runner (TUI)
+
+Launch the interactive test suite with:
+
+```bash
+python3 testing/run_tests_tui.py
+```
+
+### Controls
+
+| Key | Action |
+|-----|--------|
+| `↑/↓` or `j/k` | Navigate test list |
+| `SPACE` | Toggle test selection |
+| `a` | Select all tests |
+| `n` | Deselect all tests |
+| `c` | Cycle category filter |
+| `ENTER` | Run selected tests |
+| `r` | View results |
+| `q` | Quit |
+
+### Test Categories
+
+- **unit** (3 tests): Sector Lock, MLP Inference, YARA Scanner
+- **integration** (6 tests): Flow collectors, MLP integration, traffic simulation
+- **security** (1 test): Sprint verification (hardening tests)
+
+### Legend
+
+| Symbol | Meaning |
+|--------|---------|
+| `[P]` | Pytest/unittest (programmatic execution) |
+| `[S]` | Script (subprocess execution) |
+| `🔒` | Requires root/sudo |
+
+---
+
 ## Test Scripts
 
 ### 1. test_flow_collector.py

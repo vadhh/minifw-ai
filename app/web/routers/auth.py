@@ -11,6 +11,7 @@ from app.services.auth.user_service import (
 )
 from app.services.auth.token_service import create_access_token
 from app.services.auth.totp_service import verify_totp
+from app.minifw_ai.utils.audit_logger import log_auth_success, log_auth_failure
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 templates = Jinja2Templates(directory="app/web/templates")
@@ -33,6 +34,8 @@ def login(
     user = authenticate_user(db, username, password)
     
     if not user:
+        # Audit trail: Log failed login attempt
+        log_auth_failure(username, reason="invalid_credentials")
         return templates.TemplateResponse(
             "auth/login.html",
             {"request": request, "error": "Invalid username or password"}
@@ -47,6 +50,9 @@ def login(
     # No 2FA, create token and redirect to dashboard
     access_token = create_access_token(data={"sub": user.username})
     update_last_login(db, user)
+    
+    # Audit trail: Log successful login
+    log_auth_success(user.username)
     
     response = RedirectResponse(url="/admin/", status_code=303)
     response.set_cookie(key="access_token", value=access_token, httponly=True)
@@ -78,6 +84,8 @@ def verify_2fa(
     
     # Verify TOTP
     if not verify_totp(user.totp_secret, totp_code):
+        # Audit trail: Log 2FA failure
+        log_auth_failure(username, reason="invalid_2fa_code")
         return templates.TemplateResponse(
             "auth/2fa.html",
             {"request": request, "error": "Invalid 2FA code"}
@@ -86,6 +94,9 @@ def verify_2fa(
     # Create token and redirect
     access_token = create_access_token(data={"sub": user.username})
     update_last_login(db, user)
+    
+    # Audit trail: Log successful 2FA login
+    log_auth_success(user.username, method="2fa")
     
     response = RedirectResponse(url="/admin/", status_code=303)
     response.set_cookie(key="access_token", value=access_token, httponly=True)

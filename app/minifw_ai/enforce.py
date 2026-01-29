@@ -48,6 +48,11 @@ def ipset_add(set_name: str, ip: str, timeout: int) -> None:
             "{", ip, "timeout", f"{timeout}s", "}"
         ]
         subprocess.run(cmd, check=True, capture_output=True, text=True)
+        
+        # Audit trail: Log enforcement action
+        from app.minifw_ai.utils.audit_logger import log_enforcement
+        log_enforcement(action="BLOCK", target=ip, timeout=timeout, set_name=set_name)
+        
     except subprocess.CalledProcessError as e:
         logging.error(f"Failed to add IP {ip} to nft set '{set_name}': {e.stderr}")
         raise

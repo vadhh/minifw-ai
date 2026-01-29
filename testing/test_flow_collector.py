@@ -11,18 +11,17 @@ import time
 import json
 from pathlib import Path
 
-# Add app directory to Python path
+# Add project root to Python path (not app directory)
 script_dir = Path(__file__).parent.parent  # Go up to project root
-app_dir = script_dir / 'app'
-sys.path.insert(0, str(app_dir))
+sys.path.insert(0, str(script_dir))
 
-from minifw_ai.collector_flow import (
+from app.minifw_ai.collector_flow import (
     FlowTracker, 
     stream_conntrack_flows,
     build_feature_vector_24
 )
-from minifw_ai.collector_dnsmasq import stream_dns_events
-from minifw_ai.collector_zeek import stream_zeek_sni_events
+from app.minifw_ai.collector_dnsmasq import stream_dns_events
+from app.minifw_ai.collector_zeek import stream_zeek_sni_events
 
 
 def test_basic_flow_tracking(duration: int = 60):

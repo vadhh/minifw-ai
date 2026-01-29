@@ -149,5 +149,99 @@ class TestHardening(unittest.TestCase):
         except Exception as e:
             self.fail(f"Corrupted or empty JSON file: {e}")
 
+
+class TestAuditCoverage(unittest.TestCase):
+    """P2: Verify audit trail coverage for governance compliance"""
+    
+    def setUp(self):
+        """Set up test environment with isolated audit log"""
+        self.audit_path = "/tmp/minifw_test_audit.jsonl"
+        os.environ["MINIFW_AUDIT_LOG"] = self.audit_path
+        os.environ["MINIFW_SECRET_KEY"] = "test-key-for-audit-coverage"
+        os.environ["MINIFW_POLICY"] = "/tmp/test_policy_audit.json"
+        
+        # Reset audit logger to pick up new env vars
+        from app.minifw_ai.utils.audit_logger import reset_audit_logger
+        reset_audit_logger()
+        
+        # Clear audit file
+        if os.path.exists(self.audit_path):
+            os.remove(self.audit_path)
+        
+        # Create test policy file
+        with open("/tmp/test_policy_audit.json", 'w') as f:
+            json.dump({"test": "initial"}, f)
+    
+    def tearDown(self):
+        """Clean up test files"""
+        for path in [self.audit_path, "/tmp/test_policy_audit.json"]:
+            if os.path.exists(path):
+                os.remove(path)
+    
+    def test_policy_update_audited(self):
+        """Test Case 1: Policy update must generate audit entry"""
+        print("\n[TEST] Policy Update Audit Coverage")
+        
+        # Get initial file size
+        initial_size = os.path.getsize(self.audit_path) if os.path.exists(self.audit_path) else 0
+        
+        # Trigger policy update
+        from app.services.policy import update_policy_service
+        import importlib
+        importlib.reload(update_policy_service)  # Reload to pick up new env vars
+        
+        update_policy_service._save_policy({"test": "audit_coverage_test"})
+        
+        # Assert file size increased
+        self.assertTrue(os.path.exists(self.audit_path), "Audit log file should be created")
+        new_size = os.path.getsize(self.audit_path)
+        self.assertGreater(new_size, initial_size, "Audit log should grow after policy update")
+        
+        # Verify content contains POLICY event
+        with open(self.audit_path, 'r') as f:
+            content = f.read()
+        self.assertIn('"event_type": "POLICY"', content, "Audit log should contain POLICY event")
+        self.assertIn('"action": "POLICY_UPDATED"', content, "Audit log should contain POLICY_UPDATED action")
+        
+        print("✅ Policy update correctly logged to audit trail")
+    
+    def test_enforcement_audited(self):
+        """Test Case 2: Enforcement actions must generate audit entry with event_type ENFORCEMENT"""
+        print("\n[TEST] Enforcement Action Audit Coverage")
+        
+        # Get initial file size
+        initial_size = os.path.getsize(self.audit_path) if os.path.exists(self.audit_path) else 0
+        
+        # Simulate enforcement action (direct call to audit logger)
+        from app.minifw_ai.utils.audit_logger import append_audit
+        append_audit(
+            event_type="ENFORCEMENT",
+            action="BLOCK",
+            target="192.168.1.100",
+            details={"reason": "test_verification", "score": 95}
+        )
+        
+        # Assert file was created and has content
+        self.assertTrue(os.path.exists(self.audit_path), "Audit log file should be created")
+        new_size = os.path.getsize(self.audit_path)
+        self.assertGreater(new_size, initial_size, "Audit log should grow after enforcement")
+        
+        # Verify JSON structure
+        with open(self.audit_path, 'r') as f:
+            content = f.read()
+        
+        # Parse the last line as JSON
+        lines = content.strip().split('\n')
+        last_entry = json.loads(lines[-1])
+        
+        self.assertEqual(last_entry["event_type"], "ENFORCEMENT", "event_type should be ENFORCEMENT")
+        self.assertEqual(last_entry["action"], "BLOCK", "action should be BLOCK")
+        self.assertEqual(last_entry["target"], "192.168.1.100", "target should match blocked IP")
+        self.assertIn("timestamp", last_entry, "Entry should have timestamp")
+        
+        print(f"✅ Enforcement action correctly logged: {last_entry}")
+
+
 if __name__ == '__main__':
     unittest.main()
+

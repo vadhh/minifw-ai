@@ -89,3 +89,7 @@ def stream_dns_events_file(log_path: str) -> Iterator[Tuple[str, str]]:
             except Exception as e:
                 print(f"[!] Error reading log file: {e}")
                 time.sleep(1)
+
+
+# Backwards compatibility alias
+stream_dns_events = stream_dns_events_file

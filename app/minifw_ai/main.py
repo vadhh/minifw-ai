@@ -1,9 +1,40 @@
+"""
+MiniFW-AI Main Entry Point
+"""
 from __future__ import annotations
+
+# ========================================
+# CRITICAL: Force sys.path BEFORE any imports
+# This bypasses systemd's env variable handling
+# ========================================
+import sys
 import os
+from pathlib import Path
+
+# Determine the installation root
+# When running from /opt/minifw_ai, we need to add it to sys.path
+# for "from app.xxx" imports to work
+_INSTALL_ROOT = Path("/opt/minifw_ai")
+if _INSTALL_ROOT.exists():
+    _path_str = str(_INSTALL_ROOT)
+    if _path_str not in sys.path:
+        sys.path.insert(0, _path_str)
+    # Also add /opt/minifw_ai/app for "from minifw_ai.xxx" imports
+    _app_path = str(_INSTALL_ROOT / "app")
+    if _app_path not in sys.path:
+        sys.path.insert(0, _app_path)
+
+# Also try development path (relative to this file)
+_DEV_ROOT = Path(__file__).resolve().parent.parent.parent
+if _DEV_ROOT.exists() and str(_DEV_ROOT) not in sys.path:
+    sys.path.insert(0, str(_DEV_ROOT))
+
+# ========================================
+# Now safe to import everything else
+# ========================================
 import json
 import logging
 import subprocess
-from pathlib import Path
 from collections import OrderedDict
 from typing import Any
 

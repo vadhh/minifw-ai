@@ -120,11 +120,14 @@ set -e
 
 # Initialize NFTables (Safe Mode)
 # We add the table/chains if they don't exist to avoid flushing unrelated rules
-nft add table inet filter
-nft 'add chain inet filter forward { type filter hook forward priority 0 ; policy accept ; }'
-nft 'add set inet filter minifw_block_v4 { type ipv4_addr ; flags timeout ; }'
+nft add table inet filter 2>/dev/null || true
+nft 'add chain inet filter forward { type filter hook forward priority 0 ; policy accept ; }' 2>/dev/null || true
+nft 'add set inet filter minifw_block_v4 { type ipv4_addr ; flags timeout ; }' 2>/dev/null || true
 
 # Start the Application
+# PYTHONPATH must include BOTH:
+#   /opt/minifw_ai     - for "from app.minifw_ai..." imports
+#   /opt/minifw_ai/app - for "from minifw_ai..." internal imports
 export PYTHONPATH=/opt/minifw_ai:/opt/minifw_ai/app
 exec /opt/minifw_ai/venv/bin/python -m app.minifw_ai.main
 EOF

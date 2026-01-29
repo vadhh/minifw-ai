@@ -46,6 +46,32 @@ Installs MiniFW-AI as a systemd service.
 sudo bash scripts/install_systemd.sh
 ```
 
+### Systemd Hardening
+
+#### Hybrid Sector Selection TUI (Purple Screen)
+
+The `installer1.sh` script features an interactive **Hybrid Sector Selection TUI** for choosing the deployment sector at install time. This appears as a purple-themed whiptail menu presenting six sector options:
+
+| Sector | Description |
+|--------|-------------|
+| **school** | Content filtering, VPN blocking, Safe Search |
+| **hospital** | IoMT protection, Critical alert priority |
+| **finance** | Anonymizer blocking, High-audit mode |
+| **government** | Geo-IP strictness, Long-term retention |
+| **legal** | Privileged traffic handling |
+| **establishment** | General usage (Shops, Cafes) |
+
+The selected sector is locked into `/etc/minifw/sector.lock` and cannot be changed after deployment, ensuring factory-set security policies remain immutable.
+
+**Usage:**
+```bash
+# Interactive mode (shows TUI)
+sudo bash scripts/installer1.sh
+
+# Automation mode (skip TUI)
+sudo bash scripts/installer1.sh hospital
+```
+
 ---
 
 ## Configuration Scripts
