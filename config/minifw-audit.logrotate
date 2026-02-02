@@ -1,0 +1,50 @@
+# MiniFW-AI Audit Log Rotation Configuration
+# This file should be installed to /etc/logrotate.d/minifw-audit
+#
+# Purpose: Prevent audit.jsonl from consuming all disk space while preserving evidence
+# Compliance: Retains 30 days of audit logs for security governance
+#
+# Installation:
+#   sudo cp config/minifw-audit.logrotate /etc/logrotate.d/minifw-audit
+#   sudo chmod 644 /etc/logrotate.d/minifw-audit
+
+/opt/minifw_ai/logs/audit.jsonl {
+    # Rotate daily
+    daily
+    
+    # Retain 30 days of logs
+    rotate 30
+    
+    # Compress old logs to save space
+    compress
+    
+    # Delay compression until second rotation
+    # (allows current day's log to remain uncompressed for easy access)
+    delaycompress
+    
+    # Don't error if log file is missing
+    missingok
+    
+    # Don't rotate if log is empty
+    notifempty
+    
+    # Create new log file with specific permissions
+    # Format: create mode owner group
+    create 640 minifw adm
+    
+    # Use date as suffix for rotated files
+    dateext
+    dateformat -%Y%m%d
+    
+    # Post-rotation script (optional)
+    # Signal the service to reopen log file if needed
+    postrotate
+        # Check if service is running
+        if systemctl is-active --quiet minifw-ai; then
+            # Service handles log rotation gracefully (Python logging rotates automatically)
+            # No explicit signal needed, but we can add one if required
+            # systemctl reload minifw-ai
+            :
+        fi
+    endscript
+}

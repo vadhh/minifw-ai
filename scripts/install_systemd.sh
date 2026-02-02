@@ -104,5 +104,23 @@ EOF
 systemctl daemon-reload
 systemctl enable --now minifw-ai
 
+# 6. Install Logrotate Configuration for Audit Logs
+echo "Installing logrotate configuration for audit logs..."
+LOGROTATE_SRC="${APP_ROOT}/config/minifw-audit.logrotate"
+LOGROTATE_DST="/etc/logrotate.d/minifw-audit"
+
+if [[ -f "${LOGROTATE_SRC}" ]]; then
+    cp "${LOGROTATE_SRC}" "${LOGROTATE_DST}"
+    chmod 644 "${LOGROTATE_DST}"
+    chown root:root "${LOGROTATE_DST}"
+    echo "✅ Logrotate configuration installed: ${LOGROTATE_DST}"
+    
+    # Test logrotate configuration
+    echo "Testing logrotate configuration (dry-run)..."
+    logrotate -d "${LOGROTATE_DST}" 2>&1 | head -20
+else
+    echo "⚠️  Logrotate configuration not found at ${LOGROTATE_SRC}"
+fi
+
 echo "Service installed & started: minifw-ai (User: $USER)"
 echo "Check: systemctl status minifw-ai --no-pager"

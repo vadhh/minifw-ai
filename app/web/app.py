@@ -29,6 +29,31 @@ async def custom_http_exception_handler(request: Request, exc: HTTPException):
         if "text/html" in accept_header or not accept_header:
             return RedirectResponse(url="/auth/login", status_code=303)
     
+    # Jika 403 dengan detail password change required, redirect ke change-password
+    if exc.status_code == 403:
+        if "Password change required" in str(exc.detail):
+            accept_header = request.headers.get("accept", "")
+            # Check if request expects HTML
+            if "text/html" in accept_header or not accept_header:
+                return RedirectResponse(url="/auth/change-password?force=1", status_code=303)
+    
+    # Jika 429 (rate limit), show error on login page
+    if exc.status_code == 429:
+        accept_header = request.headers.get("accept", "")
+        if "text/html" in accept_header or not accept_header:
+            # For HTML requests, redirect to login with error
+            from fastapi.templating import Jinja2Templates
+            templates = Jinja2Templates(directory="app/web/templates")
+            retry_after = exc.headers.get("Retry-After", "60") if exc.headers else "60"
+            return templates.TemplateResponse(
+                "auth/login.html",
+                {
+                    "request": request,
+                    "error": f"Too many login attempts. Please wait {retry_after} seconds and try again."
+                },
+                status_code=429
+            )
+    
     # Untuk request lainnya, return normal error
     return await http_exception_handler(request, exc)
 
