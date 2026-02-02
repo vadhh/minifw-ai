@@ -37,20 +37,15 @@ MINIFW_POLICY=${CONFIG_DIR}/policy.json
 MINIFW_SECTOR_LOCK=${SECRETS_DIR}/sector.lock
 EOF
 
-# 6. Docker Compose Override (for testing)
-cat > "${TEST_ROOT}/docker-compose.test.yml" <<EOF
-version: '3.8'
-services:
-  minifw-test:
-    build: .
-    env_file: ${TEST_ROOT}/.env
-    volumes:
-      - ${CONFIG_DIR}:/app/config
-      - ${SECRETS_DIR}:/etc/minifw:ro
-      - ${LOG_DIR}:/var/log
-    network_mode: "host"
-    command: python3 -m pytest testing/
-EOF
+# 6. Local Testbed Permissions
+# Ensure the directory is accessible by the service user if needed
+echo "   Setting permissions..."
+chmod -R 777 "${TEST_ROOT}"
 
 echo "✅ Testbed initialized."
-echo "   Run tests: docker-compose -f ${TEST_ROOT}/docker-compose.test.yml up --build --abort-on-container-exit"
+echo "   To run tests locally:"
+echo "   export PYTHONPATH=$(pwd):$(pwd)/app"
+echo "   python3 -m pytest testing/"
+echo "   "
+echo "   Or use the TUI:"
+echo "   python3 testing/run_tests_tui.py"

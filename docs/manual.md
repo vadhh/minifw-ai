@@ -26,7 +26,11 @@
 
 ---
 
-## Step 1: Install
+## Part 1: Backend Setup (Core Firewall)
+
+The backend is the core detection and enforcement engine. It runs as a systemd service.
+
+### Step 1: Install Backend
 
 ```bash
 cd ~/minifw-ai
@@ -39,7 +43,7 @@ The installer will:
 3. Deploy configuration files
 4. Prompt for **Sector Selection** via TUI
 
-### Sector Selection TUI
+#### Sector Selection TUI
 ```
 ┌─────────────────────────────────────────┐
 │ Select Sector for this Installation:   │
@@ -55,11 +59,9 @@ The installer will:
 
 > ⚠️ **IMPORTANT**: Sector is immutable after installation!
 
----
+### Step 2: Verify Installation
 
-## Step 2: Verify Installation
-
-### Run Test Suite
+#### Run Test Suite
 ```bash
 cd ~/minifw-ai
 python3 testing/run_tests_tui.py
@@ -69,12 +71,12 @@ python3 testing/run_tests_tui.py
 - ✅ 5 tests pass (no setup required)
 - ⏭️ 5 tests skip (require root/model/pytest)
 
-### Check Logs
+#### Check Logs
 ```bash
 cat logs/test_results.log
 ```
 
-### Run Skipped Tests Manually (Optional)
+#### Run Skipped Tests Manually (Optional)
 ```bash
 # Sector Lock (requires pytest)
 pip install pytest
@@ -87,9 +89,7 @@ python3 testing/test_mlp_inference.py --model models/mlp_engine.pkl
 sudo python3 testing/test_flow_collector.py 60
 ```
 
----
-
-## Step 3: Start Service
+### Step 3: Start Backend Service
 
 ```bash
 # Install systemd service
@@ -105,30 +105,199 @@ sudo systemctl enable minifw-ai
 sudo systemctl status minifw-ai
 ```
 
----
+### Step 4: Verify Backend Service
 
-## Step 4: Verify Service
-
-### Check Event Logging
+#### Check Event Logging
 ```bash
 tail -f /opt/minifw_ai/logs/events.jsonl
 ```
 
-### Check Audit Trail
+#### Check Audit Trail
 ```bash
 tail -f /opt/minifw_ai/logs/audit.jsonl
 ```
 
-### Start Web Dashboard
+---
+
+## Part 2: Frontend Setup (Web Dashboard)
+
+The frontend is a FastAPI web application providing the admin dashboard.
+
+### Prerequisites
+
+- Backend (Part 1) must be installed and running
+- Log directory access configured
+
+### Step 1: Configure Environment
+
+#### Required Environment Variables
+
 ```bash
-# In separate terminal
-cd ~/minifw-ai
-python3 -m uvicorn app.web.app:app --host 0.0.0.0 --port 8080
+# Generate and set JWT secret
+export MINIFW_SECRET_KEY=$(openssl rand -hex 32)
+
+# Add to /etc/minifw/minifw.env for persistence
+echo "MINIFW_SECRET_KEY=$(openssl rand -hex 32)" | sudo tee -a /etc/minifw/minifw.env
 ```
 
-Access: `http://<gateway-ip>:8080`
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `MINIFW_SECRET_KEY` | **Yes** | JWT signing key (hex, 32+ chars) |
+| `MINIFW_PRODUCTION` | No | Set to `true` for secure cookies |
+
+> ⚠️ **FAIL-FAST**: The web app will refuse to start without `MINIFW_SECRET_KEY`
+
+#### Fix Log Permissions (for dev/debug)
+
+If running the web app as a non-root user:
+```bash
+sudo setfacl -R -m u:$USER:rwx /opt/minifw_ai/logs/
+sudo setfacl -R -d -m u:$USER:rwx /opt/minifw_ai/logs/
+```
+
+### Step 2: Initialize Database
+
+```bash
+cd ~/minifw-ai
+
+# Set required env var
+export MINIFW_SECRET_KEY="your-secret-key-here"
+
+# Initialize database (creates minifw.db)
+python3 -c "from app.database import init_db; init_db()"
+
+# Create admin user
+python3 <<EOF
+from app.database import SessionLocal
+from app.models.user import User, UserRole, SectorType
+from app.services.auth.password_service import hash_password
+
+db = SessionLocal()
+
+# Check if admin exists
+existing = db.query(User).filter(User.username == "admin").first()
+if not existing:
+    admin = User(
+        username="admin",
+        email="admin@minifw.local",
+        hashed_password=hash_password("changeme123"),
+        role=UserRole.SUPER_ADMIN.value,
+        sector=SectorType.ESTABLISHMENT.value,
+        is_active=True
+    )
+    db.add(admin)
+    db.commit()
+    print("✅ Admin user created: admin / changeme123")
+else:
+    print("⚠️ Admin user already exists")
+db.close()
+EOF
+```
+
+### Step 3: Run Web Dashboard
+
+#### Development Mode
+```bash
+cd ~/minifw-ai
+python3 -m uvicorn app.web.app:app --host 0.0.0.0 --port 8080 --reload
+```
+
+#### Production Mode (Systemd)
+
+Create `/etc/systemd/system/minifw-web.service`:
+
+```ini
+[Unit]
+Description=MiniFW-AI Web Dashboard
+After=network.target minifw-ai.service
+
+[Service]
+Type=simple
+User=minifw
+Group=minifw
+WorkingDirectory=/opt/minifw_ai
+EnvironmentFile=/etc/minifw/minifw.env
+ExecStart=/opt/minifw_ai/venv/bin/uvicorn app.web.app:app --host 0.0.0.0 --port 8080
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
+```
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable minifw-web
+sudo systemctl start minifw-web
+```
+
+**Check logs:** `tail -f /opt/minifw_ai/logs/events.jsonl`
+
+| Username | Password | Role |
+|----------|----------|------|
+| `admin` | `changeme123` | Super Admin |
+
+> 🔒 **Change the default password immediately after first login!**
+
+### Frontend Security Features
+
+The dashboard includes these security measures:
+
+| Feature | Description |
+|---------|-------------|
+| **safeFetch()** | Global error handler for API calls (401/403/422/500) |
+| **AJAX Login** | Graceful error handling for server issues |
+| **Server-side Role Check** | Admin pages redirect non-admin users immediately |
+| **Cookie Hardening** | `SameSite=Lax`, `Secure` flag in production |
 
 ---
+
+## Detection-to-Enforcement Binding (Audit Compliance)
+
+Every firewall block is linked to its triggering detection event via UUID for regulatory compliance.
+
+### Audit Log Structure
+
+**Detection Event** (logged first):
+```json
+{
+  "event_id": "2f026877-c6a8-49ae-8426-29648888ff04",
+  "event_type": "DETECTION",
+  "detection_type": "THREAT_BEHAVIOR",
+  "source_ip": "192.168.1.100",
+  "ai_score": 95,
+  "confidence": 0.95,
+  "model_version": "1.0.0",
+  "threshold_applied": 90
+}
+```
+
+**Enforcement Event** (linked):
+```json
+{
+  "event_type": "ENFORCEMENT",
+  "action": "BLOCK",
+  "target": "192.168.1.100",
+  "triggering_event_id": "2f026877-c6a8-49ae-8426-29648888ff04"
+}
+```
+
+### Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `MINIFW_GAMBLING_ONLY` | `0` | Set to `1` for gambling-only detection mode |
+| `MINIFW_MODEL_VERSION` | `1.0.0` | AI model version for audit trail |
+
+### Fail-Closed Enforcement
+
+The system raises `RuntimeError` if enforcement is attempted without a valid detection ID, preventing unaudited blocks.
+
+### Verify Binding Tests
+
+```bash
+python3 scripts/verify_sprint.py TestDetectionEnforcementBinding -v
+```
 
 ## Step 5: Generate Proof Pack
 
@@ -151,6 +320,8 @@ Output: `proof_pack_YYYYMMDD_HHMMSS.tar.gz`
 | `No module named 'sklearn'` | `pip install scikit-learn` |
 | `No module named 'jose'` | `pip install python-jose[cryptography]` |
 | `Permission denied` | Run with `sudo` |
+| `error reading bcrypt version` / `bcrypt has no attribute '__about__'` | Downgrade bcrypt: `pip install bcrypt==4.0.1` (passlib requires <4.1.0) |
+| `Permission denied: '/opt/minifw_ai/logs/...'` (manual debug) | Grant user access via ACL: `sudo setfacl -R -m u:$USER:rwx /opt/minifw_ai/logs/` |
 | `No module named 'minifw_ai'` | PYTHONPATH wrong. Re-run `sudo ./scripts/installer1.sh` (fixed to use dual path) |
 | `No module named 'app.models'` | Same as above - installer generates correct wrapper |
 | `cannot import name 'stream_dns_events'` | Update code: `git pull` (fixed in latest version) |

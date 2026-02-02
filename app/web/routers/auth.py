@@ -1,3 +1,4 @@
+import os
 from fastapi import APIRouter, Request, Depends, Form, HTTPException
 from fastapi.responses import RedirectResponse, HTMLResponse
 from fastapi.templating import Jinja2Templates
@@ -44,7 +45,13 @@ def login(
     # If 2FA enabled, redirect to 2FA page
     if user.is_2fa_enabled:
         response = RedirectResponse(url="/auth/2fa", status_code=303)
-        response.set_cookie(key="temp_username", value=username, httponly=True, max_age=300)
+        response.set_cookie(
+            key="temp_username", 
+            value=username, 
+            httponly=True, 
+            max_age=300,
+            samesite="lax"
+        )
         return response
     
     # No 2FA, create token and redirect to dashboard
@@ -55,7 +62,13 @@ def login(
     log_auth_success(user.username)
     
     response = RedirectResponse(url="/admin/", status_code=303)
-    response.set_cookie(key="access_token", value=access_token, httponly=True)
+    response.set_cookie(
+        key="access_token", 
+        value=access_token, 
+        httponly=True,
+        samesite="lax",
+        secure=os.getenv("MINIFW_PRODUCTION", "").lower() == "true"
+    )
     return response
 
 
@@ -99,7 +112,13 @@ def verify_2fa(
     log_auth_success(user.username, method="2fa")
     
     response = RedirectResponse(url="/admin/", status_code=303)
-    response.set_cookie(key="access_token", value=access_token, httponly=True)
+    response.set_cookie(
+        key="access_token", 
+        value=access_token, 
+        httponly=True,
+        samesite="lax",
+        secure=os.getenv("MINIFW_PRODUCTION", "").lower() == "true"
+    )
     response.delete_cookie(key="temp_username")
     return response
 

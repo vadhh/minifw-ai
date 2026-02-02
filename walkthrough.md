@@ -17,7 +17,7 @@
 | **Medium Severity Issues** | **4** | 🔽 -1 |
 
 ### Assessment
-Significant improvements have been made to the **Enforcement Engine** (preventing command injection) and **Docker Configuration** (robust logging, environment variables). A detailed **Attack Simulator** has been added, making the system ready for **functional demos**.
+Significant improvements have been made to the **Enforcement Engine** (preventing command injection) and **System Services** (robust logging, environment variables). A detailed **Attack Simulator** has been added, making the system ready for **functional demos**.
 
 > [!WARNING]
 > **Production Status: NOT READY.** 
@@ -33,9 +33,9 @@ A robust testing tool has been added that generates realistic threat scenarios:
 - **Output:** JSONL format compatible with the dashboard.
 - **Quality:** High. The code is well-structured and configurable.
 
-### ✅ Docker Hardening
-- **Secrets:** `docker-compose.yml` now uses `.env` file (Fixed CRITICAL-004 definition, but code integration is missing).
-- **Logging:** `dnsmasq` container now uses a robust pipe-to-netcat approach for reliable log collection.
+### ✅ System Services Hardening
+- **Secrets:** Native installation uses `/etc/minifw/minifw.env` with restricted 600 permissions.
+- **Logging:** `dnsmasq` logs directly to `/var/log/dnsmasq.log` for reliable metadata collection.
 
 ---
 

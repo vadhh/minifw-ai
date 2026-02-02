@@ -333,7 +333,7 @@ def check_dns_server(dns_server: str, port: int = 53) -> bool:
         return True
     else:
         print(f"   ❌ DNS server not responding: {result['error']}")
-        print(f"   Make sure dnsmasq is running: docker ps | grep minifw_dns")
+        print(f"   Make sure dnsmasq is running: sudo systemctl status dnsmasq")
         return False
 
 
@@ -359,7 +359,7 @@ Examples:
   python real_traffic_simulator.py --quiet
 
 Note: The DNS server (dnsmasq) must be running for this to work.
-Check with: docker ps | grep minifw_dns
+Check with: sudo systemctl status dnsmasq
         """
     )
     

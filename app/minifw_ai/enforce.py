@@ -35,9 +35,15 @@ def ipset_create(set_name: str, timeout: int) -> None:
             logging.error(f"Failed to create nft set '{set_name}': {e.stderr}")
             raise
 
-def ipset_add(set_name: str, ip: str, timeout: int) -> None:
+def ipset_add(set_name: str, ip: str, timeout: int, triggering_event_id: str = None) -> None:
     """
     Adds an IP to the native nftables set.
+    
+    Args:
+        set_name: Name of the nftables set
+        ip: IP address to block
+        timeout: Timeout in seconds
+        triggering_event_id: UUID from log_detection() for audit binding
     """
     if not is_valid_nft_object_name(set_name):
         raise ValueError(f"Invalid nftables set name: {set_name}")
@@ -49,9 +55,18 @@ def ipset_add(set_name: str, ip: str, timeout: int) -> None:
         ]
         subprocess.run(cmd, check=True, capture_output=True, text=True)
         
-        # Audit trail: Log enforcement action
+        # Audit trail: Log enforcement action with linkage
         from app.minifw_ai.utils.audit_logger import log_enforcement
-        log_enforcement(action="BLOCK", target=ip, timeout=timeout, set_name=set_name)
+        
+        # If no ID provided (legacy call), flag it for audit review
+        safe_event_id = triggering_event_id if triggering_event_id else "UNLINKED_LEGACY_CALL"
+        
+        log_enforcement(
+            action="BLOCK", 
+            target=ip, 
+            triggering_event_id=safe_event_id,
+            details={"mechanism": "nftables", "set": set_name, "timeout": timeout}
+        )
         
     except subprocess.CalledProcessError as e:
         logging.error(f"Failed to add IP {ip} to nft set '{set_name}': {e.stderr}")

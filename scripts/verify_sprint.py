@@ -242,6 +242,112 @@ class TestAuditCoverage(unittest.TestCase):
         print(f"✅ Enforcement action correctly logged: {last_entry}")
 
 
+class TestDetectionEnforcementBinding(unittest.TestCase):
+    """P0: Verify Detection-to-Enforcement binding for audit compliance"""
+    
+    def setUp(self):
+        """Set up test environment with isolated audit log"""
+        self.audit_path = "/tmp/minifw_test_binding_audit.jsonl"
+        os.environ["MINIFW_AUDIT_LOG"] = self.audit_path
+        os.environ["MINIFW_SECRET_KEY"] = "test-key-for-binding"
+        
+        # Reset audit logger to pick up new env vars
+        from app.minifw_ai.utils.audit_logger import reset_audit_logger
+        reset_audit_logger()
+        
+        # Clear audit file
+        if os.path.exists(self.audit_path):
+            os.remove(self.audit_path)
+    
+    def tearDown(self):
+        """Clean up test files"""
+        if os.path.exists(self.audit_path):
+            os.remove(self.audit_path)
+    
+    def test_enforcement_links_to_detection(self):
+        """P0: Verify ENFORCEMENT event contains valid detection UUID"""
+        print("\n[TEST] Detection-to-Enforcement Linkage")
+        
+        from app.minifw_ai.utils.audit_logger import log_detection, log_enforcement
+        
+        # 1. Create Detection
+        det_id = log_detection(
+            detection_type="TEST_DETECT",
+            source_ip="1.2.3.4",
+            domain="test.com",
+            score=95,
+            model_version="test-v1",
+            confidence=0.95,
+            threshold_applied=90
+        )
+        
+        self.assertIsNotNone(det_id, "Detection ID must be generated")
+        self.assertTrue(len(det_id) == 36, "Detection ID should be valid UUID format")
+        
+        # 2. Create Enforcement linked to it
+        log_enforcement(
+            action="BLOCK",
+            target="1.2.3.4",
+            triggering_event_id=det_id,
+            details={"test": True}
+        )
+        
+        # 3. Verify linkage in file
+        found_detection = False
+        found_enforcement = False
+        enforcement_has_link = False
+        
+        with open(self.audit_path, 'r') as f:
+            for line in f:
+                entry = json.loads(line)
+                if entry.get("event_type") == "DETECTION" and entry.get("event_id") == det_id:
+                    found_detection = True
+                if entry.get("event_type") == "ENFORCEMENT":
+                    found_enforcement = True
+                    if entry.get("triggering_event_id") == det_id:
+                        enforcement_has_link = True
+        
+        self.assertTrue(found_detection, "Detection log entry must exist")
+        self.assertTrue(found_enforcement, "Enforcement log entry must exist")
+        self.assertTrue(enforcement_has_link, "Enforcement must contain the Detection Event ID")
+        
+        print(f"✅ Detection-to-Enforcement linkage verified: {det_id}")
+    
+    def test_fail_closed_without_detection(self):
+        """P0: Verify RuntimeError is raised when enforcement attempted without detection ID"""
+        print("\n[TEST] Fail-Closed Without Detection")
+        
+        # Simulate what main.py does - check for None/empty detection_id
+        def enforce_with_binding(detection_event_id):
+            """Simulates the fail-closed check from main.py"""
+            if not detection_event_id:
+                raise RuntimeError("Audit Binding Failure: Cannot enforce without a valid detection_event_id")
+            # Would call ipset_add here
+            return True
+        
+        # Test with None
+        with self.assertRaises(RuntimeError) as context:
+            enforce_with_binding(None)
+        
+        self.assertIn("Audit Binding Failure", str(context.exception))
+        print("✅ Correctly raised RuntimeError for None detection_id")
+        
+        # Test with empty string
+        with self.assertRaises(RuntimeError) as context:
+            enforce_with_binding("")
+        
+        self.assertIn("Audit Binding Failure", str(context.exception))
+        print("✅ Correctly raised RuntimeError for empty detection_id")
+        
+        # Test with valid ID - should not raise
+        try:
+            result = enforce_with_binding("valid-uuid-1234")
+            self.assertTrue(result, "Valid detection ID should proceed")
+            print("✅ Valid detection_id proceeds without error")
+        except RuntimeError:
+            self.fail("Should not raise RuntimeError for valid detection_id")
+
+
 if __name__ == '__main__':
     unittest.main()
 

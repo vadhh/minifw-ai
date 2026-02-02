@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 </head>
+
 <body class="bg-light">
     <div class="container">
         <div class="row justify-content-center align-items-center min-vh-100">
@@ -19,18 +21,32 @@
                             <p class="text-muted">Login to your account</p>
                         </div>
 
-                        {% if error %}
-                        <div class="alert alert-danger" role="alert">
-                            <i class="bi bi-exclamation-triangle"></i> {{ error }}
+                        <div id="alertContainer">
+                            {% if error %}
+                            <div class="alert alert-danger" role="alert">
+                                <i class="bi bi-exclamation-triangle"></i> {{ error }}
+                            </div>
+                            {% endif %}
+                            {% if request.query_params.get('expired') %}
+                            <div class="alert alert-warning" role="alert">
+                                <i class="bi bi-clock"></i> Your session has expired. Please log in again.
+                            </div>
+                            {% endif %}
+                            {% if request.query_params.get('changed') %}
+                            <div class="alert alert-success" role="alert">
+                                <i class="bi bi-check-circle"></i> Password changed successfully. Please log in with
+                                your new password.
+                            </div>
+                            {% endif %}
                         </div>
-                        {% endif %}
 
-                        <form method="POST" action="/auth/login">
+                        <form id="loginForm" method="POST" action="/auth/login" onsubmit="return handleLogin(event)">
                             <div class="mb-3">
                                 <label for="username" class="form-label">Username</label>
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="bi bi-person"></i></span>
-                                    <input type="text" class="form-control" id="username" name="username" required autofocus>
+                                    <input type="text" class="form-control" id="username" name="username" required
+                                        autofocus>
                                 </div>
                             </div>
 
@@ -43,7 +59,7 @@
                             </div>
 
                             <div class="d-grid">
-                                <button type="submit" class="btn btn-primary btn-lg">
+                                <button type="submit" class="btn btn-primary btn-lg" id="loginBtn">
                                     <i class="bi bi-box-arrow-in-right"></i> Login
                                 </button>
                             </div>
@@ -55,5 +71,106 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        async function handleLogin(event) {
+            event.preventDefault();
+
+            const form = event.target;
+            const submitBtn = document.getElementById('loginBtn');
+            const originalText = submitBtn.innerHTML;
+            const alertContainer = document.getElementById('alertContainer');
+
+            // Clear previous alerts (except server-rendered ones)
+            const existingAlert = alertContainer.querySelector('.js-alert');
+            if (existingAlert) existingAlert.remove();
+
+            try {
+                // Show loading state
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span> Logging in...';
+
+                const formData = new FormData(form);
+                const response = await fetch('/auth/login', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                // Handle redirects (successful login goes to /admin/ or /auth/2fa)
+                if (response.redirected) {
+                    window.location.href = response.url;
+                    return false;
+                }
+
+                // Handle 500 Server Error explicitly
+                if (response.status === 500) {
+                    showError('Server error. The service is temporarily unavailable. Please try again later or contact support.');
+                    console.error('Login 500 Error:', await response.text());
+                    return false;
+                }
+
+                // Handle other errors (401, 422, etc.) - server returns HTML with error message
+                if (!response.ok) {
+                    // For validation/auth errors, the server returns the page with error message
+                    // We extract and show the error without full page reload
+                    const html = await response.text();
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const errorAlert = doc.querySelector('.alert-danger');
+
+                    if (errorAlert) {
+                        showError(errorAlert.textContent.trim());
+                    } else {
+                        showError('Login failed. Please check your credentials.');
+                    }
+                    return false;
+                }
+
+                // If we get here with 200 OK, it's the login page rendered with error
+                // (FastAPI returns 200 with template containing error message)
+                const html = await response.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const errorAlert = doc.querySelector('.alert-danger');
+
+                if (errorAlert) {
+                    showError(errorAlert.textContent.trim());
+                }
+
+            } catch (error) {
+                console.error('Login error:', error);
+                if (error.message === 'Failed to fetch') {
+                    showError('Network error. Please check your internet connection.');
+                } else {
+                    showError('An unexpected error occurred. Please try again.');
+                }
+            } finally {
+                // Restore button state
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            }
+
+            return false;
+        }
+
+        function showError(message) {
+            const alertContainer = document.getElementById('alertContainer');
+
+            // Remove any existing JS-created alerts
+            const existingAlert = alertContainer.querySelector('.js-alert');
+            if (existingAlert) existingAlert.remove();
+
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-danger js-alert';
+            alert.innerHTML = '<i class="bi bi-exclamation-triangle"></i> ' + escapeHtml(message);
+            alertContainer.appendChild(alert);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
 </body>
+
 </html>

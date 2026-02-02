@@ -322,8 +322,17 @@ def post_burst(payload: UpdateBurstRequest):
 
 # User Management Page
 @router.get("/users")
-def get_user_management_page(request: Request):
+def get_user_management_page(
+    request: Request,
+    current_user: User = Depends(get_current_user)
+):
     """User management page (Super Admin only)"""
+    from fastapi.responses import RedirectResponse
+    
+    # Server-side role check - prevent UI flash for non-admins
+    if current_user.role != "super_admin":
+        return RedirectResponse(url="/admin/", status_code=303)
+    
     return user_management_page_controller(request)
 
 # Get Current User Info (for permission check)

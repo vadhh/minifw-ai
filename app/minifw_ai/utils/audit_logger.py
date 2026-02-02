@@ -3,12 +3,17 @@ Thread-safe JSONL Audit Logger for MiniFW-AI
 
 Provides regulator-grade audit trail logging using Python's logging module
 for thread-safety in async FastAPI environments.
+
+Detection-to-Enforcement Binding:
+- log_detection() generates unique event_id (UUID) and returns it
+- log_enforcement() requires triggering_event_id to close the audit loop
 """
 from __future__ import annotations
 
 import os
 import json
 import logging
+import uuid
 from datetime import datetime, timezone
 from typing import Optional
 
@@ -99,10 +104,85 @@ def append_audit(
     
     logger.info(json.dumps(entry, ensure_ascii=False))
 
+def log_detection(
+    detection_type: str,
+    source_ip: str,
+    domain: str,
+    score: int,
+    model_version: str,
+    confidence: float,
+    threshold_applied: int,
+    details: Optional[dict] = None
+) -> str:
+    """
+    Logs an AI detection event and returns a unique Event ID.
+    This ID must be passed to the enforcement layer for audit binding.
+    
+    Args:
+        detection_type: Type of detection (e.g., "THREAT_BEHAVIOR", "GAMBLING_BEHAVIOR")
+        source_ip: Client IP that triggered detection
+        domain: Target domain involved
+        score: Threat score (0-100)
+        model_version: Version of the AI model used
+        confidence: Confidence score as float (0.0-1.0)
+        threshold_applied: Block threshold that was exceeded
+        details: Optional additional context
+    
+    Returns:
+        event_id: Unique UUID string that must be passed to log_enforcement()
+    """
+    # Type validation for float fields
+    if not isinstance(confidence, (int, float)):
+        raise TypeError(f"confidence must be a float, got {type(confidence).__name__}")
+    
+    event_id = str(uuid.uuid4())
+    logger = _get_audit_logger()
+    
+    entry = {
+        "event_id": event_id,
+        "event_type": "DETECTION",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "detection_type": detection_type,
+        "source_ip": source_ip,
+        "target_domain": domain,
+        "ai_score": score,
+        "confidence": float(confidence),
+        "model_version": model_version,
+        "threshold_applied": threshold_applied,
+        "details": details or {}
+    }
+    
+    logger.info(json.dumps(entry, ensure_ascii=False))
+    return event_id
 
-def log_enforcement(action: str, target: str, **kwargs) -> None:
-    """Convenience wrapper for enforcement audit events."""
-    append_audit(event_type="ENFORCEMENT", action=action, target=target, details=kwargs)
+
+def log_enforcement(
+    action: str, 
+    target: str, 
+    triggering_event_id: str,
+    details: Optional[dict] = None
+) -> None:
+    """
+    Log enforcement action with mandatory linkage to triggering detection.
+    
+    Args:
+        action: Enforcement action (e.g., "BLOCK")
+        target: Target of enforcement (IP address)
+        triggering_event_id: UUID from log_detection() - REQUIRED for audit binding
+        details: Optional additional context
+    """
+    logger = _get_audit_logger()
+    
+    entry = {
+        "event_type": "ENFORCEMENT",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "action": action,
+        "target": target,
+        "triggering_event_id": triggering_event_id,
+        "details": details or {}
+    }
+    
+    logger.info(json.dumps(entry, ensure_ascii=False))
 
 
 def log_policy_change(action: str, **kwargs) -> None:

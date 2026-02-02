@@ -75,6 +75,9 @@ except ImportError:
     SECTOR_LOCK_AVAILABLE = False
     get_sector_lock = None
 
+# NEW: Import audit logger for Detection-to-Enforcement binding
+from minifw_ai.utils.audit_logger import log_detection
+
 def segment_for_ip(ip: str, mapping: dict[str, list[str]]) -> str:
     for seg, cidrs in mapping.items():
         if ip_in_any_subnet(ip, cidrs):
@@ -400,7 +403,31 @@ def run():
             )
 
             if action == "block":
-                ipset_add(set_name, client_ip, timeout)
+                # Detection-to-Enforcement Binding (Fail-Closed)
+                gambling_only = os.environ.get("MINIFW_GAMBLING_ONLY", "0") == "1"
+                model_version = os.environ.get("MINIFW_MODEL_VERSION", "1.0.0")
+                
+                # Generate Detection Event (The "Why")
+                detect_type = "GAMBLING_BEHAVIOR" if gambling_only else "THREAT_BEHAVIOR"
+                
+                detection_event_id = log_detection(
+                    detection_type=detect_type,
+                    source_ip=client_ip,
+                    domain=domain,
+                    score=score,
+                    model_version=model_version,
+                    confidence=(score / 100.0),
+                    threshold_applied=thr.block_threshold,
+                    details={"reasons": reasons}
+                )
+                
+                # Fail-Closed Check (The "Regulator Safety Net")
+                if not detection_event_id:
+                    logging.critical("AUDIT FAILURE: Detection ID generation failed. Cannot enforce.")
+                    raise RuntimeError("Audit Binding Failure: Cannot enforce without a valid detection_event_id")
+                
+                # Enforce with Binding (The "Action")
+                ipset_add(set_name, client_ip, timeout, triggering_event_id=detection_event_id)
             
             # NEW: Hospital sector IoMT high-priority alerting
             if sector_lock and sector_lock.is_hospital() and iomt_subnets:

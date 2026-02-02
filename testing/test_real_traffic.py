@@ -15,10 +15,9 @@ import signal
 import time
 from pathlib import Path
 
-# Add app to path
+# Add project root to path
 script_dir = Path(__file__).parent.parent  # Go up to project root
-app_dir = script_dir / 'app'
-sys.path.insert(0, str(app_dir))
+sys.path.insert(0, str(script_dir))
 
 # Configuration
 TEST_DURATION_MINUTES = int(sys.argv[1]) if len(sys.argv) > 1 else 5
@@ -81,9 +80,8 @@ def signal_handler(sig, frame):
 signal.signal(signal.SIGINT, signal_handler)
 signal.signal(signal.SIGTERM, signal_handler)
 
-# Import the modified main
-sys.path.insert(0, str(script_dir))
-from main_with_flow_collector import run
+# Import the main module
+from app.minifw_ai.main import run
 
 # Start monitoring thread
 import threading
