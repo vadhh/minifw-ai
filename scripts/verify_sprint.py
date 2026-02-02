@@ -243,7 +243,14 @@ class TestAuditCoverage(unittest.TestCase):
 
 
 class TestDetectionEnforcementBinding(unittest.TestCase):
-    """P0: Verify Detection-to-Enforcement binding for audit compliance"""
+    """
+    P0: Verify Detection-to-Enforcement binding for audit compliance
+    
+    ⚠️  CRITICAL CI/CD COMPONENT - DO NOT REMOVE ⚠️
+    This test class ensures the core audit binding logic remains functional.
+    Removal or modification of these tests may compromise audit compliance
+    and detection-to-enforcement traceability required for security governance.
+    """
     
     def setUp(self):
         """Set up test environment with isolated audit log"""

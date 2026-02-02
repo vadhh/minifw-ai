@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 from fastapi import APIRouter, Request, Depends, Form, HTTPException
 from fastapi.responses import RedirectResponse, HTMLResponse
 from fastapi.templating import Jinja2Templates
@@ -13,6 +14,7 @@ from app.services.auth.user_service import (
 from app.services.auth.token_service import create_access_token
 from app.services.auth.totp_service import verify_totp
 from app.minifw_ai.utils.audit_logger import log_auth_success, log_auth_failure
+from app.middleware.rate_limiter import check_rate_limit
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 templates = Jinja2Templates(directory="app/web/templates")
@@ -24,14 +26,14 @@ def login_page(request: Request):
     return templates.TemplateResponse("auth/login.html", {"request": request})
 
 
-@router.post("/login")
+@router.post("/login", dependencies=[Depends(check_rate_limit)])
 def login(
     request: Request,
     username: str = Form(...),
     password: str = Form(...),
     db: Session = Depends(get_db)
 ):
-    """Handle login"""
+    """Handle login with rate limiting (5 attempts per minute per IP)"""
     user = authenticate_user(db, username, password)
     
     if not user:
@@ -51,6 +53,20 @@ def login(
             httponly=True, 
             max_age=300,
             samesite="lax"
+        )
+        return response
+    
+    # Check if user must change password (First Login Enforcement)
+    if user.must_change_password:
+        # Create a temporary token for password change
+        access_token = create_access_token(data={"sub": user.username})
+        response = RedirectResponse(url="/auth/change-password?force=1", status_code=303)
+        response.set_cookie(
+            key="access_token", 
+            value=access_token, 
+            httponly=True,
+            samesite="lax",
+            secure=os.getenv("MINIFW_PRODUCTION", "").lower() == "true"
         )
         return response
     
@@ -103,6 +119,21 @@ def verify_2fa(
             "auth/2fa.html",
             {"request": request, "error": "Invalid 2FA code"}
         )
+    
+    # Check if user must change password (First Login Enforcement)
+    if user.must_change_password:
+        # Create a temporary token for password change
+        access_token = create_access_token(data={"sub": user.username})
+        response = RedirectResponse(url="/auth/change-password?force=1", status_code=303)
+        response.set_cookie(
+            key="access_token", 
+            value=access_token, 
+            httponly=True,
+            samesite="lax",
+            secure=os.getenv("MINIFW_PRODUCTION", "").lower() == "true"
+        )
+        response.delete_cookie(key="temp_username")
+        return response
     
     # Create token and redirect
     access_token = create_access_token(data={"sub": user.username})
@@ -211,7 +242,18 @@ def change_password(
     
     # Update password
     user.hashed_password = get_password_hash(new_password)
+    user.must_change_password = False  # Clear the flag after password change
+    user.last_password_change = datetime.utcnow()
     db.commit()
+    
+    # Audit trail: Log password change
+    from app.minifw_ai.utils.audit_logger import append_audit
+    append_audit(
+        event_type="AUTH",
+        action="PASSWORD_CHANGED",
+        target=user.username,
+        details={"forced": request.query_params.get("force") == "1"}
+    )
     
     # Redirect to login with success message
     response = RedirectResponse(url="/auth/login?changed=1", status_code=303)

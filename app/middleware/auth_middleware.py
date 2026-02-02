@@ -8,6 +8,7 @@ def get_current_user(request: Request, db: Session = Depends(get_db)):
     """
     Dependency untuk get current user dari token
     Raise exception jika tidak ada token atau token invalid
+    Also enforces password change requirement for new users
     """
     token = request.cookies.get("access_token")
     
@@ -47,6 +48,16 @@ def get_current_user(request: Request, db: Session = Depends(get_db)):
             status_code=status.HTTP_403_FORBIDDEN,
             detail="User account is disabled"
         )
+    
+    # Check if user must change password (P0 Hygiene)
+    # Allow access to change-password endpoint, but block everything else
+    if user.must_change_password:
+        # Check if this is the change-password endpoint
+        if not request.url.path.startswith("/auth/change-password"):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Password change required. Please change your password before accessing other features."
+            )
     
     return user
 

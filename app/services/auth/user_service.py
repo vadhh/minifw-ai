@@ -13,13 +13,26 @@ def get_user_by_email(db: Session, email: str) -> Optional[User]:
     """Get user by email"""
     return db.query(User).filter(User.email == email).first()
 
-def create_user(db: Session, username: str, email: str, password: str) -> User:
-    """Create new user"""
+def create_user(db: Session, username: str, email: str, password: str, must_change_password: bool = True) -> User:
+    """
+    Create new user
+    
+    Args:
+        db: Database session
+        username: Username for the new user
+        email: Email address
+        password: Initial password (will be hashed)
+        must_change_password: If True, forces password change on first login (default: True)
+    
+    Returns:
+        User: The newly created user object
+    """
     hashed_password = get_password_hash(password)
     user = User(
         username=username,
         email=email,
-        hashed_password=hashed_password
+        hashed_password=hashed_password,
+        must_change_password=must_change_password
     )
     db.add(user)
     db.commit()
