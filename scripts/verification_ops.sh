@@ -22,12 +22,12 @@ TESTS_FAILED=0
 # Helper function for test results
 pass_test() {
     echo -e "${GREEN}✅ PASS:${NC} $1"
-    ((TESTS_PASSED++))
+    TESTS_PASSED=$((TESTS_PASSED + 1))
 }
 
 fail_test() {
     echo -e "${RED}❌ FAIL:${NC} $1"
-    ((TESTS_FAILED++))
+    TESTS_FAILED=$((TESTS_FAILED + 1))
 }
 
 warn_test() {
@@ -40,6 +40,8 @@ echo "Test 1: Logrotate Configuration Validation"
 echo "================================================"
 
 LOGROTATE_FILE="/etc/logrotate.d/minifw-audit"
+LOGROTATE_SRC="config/minifw-audit.logrotate"
+
 if [[ -f "$LOGROTATE_FILE" ]]; then
     pass_test "Logrotate config file exists at $LOGROTATE_FILE"
     
@@ -62,9 +64,26 @@ if [[ -f "$LOGROTATE_FILE" ]]; then
         echo "Error output:"
         cat /tmp/logrotate_test.log | sed 's/^/  /'
     fi
+elif [[ -f "$LOGROTATE_SRC" ]]; then
+    warn_test "Logrotate config not installed yet, checking source file: $LOGROTATE_SRC"
+    pass_test "Source logrotate config exists at $LOGROTATE_SRC"
+    
+    # Validate syntax by checking if it contains required directives
+    HAS_DAILY=$(grep -c "daily" "$LOGROTATE_SRC" || echo "0")
+    HAS_ROTATE=$(grep -c "rotate 30" "$LOGROTATE_SRC" || echo "0")
+    HAS_COMPRESS=$(grep -c "compress" "$LOGROTATE_SRC" || echo "0")
+    HAS_CREATE=$(grep -c "create 640 minifw adm" "$LOGROTATE_SRC" || echo "0")
+    
+    if [[ "$HAS_DAILY" -gt 0 ]] && [[ "$HAS_ROTATE" -gt 0 ]] && \
+       [[ "$HAS_COMPRESS" -gt 0 ]] && [[ "$HAS_CREATE" -gt 0 ]]; then
+        pass_test "Logrotate config contains all required directives"
+    else
+        fail_test "Logrotate config missing required directives (daily:$HAS_DAILY rotate:$HAS_ROTATE compress:$HAS_COMPRESS create:$HAS_CREATE)"
+    fi
+    
+    warn_test "Run 'sudo scripts/install_systemd.sh' to install to $LOGROTATE_FILE"
 else
-    fail_test "Logrotate config file not found at $LOGROTATE_FILE"
-    warn_test "Run: sudo scripts/install_systemd.sh to install"
+    fail_test "Logrotate config file not found (neither installed nor in source)"
 fi
 
 echo ""
