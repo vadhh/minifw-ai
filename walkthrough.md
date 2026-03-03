@@ -65,8 +65,8 @@ All 40 routes in `app/web/routers/admin.py` now carry `Depends(get_current_user)
 
 ## 4. Architectural & Performance Bottlenecks
 
-### 🟠 HIGH-001: Unbounded Memory Growth in BurstTracker
-**Status:** **Unresolved.** `app/minifw_ai/burst.py` still uses a simple `defaultdict(deque)` that never clears old IP entries, leading to memory leaks over time.
+### 🟢 HIGH-001: Unbounded Memory Growth in BurstTracker → **FIXED**
+**Status:** **Resolved.** `BurstTracker._evict_stale()` runs on every `add()` call and sweeps cold IPs (last seen > `window_seconds` ago) from the LRU front of the OrderedDict. Evictions are bounded to 20 entries per call to cap worst-case cost. The existing LRU capacity cap (`max_size=20000`) remains as a hard backstop.
 
 ### 🟢 HIGH-002: TOCTOU Race Condition in Policy Updates → **FIXED**
 **Status:** **Resolved.** A module-level `threading.Lock()` (`_policy_lock`) now serialises all read-modify-write cycles in `update_policy_service.py`. Concurrent admin requests queue up and each sees the latest committed policy before writing.
@@ -82,8 +82,8 @@ All 40 routes in `app/web/routers/admin.py` now carry `Depends(get_current_user)
 | ~~P0~~ | ~~CRITICAL-005~~ | ✅ Fixed | `create_admin.py` requires `MINIFW_ADMIN_PASSWORD` env var |
 | ~~P0~~ | ~~CRITICAL-007~~ | ✅ Fixed | Path allowlist + `realpath()` in `update_collectors()` |
 | ~~P1~~ | ~~HIGH-002~~ | ✅ Fixed | `threading.Lock()` serialises all policy read-modify-write cycles |
-| P1 | HIGH-001 | 🔴 Open | Implement TTL-based eviction in `BurstTracker` |
+| ~~P1~~ | ~~HIGH-001~~ | ✅ Fixed | `_evict_stale()` sweeps cold IPs on each `add()` call |
 
 > [!TIP]
 > **Ready for Demo?** YES. The system is functional and includes excellent simulation tools.
-> **Ready for Production?** The P0 critical vulnerabilities are resolved. Remaining open item is HIGH-001 (BurstTracker memory growth under sustained load).
+> **Ready for Production?** All P0 critical vulnerabilities and P1 high-severity issues are resolved. No blocking issues remain.
