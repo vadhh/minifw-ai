@@ -68,8 +68,8 @@ All 40 routes in `app/web/routers/admin.py` now carry `Depends(get_current_user)
 ### 🟠 HIGH-001: Unbounded Memory Growth in BurstTracker
 **Status:** **Unresolved.** `app/minifw_ai/burst.py` still uses a simple `defaultdict(deque)` that never clears old IP entries, leading to memory leaks over time.
 
-### 🟠 HIGH-002: TOCTOU Race Condition in Policy Updates
-**Status:** **Unresolved.** Policy updates still use distinct read-modify-write cycles without file locking.
+### 🟢 HIGH-002: TOCTOU Race Condition in Policy Updates → **FIXED**
+**Status:** **Resolved.** A module-level `threading.Lock()` (`_policy_lock`) now serialises all read-modify-write cycles in `update_policy_service.py`. Concurrent admin requests queue up and each sees the latest committed policy before writing.
 
 ---
 
@@ -81,6 +81,7 @@ All 40 routes in `app/web/routers/admin.py` now carry `Depends(get_current_user)
 | ~~P0~~ | ~~CRITICAL-003~~ | ✅ Fixed | All 40 admin routes require `get_current_user` |
 | ~~P0~~ | ~~CRITICAL-005~~ | ✅ Fixed | `create_admin.py` requires `MINIFW_ADMIN_PASSWORD` env var |
 | ~~P0~~ | ~~CRITICAL-007~~ | ✅ Fixed | Path allowlist + `realpath()` in `update_collectors()` |
+| ~~P1~~ | ~~HIGH-002~~ | ✅ Fixed | `threading.Lock()` serialises all policy read-modify-write cycles |
 | P1 | HIGH-001 | 🔴 Open | Implement TTL-based eviction in `BurstTracker` |
 
 > [!TIP]
