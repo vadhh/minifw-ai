@@ -45,21 +45,21 @@ A robust testing tool has been added that generates realistic threat scenarios:
 **Status:** **Resolved.**
 The `enforce.py` module now includes a strict `is_valid_nft_object_name` regex validator. The `ipset_create` and `nft_apply_forward_drop` functions properly validate user input before passing it to `subprocess`.
 
-### 🔴 CRITICAL-002: Hardcoded JWT Secret → **NOT FIXED**
-**Status:** **Active Vulnerability.**
-While a `.env` file was added with a strong secret, `app/services/auth/token_service.py` **still uses the hardcoded string** `"your-secret-key-change-this-in-production"`. It essentially ignores the environment variable.
+### 🟢 CRITICAL-002: Hardcoded JWT Secret → **FIXED**
+**Status:** **Resolved.**
+`app/services/auth/token_service.py` now reads `SECRET_KEY = os.environ["MINIFW_SECRET_KEY"]` and raises `ValueError` at import time if the variable is unset. No hardcoded fallback remains.
 
-### 🔴 CRITICAL-003: Missing Admin Authentication → **NOT FIXED**
-**Status:** **Active Vulnerability.**
-Most policy routes in `app/web/routers/admin.py` (e.g., `/allow-domain`, `/policy/segment`) **lack the `Depends(get_current_user)` dependency**. They remain completely public and unauthenticated.
+### 🟢 CRITICAL-003: Missing Admin Authentication → **FIXED**
+**Status:** **Resolved.**
+All 40 routes in `app/web/routers/admin.py` now carry `Depends(get_current_user)`. Previously 30 routes were completely unauthenticated; each has been updated with either `_: User = Depends(get_current_user)` (auth-only) or `current_user: User = Depends(get_current_user)` where the user object is passed to the controller.
 
-### 🔴 CRITICAL-005: Default Admin Credentials → **NOT FIXED**
-**Status:** **Active Vulnerability.**
-`scripts/create_admin.py` still creates an admin user with specific default credentials.
+### 🟢 CRITICAL-005: Default Admin Credentials → **FIXED**
+**Status:** **Resolved.**
+`scripts/create_admin.py` reads the admin password exclusively from `MINIFW_ADMIN_PASSWORD` environment variable and exits with a non-zero error code if the variable is unset. No default credentials are used.
 
-### 🔴 CRITICAL-007: Path Traversal → **NOT FIXED**
-**Status:** **Active Vulnerability.**
-The `update_collectors` function still blindly accepts log paths without validation.
+### 🟢 CRITICAL-007: Path Traversal → **FIXED**
+**Status:** **Resolved.**
+`update_collectors()` in `app/services/policy/update_policy_service.py` resolves every supplied path with `os.path.realpath()` and verifies it falls within an explicit allowlist (`/var/log`, `/opt/minifw_ai`, `/tmp`) using `Path.is_relative_to()`. Paths outside the allowlist are rejected with `ValueError`.
 
 ---
 
@@ -75,13 +75,14 @@ The `update_collectors` function still blindly accepts log paths without validat
 
 ## 5. Summary of Required Actions (Updated)
 
-| Priority | Issue | Action Required |
-|----------|-------|-----------------|
-| P0 | CRITICAL-002 | Update `token_service.py` to read `os.getenv("MINIFW_SECRET_KEY")` |
-| P0 | CRITICAL-003 | Add `Depends(get_current_user)` to ALL routers in `admin.py` |
-| P0 | CRITICAL-007 | Validate paths in `update_collectors_controller` |
-| P1 | HIGH-001 | Implement cleanup logic in `BurstTracker` |
+| Priority | Issue | Status | Notes |
+|----------|-------|--------|-------|
+| ~~P0~~ | ~~CRITICAL-002~~ | ✅ Fixed | `token_service.py` reads env var, raises on missing |
+| ~~P0~~ | ~~CRITICAL-003~~ | ✅ Fixed | All 40 admin routes require `get_current_user` |
+| ~~P0~~ | ~~CRITICAL-005~~ | ✅ Fixed | `create_admin.py` requires `MINIFW_ADMIN_PASSWORD` env var |
+| ~~P0~~ | ~~CRITICAL-007~~ | ✅ Fixed | Path allowlist + `realpath()` in `update_collectors()` |
+| P1 | HIGH-001 | 🔴 Open | Implement TTL-based eviction in `BurstTracker` |
 
 > [!TIP]
 > **Ready for Demo?** YES. The system is functional and includes excellent simulation tools.
-> **Ready for Production?** NO. Do not expose this to the internet or untrusted networks until P0 issues are fixed.
+> **Ready for Production?** The P0 critical vulnerabilities are resolved. Remaining open item is HIGH-001 (BurstTracker memory growth under sustained load).
