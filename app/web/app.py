@@ -9,7 +9,7 @@ from app.database import init_db
 from app.middleware.auth_middleware import require_auth
 
 app = FastAPI(
-    title="RITAPI Sentinel MiniFW AI",
+    title="Sydeco ARCHANGEL — minifw-ai",
     version="1.0.0"
 )
 
@@ -50,6 +50,6 @@ app.include_router(status.router, prefix="/status", tags=["Status"])
 @app.get("/")
 def root():
     return {
-        "service": "RITAPI Sentinel MiniFW AI",
+        "service": "Sydeco ARCHANGEL — minifw-ai",
         "status": "running"
     }
