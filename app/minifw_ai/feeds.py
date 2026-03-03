@@ -30,7 +30,7 @@ class FeedMatcher:
         Load additional sector-specific feeds into deny_domains.
         
         Args:
-            extra_feeds: List of feed filenames (e.g., ["school_blacklist.txt"])
+            extra_feeds: List of feed filenames (e.g., ["education_blacklist.txt"])
             
         Returns:
             Number of new patterns loaded

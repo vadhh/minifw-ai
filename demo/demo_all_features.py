@@ -167,7 +167,7 @@ def test_sector_lock():
         results["passed"] += 1
         
         # Test 1.4: All sectors in enum
-        expected = {"hospital", "school", "government", "finance", "legal", "establishment"}
+        expected = {"hospital", "education", "government", "finance", "legal", "establishment"}
         actual = {s.value for s in SectorType}
         if expected == actual:
             print_test("All 6 sectors defined in enum", "PASS")
@@ -250,13 +250,13 @@ def test_feed_system():
             print_test(f"Domain check: {domain}", status, desc)
         
         # Test 2.5: Sector-specific feed loading
-        school_feed = feeds_dir / "school_blacklist.txt"
-        if school_feed.exists():
-            loaded = matcher.load_sector_feeds(["school_blacklist.txt"])
-            print_test("Sector feed loading", "PASS", f"Loaded {loaded} patterns from school_blacklist.txt")
+        education_feed = feeds_dir / "education_blacklist.txt"
+        if education_feed.exists():
+            loaded = matcher.load_sector_feeds(["education_blacklist.txt"])
+            print_test("Sector feed loading", "PASS", f"Loaded {loaded} patterns from education_blacklist.txt")
             results["passed"] += 1
         else:
-            print_test("Sector feed loading", "SKIP", "school_blacklist.txt not found")
+            print_test("Sector feed loading", "SKIP", "education_blacklist.txt not found")
             results["skipped"] += 1
         
     except Exception as e:
@@ -767,7 +767,7 @@ def main():
     """Main entry point."""
     # Set default sector if not set
     if not os.environ.get("MINIFW_SECTOR"):
-        os.environ["MINIFW_SECTOR"] = "school"
+        os.environ["MINIFW_SECTOR"] = "education"
     
     while True:
         clear_screen()

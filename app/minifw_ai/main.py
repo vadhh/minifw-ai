@@ -44,6 +44,16 @@ except ImportError:
     SECTOR_LOCK_AVAILABLE = False
     get_sector_lock = None
 
+# Sector rules pipeline
+try:
+    from minifw_ai.sector_rules import get_sector_module
+    from minifw_ai.sector_rules import base as sector_base
+    SECTOR_RULES_AVAILABLE = True
+except ImportError:
+    SECTOR_RULES_AVAILABLE = False
+    get_sector_module = None
+    sector_base = None
+
 def segment_for_ip(ip: str, mapping: dict[str, list[str]]) -> str:
     for seg, cidrs in mapping.items():
         if ip_in_any_subnet(ip, cidrs):
@@ -120,31 +130,22 @@ def run():
     sector_lock = None
     sector_config = {}
     sector_name = "unknown"
-    iomt_subnets = []  # For hospital sector
-    
+
     if SECTOR_LOCK_AVAILABLE:
         try:
             sector_lock = get_sector_lock()
             sector_config = sector_lock.get_sector_config()
             sector_name = sector_lock.get_sector()
-            
+
             logging.info(f"[SECTOR_LOCK] Device sector: {sector_name} (LOCKED)")
             logging.info(f"[SECTOR_LOCK] Config: {sector_config.get('description', 'N/A')}")
-            
+
             # Load sector-specific feeds
             extra_feeds = sector_config.get('extra_feeds', [])
             if extra_feeds:
                 loaded = feeds.load_sector_feeds(extra_feeds)
                 logging.info(f"[SECTOR_LOCK] Loaded {loaded} sector-specific feed patterns")
-            
-            # Get IoMT subnets for hospital sector (from policy.json, not hardcoded)
-            if sector_lock.is_hospital():
-                iomt_subnets = pol.cfg.get('iomt_subnets', [])
-                if iomt_subnets:
-                    logging.info(f"[SECTOR_LOCK] Hospital mode: IoMT subnets = {iomt_subnets}")
-                else:
-                    logging.warning("[SECTOR_LOCK] Hospital mode but no iomt_subnets in policy.json")
-            
+
         except RuntimeError as e:
             logging.critical(f"[SECTOR_LOCK] FATAL: {e}")
             logging.critical("[SECTOR_LOCK] Device cannot start without valid sector config")
@@ -153,6 +154,13 @@ def run():
             logging.error(f"[SECTOR_LOCK] Warning: {e} - continuing without sector lock")
     else:
         logging.warning("[SECTOR_LOCK] Sector lock module not available")
+
+    # Load sector rules module — dispatches to hospital/education/establishment/etc.
+    # load_config() lets each module pull what it needs from policy at startup.
+    sector_mod = get_sector_module(sector_name) if SECTOR_RULES_AVAILABLE else None
+    iomt_subnets: list = []
+    if sector_mod and hasattr(sector_mod, 'load_config'):
+        iomt_subnets = sector_mod.load_config(pol)
     
     # NEW: Initialize flow tracker
     flow_tracker = FlowTracker(flow_timeout=300)
@@ -362,23 +370,54 @@ def run():
                     for match in matches[:3]:  # Top 3 matches
                         reasons.append(f"yara_{match.rule}")
 
+            # --- Sector rules pipeline --------------------------------------
+            # Runs after hard threat gates, MLP, and YARA but before final
+            # scoring so that a sector rule block raises hard_threat and
+            # forces score_and_decide() to return action=block.
+            sr_reason = ""
+            if SECTOR_RULES_AVAILABLE and sector_base:
+                _meta = {
+                    "domain": domain,
+                    "sni": sni,
+                    "client_ip": client_ip,
+                    "segment": segment,
+                    "sector": sector_name,
+                    "sector_config": sector_config,
+                }
+                # Run all three stages; keep the most severe result.
+                # Severity: block(2) > monitor(1) > allow(0).
+                # Sector module always runs — it can escalate or is more specific than base.
+                _sev = {"block": 2, "monitor": 1, "allow": 0}
+                sr_action, sr_reason = "allow", ""
+                for _fn in (sector_base.evaluate, sector_base.supply_chain_guard):
+                    _a, _r = _fn(_meta)
+                    if _sev.get(_a, 0) > _sev.get(sr_action, 0):
+                        sr_action, sr_reason = _a, _r
+                if sector_mod:
+                    _a, _r = sector_mod.evaluate(_meta)
+                    if _sev.get(_a, 0) > _sev.get(sr_action, 0):
+                        sr_action, sr_reason = _a, _r
+                if sr_action == "block" and not hard_threat:
+                    hard_threat = True
+                    logging.info("[SECTOR_RULES] Block triggered: %s for %s → %s", sr_reason, client_ip, domain)
+
             score, reasons, action = score_and_decide(
-                domain, denied, sni_denied, asn_denied, burst_hit, 
-                weights, thr, mlp_score, yara_score, 
+                domain, denied, sni_denied, asn_denied, burst_hit,
+                weights, thr, mlp_score, yara_score,
                 hard_threat_override=hard_threat
             )
 
+            # Append sector rule reason to the final reasons list
+            if sr_reason and sr_reason not in reasons:
+                reasons.append(sr_reason)
+
             if action == "block":
                 ipset_add(set_name, client_ip, timeout)
-            
-            # NEW: Hospital sector IoMT high-priority alerting
-            if sector_lock and sector_lock.is_hospital() and iomt_subnets:
-                if ip_in_any_subnet(client_ip, iomt_subnets):
-                    if score >= thr.monitor_threshold:
-                        logging.critical(f"[IOMT_ALERT] Medical device anomaly: {client_ip} -> {domain} (score={score})")
-                        # Add IoMT flag to reasons
-                        if 'iomt_device_alert' not in reasons:
-                            reasons.append('iomt_device_alert')
+
+            # Post-decision hook — sector modules may fire alerts or side-effects
+            # (e.g. hospital IoMT CRITICAL alerting) after score is known.
+            if sector_mod and hasattr(sector_mod, 'post_decision'):
+                sector_mod.post_decision(client_ip, domain, score, thr, iomt_subnets, reasons)
 
             writer.write(Event(ts=now_iso(), segment=segment, client_ip=client_ip, domain=domain,
                                action=action, score=score, reasons=reasons, sector=sector_name))

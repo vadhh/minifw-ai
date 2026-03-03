@@ -2,8 +2,12 @@ from datetime import datetime, timedelta
 from jose import JWTError, jwt
 from typing import Optional
 
-# Secret key - GANTI INI dengan random string di production!
-SECRET_KEY = "your-secret-key-change-this-in-production"
+import os
+
+# Secret key - Must be set in environment
+if "MINIFW_SECRET_KEY" not in os.environ:
+    raise ValueError("MINIFW_SECRET_KEY environment variable is not set. Security critical.")
+SECRET_KEY = os.environ["MINIFW_SECRET_KEY"]
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 

@@ -136,9 +136,9 @@ class SectorLock:
         """Check if sector is locked (always True once initialized)."""
         return self._initialized and self._sector is not None
 
-    def is_school(self) -> bool:
-        """Check if this device is configured for school sector."""
-        return self._sector == "school"
+    def is_education(self) -> bool:
+        """Check if this device is configured for education sector."""
+        return self._sector == "education"
 
     def is_hospital(self) -> bool:
         """Check if this device is configured for hospital sector."""

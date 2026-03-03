@@ -58,32 +58,32 @@ def create_default_users(db_path: str = "minifw.db"):
             "department": "Compliance"
         },
         
-        # School Sector Users
+        # Education Sector Users
         {
-            "username": "school_admin",
-            "email": "admin@school.local",
+            "username": "edu_admin",
+            "email": "admin@education.local",
             "password": "SchoolAdmin@2026!",
             "role": "admin",
-            "sector": "school",
-            "full_name": "School IT Administrator",
+            "sector": "education",
+            "full_name": "Education IT Administrator",
             "department": "IT Department"
         },
         {
-            "username": "school_operator",
-            "email": "operator@school.local",
+            "username": "edu_operator",
+            "email": "operator@education.local",
             "password": "SchoolOp@2026!",
             "role": "operator",
-            "sector": "school",
-            "full_name": "School Security Operator",
+            "sector": "education",
+            "full_name": "Education Security Operator",
             "department": "IT Security"
         },
         {
-            "username": "school_auditor",
-            "email": "auditor@school.local",
+            "username": "edu_auditor",
+            "email": "auditor@education.local",
             "password": "SchoolAudit@2026!",
             "role": "auditor",
-            "sector": "school",
-            "full_name": "School Safety Officer",
+            "sector": "education",
+            "full_name": "Education Safety Officer",
             "department": "Student Safety"
         },
         

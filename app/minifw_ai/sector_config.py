@@ -15,7 +15,7 @@ except ImportError:
     from enum import Enum
     class SectorType(str, Enum):
         HOSPITAL = "hospital"
-        SCHOOL = "school"
+        SCHOOL = "education"
         GOVERNMENT = "government"
         FINANCE = "finance"
         LEGAL = "legal"
@@ -49,12 +49,16 @@ SECTOR_POLICIES: Dict[SectorType, Dict[str, Any]] = {
         "block_proxies": True,
         
         # Additional threat feeds
-        "extra_feeds": ["school_blacklist.txt"],
+        "extra_feeds": ["education_blacklist.txt"],
         
         # Stricter thresholds
         "block_threshold_adjustment": -10,  # Block 10 points sooner
         "monitor_threshold_adjustment": -10,
         
+        # Class hours: [[start_hhmm, end_hhmm], ...]
+        # AI tools and stricter DDoS threshold apply only during these windows.
+        "class_hours": [[800, 1200], [1300, 1600]],
+
         # Logging
         "strict_logging": True,
         "log_student_activity": True,
@@ -179,14 +183,22 @@ SECTOR_POLICIES: Dict[SectorType, Dict[str, Any]] = {
         
         # Standard protection
         "standard_protection": True,
-        
+
         # No extreme threshold adjustments
         "block_threshold_adjustment": 0,
         "monitor_threshold_adjustment": 0,
-        
+
         # Standard feeds (no extras)
         "extra_feeds": [],
-        
+
+        # Cowrie SSH honeypot IP — set to gateway-internal IP if deployed.
+        # Clients connecting TO this IP are flagged as high-interest attackers.
+        "honeypot_ip": None,
+
+        # Subnets allowed to use VPN (e.g. trusted staff/management zones).
+        # Empty list = VPN blocked for all (same as school sector).
+        "trusted_segments": [],
+
         # Logging
         "strict_logging": False,
         "log_retention_days": 30,

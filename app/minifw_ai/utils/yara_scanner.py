@@ -146,28 +146,34 @@ class YARAScanner:
             logger.warning(f"No YARA rule files found in {self.rules_dir}")
             return False
         
-        # Build namespace dict for compilation
-        # Namespace = category (gambling, malware, api_abuse, etc.)
-        rule_dict = {}
-        
+        # Group rule text by namespace (category = parent directory name).
+        # Multiple .yar/.yara files in the same category are concatenated so
+        # that yara.compile(sources=...) receives exactly one source string per
+        # namespace — no rules are silently dropped.
+        rule_sources: dict[str, str] = {}
+
         for rule_file in rule_files:
-            # Use parent directory name as namespace
             namespace = rule_file.parent.name
-            
-            if namespace not in rule_dict:
-                rule_dict[namespace] = str(rule_file)
-            else:
-                # Multiple files in same category - need to handle differently
-                # For now, just use first file per category
-                logger.debug(f"Multiple files in {namespace}, using {rule_dict[namespace]}")
-        
+            try:
+                content = rule_file.read_text(encoding="utf-8", errors="ignore")
+                if namespace in rule_sources:
+                    rule_sources[namespace] += "\n" + content
+                else:
+                    rule_sources[namespace] = content
+            except Exception as e:
+                logger.warning(f"Could not read {rule_file}: {e}")
+
+        if not rule_sources:
+            logger.warning(f"No readable YARA rule files in {self.rules_dir}")
+            return False
+
         try:
             # Compile all rules
-            self.compiled_rules = yara.compile(filepaths=rule_dict)
+            self.compiled_rules = yara.compile(sources=rule_sources)
             self.rules_loaded = True
-            
-            logger.info(f"✓ Compiled {len(rule_dict)} YARA rule namespaces")
-            logger.debug(f"Namespaces: {list(rule_dict.keys())}")
+
+            logger.info(f"✓ Compiled {len(rule_sources)} YARA rule namespaces")
+            logger.debug(f"Namespaces: {list(rule_sources.keys())}")
             
             return True
             

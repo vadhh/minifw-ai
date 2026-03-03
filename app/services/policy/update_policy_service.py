@@ -14,15 +14,25 @@ def _backup_policy():
     return None
 
 def _save_policy(policy_data: Dict[str, Any]):
-    """Save policy to file"""
+    """Save policy to file using atomic write-and-rename"""
     policy_path = os.environ.get("MINIFW_POLICY", "config/policy.json")
     
     # Create backup first
     _backup_policy()
     
-    # Save new policy
-    with open(policy_path, 'w') as f:
-        json.dump(policy_data, f, indent=2)
+    # Atomic Write: Write to unique .tmp, fsync, then rename
+    import uuid
+    temp_path = f"{policy_path}.{uuid.uuid4()}.tmp"
+    try:
+        with open(temp_path, 'w') as f:
+            json.dump(policy_data, f, indent=2)
+            f.flush()
+            os.fsync(f.fileno())
+        os.rename(temp_path, policy_path)
+    except Exception as e:
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
+        raise e
 
 def update_segment(segment_name: str, block_threshold: int, monitor_threshold: int):
     """Update or add a segment configuration"""
@@ -153,6 +163,32 @@ def update_enforcement(ipset_name_v4: str, ip_timeout_seconds: int, nft_table: s
 def update_collectors(dnsmasq_log_path: str, zeek_ssl_log_path: str, use_zeek_sni: bool):
     """Update collectors configuration"""
     from app.services.policy.get_policy_service import get_policy
+    
+    # Security: Validate paths using whitelist and realpath
+    # Use pathlib to prevent partial path traversal (e.g., /tmp_hack vs /tmp/)
+    from pathlib import Path
+    allowed_prefixes = [Path(p) for p in ("/var/log", "/opt/minifw_ai", "/tmp")]
+    
+    for path in [dnsmasq_log_path, zeek_ssl_log_path]:
+        resolved = Path(os.path.realpath(path))
+        is_allowed = False
+        for prefix in allowed_prefixes:
+            try:
+                # is_relative_to is available in Python 3.9+
+                if resolved.is_relative_to(prefix):
+                    is_allowed = True
+                    break
+            except AttributeError:
+                # Fallback for Python < 3.9
+                try:
+                    resolved.relative_to(prefix)
+                    is_allowed = True
+                    break
+                except ValueError:
+                    continue
+        
+        if not is_allowed:
+            raise ValueError(f"Security Error: Path '{path}' is not allowed. Must accept: {allowed_prefixes}")
     
     policy = get_policy()
     
