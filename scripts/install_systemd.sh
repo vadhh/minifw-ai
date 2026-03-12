@@ -55,6 +55,40 @@ chmod +x "${APP_ROOT}/run_minifw.sh"
 WEB_UNIT_DST="/etc/systemd/system/minifw-ai-web.service"
 cp -f ./systemd/minifw-ai-web.service "${WEB_UNIT_DST}"
 
+# 3. Create admin user in database
+echo "Creating admin user..."
+export $(cat "${ENV_FILE}" | xargs)
+export GAMBLING_ONLY=1
+export PYTHONPATH="${APP_ROOT}/app"
+cd "${APP_ROOT}"
+"${APP_ROOT}/venv/bin/python" -c "
+import os, sys
+sys.path.insert(0, '${APP_ROOT}')
+from app.database import SessionLocal, init_db
+from app.services.auth.user_service import create_user
+init_db()
+db = SessionLocal()
+try:
+    # Check if admin already exists
+    from app.models.user import User
+    existing = db.query(User).filter(User.username == 'admin').first()
+    if existing:
+        print('Admin user already exists, skipping.')
+    else:
+        admin = create_user(
+            db=db,
+            username='admin',
+            email='admin@minifw.local',
+            password=os.environ['MINIFW_ADMIN_PASSWORD']
+        )
+        print(f'Admin user created: {admin.username}')
+except Exception as e:
+    print(f'Warning: Could not create admin user: {e}')
+finally:
+    db.close()
+" 2>&1 || echo "Warning: Admin user creation failed (non-fatal)."
+
+# 4. Start services
 systemctl daemon-reload
 systemctl enable --now minifw-ai
 systemctl enable --now minifw-ai-web
