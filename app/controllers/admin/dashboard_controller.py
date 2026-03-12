@@ -38,7 +38,7 @@ def get_service_status():
         status["color"] = "danger"
 
     # 2. Check deployment mode from state file
-    state_file = "/var/log/ritapi/deployment_state.json"
+    state_file = "/opt/minifw_ai/logs/deployment_state.json"
     if os.path.exists(state_file):
         try:
             with open(state_file, "r") as f:

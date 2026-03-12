@@ -179,7 +179,7 @@ python3 scripts/simulate_attack.py
 ### "Command not found" errors
 Make sure you're running from project root:
 ```bash
-cd /path/to/minifw-ritapi
+cd /path/to/minifw-ai-standalone
 bash scripts/setup_flow_collector.sh
 ```
 

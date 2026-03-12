@@ -24,6 +24,10 @@ async def custom_http_exception_handler(request: Request, exc: HTTPException):
         if "text/html" in accept_header or not accept_header:
             return RedirectResponse(url="/auth/login", status_code=303)
 
+    # Force password change redirect
+    if exc.status_code == 303 and exc.detail == "Password change required":
+        return RedirectResponse(url="/auth/change-password", status_code=303)
+
     # Untuk request lainnya, return normal error
     return await http_exception_handler(request, exc)
 

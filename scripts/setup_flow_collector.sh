@@ -16,7 +16,7 @@ echo "[1/4] Verifying project structure..."
 if [ ! -d "app/minifw_ai" ]; then
     echo "ERROR: app/minifw_ai directory not found!"
     echo "Please run this script from the project root directory:"
-    echo "  cd /path/to/minifw-ritapi"
+    echo "  cd /path/to/minifw-ai-standalone"
     echo "  bash scripts/setup_flow_collector.sh"
     exit 1
 fi

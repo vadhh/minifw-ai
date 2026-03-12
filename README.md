@@ -74,10 +74,10 @@ sudo /opt/minifw_ai/venv/bin/pip install --upgrade pip
 sudo /opt/minifw_ai/venv/bin/pip install -r /opt/minifw_ai/requirements.txt
 
 # 6. Set up nftables
-sudo nft add table inet ritapi_minifw
-sudo nft add set inet ritapi_minifw minifw_block_v4 \
+sudo nft add table inet minifw
+sudo nft add set inet minifw minifw_block_v4 \
     '{ type ipv4_addr; flags timeout; timeout 86400s; }'
-sudo nft add chain inet ritapi_minifw forward \
+sudo nft add chain inet minifw forward \
     '{ type filter hook forward priority 0; policy accept; }'
 
 # 7. Enable DNS logging
@@ -101,7 +101,7 @@ systemctl status minifw-ai
 journalctl -u minifw-ai -f
 
 # Check nftables rules are set up
-sudo nft list table inet ritapi_minifw
+sudo nft list table inet minifw
 
 # Check Prometheus metrics (default port 9090)
 curl -s http://localhost:9090/metrics | head -20

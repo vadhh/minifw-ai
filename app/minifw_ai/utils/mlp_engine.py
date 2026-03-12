@@ -110,7 +110,7 @@ class MLPThreatDetector:
         # Default model path
         if model_path is None:
             model_path = os.getenv(
-                "MINIFW_MLP_MODEL", "/opt/ritapi_vsentinel/mlp_engine.joblib"
+                "MINIFW_MLP_MODEL", "/opt/minifw_ai/models/mlp_model.pkl"
             )
 
         self.model_path = Path(model_path)

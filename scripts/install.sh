@@ -73,12 +73,12 @@ fi
 echo "[5/6] Setting up nftables..."
 systemctl enable nftables 2>/dev/null || true
 systemctl start nftables 2>/dev/null || true
-nft add table inet ritapi_minifw 2>/dev/null || true
-nft add set inet ritapi_minifw minifw_block_v4 '{ type ipv4_addr; flags timeout; timeout 86400s; }' 2>/dev/null || true
-nft add chain inet ritapi_minifw forward '{ type filter hook forward priority 0; policy accept; }' 2>/dev/null || true
+nft add table inet minifw 2>/dev/null || true
+nft add set inet minifw minifw_block_v4 '{ type ipv4_addr; flags timeout; timeout 86400s; }' 2>/dev/null || true
+nft add chain inet minifw forward '{ type filter hook forward priority 0; policy accept; }' 2>/dev/null || true
 # Add drop rule for blocked IPs
-nft add rule inet ritapi_minifw forward ip saddr @minifw_block_v4 drop 2>/dev/null || true
-nft add rule inet ritapi_minifw forward ip daddr @minifw_block_v4 drop 2>/dev/null || true
+nft add rule inet minifw forward ip saddr @minifw_block_v4 drop 2>/dev/null || true
+nft add rule inet minifw forward ip daddr @minifw_block_v4 drop 2>/dev/null || true
 
 echo "[6/6] Setting permissions..."
 chmod -R 755 "${APP_ROOT}/app"

@@ -44,6 +44,17 @@ def get_current_user(request: Request, db: Session = Depends(get_db)):
             status_code=status.HTTP_403_FORBIDDEN, detail="User account is disabled"
         )
 
+    # Force password change if flagged
+    if user.must_change_password:
+        # Allow access to change-password endpoint itself
+        path = request.url.path
+        if not path.startswith("/auth/change-password") and not path.startswith("/auth/logout"):
+            raise HTTPException(
+                status_code=status.HTTP_303_SEE_OTHER,
+                detail="Password change required",
+                headers={"Location": "/auth/change-password"},
+            )
+
     return user
 
 

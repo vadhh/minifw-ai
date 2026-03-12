@@ -4,7 +4,7 @@ set -e
 # VSentinel Runtime Guard
 # Executed by Systemd ExecStartPre
 
-CONFIG_FILE="/etc/ritapi/vsentinel.env"
+CONFIG_FILE="/etc/minifw/minifw.env"
 
 if [ ! -f "$CONFIG_FILE" ]; then
     echo "VSentinel: Config file missing ($CONFIG_FILE). Refusing to start."

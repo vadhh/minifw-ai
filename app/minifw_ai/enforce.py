@@ -13,10 +13,10 @@ def ipset_create(
     set_name: str,
     timeout: int,
     family: str = "inet",
-    table_name: str = "ritapi_minifw",
+    table_name: str = "minifw",
 ) -> None:
     """
-    Creates a native nftables set in the dedicated ritapi_minifw table (default).
+    Creates a native nftables set in the dedicated minifw table (default).
     We enable the 'timeout' flag so IPs can expire automatically.
     """
     if not is_valid_nft_object_name(set_name):
@@ -61,7 +61,7 @@ def ipset_add(
     ip: str,
     timeout: int,
     family: str = "inet",
-    table_name: str = "ritapi_minifw",
+    table_name: str = "minifw",
 ) -> None:
     """
     Adds an IP to the native nftables set.
@@ -92,12 +92,12 @@ def ipset_add(
 def nft_apply_forward_drop(
     set_name: str,
     table: str = "inet",
-    table_name: str = "ritapi_minifw",
+    table_name: str = "minifw",
     chain: str = "forward",
 ) -> None:
     """
     Creates the firewall rule that drops traffic from IPs in the set.
-    Uses a dedicated table (default: ritapi_minifw) to avoid conflicts with
+    Uses a dedicated table (default: minifw) to avoid conflicts with
     other firewall managers (e.g. ARCHANGEL) that may flush inet filter.
     """
     if (

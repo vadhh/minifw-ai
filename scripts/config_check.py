@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Fail-fast validation for /etc/ritapi/vsentinel.env."""
+"""Fail-fast validation for /etc/minifw/minifw.env."""
 
 from __future__ import annotations
 
 import sys
 from pathlib import Path
 
-ENV_FILE = Path("/etc/ritapi/vsentinel.env")
+ENV_FILE = Path("/etc/minifw/minifw.env")
 
 REQUIRED_VARS = [
     "DJANGO_SECRET_KEY",

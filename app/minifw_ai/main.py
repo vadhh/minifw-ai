@@ -376,7 +376,7 @@ def run():
     set_name = enf.get("ipset_name_v4", "minifw_block_v4")
     timeout = _safe_int_cast(enf.get("ip_timeout_seconds"), 86400)
     table = enf.get("nft_table", "inet")
-    table_name = enf.get("nft_table_name", "ritapi_minifw")
+    table_name = enf.get("nft_table_name", "minifw")
     chain = enf.get("nft_chain", "forward")
 
     try:

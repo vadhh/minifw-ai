@@ -56,12 +56,14 @@ def login(
         )
         return response
 
-    # No 2FA, create token and redirect to dashboard
+    # No 2FA, create token and redirect
     access_token = create_access_token(data={"sub": user.username})
     update_last_login(db, user)
     audit_login_success(username, _client_ip(request))
 
-    response = RedirectResponse(url="/admin/", status_code=303)
+    # Redirect to change-password if flagged
+    redirect_url = "/auth/change-password" if user.must_change_password else "/admin/"
+    response = RedirectResponse(url=redirect_url, status_code=303)
     response.set_cookie(key="access_token", value=access_token, httponly=True)
     return response
 
@@ -100,7 +102,9 @@ def verify_2fa(
     audit_2fa_success(username)
     audit_login_success(username, _client_ip(request))
 
-    response = RedirectResponse(url="/admin/", status_code=303)
+    # Redirect to change-password if flagged
+    redirect_url = "/auth/change-password" if user.must_change_password else "/admin/"
+    response = RedirectResponse(url=redirect_url, status_code=303)
     response.set_cookie(key="access_token", value=access_token, httponly=True)
     response.delete_cookie(key="temp_username")
     return response
@@ -174,6 +178,12 @@ def change_password(
             {"request": request, "error": "Password must be at least 8 characters"},
         )
 
+    if len(new_password.encode("utf-8")) > 72:
+        return templates.TemplateResponse(
+            "auth/change_password.html",
+            {"request": request, "error": "Password must not exceed 72 bytes (bcrypt limit)"},
+        )
+
     # Check if passwords match
     if new_password != confirm_password:
         return templates.TemplateResponse(
@@ -191,8 +201,9 @@ def change_password(
             },
         )
 
-    # Update password
+    # Update password and clear force-change flag
     user.hashed_password = get_password_hash(new_password)
+    user.must_change_password = False
     db.commit()
     audit_password_change(username)
 

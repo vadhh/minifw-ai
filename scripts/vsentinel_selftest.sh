@@ -12,12 +12,12 @@ if systemctl list-unit-files | grep -q nginx; then
     systemctl is-active --quiet nginx && echo "OK: nginx is active" || echo "WARN: nginx inactive"
 fi
 
-# 2. IPSet Check
-echo "Checking ipset..."
-ipset list minifw_block_v4 >/dev/null 2>&1 && echo "OK: ipset minifw_block_v4 exists" || { echo "FAIL: ipset missing"; exit 1; }
+# 2. nftables Set Check
+echo "Checking nftables set..."
+nft list set inet minifw minifw_block_v4 >/dev/null 2>&1 && echo "OK: nft set minifw_block_v4 exists" || { echo "FAIL: nft set missing"; exit 1; }
 
 # 3. Audit Log Check
-AUDIT_LOG="/var/log/ritapi/audit.jsonl" # Adjusted to requested path
+AUDIT_LOG="/opt/minifw_ai/logs/audit.jsonl"
 # If the app writes to /opt/minifw_ai/logs/events.jsonl by default, we check that too or the requested one.
 # The prompt says "Check if audit.jsonl exists".
 if [ -f "$AUDIT_LOG" ]; then

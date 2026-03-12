@@ -98,6 +98,7 @@ try:
         )
         admin.role = 'super_admin'
         admin.full_name = 'System Administrator'
+        admin.must_change_password = True
         db.commit()
         print(f'Admin user created: {admin.username} (super_admin)')
 except Exception as e:

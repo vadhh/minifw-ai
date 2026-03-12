@@ -18,6 +18,8 @@ def get_user_by_email(db: Session, email: str) -> Optional[User]:
 
 def create_user(db: Session, username: str, email: str, password: str) -> User:
     """Create new user"""
+    if len(password.encode("utf-8")) > 72:
+        raise ValueError("Password exceeds 72 bytes (bcrypt limit)")
     hashed_password = get_password_hash(password)
     user = User(username=username, email=email, hashed_password=hashed_password)
     db.add(user)

@@ -26,7 +26,7 @@ from minifw_ai.enforce import (
 
 @pytest.mark.parametrize("name,expected", [
     ("minifw_block_v4", True),
-    ("ritapi_minifw", True),
+    ("minifw", True),
     ("set1", True),
     ("A" * 32, True),
     # Rejections
@@ -57,7 +57,7 @@ def test_ipset_create_calls_nft_add_table_and_set(mock_run):
     # First call: add table
     assert mock_run.call_count == 2
     table_call = mock_run.call_args_list[0]
-    assert table_call[0][0] == ["nft", "add", "table", "inet", "ritapi_minifw"]
+    assert table_call[0][0] == ["nft", "add", "table", "inet", "minifw"]
 
     # Second call: add set with timeout
     set_call = mock_run.call_args_list[1]

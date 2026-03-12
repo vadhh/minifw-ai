@@ -104,7 +104,7 @@ class StateManager:
     def __init__(
         self,
         initial_state: ProtectionState,
-        state_file_path: str = "/var/log/ritapi/deployment_state.json",
+        state_file_path: str = "/opt/minifw_ai/logs/deployment_state.json",
     ):
         self._state = initial_state
         self._state_file = Path(state_file_path)
