@@ -106,6 +106,10 @@ finally:
     db.close()
 " 2>&1 || echo "Warning: Admin user creation failed (non-fatal)."
 
+# 3b. Fix SQLite database permissions (writable for journal file)
+chmod 664 "${APP_ROOT}/minifw.db" 2>/dev/null || true
+chmod 775 "${APP_ROOT}" 2>/dev/null || true
+
 # 4. Start services
 systemctl daemon-reload
 systemctl enable --now minifw-ai
