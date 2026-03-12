@@ -1,0 +1,29 @@
+[Unit]
+Description=MiniFW-AI Behavioral Firewall Engine
+After=network.target dnsmasq.service
+Wants=dnsmasq.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/minifw_ai
+Environment=GAMBLING_ONLY=1
+Environment=MINIFW_POLICY=/opt/minifw_ai/config/policy.json
+Environment=MINIFW_FEEDS=/opt/minifw_ai/config/feeds
+Environment=MINIFW_LOG=/opt/minifw_ai/logs/events.jsonl
+Environment=MINIFW_FLOW_RECORDS=/opt/minifw_ai/logs/flow_records.jsonl
+Environment=MINIFW_MLP_MODEL=/opt/minifw_ai/models/mlp_model.pkl
+Environment=MINIFW_MLP_THRESHOLD=0.5
+Environment=MINIFW_YARA_RULES=/opt/minifw_ai/yara_rules
+Environment=MINIFW_DNS_SOURCE=file
+Environment=MINIFW_SECTOR=establishment
+Environment=AI_ENABLED=1
+Environment=PROMETHEUS_PORT=9090
+ExecStart=/opt/minifw_ai/run_minifw.sh
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
