@@ -20,6 +20,11 @@ from minifw_ai.enforce import ipset_create, ipset_add, nft_apply_forward_drop
 from minifw_ai.collector_dnsmasq import stream_dns_events_file
 from minifw_ai.collector_zeek import stream_zeek_sni_events
 from minifw_ai.burst import BurstTracker
+from minifw_ai.audit import (
+    audit_daemon_start, audit_daemon_stop, audit_config_loaded,
+    audit_firewall_init, audit_firewall_init_failed,
+    audit_state_transition, audit_ip_block,
+)
 
 # NEW: Import flow collector
 from minifw_ai.collector_flow import (
@@ -272,6 +277,7 @@ def run():
     pol = Policy(policy_path)
     feeds = FeedMatcher(feeds_dir)
     writer = EventWriter(log_path)
+    audit_config_loaded(policy_path, feeds_dir)
 
     # Initialize ASN resolver for IP-to-ASN lookup
     asn_resolver = ASNResolver()
@@ -376,10 +382,12 @@ def run():
     try:
         ipset_create(set_name, timeout, family=table, table_name=table_name)
         nft_apply_forward_drop(set_name, table=table, table_name=table_name, chain=chain)
+        audit_firewall_init(set_name, f"{table} {table_name}")
     except (ValueError, subprocess.CalledProcessError) as e:
         logging.critical(
             f"FATAL: Could not initialize firewall rules. Exiting. Error: {e}"
         )
+        audit_firewall_init_failed(str(e))
         return  # Exit if firewall can't be set up
 
     burst_cfg = pol.burst()
@@ -538,6 +546,8 @@ def run():
 
             dns_events = empty_dns_iterator()
 
+    audit_daemon_start(sector_name, state_mgr.current_state.value)
+
     for client_ip, domain in dns_events:
         pump_zeek()
         pump_flows()
@@ -554,6 +564,9 @@ def run():
             logging.warning(
                 f"[STATE_TRANSITION] {new_state.value} | MLP={mlp_enabled} YARA={yara_enabled} | {transition_reason}"
             )
+            old = (ProtectionState.BASELINE_PROTECTION if new_state == ProtectionState.AI_ENHANCED_PROTECTION
+                   else ProtectionState.AI_ENHANCED_PROTECTION)
+            audit_state_transition(old.value, new_state.value, transition_reason)
 
         # CRITICAL: Skip empty events from degraded mode DNS iterator
         # But ALWAYS run flow-based hard-threat gates via pump_flows() above
@@ -681,6 +694,7 @@ def run():
 
             if action == "block":
                 ipset_add(set_name, client_ip, timeout, family=table, table_name=table_name)
+                audit_ip_block(client_ip, score, reasons, domain, sector_name)
 
             # NEW: Hospital sector IoMT high-priority alerting
             if sector_lock and sector_lock.is_hospital() and iomt_subnets:
@@ -722,6 +736,7 @@ def run():
                     active_blocks.inc()
         except KeyboardInterrupt:
             logging.info("Caught KeyboardInterrupt, shutting down.")
+            audit_daemon_stop("keyboard_interrupt")
             break
         except Exception:
             logging.error("Unhandled exception in main event loop", exc_info=True)

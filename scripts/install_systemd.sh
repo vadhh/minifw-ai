@@ -51,7 +51,22 @@ exec /opt/minifw_ai/venv/bin/python -m minifw_ai
 EOF
 chmod +x "${APP_ROOT}/run_minifw.sh"
 
-# 2b. Install Web Admin service
+# 2b. Generate TLS certificate for web admin (self-signed)
+TLS_DIR="${ENV_DIR}/tls"
+mkdir -p "${TLS_DIR}"
+if [[ ! -f "${TLS_DIR}/server.crt" ]]; then
+    echo "Generating self-signed TLS certificate..."
+    openssl req -x509 -newkey rsa:2048 -keyout "${TLS_DIR}/server.key" \
+        -out "${TLS_DIR}/server.crt" -days 365 -nodes \
+        -subj "/CN=minifw-ai/O=MiniFW-AI/C=ID" 2>/dev/null
+    chmod 600 "${TLS_DIR}/server.key"
+    chmod 644 "${TLS_DIR}/server.crt"
+    echo "  TLS certificate generated (valid 365 days)."
+else
+    echo "  TLS certificate exists: ${TLS_DIR}/server.crt"
+fi
+
+# 2c. Install Web Admin service
 WEB_UNIT_DST="/etc/systemd/system/minifw-ai-web.service"
 cp -f ./systemd/minifw-ai-web.service "${WEB_UNIT_DST}"
 
@@ -99,7 +114,7 @@ systemctl enable --now minifw-ai-web
 echo ""
 echo "Services installed & started:"
 echo "  minifw-ai      — Firewall engine daemon"
-echo "  minifw-ai-web  — Web admin panel (port 8080)"
+echo "  minifw-ai-web  — Web admin panel (https://localhost:8443)"
 echo ""
 echo "Check:"
 echo "  systemctl status minifw-ai --no-pager"

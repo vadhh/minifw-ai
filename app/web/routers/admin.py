@@ -58,9 +58,10 @@ from app.controllers.admin.audit_logs_controller import (
     export_audit_logs_controller,
 )
 
-from typing import Optional  # <-- ADD THIS
-from sqlalchemy.orm import Session  # <-- ADD THIS
-from app.database import get_db  # <-- ADD THIS
+from typing import Optional
+from sqlalchemy.orm import Session
+from app.database import get_db
+from minifw_ai.audit import audit_policy_change, audit_user_mgmt
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 templates = Jinja2Templates(directory="app/web/templates")
@@ -200,6 +201,7 @@ def post_allow_domain(
     db: Session = Depends(get_db),
 ):
     add_allow_domain(current_user, db, payload.domain)
+    audit_policy_change("add_allow_domain", "allow_domain", payload.domain, current_user.username)
     return {"message": "Domain added successfully"}
 
 
@@ -210,6 +212,7 @@ def put_allow_domain(
     db: Session = Depends(get_db),
 ):
     update_allow_domain(current_user, db, payload.old, payload.new)
+    audit_policy_change("update_allow_domain", "allow_domain", f"{payload.old} -> {payload.new}", current_user.username)
     return {"message": "Domain updated successfully"}
 
 
@@ -220,6 +223,7 @@ def del_allow_domain(
     db: Session = Depends(get_db),
 ):
     delete_allow_domain(current_user, db, payload.domain)
+    audit_policy_change("delete_allow_domain", "allow_domain", payload.domain, current_user.username)
     return {"message": "Domain deleted successfully"}
 
 
@@ -236,6 +240,7 @@ def post_deny_ip(
     db: Session = Depends(get_db),
 ):
     add_deny_ip(current_user, db, payload.ip)
+    audit_policy_change("add_deny_ip", "deny_ip", payload.ip, current_user.username)
     return {"message": "IP address added successfully"}
 
 
@@ -246,6 +251,7 @@ def put_deny_ip(
     db: Session = Depends(get_db),
 ):
     update_deny_ip(current_user, db, payload.old, payload.new)
+    audit_policy_change("update_deny_ip", "deny_ip", f"{payload.old} -> {payload.new}", current_user.username)
     return {"message": "IP address updated successfully"}
 
 
@@ -256,6 +262,7 @@ def del_deny_ip(
     db: Session = Depends(get_db),
 ):
     delete_deny_ip(current_user, db, payload.ip)
+    audit_policy_change("delete_deny_ip", "deny_ip", payload.ip, current_user.username)
     return {"message": "IP address deleted successfully"}
 
 
@@ -272,6 +279,7 @@ def post_deny_asn(
     db: Session = Depends(get_db),
 ):
     add_deny_asn(current_user, db, payload.asn)
+    audit_policy_change("add_deny_asn", "deny_asn", payload.asn, current_user.username)
     return {"message": "ASN added successfully"}
 
 
@@ -282,6 +290,7 @@ def put_deny_asn(
     db: Session = Depends(get_db),
 ):
     update_deny_asn(current_user, db, payload.old, payload.new)
+    audit_policy_change("update_deny_asn", "deny_asn", f"{payload.old} -> {payload.new}", current_user.username)
     return {"message": "ASN updated successfully"}
 
 
@@ -292,6 +301,7 @@ def del_deny_asn(
     db: Session = Depends(get_db),
 ):
     delete_deny_asn(current_user, db, payload.asn)
+    audit_policy_change("delete_deny_asn", "deny_asn", payload.asn, current_user.username)
     return {"message": "ASN deleted successfully"}
 
 
@@ -308,6 +318,7 @@ def post_deny_domain(
     db: Session = Depends(get_db),
 ):
     add_deny_domain(current_user, db, payload.domain)
+    audit_policy_change("add_deny_domain", "deny_domain", payload.domain, current_user.username)
     return {"message": "Domain added successfully"}
 
 
@@ -318,6 +329,7 @@ def put_deny_domain(
     db: Session = Depends(get_db),
 ):
     update_deny_domain(current_user, db, payload.old, payload.new)
+    audit_policy_change("update_deny_domain", "deny_domain", f"{payload.old} -> {payload.new}", current_user.username)
     return {"message": "Domain updated successfully"}
 
 
@@ -328,6 +340,7 @@ def del_deny_domain(
     db: Session = Depends(get_db),
 ):
     delete_deny_domain(current_user, db, payload.domain)
+    audit_policy_change("delete_deny_domain", "deny_domain", payload.domain, current_user.username)
     return {"message": "Domain deleted successfully"}
 
 
@@ -387,6 +400,7 @@ def post_segment(
         payload.block_threshold,
         payload.monitor_threshold,
     )
+    audit_policy_change("add_segment", "segment", payload.segment_name, current_user.username)
     return {"message": "Segment saved successfully"}
 
 
@@ -397,6 +411,7 @@ def delete_segment(
     db: Session = Depends(get_db),
 ):
     delete_segment_controller(current_user, db, segment_name)
+    audit_policy_change("delete_segment", "segment", segment_name, current_user.username)
     return {"message": "Segment deleted successfully"}
 
 
@@ -426,6 +441,9 @@ def post_features(
         payload.asn_weight,
         payload.burst_weight,
     )
+    audit_policy_change("update_features", "feature_weights",
+                        f"dns={payload.dns_weight} sni={payload.sni_weight} asn={payload.asn_weight} burst={payload.burst_weight}",
+                        current_user.username)
     return {"message": "Feature weights updated successfully"}
 
 
@@ -443,6 +461,7 @@ def post_enforcement(
         payload.nft_table,
         payload.nft_chain,
     )
+    audit_policy_change("update_enforcement", "enforcement", f"set={payload.ipset_name_v4} timeout={payload.ip_timeout_seconds}s", current_user.username)
     return {"message": "Enforcement configuration updated successfully"}
 
 
@@ -459,6 +478,7 @@ def post_collectors(
         payload.zeek_ssl_log_path,
         payload.use_zeek_sni,
     )
+    audit_policy_change("update_collectors", "collectors", f"dns={payload.dnsmasq_log_path} zeek={payload.use_zeek_sni}", current_user.username)
     return {"message": "Collectors configuration updated successfully"}
 
 
@@ -474,6 +494,9 @@ def post_burst(
         payload.dns_queries_per_minute_monitor,
         payload.dns_queries_per_minute_block,
     )
+    audit_policy_change("update_burst", "burst_detection",
+                        f"monitor={payload.dns_queries_per_minute_monitor} block={payload.dns_queries_per_minute_block}",
+                        current_user.username)
     return {"message": "Burst detection configuration updated successfully"}
 
 
@@ -510,7 +533,7 @@ def create_user(
     db: Session = Depends(get_db),
 ):
     """Create new user (Super Admin only)"""
-    return create_user_controller(
+    result = create_user_controller(
         db=db,
         current_user=current_user,
         username=payload.username,
@@ -523,6 +546,8 @@ def create_user(
         phone=payload.phone,
         must_change_password=payload.must_change_password,
     )
+    audit_user_mgmt("create_user", payload.username, current_user.username, role=payload.role, sector=payload.sector)
+    return result
 
 
 # Update User
@@ -534,7 +559,7 @@ def update_user(
     db: Session = Depends(get_db),
 ):
     """Update user (Super Admin only)"""
-    return update_user_controller(
+    result = update_user_controller(
         db=db,
         current_user=current_user,
         user_id=user_id,
@@ -546,6 +571,8 @@ def update_user(
         phone=payload.phone,
         is_active=payload.is_active,
     )
+    audit_user_mgmt("update_user", f"user_id={user_id}", current_user.username)
+    return result
 
 
 # Change User Password
@@ -557,13 +584,15 @@ def change_user_password(
     db: Session = Depends(get_db),
 ):
     """Change user password (Super Admin only)"""
-    return change_password_controller(
+    result = change_password_controller(
         db=db,
         current_user=current_user,
         user_id=user_id,
         new_password=payload.new_password,
         must_change_password=payload.must_change_password,
     )
+    audit_user_mgmt("change_password", f"user_id={user_id}", current_user.username)
+    return result
 
 
 # Delete User
@@ -574,7 +603,9 @@ def delete_user(
     db: Session = Depends(get_db),
 ):
     """Delete user (Super Admin only)"""
-    return delete_user_controller(db, current_user, user_id)
+    result = delete_user_controller(db, current_user, user_id)
+    audit_user_mgmt("delete_user", f"user_id={user_id}", current_user.username)
+    return result
 
 
 # ============================================================

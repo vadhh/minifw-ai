@@ -11,9 +11,18 @@ from app.services.auth.user_service import (
 )
 from app.services.auth.token_service import create_access_token
 from app.services.auth.totp_service import verify_totp
+from minifw_ai.audit import (
+    audit_login_success, audit_login_failed,
+    audit_2fa_success, audit_2fa_failed,
+    audit_logout, audit_password_change,
+)
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 templates = Jinja2Templates(directory="app/web/templates")
+
+
+def _client_ip(request: Request) -> str:
+    return request.client.host if request.client else ""
 
 
 @router.get("/login", response_class=HTMLResponse)
@@ -33,6 +42,7 @@ def login(
     user = authenticate_user(db, username, password)
 
     if not user:
+        audit_login_failed(username, _client_ip(request))
         return templates.TemplateResponse(
             "auth/login.html",
             {"request": request, "error": "Invalid username or password"},
@@ -49,6 +59,7 @@ def login(
     # No 2FA, create token and redirect to dashboard
     access_token = create_access_token(data={"sub": user.username})
     update_last_login(db, user)
+    audit_login_success(username, _client_ip(request))
 
     response = RedirectResponse(url="/admin/", status_code=303)
     response.set_cookie(key="access_token", value=access_token, httponly=True)
@@ -78,6 +89,7 @@ def verify_2fa(
 
     # Verify TOTP
     if not verify_totp(user.totp_secret, totp_code):
+        audit_2fa_failed(username)
         return templates.TemplateResponse(
             "auth/2fa.html", {"request": request, "error": "Invalid 2FA code"}
         )
@@ -85,6 +97,8 @@ def verify_2fa(
     # Create token and redirect
     access_token = create_access_token(data={"sub": user.username})
     update_last_login(db, user)
+    audit_2fa_success(username)
+    audit_login_success(username, _client_ip(request))
 
     response = RedirectResponse(url="/admin/", status_code=303)
     response.set_cookie(key="access_token", value=access_token, httponly=True)
@@ -93,18 +107,26 @@ def verify_2fa(
 
 
 @router.get("/logout")
-def logout():
+def logout(request: Request):
     """Logout user"""
+    token = request.cookies.get("access_token")
+    if token:
+        try:
+            from app.services.auth.token_service import verify_token
+            payload = verify_token(token)
+            if payload:
+                audit_logout(payload.get("sub", "unknown"))
+        except Exception:
+            pass
     response = RedirectResponse(url="/auth/login", status_code=303)
     response.delete_cookie(key="access_token")
-    response.delete_cookie(key="temp_username")  # cleanup jika ada
+    response.delete_cookie(key="temp_username")
     return response
 
 
 @router.get("/change-password", response_class=HTMLResponse)
 def change_password_page(request: Request):
     """Show change password page"""
-    # Check if user is logged in
     token = request.cookies.get("access_token")
     if not token:
         return RedirectResponse(url="/auth/login", status_code=303)
@@ -121,7 +143,6 @@ def change_password(
     db: Session = Depends(get_db),
 ):
     """Handle change password"""
-    # Get current user from token
     token = request.cookies.get("access_token")
     if not token:
         return RedirectResponse(url="/auth/login", status_code=303)
@@ -173,6 +194,7 @@ def change_password(
     # Update password
     user.hashed_password = get_password_hash(new_password)
     db.commit()
+    audit_password_change(username)
 
     # Redirect to login with success message
     response = RedirectResponse(url="/auth/login?changed=1", status_code=303)
