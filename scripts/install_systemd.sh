@@ -81,7 +81,10 @@ try:
             email='admin@minifw.local',
             password=os.environ['MINIFW_ADMIN_PASSWORD']
         )
-        print(f'Admin user created: {admin.username}')
+        admin.role = 'super_admin'
+        admin.full_name = 'System Administrator'
+        db.commit()
+        print(f'Admin user created: {admin.username} (super_admin)')
 except Exception as e:
     print(f'Warning: Could not create admin user: {e}')
 finally:
