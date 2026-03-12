@@ -34,6 +34,8 @@ fi
 # 2. Update Systemd Unit to use EnvironmentFile
 # We assume the source unit file doesn't have it, so we inject it or use a sed replacement if we copied it.
 # Better: Write the unit file content directly here or modify the copied one.
+# 2a. Install Firewall Engine service
+UNIT_DST="/etc/systemd/system/minifw-ai.service"
 cp -f ./systemd/minifw-ai.service "${UNIT_DST}"
 
 # Inject EnvironmentFile directive into the [Service] section
@@ -49,8 +51,19 @@ exec /opt/minifw_ai/venv/bin/python -m minifw_ai
 EOF
 chmod +x "${APP_ROOT}/run_minifw.sh"
 
+# 2b. Install Web Admin service
+WEB_UNIT_DST="/etc/systemd/system/minifw-ai-web.service"
+cp -f ./systemd/minifw-ai-web.service "${WEB_UNIT_DST}"
+
 systemctl daemon-reload
 systemctl enable --now minifw-ai
+systemctl enable --now minifw-ai-web
 
-echo "Service installed & started: minifw-ai"
-echo "Check: systemctl status minifw-ai --no-pager"
+echo ""
+echo "Services installed & started:"
+echo "  minifw-ai      — Firewall engine daemon"
+echo "  minifw-ai-web  — Web admin panel (port 8080)"
+echo ""
+echo "Check:"
+echo "  systemctl status minifw-ai --no-pager"
+echo "  systemctl status minifw-ai-web --no-pager"

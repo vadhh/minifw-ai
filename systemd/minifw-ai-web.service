@@ -1,0 +1,20 @@
+[Unit]
+Description=MiniFW-AI Web Admin Panel
+After=network.target minifw-ai.service
+Wants=minifw-ai.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/minifw_ai
+EnvironmentFile=/etc/minifw/minifw.env
+Environment=PYTHONPATH=/opt/minifw_ai/app
+Environment=GAMBLING_ONLY=1
+ExecStart=/opt/minifw_ai/venv/bin/uvicorn web.app:app --host 0.0.0.0 --port 8080
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
