@@ -2,6 +2,10 @@ from fastapi import APIRouter, Request, Depends, Form, HTTPException
 from fastapi.responses import RedirectResponse, HTMLResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
+from datetime import datetime, timedelta
+from collections import OrderedDict
+import time
+
 from app.database import get_db
 from app.schemas.auth import LoginRequest, Verify2FARequest
 from app.services.auth.user_service import (
@@ -20,9 +24,73 @@ from minifw_ai.audit import (
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 templates = Jinja2Templates(directory="app/web/templates")
 
+# --- Login Rate Limiter (IP-based) ---
+MAX_LOGIN_ATTEMPTS_PER_IP = 10  # per window
+LOGIN_WINDOW_SECONDS = 300  # 5 minutes
+MAX_FAILED_BEFORE_LOCKOUT = 5  # per user account
+LOCKOUT_DURATION_MINUTES = 15
+
+# IP -> deque of timestamps
+_login_attempts: OrderedDict[str, list] = OrderedDict()
+_MAX_IPS_TRACKED = 5000
+
 
 def _client_ip(request: Request) -> str:
     return request.client.host if request.client else ""
+
+
+def _check_ip_rate_limit(ip: str) -> bool:
+    """Returns True if IP is rate-limited (too many attempts)."""
+    now = time.time()
+    if ip not in _login_attempts:
+        if len(_login_attempts) >= _MAX_IPS_TRACKED:
+            _login_attempts.popitem(last=False)
+        _login_attempts[ip] = []
+    else:
+        _login_attempts.move_to_end(ip)
+
+    attempts = _login_attempts[ip]
+    # Prune old attempts
+    _login_attempts[ip] = [t for t in attempts if (now - t) < LOGIN_WINDOW_SECONDS]
+    return len(_login_attempts[ip]) >= MAX_LOGIN_ATTEMPTS_PER_IP
+
+
+def _record_login_attempt(ip: str) -> None:
+    """Record a login attempt for rate limiting."""
+    now = time.time()
+    if ip not in _login_attempts:
+        if len(_login_attempts) >= _MAX_IPS_TRACKED:
+            _login_attempts.popitem(last=False)
+        _login_attempts[ip] = []
+    _login_attempts[ip].append(now)
+
+
+def _check_account_lockout(user) -> bool:
+    """Returns True if user account is locked."""
+    if not user.is_locked:
+        return False
+    if user.locked_until and datetime.utcnow() > user.locked_until:
+        return False  # Lockout expired
+    return True
+
+
+def _handle_failed_login(db: Session, user) -> None:
+    """Increment failed attempts and lock account if threshold reached."""
+    if user is None:
+        return
+    user.failed_login_attempts = (user.failed_login_attempts or 0) + 1
+    if user.failed_login_attempts >= MAX_FAILED_BEFORE_LOCKOUT:
+        user.is_locked = True
+        user.locked_until = datetime.utcnow() + timedelta(minutes=LOCKOUT_DURATION_MINUTES)
+    db.commit()
+
+
+def _reset_failed_attempts(db: Session, user) -> None:
+    """Reset on successful login."""
+    user.failed_login_attempts = 0
+    user.is_locked = False
+    user.locked_until = None
+    db.commit()
 
 
 @router.get("/login", response_class=HTMLResponse)
@@ -38,15 +106,42 @@ def login(
     password: str = Form(...),
     db: Session = Depends(get_db),
 ):
-    """Handle login"""
+    """Handle login with rate limiting and account lockout."""
+    ip = _client_ip(request)
+
+    # IP-based rate limiting
+    if _check_ip_rate_limit(ip):
+        audit_login_failed(username, ip)
+        return templates.TemplateResponse(
+            "auth/login.html",
+            {"request": request, "error": "Too many login attempts. Try again later."},
+        )
+
+    _record_login_attempt(ip)
+
+    # Check account lockout before authentication
+    user_check = get_user_by_username(db, username)
+    if user_check and _check_account_lockout(user_check):
+        audit_login_failed(username, ip)
+        return templates.TemplateResponse(
+            "auth/login.html",
+            {"request": request, "error": "Account is temporarily locked. Try again later."},
+        )
+
     user = authenticate_user(db, username, password)
 
     if not user:
-        audit_login_failed(username, _client_ip(request))
+        audit_login_failed(username, ip)
+        # Increment failed attempts on the looked-up user (if exists)
+        if user_check:
+            _handle_failed_login(db, user_check)
         return templates.TemplateResponse(
             "auth/login.html",
             {"request": request, "error": "Invalid username or password"},
         )
+
+    # Successful authentication — reset lockout
+    _reset_failed_attempts(db, user)
 
     # If 2FA enabled, redirect to 2FA page
     if user.is_2fa_enabled:
@@ -59,7 +154,7 @@ def login(
     # No 2FA, create token and redirect
     access_token = create_access_token(data={"sub": user.username})
     update_last_login(db, user)
-    audit_login_success(username, _client_ip(request))
+    audit_login_success(username, ip)
 
     # Redirect to change-password if flagged
     redirect_url = "/auth/change-password" if user.must_change_password else "/admin/"

@@ -297,6 +297,24 @@ class FlowTracker:
         """Get all active flows"""
         return list(self.flows.values())
 
+    def get_unique_dst_ports(self, client_ip: str) -> set[int]:
+        """Get unique destination ports contacted by a client IP."""
+        return {
+            flow.dst_port
+            for flow in self.flows.values()
+            if flow.client_ip == client_ip
+        }
+
+    def detect_port_scan(
+        self, client_ip: str, threshold: int = 15
+    ) -> tuple[bool, int]:
+        """Detect port scanning: many unique dst ports from single source.
+
+        Returns (is_scanning, unique_port_count).
+        """
+        ports = self.get_unique_dst_ports(client_ip)
+        return len(ports) >= threshold, len(ports)
+
 
 def parse_conntrack_line(line: str) -> Optional[tuple]:
     """

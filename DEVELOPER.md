@@ -104,7 +104,7 @@ DNS event → pump_zeek() + pump_flows()
 - `BASELINE_PROTECTION` — hard gates only, MLP/YARA disabled
 - `AI_ENHANCED_PROTECTION` — hard gates + MLP + YARA
 
-Auto-transitions based on DNS telemetry health (consecutive healthy/unhealthy checks). State persisted to `/var/log/ritapi/deployment_state.json`.
+Auto-transitions based on DNS telemetry health (consecutive healthy/unhealthy checks). State persisted to `/opt/minifw_ai/logs/deployment_state.json`.
 
 **DNS Backends** (pluggable via `MINIFW_DNS_SOURCE` env var):
 - `file` — tail dnsmasq log file (default)

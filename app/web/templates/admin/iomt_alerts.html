@@ -1,0 +1,111 @@
+{% extends "admin/base.html" %}
+{% block title %}IoMT Alerts — MiniFW-AI{% endblock %}
+
+{% block content %}
+<div class="app-content">
+  <div class="container-fluid">
+
+    <!-- Page header -->
+    <div class="row mb-4 mt-2">
+      <div class="col-12">
+        <h4 class="mb-1 fw-bold" style="color:var(--mf-text);">
+          <i class="bi bi-heart-pulse me-2"></i>IoMT Device Alerts
+        </h4>
+        <p style="color:var(--mf-text-muted);font-size:13px;margin:0;">
+          Medical device anomaly alerts (Hospital sector) &mdash; filtered from <code>iomt_device_alert</code> events
+        </p>
+      </div>
+    </div>
+
+    <!-- Summary card -->
+    <div class="row g-3 mb-4">
+      <div class="col-lg-3 col-md-6">
+        <div class="card stat-card" style="--stat-accent:#ef4444;">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <div class="stat-label">Total IoMT Alerts</div>
+                <div class="stat-value">{{ total }}</div>
+                <div class="stat-sub">Medical device anomalies</div>
+              </div>
+              <div class="stat-icon"><i class="bi bi-heart-pulse"></i></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alerts table -->
+    <div class="row g-3">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header d-flex align-items-center justify-content-between">
+            <span>IoMT Device Anomalies</span>
+            <a href="/admin/events" class="btn btn-sm btn-outline-primary" style="font-size:12px;padding:4px 10px;">
+              View all events <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+          </div>
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-sm table-hover mb-0" id="iomtTable">
+                <thead>
+                  <tr>
+                    <th>Time</th>
+                    <th>Device IP</th>
+                    <th>Domain</th>
+                    <th>Score</th>
+                    <th>Reasons</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% if events %}
+                    {% for event in events %}
+                    <tr>
+                      <td><small style="color:var(--mf-text-muted);">{{ event.time }}</small></td>
+                      <td><code>{{ event.client_ip }}</code></td>
+                      <td><small>{{ event.domain }}</small></td>
+                      <td>
+                        {% if event.score >= 90 %}
+                          <span class="badge" style="background:#fef2f2;color:#ef4444;">{{ event.score }}</span>
+                        {% elif event.score >= 60 %}
+                          <span class="badge" style="background:#fffbeb;color:#f59e0b;">{{ event.score }}</span>
+                        {% else %}
+                          <span class="badge" style="background:#eff6ff;color:#3b82f6;">{{ event.score }}</span>
+                        {% endif %}
+                      </td>
+                      <td><small>{{ event.reason }}</small></td>
+                      <td>
+                        {% if event.status == 'blocked' %}
+                          <span class="badge" style="background:#fef2f2;color:#ef4444;">Blocked</span>
+                        {% else %}
+                          <span class="badge" style="background:#fffbeb;color:#f59e0b;">Monitor</span>
+                        {% endif %}
+                      </td>
+                    </tr>
+                    {% endfor %}
+                  {% else %}
+                    <tr>
+                      <td colspan="6" class="text-center py-4" style="color:var(--mf-text-muted);">
+                        <i class="bi bi-heart-pulse fs-4 d-block mb-2 opacity-25"></i>
+                        No IoMT alerts recorded
+                        <br><small>Alerts appear when medical devices on IoMT subnets trigger anomalies</small>
+                      </td>
+                    </tr>
+                  {% endif %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card-footer" style="font-size:12px;color:var(--mf-text-muted);">
+            <i class="bi bi-info-circle me-1"></i>
+            IoMT subnets are configured in <code>policy.json</code> under <code>iomt_subnets</code>.
+            All alerts on this page carry severity level <strong>CRITICAL</strong>.
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

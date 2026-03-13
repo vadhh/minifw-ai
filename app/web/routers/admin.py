@@ -1,6 +1,8 @@
-from fastapi import APIRouter, Request, Depends
+import re
+
+from fastapi import APIRouter, Request, Depends, HTTPException
 from fastapi.templating import Jinja2Templates
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from app.middleware.auth_middleware import get_current_user
 from app.models.user import User
 from app.controllers.admin.dashboard_controller import dashboard_controller
@@ -67,57 +69,196 @@ router = APIRouter(prefix="/admin", tags=["Admin"])
 templates = Jinja2Templates(directory="app/web/templates")
 
 
+# --- Input validation patterns ---
+_RE_DOMAIN = re.compile(
+    r"^(?:\*\.)?[a-zA-Z0-9](?:[a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?"
+    r"(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*$"
+)
+_RE_IP_CIDR = re.compile(
+    r"^(?:\d{1,3}\.){3}\d{1,3}(?:/\d{1,2})?$"
+)
+_RE_ASN = re.compile(r"^AS\d{1,10}$", re.IGNORECASE)
+_RE_SAFE_NAME = re.compile(r"^[a-zA-Z0-9_\-]{1,64}$")
+_RE_SAFE_PATH = re.compile(r"^[a-zA-Z0-9/_\-\.]{1,256}$")
+_RE_USERNAME = re.compile(r"^[a-zA-Z0-9_\-\.@]{1,128}$")
+_RE_SUBNET = re.compile(r"^(?:\d{1,3}\.){3}\d{1,3}/\d{1,2}$")
+
+# SQL/command injection patterns to reject
+_INJECTION_PATTERNS = re.compile(
+    r"(?:--|;|'|\"|\\x|%27|%22|%3B|\bUNION\b|\bSELECT\b|\bINSERT\b"
+    r"|\bDELETE\b|\bDROP\b|\bUPDATE\b|\bEXEC\b|\bORDER\s+BY\b"
+    r"|\bOR\s+1\s*=\s*1\b|\bAND\s+1\s*=\s*1\b|`|\$\(|\$\{|&&|\|\|)",
+    re.IGNORECASE,
+)
+
+
+def _validate_domain(v: str) -> str:
+    v = v.strip().lower()
+    if len(v) > 253:
+        raise ValueError("Domain name too long (max 253 chars)")
+    if not _RE_DOMAIN.match(v):
+        raise ValueError("Invalid domain format")
+    if _INJECTION_PATTERNS.search(v):
+        raise ValueError("Invalid characters in domain")
+    return v
+
+
+def _validate_ip(v: str) -> str:
+    v = v.strip()
+    if not _RE_IP_CIDR.match(v):
+        raise ValueError("Invalid IP/CIDR format (e.g. 192.168.1.0/24)")
+    # Validate octet ranges
+    parts = v.split("/")[0].split(".")
+    for octet in parts:
+        if int(octet) > 255:
+            raise ValueError("IP octet out of range (0-255)")
+    if "/" in v:
+        prefix = int(v.split("/")[1])
+        if prefix > 32:
+            raise ValueError("CIDR prefix out of range (0-32)")
+    return v
+
+
+def _validate_asn(v: str) -> str:
+    v = v.strip().upper()
+    if not _RE_ASN.match(v):
+        raise ValueError("Invalid ASN format (e.g. AS12345)")
+    return v
+
+
+def _validate_safe_name(v: str) -> str:
+    v = v.strip()
+    if not _RE_SAFE_NAME.match(v):
+        raise ValueError("Invalid name: only alphanumeric, underscore, hyphen allowed (max 64 chars)")
+    return v
+
+
+def _validate_safe_path(v: str) -> str:
+    v = v.strip()
+    if ".." in v:
+        raise ValueError("Path traversal not allowed")
+    if not _RE_SAFE_PATH.match(v):
+        raise ValueError("Invalid path: only alphanumeric, slashes, underscores, hyphens, dots allowed")
+    return v
+
+
+def _validate_no_injection(v: str) -> str:
+    if _INJECTION_PATTERNS.search(v):
+        raise ValueError("Input contains disallowed characters or patterns")
+    return v
+
+
 # Pydantic models for request bodies
 class AddDomainRequest(BaseModel):
     domain: str
+
+    @field_validator("domain")
+    @classmethod
+    def check_domain(cls, v: str) -> str:
+        return _validate_domain(v)
 
 
 class UpdateDomainRequest(BaseModel):
     old: str
     new: str
 
+    @field_validator("old", "new")
+    @classmethod
+    def check_domain(cls, v: str) -> str:
+        return _validate_domain(v)
+
 
 class DeleteDomainRequest(BaseModel):
     domain: str
 
+    @field_validator("domain")
+    @classmethod
+    def check_domain(cls, v: str) -> str:
+        return _validate_domain(v)
+
 
 class AddIpRequest(BaseModel):
     ip: str
+
+    @field_validator("ip")
+    @classmethod
+    def check_ip(cls, v: str) -> str:
+        return _validate_ip(v)
 
 
 class UpdateIpRequest(BaseModel):
     old: str
     new: str
 
+    @field_validator("old", "new")
+    @classmethod
+    def check_ip(cls, v: str) -> str:
+        return _validate_ip(v)
+
 
 class DeleteIpRequest(BaseModel):
     ip: str
 
+    @field_validator("ip")
+    @classmethod
+    def check_ip(cls, v: str) -> str:
+        return _validate_ip(v)
+
 
 class AddAsnRequest(BaseModel):
     asn: str
+
+    @field_validator("asn")
+    @classmethod
+    def check_asn(cls, v: str) -> str:
+        return _validate_asn(v)
 
 
 class UpdateAsnRequest(BaseModel):
     old: str
     new: str
 
+    @field_validator("old", "new")
+    @classmethod
+    def check_asn(cls, v: str) -> str:
+        return _validate_asn(v)
+
 
 class DeleteAsnRequest(BaseModel):
     asn: str
 
+    @field_validator("asn")
+    @classmethod
+    def check_asn(cls, v: str) -> str:
+        return _validate_asn(v)
+
 
 class AddDenyDomainRequest(BaseModel):
     domain: str
+
+    @field_validator("domain")
+    @classmethod
+    def check_domain(cls, v: str) -> str:
+        return _validate_domain(v)
 
 
 class UpdateDenyDomainRequest(BaseModel):
     old: str
     new: str
 
+    @field_validator("old", "new")
+    @classmethod
+    def check_domain(cls, v: str) -> str:
+        return _validate_domain(v)
+
 
 class DeleteDenyDomainRequest(BaseModel):
     domain: str
+
+    @field_validator("domain")
+    @classmethod
+    def check_domain(cls, v: str) -> str:
+        return _validate_domain(v)
 
 
 # Policy requests
@@ -126,10 +267,35 @@ class AddSegmentRequest(BaseModel):
     block_threshold: int
     monitor_threshold: int
 
+    @field_validator("segment_name")
+    @classmethod
+    def check_segment_name(cls, v: str) -> str:
+        return _validate_safe_name(v)
+
+    @field_validator("block_threshold", "monitor_threshold")
+    @classmethod
+    def check_threshold(cls, v: int) -> int:
+        if not (0 <= v <= 100):
+            raise ValueError("Threshold must be 0-100")
+        return v
+
 
 class UpdateSubnetsRequest(BaseModel):
     segment_name: str
     subnets: list
+
+    @field_validator("segment_name")
+    @classmethod
+    def check_segment_name(cls, v: str) -> str:
+        return _validate_safe_name(v)
+
+    @field_validator("subnets")
+    @classmethod
+    def check_subnets(cls, v: list) -> list:
+        for subnet in v:
+            if not isinstance(subnet, str) or not _RE_SUBNET.match(subnet.strip()):
+                raise ValueError(f"Invalid subnet format: {subnet!r} (expected e.g. 192.168.1.0/24)")
+        return [s.strip() for s in v]
 
 
 class UpdateFeaturesRequest(BaseModel):
@@ -138,6 +304,13 @@ class UpdateFeaturesRequest(BaseModel):
     asn_weight: int
     burst_weight: int
 
+    @field_validator("dns_weight", "sni_weight", "asn_weight", "burst_weight")
+    @classmethod
+    def check_weight(cls, v: int) -> int:
+        if not (0 <= v <= 100):
+            raise ValueError("Weight must be 0-100")
+        return v
+
 
 class UpdateEnforcementRequest(BaseModel):
     ipset_name_v4: str
@@ -145,16 +318,40 @@ class UpdateEnforcementRequest(BaseModel):
     nft_table: str
     nft_chain: str
 
+    @field_validator("ipset_name_v4", "nft_table", "nft_chain")
+    @classmethod
+    def check_nft_name(cls, v: str) -> str:
+        return _validate_safe_name(v)
+
+    @field_validator("ip_timeout_seconds")
+    @classmethod
+    def check_timeout(cls, v: int) -> int:
+        if not (1 <= v <= 86400):
+            raise ValueError("Timeout must be 1-86400 seconds")
+        return v
+
 
 class UpdateCollectorsRequest(BaseModel):
     dnsmasq_log_path: str
     zeek_ssl_log_path: str
     use_zeek_sni: bool
 
+    @field_validator("dnsmasq_log_path", "zeek_ssl_log_path")
+    @classmethod
+    def check_path(cls, v: str) -> str:
+        return _validate_safe_path(v)
+
 
 class UpdateBurstRequest(BaseModel):
     dns_queries_per_minute_monitor: int
     dns_queries_per_minute_block: int
+
+    @field_validator("dns_queries_per_minute_monitor", "dns_queries_per_minute_block")
+    @classmethod
+    def check_rate(cls, v: int) -> int:
+        if not (1 <= v <= 10000):
+            raise ValueError("Rate must be 1-10000")
+        return v
 
 
 class CreateUserRequest(BaseModel):
@@ -168,6 +365,39 @@ class CreateUserRequest(BaseModel):
     phone: Optional[str] = None
     must_change_password: bool = True
 
+    @field_validator("username")
+    @classmethod
+    def check_username(cls, v: str) -> str:
+        v = v.strip()
+        if not _RE_USERNAME.match(v):
+            raise ValueError("Invalid username: alphanumeric, underscore, hyphen, dot, @ only (max 128)")
+        return v
+
+    @field_validator("role")
+    @classmethod
+    def check_role(cls, v: str) -> str:
+        allowed = {"super_admin", "admin", "operator", "viewer"}
+        if v.strip().lower() not in allowed:
+            raise ValueError(f"Role must be one of: {', '.join(sorted(allowed))}")
+        return v.strip().lower()
+
+    @field_validator("sector")
+    @classmethod
+    def check_sector(cls, v: str) -> str:
+        allowed = {"school", "hospital", "government", "finance", "legal", "establishment", "gambling"}
+        if v.strip().lower() not in allowed:
+            raise ValueError(f"Sector must be one of: {', '.join(sorted(allowed))}")
+        return v.strip().lower()
+
+    @field_validator("full_name", "department")
+    @classmethod
+    def check_text_field(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None:
+            v = v.strip()
+            if _INJECTION_PATTERNS.search(v):
+                raise ValueError("Input contains disallowed characters")
+        return v
+
 
 class UpdateUserRequest(BaseModel):
     email: Optional[str] = None
@@ -177,6 +407,35 @@ class UpdateUserRequest(BaseModel):
     department: Optional[str] = None
     phone: Optional[str] = None
     is_active: Optional[bool] = None
+
+    @field_validator("role")
+    @classmethod
+    def check_role(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None:
+            allowed = {"super_admin", "admin", "operator", "viewer"}
+            if v.strip().lower() not in allowed:
+                raise ValueError(f"Role must be one of: {', '.join(sorted(allowed))}")
+            return v.strip().lower()
+        return v
+
+    @field_validator("sector")
+    @classmethod
+    def check_sector(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None:
+            allowed = {"school", "hospital", "government", "finance", "legal", "establishment", "gambling"}
+            if v.strip().lower() not in allowed:
+                raise ValueError(f"Sector must be one of: {', '.join(sorted(allowed))}")
+            return v.strip().lower()
+        return v
+
+    @field_validator("full_name", "department")
+    @classmethod
+    def check_text_field(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None:
+            v = v.strip()
+            if _INJECTION_PATTERNS.search(v):
+                raise ValueError("Input contains disallowed characters")
+        return v
 
 
 class ChangePasswordRequest(BaseModel):
@@ -362,9 +621,14 @@ def api_get_events(
     order_dir: str = "desc",
 ):
     """API endpoint for DataTables server-side processing"""
+    # Sanitize search input
+    if search_value and _INJECTION_PATTERNS.search(search_value):
+        search_value = ""
+    order_dir = order_dir if order_dir in ("asc", "desc") else "desc"
+    length = max(1, min(length, 500))
     return events_datatable_controller(
         draw=draw,
-        start=start,
+        start=max(0, start),
         length=length,
         search_value=search_value,
         order_column=order_column,
@@ -378,7 +642,35 @@ def api_download_events(
     action_filter: str = "all", current_user: User = Depends(get_current_user)
 ):
     """API endpoint for downloading events as Excel report"""
+    if action_filter not in ("all", "block", "monitor", "allow"):
+        action_filter = "all"
     return download_events_controller(action_filter)
+
+
+# IoMT Alerts (Hospital sector)
+@router.get("/iomt-alerts")
+def iomt_alerts_page(request: Request, current_user: User = Depends(get_current_user)):
+    """IoMT device alert panel — filtered view of medical device anomalies."""
+    from app.services.events.get_events_service import get_recent_events
+    all_events = get_recent_events(limit=10000)
+    iomt_events = [e for e in all_events if "iomt_device_alert" in e.get("reason", "")]
+    return templates.TemplateResponse(
+        "admin/iomt_alerts.html",
+        {"request": request, "events": iomt_events, "total": len(iomt_events)},
+    )
+
+
+@router.get("/api/iomt-alerts")
+def api_iomt_alerts(current_user: User = Depends(get_current_user)):
+    """API: Get IoMT device alerts filtered from event stream."""
+    from app.services.events.get_events_service import get_recent_events
+    all_events = get_recent_events(limit=10000)
+    iomt_events = [e for e in all_events if "iomt_device_alert" in e.get("reason", "")]
+    return {
+        "success": True,
+        "total": len(iomt_events),
+        "alerts": iomt_events,
+    }
 
 
 # Policy Configuration routes
@@ -633,6 +925,12 @@ def get_audit_logs(
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
 ):
+    # Sanitize string filters
+    limit = max(1, min(limit, 1000))
+    offset = max(0, offset)
+    for param in (action, severity, username, resource_type, start_date, end_date):
+        if param and _INJECTION_PATTERNS.search(param):
+            raise HTTPException(status_code=400, detail="Invalid filter value")
     return get_all_audit_logs_controller(
         db=db,
         current_user=current_user,

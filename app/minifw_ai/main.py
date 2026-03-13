@@ -36,6 +36,9 @@ from minifw_ai.collector_flow import (
 # NEW: Import state manager for dynamic state transitions (TODO 4.1/4.2)
 from minifw_ai.state_manager import StateManager, ProtectionState
 
+# DNS tunneling detection
+from minifw_ai.dns_tunnel_detect import analyze_domain_tunneling, TunnelTracker
+
 # NEW: Import MLP engine
 try:
     from minifw_ai.utils.mlp_engine import get_mlp_detector
@@ -116,6 +119,7 @@ def score_and_decide(
     hard_threat_reason: str | None = None,
     pre_reasons: list[str] | None = None,
     ip_denied: bool = False,
+    tunnel_score: int = 0,
 ):
     score = 0
     reasons = list(pre_reasons) if pre_reasons else []
@@ -143,6 +147,11 @@ def score_and_decide(
         score += int(weights.get("burst_weight", 10))
         reasons.append("burst_behavior")
 
+    # DNS tunneling score (direct add, not weighted — tunneling is inherently suspicious)
+    if tunnel_score > 0:
+        score += tunnel_score
+        # Reasons already added via pre_reasons from tunnel analysis
+
     # NEW: Add MLP score (weight configurable, default 30)
     if mlp_score > 0:
         mlp_weight = int(weights.get("mlp_weight", 30))
@@ -168,10 +177,17 @@ def score_and_decide(
 
 
 def evaluate_hard_threat(
-    flows: list, flow_freq: int, flow_freq_threshold: int
+    flows: list,
+    flow_freq: int,
+    flow_freq_threshold: int,
+    port_scan_detected: bool = False,
 ) -> tuple[bool, str | None]:
     if flow_freq >= flow_freq_threshold:
         return True, "flow_frequency"
+
+    # Rule 0: Port scan detection (many unique dst ports)
+    if port_scan_detected:
+        return True, "port_scan"
 
     for flow in flows:
         if flow.pkt_count < 5:
@@ -394,6 +410,11 @@ def run():
     monitor_qpm = _safe_int_cast(burst_cfg.get("dns_queries_per_minute_monitor"), 120)
     block_qpm = _safe_int_cast(burst_cfg.get("dns_queries_per_minute_block"), 240)
     burst = BurstTracker(window_seconds=60)
+    tunnel_tracker = TunnelTracker(window_seconds=300)
+    port_scan_threshold = _safe_int_cast(os.environ.get("MINIFW_PORT_SCAN_THRESHOLD"), 15)
+    tunnel_subdomain_threshold = _safe_int_cast(
+        os.environ.get("MINIFW_TUNNEL_SUBDOMAIN_THRESHOLD"), 20
+    )
 
     seg_map = pol.segment_subnets()
     weights = pol.features()
@@ -621,16 +642,33 @@ def run():
             qpm = burst.add(client_ip)
             burst_hit = 1 if (qpm >= block_qpm or qpm >= monitor_qpm) else 0
 
+            # Port scan detection
+            port_scan_hit, port_count = flow_tracker.detect_port_scan(
+                client_ip, threshold=port_scan_threshold
+            )
+
             # Layer 1: Hard threat gates (mandatory)
             flows_for_client = flow_tracker.get_flows_for_client(client_ip)
             flow_freq = flow_freq_tracker.get_rate(client_ip)
             hard_threat, hard_threat_reason = evaluate_hard_threat(
-                flows_for_client, flow_freq, flow_freq_threshold
+                flows_for_client, flow_freq, flow_freq_threshold,
+                port_scan_detected=port_scan_hit,
             )
             if hard_threat:
                 logging.warning(
                     f"[HARD_GATE] Triggered: {client_ip} - {hard_threat_reason}"
                 )
+
+            # DNS tunneling detection
+            tunnel_score, tunnel_reasons = analyze_domain_tunneling(domain)
+            is_sustained_tunnel, tunnel_unique = tunnel_tracker.check_sustained_tunneling(
+                domain, threshold=tunnel_subdomain_threshold
+            )
+            if is_sustained_tunnel:
+                tunnel_score = min(tunnel_score + 40, 100)
+                tunnel_reasons.append(f"dns_tunnel_sustained_{tunnel_unique}_subdomains")
+            if tunnel_score > 0:
+                reasons.extend(tunnel_reasons)
 
             # Layer 2: AI risk amplifier (conditional)
             flow_for_ai = flows_for_client[-1] if flows_for_client else None
@@ -690,6 +728,7 @@ def run():
                 ip_denied=client_ip_denied,
                 hard_threat_reason=hard_threat_reason,
                 pre_reasons=reasons,
+                tunnel_score=tunnel_score,
             )
 
             if action == "block":
