@@ -24,7 +24,8 @@ fi
 echo ""
 echo "[1/6] Installing system packages..."
 apt-get update -qq
-apt-get install -y -qq python3 python3-venv python3-pip dnsmasq nftables
+apt-get install -y -qq python3 python3-venv python3-pip python3-ensurepip curl dnsmasq nftables 2>/dev/null || \
+apt-get install -y -qq python3 python3-venv python3-pip curl dnsmasq nftables
 
 # 2. Create directory structure
 echo "[2/6] Creating directory structure..."
@@ -64,7 +65,15 @@ cp -f "${REPO_DIR}/requirements.txt" "${APP_ROOT}/requirements.txt"
 # 4. Create Python virtual environment
 echo "[4/6] Setting up Python virtual environment..."
 if [ ! -d "${APP_ROOT}/venv" ]; then
-    python3 -m venv "${APP_ROOT}/venv"
+    # Try normal venv first; fall back to --without-pip + manual bootstrap
+    if python3 -m venv "${APP_ROOT}/venv" 2>/dev/null && [ -f "${APP_ROOT}/venv/bin/pip" ]; then
+        echo "  venv created with pip."
+    else
+        echo "  pip missing in venv, bootstrapping..."
+        rm -rf "${APP_ROOT}/venv"
+        python3 -m venv --without-pip "${APP_ROOT}/venv"
+        curl -sS https://bootstrap.pypa.io/get-pip.py | "${APP_ROOT}/venv/bin/python"
+    fi
 fi
 "${APP_ROOT}/venv/bin/pip" install --upgrade pip -q
 "${APP_ROOT}/venv/bin/pip" install -r "${APP_ROOT}/requirements.txt" -q
