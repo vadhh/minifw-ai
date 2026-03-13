@@ -27,6 +27,8 @@ def get_db():
 
 # Create tables
 def init_db():
-    from app.models.user import Base
+    from app.models.user import Base as UserBase
+    from app.models.audit import Base as AuditBase
 
-    Base.metadata.create_all(bind=engine)
+    UserBase.metadata.create_all(bind=engine)
+    AuditBase.metadata.create_all(bind=engine)
