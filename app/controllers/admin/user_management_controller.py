@@ -326,4 +326,5 @@ def get_current_user_info_controller(current_user: User):
         "sector": current_user.sector,
         "full_name": current_user.full_name,
         "is_active": current_user.is_active,
+        "is_2fa_enabled": current_user.is_2fa_enabled,
     }

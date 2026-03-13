@@ -60,7 +60,70 @@
       el = document.getElementById('dropdownUserAvatar');if (el) el.src = avatarUrlWhite;
       el = document.getElementById('dropdownUsername');  if (el) el.childNodes[0].textContent = name + ' ';
       el = document.getElementById('dropdownRole');      if (el) el.textContent = role;
+
+      // Sector badge in navbar dropdown
+      if (user.sector) {
+        var sectorEl = document.getElementById('dropdownRole');
+        if (sectorEl) {
+          var sectorIcons = {hospital:'bi-hospital',finance:'bi-bank',school:'bi-mortarboard',government:'bi-building',legal:'bi-briefcase',establishment:'bi-shop'};
+          var sIcon = sectorIcons[user.sector] || 'bi-globe';
+          var sName = user.sector.charAt(0).toUpperCase() + user.sector.slice(1);
+          var badge = document.createElement('span');
+          badge.className = 'mf-sector-badge mf-sector-' + user.sector;
+          badge.style.marginLeft = '6px';
+          badge.innerHTML = '<i class="bi ' + sIcon + '"></i> ' + sName;
+          sectorEl.parentNode.insertBefore(badge, sectorEl.nextSibling);
+        }
+      }
+
+      // RBAC sidebar enforcement
+      var roleHierarchy = { viewer: 0, auditor: 1, operator: 2, admin: 3, super_admin: 4 };
+      var userLevel = roleHierarchy[user.role] || 0;
+      var rbacItems = document.querySelectorAll('[data-rbac-min]');
+      rbacItems.forEach(function (item) {
+        var minLevel = roleHierarchy[item.getAttribute('data-rbac-min')] || 0;
+        if (userLevel < minLevel) {
+          item.style.display = 'none';
+        }
+      });
     })
     .catch(function () {});
+
+  // ── Session expiry warning (60-minute JWT, HttpOnly so use countdown) ──
+  var sessionStart = Date.now();
+  var SESSION_DURATION = 60 * 60 * 1000;
+  var WARNING_BEFORE  = 5 * 60 * 1000;
+  var bannerShown = false;
+
+  setInterval(function () {
+    var elapsed = Date.now() - sessionStart;
+    var remaining = SESSION_DURATION - elapsed;
+
+    if (remaining <= 0) {
+      window.location.href = '/auth/login?reason=session_expired';
+      return;
+    }
+
+    if (remaining <= WARNING_BEFORE && !bannerShown) {
+      bannerShown = true;
+      var mins = Math.ceil(remaining / 60000);
+      var banner = document.createElement('div');
+      banner.className = 'mf-session-banner';
+      banner.id = 'sessionBanner';
+      banner.innerHTML = '<i class="bi bi-clock-history"></i> Session expires in <strong id="sessionCountdown">' + mins + ' min</strong> ' +
+        '<button class="btn btn-sm" onclick="location.reload()">Extend Session</button>';
+      document.body.prepend(banner);
+    }
+
+    if (bannerShown) {
+      var cd = document.getElementById('sessionCountdown');
+      if (cd) {
+        var r = SESSION_DURATION - (Date.now() - sessionStart);
+        var m = Math.floor(r / 60000);
+        var s = Math.floor((r % 60000) / 1000);
+        cd.textContent = m + ':' + (s < 10 ? '0' : '') + s;
+      }
+    }
+  }, 10000);
 })();
 </script>

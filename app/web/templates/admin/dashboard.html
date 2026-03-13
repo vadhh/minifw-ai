@@ -92,6 +92,76 @@
 
     </div>
 
+    <!-- System Intelligence -->
+    <div class="row g-3 mb-4">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header d-flex align-items-center justify-content-between">
+            <span><i class="bi bi-cpu me-1"></i> System Intelligence</span>
+            <span class="badge" id="protectionStateBadge" style="background:#eff6ff;color:#3b82f6;">Loading...</span>
+          </div>
+          <div class="card-body p-0">
+            <div class="row g-0">
+              <div class="col-lg-2 col-md-4 col-6">
+                <div class="mf-detect-card">
+                  <div class="mf-detect-icon" style="background:rgba(239,68,68,0.1);color:#ef4444;">
+                    <i class="bi bi-lightning-fill"></i>
+                  </div>
+                  <div class="mf-detect-value" style="color:#ef4444;">{{ detection_counters.hard_gate }}</div>
+                  <div class="mf-detect-label">Hard Gates</div>
+                </div>
+              </div>
+              <div class="col-lg-2 col-md-4 col-6">
+                <div class="mf-detect-card">
+                  <div class="mf-detect-icon" style="background:rgba(124,58,237,0.1);color:#7c3aed;">
+                    <i class="bi bi-cpu"></i>
+                  </div>
+                  <div class="mf-detect-value" style="color:#7c3aed;">{{ detection_counters.ai_scored }}</div>
+                  <div class="mf-detect-label">AI Blocks</div>
+                </div>
+              </div>
+              <div class="col-lg-2 col-md-4 col-6">
+                <div class="mf-detect-card">
+                  <div class="mf-detect-icon" style="background:rgba(245,158,11,0.1);color:#f59e0b;">
+                    <i class="bi bi-code-slash"></i>
+                  </div>
+                  <div class="mf-detect-value" style="color:#f59e0b;">{{ detection_counters.yara }}</div>
+                  <div class="mf-detect-label">YARA Hits</div>
+                </div>
+              </div>
+              <div class="col-lg-2 col-md-4 col-6">
+                <div class="mf-detect-card">
+                  <div class="mf-detect-icon" style="background:rgba(6,182,212,0.1);color:#06b6d4;">
+                    <i class="bi bi-diagram-2"></i>
+                  </div>
+                  <div class="mf-detect-value" style="color:#06b6d4;">{{ detection_counters.dns_tunnel }}</div>
+                  <div class="mf-detect-label">DNS Tunnels</div>
+                </div>
+              </div>
+              <div class="col-lg-2 col-md-4 col-6">
+                <div class="mf-detect-card">
+                  <div class="mf-detect-icon" style="background:rgba(236,72,153,0.1);color:#ec4899;">
+                    <i class="bi bi-speedometer2"></i>
+                  </div>
+                  <div class="mf-detect-value" style="color:#ec4899;">{{ detection_counters.port_scan }}</div>
+                  <div class="mf-detect-label">Port Scans</div>
+                </div>
+              </div>
+              <div class="col-lg-2 col-md-4 col-6">
+                <div class="mf-detect-card">
+                  <div class="mf-detect-icon" style="background:rgba(100,116,139,0.1);color:#64748b;">
+                    <i class="bi bi-incognito"></i>
+                  </div>
+                  <div class="mf-detect-value" style="color:#64748b;">{{ detection_counters.tor_anon }}</div>
+                  <div class="mf-detect-label">Tor / Anon</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Main content row -->
     <div class="row g-3 mb-4">
 
@@ -244,4 +314,31 @@
 
   </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+  fetch('/admin/api/sector-lock', { credentials: 'same-origin' })
+    .then(function(r) { return r.ok ? r.json() : null; })
+    .then(function(data) {
+      var el = document.getElementById('protectionStateBadge');
+      if (!el) return;
+      if (data && data.sector) {
+        var s = data.sector.charAt(0).toUpperCase() + data.sector.slice(1);
+        el.textContent = s + ' Sector';
+        el.className = 'mf-sector-badge mf-sector-' + data.sector;
+      } else {
+        el.textContent = 'Default';
+        el.className = 'badge';
+        el.style.background = '#eff6ff';
+        el.style.color = '#3b82f6';
+      }
+    })
+    .catch(function() {
+      var el = document.getElementById('protectionStateBadge');
+      if (el) el.textContent = 'N/A';
+    });
+})();
+</script>
 {% endblock %}

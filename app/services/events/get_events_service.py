@@ -89,7 +89,12 @@ def _format_event(event: dict) -> dict:
     source = f"{domain} ({client_ip})" if domain else client_ip
 
     # Get status
-    status = "allowed" if action == "allow" else "blocked"
+    if action == "allow":
+        status = "allowed"
+    elif action == "monitor":
+        status = "monitor"
+    else:
+        status = "blocked"
 
     # Check if threat detected
     score = event.get("score", 0)
@@ -179,6 +184,42 @@ def get_event_statistics():
             stats["threats_detected"] += 1
 
     return stats
+
+
+def get_detection_counters():
+    """
+    Get detection type counters from events.
+    Returns counts for hard_gate, ai_scored, yara, dns_tunnel, port_scan, tor events.
+    """
+    events = get_recent_events(limit=10000)
+
+    counters = {
+        "hard_gate": 0,
+        "ai_scored": 0,
+        "yara": 0,
+        "dns_tunnel": 0,
+        "port_scan": 0,
+        "tor_anon": 0,
+    }
+
+    for event in events:
+        reason = event.get("reason", "")
+        reason_lower = reason.lower()
+
+        if "hard_threat_gate" in reason_lower:
+            counters["hard_gate"] += 1
+        if "mlp_threat_score" in reason_lower:
+            counters["ai_scored"] += 1
+        if "yara" in reason_lower:
+            counters["yara"] += 1
+        if "dns_tunnel" in reason_lower:
+            counters["dns_tunnel"] += 1
+        if "port_scan" in reason_lower or "pps" in reason_lower:
+            counters["port_scan"] += 1
+        if "tor" in reason_lower or "anonymizer" in reason_lower:
+            counters["tor_anon"] += 1
+
+    return counters
 
 
 def get_system_uptime():

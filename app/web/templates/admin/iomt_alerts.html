@@ -41,9 +41,14 @@
         <div class="card">
           <div class="card-header d-flex align-items-center justify-content-between">
             <span>IoMT Device Anomalies</span>
-            <a href="/admin/events" class="btn btn-sm btn-outline-primary" style="font-size:12px;padding:4px 10px;">
-              View all events <i class="bi bi-arrow-right ms-1"></i>
-            </a>
+            <div class="d-flex gap-2">
+              <button class="btn btn-sm btn-outline-secondary" id="iomtAutoRefreshToggle" style="font-size:12px;padding:4px 10px;">
+                <i class="bi bi-arrow-clockwise"></i> Auto-Refresh: <span id="iomtAutoRefreshStatus">OFF</span>
+              </button>
+              <a href="/admin/events" class="btn btn-sm btn-outline-primary" style="font-size:12px;padding:4px 10px;">
+                View all events <i class="bi bi-arrow-right ms-1"></i>
+              </a>
+            </div>
           </div>
           <div class="card-body p-0">
             <div class="table-responsive">
@@ -61,7 +66,7 @@
                 <tbody>
                   {% if events %}
                     {% for event in events %}
-                    <tr>
+                    <tr{% if event.score >= 90 %} class="mf-critical-row"{% endif %}>
                       <td><small style="color:var(--mf-text-muted);">{{ event.time }}</small></td>
                       <td><code>{{ event.client_ip }}</code></td>
                       <td><small>{{ event.domain }}</small></td>
@@ -108,4 +113,31 @@
 
   </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+  var iomtRefreshTimer = null;
+  var iomtAutoRefresh = false;
+  var btn = document.getElementById('iomtAutoRefreshToggle');
+  var status = document.getElementById('iomtAutoRefreshStatus');
+
+  if (btn) {
+    btn.addEventListener('click', function() {
+      iomtAutoRefresh = !iomtAutoRefresh;
+      status.textContent = iomtAutoRefresh ? 'ON' : 'OFF';
+      if (iomtAutoRefresh) {
+        btn.classList.remove('btn-outline-secondary');
+        btn.classList.add('btn-outline-primary');
+        iomtRefreshTimer = setInterval(function() { location.reload(); }, 30000);
+      } else {
+        btn.classList.remove('btn-outline-primary');
+        btn.classList.add('btn-outline-secondary');
+        if (iomtRefreshTimer) { clearInterval(iomtRefreshTimer); iomtRefreshTimer = null; }
+      }
+    });
+  }
+})();
+</script>
 {% endblock %}

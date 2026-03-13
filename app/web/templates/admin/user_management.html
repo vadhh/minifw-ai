@@ -138,6 +138,7 @@
                 <th>Role</th>
                 <th>Sector</th>
                 <th>Department</th>
+                <th>2FA</th>
                 <th>Status</th>
                 <th>Last Login</th>
                 <th style="width: 250px;">Actions</th>
@@ -145,7 +146,7 @@
             </thead>
             <tbody id="usersTableBody">
               <tr>
-                <td colspan="9" class="text-center py-5">
+                <td colspan="10" class="text-center py-5">
                   <div class="spinner-border text-primary" role="status">
                     <span class="visually-hidden">Loading...</span>
                   </div>
@@ -506,7 +507,7 @@ async function loadUsers() {
     console.error('Error loading users:', error);
     showAlert('Failed to load users: ' + error.message, 'danger');
     document.getElementById('usersTableBody').innerHTML = 
-      '<tr><td colspan="9" class="text-center text-danger py-4">Failed to load users</td></tr>';
+      '<tr><td colspan="10" class="text-center text-danger py-4">Failed to load users</td></tr>';
   }
 }
 
@@ -525,7 +526,7 @@ function displayUsers(users) {
   const tbody = document.getElementById('usersTableBody');
   
   if (users.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="9" class="text-center text-muted py-4">No users found</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="10" class="text-center text-muted py-4">No users found</td></tr>';
     return;
   }
   
@@ -537,6 +538,11 @@ function displayUsers(users) {
       <td><span class="role-badge role-${user.role}">${formatRole(user.role)}</span></td>
       <td><span class="sector-badge sector-${user.sector}">${formatSector(user.sector)}</span></td>
       <td>${escapeHtml(user.department || '-')}</td>
+      <td class="text-center">
+        ${user.is_2fa_enabled
+          ? '<i class="bi bi-shield-check mf-2fa-enabled" title="2FA Enabled"></i>'
+          : '<i class="bi bi-shield-exclamation mf-2fa-disabled" title="2FA Not Enabled"></i>'}
+      </td>
       <td>
         ${user.is_active 
           ? '<span class="badge bg-success"><i class="bi bi-check-circle"></i> Active</span>' 

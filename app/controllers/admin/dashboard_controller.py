@@ -13,6 +13,7 @@ from app.services.events.get_events_service import (
     get_recent_events,
     get_event_statistics,
     get_system_uptime,
+    get_detection_counters,
 )
 
 templates = Jinja2Templates(directory="app/web/templates")
@@ -74,6 +75,9 @@ def dashboard_controller(request: Request):
     # Get service status
     service_status = get_service_status()
 
+    # Get detection counters
+    detection_counters = get_detection_counters()
+
     # Calculate total rules
     total_rules = allow_domains + deny_ips + deny_asns + deny_domains
 
@@ -82,6 +86,7 @@ def dashboard_controller(request: Request):
         {
             "request": request,
             "user": {"name": "Fahrezi"},
+            "detection_counters": detection_counters,
             "stats": {
                 "allow_domains": allow_domains,
                 "deny_ips": deny_ips,

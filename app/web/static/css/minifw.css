@@ -693,3 +693,272 @@ body {
 }
 [data-bs-theme="dark"] .swal2-title { color: var(--mf-text) !important; }
 [data-bs-theme="dark"] .swal2-content { color: var(--mf-text-muted) !important; }
+[data-bs-theme="dark"] .swal2-html-container { color: var(--mf-text) !important; }
+[data-bs-theme="dark"] .swal2-html-container .card {
+  background: var(--mf-surface) !important;
+  border-color: var(--mf-border) !important;
+}
+[data-bs-theme="dark"] .swal2-html-container .card-header {
+  background: var(--mf-surface-2) !important;
+  border-color: var(--mf-border) !important;
+  color: var(--mf-text) !important;
+}
+[data-bs-theme="dark"] .swal2-html-container .table { color: var(--mf-text) !important; }
+[data-bs-theme="dark"] .swal2-html-container code {
+  background: var(--mf-surface-2) !important;
+  color: var(--mf-accent) !important;
+}
+
+/* ── 21. Hard Gate & AI Block badges ─────────────────────── */
+@keyframes mf-pulse-gate {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.4); }
+  50%      { box-shadow: 0 0 0 6px rgba(239,68,68,0); }
+}
+
+.mf-badge-hardgate {
+  background: linear-gradient(135deg, #dc2626, #b91c1c) !important;
+  color: #fff !important;
+  font-size: 10px !important;
+  font-weight: 700;
+  padding: 3px 8px !important;
+  border-radius: 6px !important;
+  animation: mf-pulse-gate 2s infinite;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.mf-badge-ai-block {
+  background: linear-gradient(135deg, #7c3aed, #4f46e5) !important;
+  color: #fff !important;
+  font-size: 10px !important;
+  font-weight: 700;
+  padding: 3px 8px !important;
+  border-radius: 6px !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.mf-badge-monitor {
+  background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+  color: #fff !important;
+  font-size: 10px !important;
+  font-weight: 700;
+  padding: 3px 8px !important;
+  border-radius: 6px !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ── 22. Score bar (three-zone) ──────────────────────────── */
+.mf-score-bar {
+  position: relative;
+  width: 100%;
+  min-width: 90px;
+  max-width: 140px;
+}
+
+.mf-score-track {
+  height: 8px;
+  border-radius: 99px;
+  background: linear-gradient(90deg,
+    #10b981 0%, #10b981 39%,
+    #f59e0b 40%, #f59e0b 64%,
+    #ef4444 65%, #ef4444 100%);
+  position: relative;
+  overflow: visible;
+}
+
+.mf-score-pointer {
+  position: absolute;
+  top: -3px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--mf-surface);
+  border: 2px solid var(--mf-text);
+  transform: translateX(-50%);
+  box-shadow: var(--mf-shadow-sm);
+  z-index: 1;
+}
+
+.mf-score-label {
+  font-size: 10px;
+  font-weight: 700;
+  margin-top: 4px;
+  letter-spacing: 0.3px;
+}
+
+.mf-score-label.zone-allow  { color: #10b981; }
+.mf-score-label.zone-monitor { color: #f59e0b; }
+.mf-score-label.zone-block  { color: #ef4444; }
+
+/* ── 23. Reason breakdown items ──────────────────────────── */
+.mf-reason-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  margin: 2px;
+  background: var(--mf-surface-2);
+  border: 1px solid var(--mf-border);
+  color: var(--mf-text);
+  transition: all var(--mf-transition);
+}
+
+.mf-reason-item:hover {
+  background: rgba(79, 70, 229, 0.08);
+  border-color: var(--mf-primary);
+}
+
+.mf-reason-item i {
+  font-size: 13px;
+  opacity: 0.7;
+}
+
+.mf-reason-item.reason-hardgate  { border-left: 3px solid #ef4444; }
+.mf-reason-item.reason-mlp       { border-left: 3px solid #7c3aed; }
+.mf-reason-item.reason-yara      { border-left: 3px solid #f59e0b; }
+.mf-reason-item.reason-dns       { border-left: 3px solid #06b6d4; }
+.mf-reason-item.reason-rate      { border-left: 3px solid #ec4899; }
+.mf-reason-item.reason-asn       { border-left: 3px solid #6366f1; }
+.mf-reason-item.reason-tor       { border-left: 3px solid #64748b; }
+.mf-reason-item.reason-default   { border-left: 3px solid #94a3b8; }
+
+/* ── 24. Session expiry banner ───────────────────────────── */
+.mf-session-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #fff;
+  padding: 8px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  animation: mf-fade-up 0.3s var(--mf-ease) both;
+}
+
+.mf-session-banner .btn {
+  padding: 3px 12px;
+  font-size: 12px;
+  background: rgba(255,255,255,0.2);
+  border: 1px solid rgba(255,255,255,0.4);
+  color: #fff;
+}
+
+.mf-session-banner .btn:hover {
+  background: rgba(255,255,255,0.35);
+}
+
+/* ── 25. Critical IoMT row ───────────────────────────────── */
+@keyframes mf-pulse-border {
+  0%, 100% { border-left-color: #ef4444; }
+  50%      { border-left-color: transparent; }
+}
+
+.mf-critical-row {
+  border-left: 4px solid #ef4444 !important;
+  animation: mf-pulse-border 2s infinite;
+  background: rgba(239,68,68,0.04) !important;
+}
+
+[data-bs-theme="dark"] .mf-critical-row {
+  background: rgba(239,68,68,0.08) !important;
+}
+
+/* ── 26. Sector badges ───────────────────────────────────── */
+.mf-sector-badge {
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 10.5px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.mf-sector-hospital     { background: #fce7f3; color: #9f1239; }
+.mf-sector-finance       { background: #dcfce7; color: #14532d; }
+.mf-sector-school        { background: #ddd6fe; color: #5b21b6; }
+.mf-sector-government    { background: #ccfbf1; color: #134e4a; }
+.mf-sector-legal         { background: #fef9c3; color: #713f12; }
+.mf-sector-establishment { background: #fed7aa; color: #7c2d12; }
+.mf-sector-default       { background: #f1f5f9; color: #475569; }
+
+[data-bs-theme="dark"] .mf-sector-hospital     { background: rgba(159,18,57,0.2); color: #fb7185; }
+[data-bs-theme="dark"] .mf-sector-finance       { background: rgba(20,83,45,0.2); color: #4ade80; }
+[data-bs-theme="dark"] .mf-sector-school        { background: rgba(91,33,182,0.2); color: #a78bfa; }
+[data-bs-theme="dark"] .mf-sector-government    { background: rgba(19,78,74,0.2); color: #5eead4; }
+[data-bs-theme="dark"] .mf-sector-legal         { background: rgba(113,63,18,0.2); color: #fde047; }
+[data-bs-theme="dark"] .mf-sector-establishment { background: rgba(124,45,18,0.2); color: #fdba74; }
+[data-bs-theme="dark"] .mf-sector-default       { background: rgba(71,85,105,0.2); color: #94a3b8; }
+
+/* ── 27. Detection counters (dashboard) ──────────────────── */
+.mf-detect-card {
+  text-align: center;
+  padding: 16px 8px;
+  border-right: 1px solid var(--mf-border);
+}
+
+.mf-detect-card:last-child { border-right: none; }
+
+.mf-detect-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  margin-bottom: 8px;
+}
+
+.mf-detect-value {
+  font-size: 1.4rem;
+  font-weight: 800;
+  line-height: 1;
+  margin-bottom: 2px;
+}
+
+.mf-detect-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--mf-text-muted);
+}
+
+/* ── 28. HIPAA / PII badge ───────────────────────────────── */
+.mf-badge-hipaa {
+  background: linear-gradient(135deg, #ec4899, #be185d) !important;
+  color: #fff !important;
+  font-size: 9px !important;
+  font-weight: 700;
+  padding: 2px 6px !important;
+  border-radius: 4px !important;
+  letter-spacing: 0.5px;
+}
+
+/* ── 29. 2FA status badges ───────────────────────────────── */
+.mf-2fa-enabled {
+  color: #10b981;
+  font-size: 16px;
+}
+
+.mf-2fa-disabled {
+  color: #f59e0b;
+  font-size: 16px;
+  opacity: 0.6;
+}
