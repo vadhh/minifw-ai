@@ -279,9 +279,15 @@ body {
 }
 
 /* ── 6. Cards ──────────────────────────────────────────────── */
-.card {
+
+/* Only apply surface bg to cards that don't have an explicit Bootstrap bg-* color */
+.card:not([class*="bg-"]) {
   background: var(--mf-surface) !important;
   border: 1px solid var(--mf-border) !important;
+  color: var(--mf-text) !important;
+}
+
+.card {
   border-radius: var(--mf-radius) !important;
   box-shadow: var(--mf-shadow) !important;
   transition: box-shadow var(--mf-transition), transform var(--mf-transition);
@@ -299,15 +305,65 @@ body {
 }
 .card-body { padding: 20px !important; }
 
-/* Stat cards on dashboard */
-.card.stat-card {
-  border-left: 3px solid var(--mf-primary) !important;
-  transition: all var(--mf-transition);
+/* Stat cards on dashboard — token-based, no Bootstrap bg-* needed */
+.stat-card {
+  border: 1px solid var(--mf-border) !important;
+  background: var(--mf-surface) !important;
+  position: relative;
+  overflow: hidden;
 }
-.card.stat-card:hover {
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 4px; height: 100%;
+  background: var(--stat-accent, var(--mf-primary));
+  border-radius: 0;
+}
+.stat-card:hover {
   transform: translateY(-3px);
   box-shadow: var(--mf-shadow-hover) !important;
 }
+.stat-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--mf-text-muted);
+  margin-bottom: 6px;
+}
+.stat-value {
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--mf-text);
+  margin-bottom: 4px;
+}
+.stat-sub {
+  font-size: 12px;
+  color: var(--mf-text-muted);
+}
+.stat-icon {
+  font-size: 2.2rem;
+  opacity: 0.18;
+  line-height: 1;
+  color: var(--stat-accent, var(--mf-primary));
+}
+.stat-link {
+  display: block;
+  padding: 8px 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--stat-accent, var(--mf-primary));
+  border-top: 1px solid var(--mf-border);
+  transition: background var(--mf-transition);
+}
+.stat-link:hover {
+  background: rgba(0,0,0,0.03);
+  color: var(--stat-accent, var(--mf-primary));
+}
+[data-bs-theme="dark"] .stat-link:hover { background: rgba(255,255,255,0.04); }
 
 /* Stagger cards on page load */
 .card { animation: mf-fade-up var(--mf-transition-lg) both; }
@@ -578,6 +634,55 @@ body {
 .dropdown-item:hover {
   background: rgba(79, 70, 229, 0.08) !important;
   color: var(--mf-primary) !important;
+}
+
+/* ── 19. List group ────────────────────────────────────────── */
+.list-group-item {
+  background: transparent !important;
+  border-color: var(--mf-border) !important;
+  color: var(--mf-text) !important;
+}
+
+/* ── 20. Soft-color status badges (auto dark-mode) ─────────── */
+[data-bs-theme="dark"] .badge[style*="background:#f0fdf4"] {
+  background: rgba(16,185,129,0.15) !important;
+  color: #34d399 !important;
+}
+[data-bs-theme="dark"] .badge[style*="background:#fef2f2"] {
+  background: rgba(239,68,68,0.15) !important;
+  color: #f87171 !important;
+}
+[data-bs-theme="dark"] .badge[style*="background:#fffbeb"] {
+  background: rgba(245,158,11,0.15) !important;
+  color: #fbbf24 !important;
+}
+[data-bs-theme="dark"] .badge[style*="background:#eff6ff"] {
+  background: rgba(59,130,246,0.15) !important;
+  color: #60a5fa !important;
+}
+[data-bs-theme="dark"] .badge[style*="background:#f5f3ff"] {
+  background: rgba(99,102,241,0.15) !important;
+  color: #818cf8 !important;
+}
+[data-bs-theme="dark"] .btn[style*="background:#f0fdf4"] {
+  background: rgba(16,185,129,0.12) !important;
+  color: #34d399 !important;
+  border-color: rgba(16,185,129,0.25) !important;
+}
+[data-bs-theme="dark"] .btn[style*="background:#fef2f2"] {
+  background: rgba(239,68,68,0.12) !important;
+  color: #f87171 !important;
+  border-color: rgba(239,68,68,0.25) !important;
+}
+[data-bs-theme="dark"] .btn[style*="background:#fffbeb"] {
+  background: rgba(245,158,11,0.12) !important;
+  color: #fbbf24 !important;
+  border-color: rgba(245,158,11,0.25) !important;
+}
+[data-bs-theme="dark"] .btn[style*="background:#f5f3ff"] {
+  background: rgba(99,102,241,0.12) !important;
+  color: #818cf8 !important;
+  border-color: rgba(99,102,241,0.25) !important;
 }
 
 /* SweetAlert2 dark mode */
