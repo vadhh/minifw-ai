@@ -26,8 +26,33 @@ else
     echo "[1/4] systemd-resolved not active, skipping."
 fi
 
-# ── 2. Configure dnsmasq upstream DNS ──
+# ── 2. Configure dnsmasq upstream DNS + interface ──
 echo "[2/4] Configuring dnsmasq..."
+
+# Auto-detect primary active interface: prefer LAN (en*/eth*), fall back to WiFi (wl*)
+detect_iface() {
+    local iface
+    # First pass: wired (en* or eth*)
+    for iface in $(ip -o link show up | awk -F': ' '{print $2}' | grep -E '^(en|eth)'); do
+        ip -o addr show dev "$iface" 2>/dev/null | grep -q 'inet ' && echo "$iface" && return
+    done
+    # Second pass: wireless (wl*)
+    for iface in $(ip -o link show up | awk -F': ' '{print $2}' | grep '^wl'); do
+        ip -o addr show dev "$iface" 2>/dev/null | grep -q 'inet ' && echo "$iface" && return
+    done
+}
+
+ACTIVE_IFACE="$(detect_iface)"
+if [ -z "${ACTIVE_IFACE}" ]; then
+    echo "  WARNING: Could not detect an active network interface; skipping interface config."
+else
+    echo "  Detected active interface: ${ACTIVE_IFACE}"
+    # Replace interface= lines and ensure bind-interfaces is set
+    sed -i '/^interface=/d' "${CONF}"
+    sed -i '/^bind-interfaces/d' "${CONF}"
+    sed -i "1s/^/interface=lo\ninterface=${ACTIVE_IFACE}\nbind-interfaces\n/" "${CONF}"
+fi
+
 # Ensure dnsmasq has an upstream DNS server if not already set
 if ! grep -q "^server=" "${CONF}" 2>/dev/null; then
     echo "server=8.8.8.8" >> "${CONF}"
