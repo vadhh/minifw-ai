@@ -546,7 +546,7 @@ def run():
 
             dns_events = empty_dns_iterator()
 
-    audit_daemon_start(sector_name, state_mgr.current_state.value)
+    audit_daemon_start(sector_name, state_manager.current_state.value)
 
     for client_ip, domain in dns_events:
         pump_zeek()
