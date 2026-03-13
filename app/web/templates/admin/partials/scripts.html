@@ -1,4 +1,4 @@
-<!-- jQuery (MUST be loaded FIRST before any custom scripts) -->
+<!-- jQuery (must load first) -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
 <!-- Bootstrap 5 -->
@@ -16,7 +16,51 @@
 <script src="https://cdn.jsdelivr.net/npm/overlayscrollbars@2.11.0/browser/overlayscrollbars.browser.es6.min.js"></script>
 
 <!-- AdminLTE 4 -->
-<script
-  type="module"
-  src="{{ url_for('static', path='adminLTE/dist/js/adminlte.js') }}"
-></script>
+<script type="module" src="{{ url_for('static', path='adminLTE/dist/js/adminlte.js') }}"></script>
+
+<!-- Dark mode + user info -->
+<script>
+(function () {
+  // ── Dark mode toggle ──────────────────────────────────────
+  const root    = document.documentElement;
+  const btn     = document.getElementById('darkModeToggle');
+  const icon    = document.getElementById('darkModeIcon');
+
+  function applyTheme(theme) {
+    root.setAttribute('data-bs-theme', theme);
+    localStorage.setItem('mf-theme', theme);
+    if (icon) {
+      icon.className = theme === 'dark' ? 'bi bi-sun-fill' : 'bi bi-moon-stars-fill';
+    }
+  }
+
+  // Init from storage (head.html already set attribute, just sync icon)
+  applyTheme(localStorage.getItem('mf-theme') || 'light');
+
+  if (btn) {
+    btn.addEventListener('click', function () {
+      applyTheme(root.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark');
+    });
+  }
+
+  // ── Populate navbar user info from /admin/api/auth/current-user ──
+  fetch('/admin/api/auth/current-user', { credentials: 'same-origin' })
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (user) {
+      if (!user) return;
+      const name   = user.full_name || user.username || 'User';
+      const initials = name.split(' ').map(function (n) { return n[0]; }).join('').slice(0, 2).toUpperCase();
+      const role   = (user.role || '').replace(/_/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); });
+      const avatarUrl = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(initials) + '&background=4f46e5&color=fff&size=128';
+      const avatarUrlWhite = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(initials) + '&background=ffffff&color=4f46e5&size=128';
+
+      var el;
+      el = document.getElementById('navUsername');       if (el) el.textContent = initials;
+      el = document.getElementById('navUserAvatar');     if (el) el.src = avatarUrl;
+      el = document.getElementById('dropdownUserAvatar');if (el) el.src = avatarUrlWhite;
+      el = document.getElementById('dropdownUsername');  if (el) el.childNodes[0].textContent = name + ' ';
+      el = document.getElementById('dropdownRole');      if (el) el.textContent = role;
+    })
+    .catch(function () {});
+})();
+</script>

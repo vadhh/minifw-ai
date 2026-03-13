@@ -1,65 +1,46 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2FA Verification - Minifw-AI</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-</head>
-<body class="bg-light">
-    <div class="container">
-        <div class="row justify-content-center align-items-center min-vh-100">
-            <div class="col-md-5">
-                <div class="card shadow">
-                    <div class="card-body p-5">
-                        <div class="text-center mb-4">
-                            <i class="bi bi-shield-check" style="font-size: 3rem; color: #198754;"></i>
-                            <h3 class="mt-2">Two-Factor Authentication</h3>
-                            <p class="text-muted">Enter the 6-digit code from your authenticator app</p>
-                        </div>
+{% extends "auth/base.html" %}
+{% block title %}Two-Factor Auth — MiniFW-AI{% endblock %}
+{% block logo_icon %}bi-shield-check{% endblock %}
+{% block auth_title %}Two-Factor Auth{% endblock %}
+{% block auth_subtitle %}Enter the 6-digit code from your authenticator app{% endblock %}
 
-                        {% if error %}
-                        <div class="alert alert-danger" role="alert">
-                            <i class="bi bi-exclamation-triangle"></i> {{ error }}
-                        </div>
-                        {% endif %}
+{% block content %}
+{% if error %}
+<div class="alert alert-danger d-flex align-items-center gap-2" role="alert">
+  <i class="bi bi-exclamation-triangle-fill"></i>
+  <span>{{ error }}</span>
+</div>
+{% endif %}
 
-                        <form method="POST" action="/auth/2fa/verify">
-                            <div class="mb-3">
-                                <label for="totp_code" class="form-label">Authentication Code</label>
-                                <input 
-                                    type="text" 
-                                    class="form-control form-control-lg text-center" 
-                                    id="totp_code" 
-                                    name="totp_code" 
-                                    maxlength="6" 
-                                    pattern="[0-9]{6}"
-                                    placeholder="000000"
-                                    required 
-                                    autofocus
-                                    style="letter-spacing: 0.5rem; font-size: 1.5rem;"
-                                >
-                            </div>
+<form method="POST" action="/auth/2fa/verify">
+  <div class="mb-4">
+    <label for="totp_code" class="form-label text-center w-100">Authentication Code</label>
+    <input
+      type="text"
+      class="form-control form-control-lg text-center fw-bold"
+      id="totp_code"
+      name="totp_code"
+      maxlength="6"
+      pattern="[0-9]{6}"
+      placeholder="000 000"
+      required
+      autofocus
+      autocomplete="one-time-code"
+      style="letter-spacing: 0.6rem; font-size: 1.6rem;"
+      oninput="this.value=this.value.replace(/\D/g,'')"
+    >
+  </div>
 
-                            <div class="d-grid">
-                                <button type="submit" class="btn btn-success btn-lg">
-                                    <i class="bi bi-check-circle"></i> Verify
-                                </button>
-                            </div>
-                        </form>
+  <div class="d-grid mb-3">
+    <button type="submit" class="btn btn-primary btn-lg fw-600">
+      <i class="bi bi-check-circle me-2"></i>Verify
+    </button>
+  </div>
+</form>
 
-                        <div class="text-center mt-3">
-                            <a href="/auth/login" class="text-decoration-none">
-                                <i class="bi bi-arrow-left"></i> Back to login
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+<div class="text-center">
+  <a href="/auth/login" class="text-decoration-none" style="color:var(--mf-text-muted);font-size:13px;">
+    <i class="bi bi-arrow-left me-1"></i>Back to login
+  </a>
+</div>
+{% endblock %}
