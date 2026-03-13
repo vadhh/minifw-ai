@@ -157,37 +157,7 @@ def _get_action_color(action: str) -> str:
 
 
 def _get_sample_events():
-    """
-    Return sample events if file doesn't exist
-    """
-    return [
-        {
-            "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "type": "Domain Allow",
-            "type_color": "success",
-            "source": "chatgpt.com (127.0.0.1)",
-            "status": "allowed",
-            "threat_detected": False,
-            "reason": "Normal traffic",
-            "score": 0,
-            "segment": "default",
-            "client_ip": "127.0.0.1",
-            "domain": "chatgpt.com",
-        },
-        {
-            "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "type": "Domain Allow",
-            "type_color": "success",
-            "source": "connectivity-check.ubuntu.com (127.0.0.1)",
-            "status": "allowed",
-            "threat_detected": False,
-            "reason": "Normal traffic",
-            "score": 0,
-            "segment": "default",
-            "client_ip": "127.0.0.1",
-            "domain": "connectivity-check.ubuntu.com",
-        },
-    ]
+    return []
 
 
 def get_event_statistics():
