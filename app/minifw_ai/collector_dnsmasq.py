@@ -164,7 +164,7 @@ def stream_dns_events(
     *,
     log_path: str = "/var/log/dnsmasq.log",
     udp_port: int = 5514,
-    bind_ip: str = "0.0.0.0",
+    bind_ip: str = "127.0.0.1",
 ):
     """
     Compatibility shim.

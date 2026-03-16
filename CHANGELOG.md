@@ -54,6 +54,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Debug print `for route in app.routes: print(...)` removed from `app/web/app.py`.
 - `prometheus_client` and `schedule` added to `requirements.txt` (were missing).
 - `pyproject.toml` added with `pythonpath = ["app", "."]` — eliminates `sys.path.insert` hacks.
+- `collector_dnsmasq.py` UDP bind default changed `0.0.0.0` → `127.0.0.1` — UDP DNS collector
+  no longer listens on all interfaces by default.
+- Removed stale `GAMBLING_ONLY` env var from CI workflow, `conftest.py`, `test_state_manager.py`,
+  and `test_security_features.py`. Set `MINIFW_SECTOR=establishment` (was `gambling`, an invalid
+  sector since 2.0.0) in `test_security_features.py`.
 
 ### Changed
 - Sector name `school` → `education` throughout codebase, docs, and package metadata.
@@ -66,7 +71,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `systemctl stop`. Only fires on KeyboardInterrupt.
 
 ### Test Suite
-246 passed, 1 skipped, 0 failed (up from broken/skip-heavy state in 1.0.0).
+328 passed, 0 failed (up from 246 after conntrack CLI path tests added).
 
 ---
 

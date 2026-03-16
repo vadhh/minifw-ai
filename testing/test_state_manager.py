@@ -10,9 +10,6 @@ from unittest import mock
 
 import pytest
 
-# Ensure GAMBLING_ONLY is set before importing minifw modules
-os.environ.setdefault("GAMBLING_ONLY", "1")
-
 from minifw_ai.state_manager import (
     ProtectionState,
     StateManager,

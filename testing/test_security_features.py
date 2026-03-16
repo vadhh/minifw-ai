@@ -9,8 +9,7 @@ import os
 import time
 import pytest
 
-os.environ.setdefault("GAMBLING_ONLY", "1")
-os.environ.setdefault("MINIFW_SECTOR", "gambling")
+os.environ.setdefault("MINIFW_SECTOR", "establishment")
 os.environ.setdefault("MINIFW_SECRET_KEY", "test-secret-key-for-testing-only")
 
 

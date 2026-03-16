@@ -177,7 +177,7 @@ These prevent the test suite from running to completion in a clean repo checkout
 | Infrastructure | 3 | 3 | 0 |
 | **Total tasks** | **22** | **22** | **0** |
 
-**Test suite: 246 passed, 1 skipped, 0 failed.**
+**Test suite: 328 passed, 0 failed.**
 
 All TODO tasks complete. MiniFW-AI is at **Stage 4 (QA-ready)** with a fully executable
 test suite and no PRD-required stubs remaining.

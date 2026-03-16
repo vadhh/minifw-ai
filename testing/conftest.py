@@ -5,9 +5,6 @@ from pathlib import Path
 
 import pytest
 
-# Required by minifw_ai.main module-level guard
-os.environ.setdefault("GAMBLING_ONLY", "1")
-
 # Ensure app/ is on the path for all tests
 sys.path.insert(0, str(Path(__file__).parent.parent / "app"))
 
