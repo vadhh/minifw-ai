@@ -20,7 +20,8 @@ Environment=MINIFW_SECTOR=establishment
 Environment=AI_ENABLED=1
 Environment=MINIFW_AUDIT_LOG=/opt/minifw_ai/logs/audit.jsonl
 Environment=PROMETHEUS_PORT=9090
-ExecStart=/opt/minifw_ai/run_minifw.sh
+Environment=PYTHONPATH=/opt/minifw_ai/app
+ExecStart=/opt/minifw_ai/venv/bin/python -m minifw_ai
 Restart=on-failure
 RestartSec=5
 StandardOutput=journal
