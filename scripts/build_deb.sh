@@ -65,7 +65,6 @@ cp "${REPO_DIR}/requirements.txt" "${BUILD_DIR}/opt/minifw_ai/"
 
 # --- Copy install helpers ---
 echo "[5/7] Copying scripts..."
-cp "${REPO_DIR}/scripts/install_systemd.sh" "${BUILD_DIR}/opt/minifw_ai/scripts/"
 cp "${REPO_DIR}/scripts/backup.sh" "${BUILD_DIR}/opt/minifw_ai/scripts/"
 cp "${REPO_DIR}/scripts/restore.sh" "${BUILD_DIR}/opt/minifw_ai/scripts/"
 cp "${REPO_DIR}/scripts/create_admin.py" "${BUILD_DIR}/opt/minifw_ai/scripts/"
@@ -102,41 +101,132 @@ cat > "${BUILD_DIR}/DEBIAN/postinst" <<'POSTINST'
 set -e
 
 APP_ROOT="/opt/minifw_ai"
+ENV_DIR="/etc/minifw"
+ENV_FILE="${ENV_DIR}/minifw.env"
+TLS_DIR="${ENV_DIR}/tls"
 
-echo "MiniFW-AI: Post-install setup..."
+echo ""
+echo "============================================"
+echo " MiniFW-AI: Post-install setup"
+echo "============================================"
 
-# Create venv if missing
+# --- 1. Python virtual environment ---
+echo "[1/6] Python environment..."
 if [ ! -d "${APP_ROOT}/venv" ]; then
-    echo "  Creating Python virtual environment..."
+    echo "  Creating virtual environment..."
     python3 -m venv "${APP_ROOT}/venv"
 fi
-
-# Install/upgrade pip and dependencies
-echo "  Installing Python dependencies..."
+echo "  Installing dependencies..."
 "${APP_ROOT}/venv/bin/python" -m pip install --upgrade pip -q 2>/dev/null || true
 "${APP_ROOT}/venv/bin/pip" install -r "${APP_ROOT}/requirements.txt" -q
 
-# Set permissions
+# --- 2. Generate secrets ---
+echo "[2/6] Secrets..."
+mkdir -p "${ENV_DIR}"
+chmod 755 "${ENV_DIR}"
+
+if [ ! -f "${ENV_FILE}" ]; then
+    SECRET_KEY=$(openssl rand -hex 32)
+    ADMIN_PASS=$(openssl rand -base64 12)
+    cat > "${ENV_FILE}" <<EOF
+MINIFW_SECRET_KEY=${SECRET_KEY}
+MINIFW_ADMIN_PASSWORD=${ADMIN_PASS}
+EOF
+    chmod 600 "${ENV_FILE}"
+    echo "  Generated new secrets."
+    echo ""
+    echo "  *** ADMIN PASSWORD: ${ADMIN_PASS} ***"
+    echo "  *** Save this! Stored in ${ENV_FILE} ***"
+    echo ""
+else
+    echo "  Secrets exist: ${ENV_FILE}"
+fi
+
+# Inject EnvironmentFile into daemon unit if not present
+if [ -f /etc/systemd/system/minifw-ai.service ]; then
+    if ! grep -q "EnvironmentFile=" /etc/systemd/system/minifw-ai.service; then
+        sed -i '/^\[Service\]/a EnvironmentFile=/etc/minifw/minifw.env' \
+            /etc/systemd/system/minifw-ai.service
+    fi
+fi
+
+# --- 3. Generate TLS certificate ---
+echo "[3/6] TLS certificate..."
+mkdir -p "${TLS_DIR}"
+if [ ! -f "${TLS_DIR}/server.crt" ]; then
+    openssl req -x509 -newkey rsa:2048 \
+        -keyout "${TLS_DIR}/server.key" \
+        -out "${TLS_DIR}/server.crt" \
+        -days 365 -nodes \
+        -subj "/CN=minifw-ai/O=MiniFW-AI/C=ID" 2>/dev/null
+    chmod 600 "${TLS_DIR}/server.key"
+    chmod 644 "${TLS_DIR}/server.crt"
+    echo "  Self-signed certificate generated (365 days)."
+else
+    echo "  Certificate exists: ${TLS_DIR}/server.crt"
+fi
+
+# --- 4. Create admin user ---
+echo "[4/6] Admin user..."
+export GAMBLING_ONLY=1
+export PYTHONPATH="${APP_ROOT}/app"
+# shellcheck disable=SC2046
+export $(grep -v '^#' "${ENV_FILE}" | xargs)
+cd "${APP_ROOT}"
+"${APP_ROOT}/venv/bin/python" -c "
+import os, sys
+sys.path.insert(0, '${APP_ROOT}')
+from app.database import SessionLocal, init_db
+from app.services.auth.user_service import create_user
+init_db()
+db = SessionLocal()
+try:
+    from app.models.user import User
+    existing = db.query(User).filter(User.username == 'admin').first()
+    if existing:
+        print('  Admin user already exists, skipping.')
+    else:
+        admin = create_user(
+            db=db,
+            username='admin',
+            email='admin@minifw.local',
+            password=os.environ['MINIFW_ADMIN_PASSWORD']
+        )
+        admin.role = 'super_admin'
+        admin.full_name = 'System Administrator'
+        admin.must_change_password = True
+        db.commit()
+        print(f'  Admin user created: {admin.username} (super_admin)')
+except Exception as e:
+    print(f'  Warning: Could not create admin user: {e}')
+finally:
+    db.close()
+" 2>&1 || echo "  Warning: Admin user creation failed (non-fatal)."
+
+# Fix SQLite database permissions
+chmod 664 "${APP_ROOT}/minifw.db" 2>/dev/null || true
+chmod 775 "${APP_ROOT}" 2>/dev/null || true
+
+# --- 5. Set permissions ---
+echo "[5/6] Permissions..."
 chmod -R 755 "${APP_ROOT}/app"
 chmod 644 "${APP_ROOT}/config/policy.json"
 chmod 755 "${APP_ROOT}/logs"
 
-# Reload systemd
+# --- 6. Enable and start services ---
+echo "[6/6] Starting services..."
 systemctl daemon-reload
+systemctl enable --now minifw-ai
+systemctl enable --now minifw-ai-web
 
 echo ""
 echo "============================================"
-echo " MiniFW-AI ${VERSION} installed successfully"
+echo " MiniFW-AI installed and running"
 echo "============================================"
 echo ""
-echo "Next steps:"
-echo "  1. Run setup:   sudo /opt/minifw_ai/scripts/install_systemd.sh"
-echo "     (generates TLS certs, secrets, admin user, starts services)"
-echo ""
-echo "  Or manually:"
-echo "  2. Enable:      sudo systemctl enable --now minifw-ai"
-echo "  3. Dashboard:   sudo systemctl enable --now minifw-ai-web"
-echo "  4. Status:      systemctl status minifw-ai minifw-ai-web"
+echo "  Engine:    systemctl status minifw-ai"
+echo "  Dashboard: https://localhost:8443"
+echo "  Logs:      journalctl -u minifw-ai -f"
 echo ""
 POSTINST
 chmod 755 "${BUILD_DIR}/DEBIAN/postinst"
