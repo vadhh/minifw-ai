@@ -5,7 +5,10 @@ hardware. It detects unknown network threats by building behavioral models of
 normal traffic and flagging deviations using hard rule gates, threat intelligence
 scoring, ML inference (MLP), and YARA pattern matching. Enforcement is performed
 at the packet level via nftables/ipset across six vertically-locked sectors
-(hospital, school, government, finance, legal, establishment).
+(hospital, education, government, finance, legal, establishment).
+
+The same `.deb` package supports all six sectors. The active sector is set once
+at deployment and locked for the lifetime of that installation.
 
 ## Requirements
 
@@ -18,60 +21,132 @@ at the packet level via nftables/ipset across six vertically-locked sectors
 
 ## Installation
 
-### Single-Command Install (Recommended)
+### Step 1 — Verify the package
+
+Before installing, confirm the package has not been tampered with:
+
+```bash
+# Import the signing key
+gpg --import minifw-ai-release.asc
+
+# Verify GPG signature
+gpg --verify minifw-ai_2.0.0_amd64.deb.asc minifw-ai_2.0.0_amd64.deb
+# Expected: "Good signature from MiniFW-AI Release ..."
+
+# Verify SHA-256 checksum
+sha256sum -c minifw-ai_2.0.0_amd64.deb.sha256
+# Expected: "minifw-ai_2.0.0_amd64.deb: OK"
+```
+
+See [docs/release-verification.md](docs/release-verification.md) for full details.
+
+---
+
+### Step 2 — Set the sector (before or after install)
+
+The default sector is `establishment`. To deploy for a different sector,
+decide now — see [Changing the Sector](#changing-the-sector) below.
+
+---
+
+### Step 3 — Install system dependencies
+
+```bash
+sudo apt update
+sudo apt install -y python3 python3-venv nftables openssl dnsmasq
+```
+
+---
+
+### Step 4 — Install the package
 
 ```bash
 sudo dpkg -i minifw-ai_2.0.0_amd64.deb
 ```
 
-This single command handles everything:
+The installer automatically:
+1. Creates a Python virtual environment and installs all dependencies
+2. Generates a random JWT secret key and admin password → `/etc/minifw/minifw.env`
+3. Generates a self-signed TLS certificate → `/etc/minifw/tls/`
+4. Creates the `admin` user in the database (password printed to console — save it)
+5. Loads the `nf_conntrack` kernel module and persists it across reboots
+6. Restricts Grafana to localhost (if installed)
+7. Disables CUPS print service
+8. Enables and starts `minifw-ai` and `minifw-ai-web` services
 
-1. Installs application code, ML model, YARA rules, config, and feeds to `/opt/minifw_ai/`
-2. Creates a Python virtual environment and installs all dependencies
-3. Generates a JWT secret key and random admin password (stored in `/etc/minifw/minifw.env`)
-4. Generates a self-signed TLS certificate for the dashboard
-5. Creates the `admin` user (super_admin, must change password on first login)
-6. Installs and starts both systemd services
+> **Save the admin password** printed during install. It is also stored in
+> `/etc/minifw/minifw.env` (readable only by root).
 
-The admin password is printed during installation. It is also stored in `/etc/minifw/minifw.env`.
+---
 
-### Verify Installation
+### Step 5 — Enable DNS logging
 
-```bash
-# Check services
-systemctl status minifw-ai
-systemctl status minifw-ai-web
-
-# Check logs
-journalctl -u minifw-ai -f
-
-# Check nftables
-sudo nft list table inet minifw
-
-# Check Prometheus metrics (port 9090)
-curl -s http://localhost:9090/metrics | head -20
-
-# Access dashboard
-# https://localhost:8443
-```
-
-### Enable DNS Logging
-
-DNS-based threat detection requires dnsmasq logging:
+DNS-based threat detection requires dnsmasq to write query logs:
 
 ```bash
-sudo apt install -y dnsmasq
+# If not already in /etc/dnsmasq.conf:
 echo "log-queries" | sudo tee -a /etc/dnsmasq.conf
 echo "log-facility=/var/log/dnsmasq.log" | sudo tee -a /etc/dnsmasq.conf
 sudo systemctl restart dnsmasq
 ```
 
+---
+
+### Step 6 — Connect the network interface
+
+Plug the ethernet cable into the gateway NIC (`enp1s0`, `enp3s0`, or `enp4s0`).
+Configure the interface via netplan:
+
+```bash
+# Example: /etc/netplan/01-minifw.yaml
+network:
+  version: 2
+  ethernets:
+    enp1s0:
+      dhcp4: true   # or set a static IP
+
+sudo netplan apply
+```
+
+---
+
+### Step 7 — Verify the installation
+
+```bash
+# Services running
+systemctl status minifw-ai minifw-ai-web
+
+# Engine is processing events
+journalctl -u minifw-ai -f
+
+# nftables enforcement table created
+sudo nft list table inet minifw
+
+# Prometheus metrics available
+curl -s http://localhost:9090/metrics | grep minifw_ai_flows
+
+# Dashboard accessible
+# Open https://localhost:8443 in a browser
+# Login: admin / <password from install>
+```
+
+---
+
+### Step 8 — Change admin password
+
+On first login at `https://localhost:8443`, the system will prompt for a
+password change. Alternatively via the dashboard: **Users → admin → Change Password**.
+
+---
+
 ### Uninstall
 
 ```bash
-sudo dpkg -r minifw-ai      # remove (keeps config and data)
-sudo dpkg -P minifw-ai      # purge (removes venv, logs, db, /etc/minifw)
+sudo dpkg -r minifw-ai      # remove (keeps /etc/minifw, feeds, and logs)
+sudo dpkg -P minifw-ai      # purge (removes everything including secrets)
 ```
+
+---
 
 ### Building the Package
 
@@ -81,21 +156,74 @@ bash scripts/build_deb.sh
 # Checksum: build/minifw-ai_2.0.0_amd64.deb.sha256
 ```
 
+---
+
+## Changing the Sector
+
+The `.deb` package supports all six sectors. The sector is set in the systemd
+service unit and locked at daemon startup — it cannot be changed at runtime.
+
+### Available sectors
+
+| Sector | Use case | Block threshold | Special behaviour |
+|--------|----------|-----------------|-------------------|
+| `establishment` | General commercial, SME, retail | 90 (default) | Balanced |
+| `hospital` | Hospitals, clinics | Higher (fewer false positives) | HIPAA payload redaction, IoMT alerts |
+| `finance` | Banks, financial institutions | Lower (stricter) | Tor/anonymizer blocking |
+| `education` | Schools, universities | 90 | SafeSearch enforcement |
+| `government` | Government networks | 90 | Geo-IP restrictions |
+| `legal` | Law firms | 90 | Exfiltration monitoring |
+
+### How to set the sector
+
+**Option A — Before first install (recommended)**
+
+Edit the service unit in the source repo before building the `.deb`:
+
+```bash
+# Edit systemd/minifw-ai.service
+Environment=MINIFW_SECTOR=hospital   # change this line
+bash scripts/build_deb.sh
+sudo dpkg -i build/minifw-ai_2.0.0_amd64.deb
+```
+
+**Option B — After install**
+
+```bash
+# Edit the live service unit
+sudo nano /etc/systemd/system/minifw-ai.service
+# Change: Environment=MINIFW_SECTOR=establishment
+# To:     Environment=MINIFW_SECTOR=hospital
+
+# Apply the change
+sudo systemctl daemon-reload
+sudo systemctl restart minifw-ai
+
+# Confirm the new sector is active
+journalctl -u minifw-ai -n 5 | grep SECTOR
+```
+
+### Verify the active sector
+
+```bash
+journalctl -u minifw-ai | grep "SECTOR_LOCK"
+# Expected: [SECTOR_LOCK] Device sector: hospital (LOCKED)
+
+# Or check via the dashboard
+# https://localhost:8443/admin/api/sector-lock
+```
+
+> **Important:** The sector lock is permanent for a running daemon instance.
+> A restart is always required after changing `MINIFW_SECTOR`. Attempting to
+> set an invalid sector (or the legacy `gambling` value) will cause the daemon
+> to refuse to start.
+
 ## Configuration
 
 ### Sector Lock
 
-Each device is locked to a single sector at deployment. Set `MINIFW_SECTOR` in
-`/etc/systemd/system/minifw-ai.service`:
-
-| Sector | Description | Special Behavior |
-|--------|-------------|------------------|
-| `hospital` | Healthcare facilities | HIPAA payload redaction, IoMT alerting |
-| `education` | Educational institutions | SafeSearch enforcement |
-| `government` | Government networks | Geo-IP restrictions |
-| `finance` | Financial institutions | Tor/anonymizer blocking, lower block threshold |
-| `legal` | Law firms | Exfiltration monitoring |
-| `establishment` | General commercial (default) | Balanced thresholds |
+See [Changing the Sector](#changing-the-sector) above for the full sector table,
+how to set the sector before or after install, and how to verify it is active.
 
 ### DNS Source
 
@@ -243,6 +371,8 @@ remain active, AI modules disabled).
 | [CHANGELOG.md](CHANGELOG.md) | Version history |
 | [TODO.md](TODO.md) | Stage 4 readiness task list (all complete) |
 | [docs/monitoring-mode.md](docs/monitoring-mode.md) | Monitoring mode reference, scoring thresholds, analyst workflow |
+| [docs/release-verification.md](docs/release-verification.md) | GPG signing key, package verification steps |
+| [docs/rollback.md](docs/rollback.md) | Rollback and emergency removal procedure |
 | [docs/report-2026-03-16.md](docs/report-2026-03-16.md) | Client deployment readiness report (2026-03-16) |
 
 ## License
