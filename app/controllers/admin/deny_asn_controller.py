@@ -17,9 +17,9 @@ def deny_asn_controller(request: Request):
     asns = get_deny_asns()
 
     return templates.TemplateResponse(
+        request,
         "admin/deny_asn.html",
         {
-            "request": request,
             "asns": asns,
             "user": {"name": "Fahrezi"},
         },

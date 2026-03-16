@@ -82,9 +82,9 @@ def dashboard_controller(request: Request):
     total_rules = allow_domains + deny_ips + deny_asns + deny_domains
 
     return templates.TemplateResponse(
+        request,
         "admin/dashboard.html",
         {
-            "request": request,
             "user": {"name": "Fahrezi"},
             "detection_counters": detection_counters,
             "stats": {

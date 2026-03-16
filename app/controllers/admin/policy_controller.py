@@ -38,9 +38,9 @@ def policy_controller(request: Request):
         burst = get_burst()
 
         return templates.TemplateResponse(
+            request,
             "admin/policy.html",
             {
-                "request": request,
                 "policy": policy,
                 "segments": segments,
                 "segment_subnets": segment_subnets,

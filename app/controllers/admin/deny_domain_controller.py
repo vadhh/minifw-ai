@@ -21,9 +21,9 @@ def deny_domain_controller(request: Request):
     domains = get_deny_domains()
 
     return templates.TemplateResponse(
+        request,
         "admin/deny_domain.html",
         {
-            "request": request,
             "domains": domains,
             "user": {"name": "Fahrezi"},
         },

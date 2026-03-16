@@ -655,8 +655,9 @@ def iomt_alerts_page(request: Request, current_user: User = Depends(get_current_
     all_events = get_recent_events(limit=10000)
     iomt_events = [e for e in all_events if "iomt_device_alert" in e.get("reason", "")]
     return templates.TemplateResponse(
+        request,
         "admin/iomt_alerts.html",
-        {"request": request, "events": iomt_events, "total": len(iomt_events)},
+        {"events": iomt_events, "total": len(iomt_events)},
     )
 
 

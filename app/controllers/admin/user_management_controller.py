@@ -26,7 +26,7 @@ def user_management_page_controller(request: Request):
 
     # Render the page (permission check happens in JavaScript)
     return templates.TemplateResponse(
-        "admin/user_management.html", {"request": request}
+        request, "admin/user_management.html"
     )
 
 

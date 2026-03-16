@@ -22,7 +22,7 @@ def audit_logs_page_controller(request: Request):
     Shows audit log viewer interface
     """
 
-    return templates.TemplateResponse("admin/audit_logs.html", {"request": request})
+    return templates.TemplateResponse(request, "admin/audit_logs.html")
 
 
 def get_all_audit_logs_controller(

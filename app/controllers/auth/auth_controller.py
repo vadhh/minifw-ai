@@ -17,7 +17,7 @@ templates = Jinja2Templates(directory="app/web/templates")
 
 def login_page_controller(request: Request):
     """Show login page"""
-    return templates.TemplateResponse("auth/login.html", {"request": request})
+    return templates.TemplateResponse(request, "auth/login.html")
 
 
 def login_controller(

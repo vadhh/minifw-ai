@@ -96,7 +96,7 @@ def _reset_failed_attempts(db: Session, user) -> None:
 @router.get("/login", response_class=HTMLResponse)
 def login_page(request: Request):
     """Show login page"""
-    return templates.TemplateResponse("auth/login.html", {"request": request})
+    return templates.TemplateResponse(request, "auth/login.html")
 
 
 @router.post("/login")
@@ -113,8 +113,9 @@ def login(
     if _check_ip_rate_limit(ip):
         audit_login_failed(username, ip)
         return templates.TemplateResponse(
+            request,
             "auth/login.html",
-            {"request": request, "error": "Too many login attempts. Try again later."},
+            {"error": "Too many login attempts. Try again later."},
         )
 
     _record_login_attempt(ip)
@@ -124,8 +125,9 @@ def login(
     if user_check and _check_account_lockout(user_check):
         audit_login_failed(username, ip)
         return templates.TemplateResponse(
+            request,
             "auth/login.html",
-            {"request": request, "error": "Account is temporarily locked. Try again later."},
+            {"error": "Account is temporarily locked. Try again later."},
         )
 
     user = authenticate_user(db, username, password)
@@ -136,8 +138,9 @@ def login(
         if user_check:
             _handle_failed_login(db, user_check)
         return templates.TemplateResponse(
+            request,
             "auth/login.html",
-            {"request": request, "error": "Invalid username or password"},
+            {"error": "Invalid username or password"},
         )
 
     # Successful authentication — reset lockout
@@ -166,7 +169,7 @@ def login(
 @router.get("/2fa", response_class=HTMLResponse)
 def twofa_page(request: Request):
     """Show 2FA verification page"""
-    return templates.TemplateResponse("auth/2fa.html", {"request": request})
+    return templates.TemplateResponse(request, "auth/2fa.html")
 
 
 @router.post("/2fa/verify")
@@ -188,7 +191,7 @@ def verify_2fa(
     if not verify_totp(user.totp_secret, totp_code):
         audit_2fa_failed(username)
         return templates.TemplateResponse(
-            "auth/2fa.html", {"request": request, "error": "Invalid 2FA code"}
+            request, "auth/2fa.html", {"error": "Invalid 2FA code"}
         )
 
     # Create token and redirect
@@ -230,7 +233,7 @@ def change_password_page(request: Request):
     if not token:
         return RedirectResponse(url="/auth/login", status_code=303)
 
-    return templates.TemplateResponse("auth/change_password.html", {"request": request})
+    return templates.TemplateResponse(request, "auth/change_password.html")
 
 
 @router.post("/change-password")
@@ -262,36 +265,40 @@ def change_password(
     # Verify current password
     if not verify_password(current_password, user.hashed_password):
         return templates.TemplateResponse(
+            request,
             "auth/change_password.html",
-            {"request": request, "error": "Current password is incorrect"},
+            {"error": "Current password is incorrect"},
         )
 
     # Validate new password
     if len(new_password) < 8:
         return templates.TemplateResponse(
+            request,
             "auth/change_password.html",
-            {"request": request, "error": "Password must be at least 8 characters"},
+            {"error": "Password must be at least 8 characters"},
         )
 
     if len(new_password.encode("utf-8")) > 72:
         return templates.TemplateResponse(
+            request,
             "auth/change_password.html",
-            {"request": request, "error": "Password must not exceed 72 bytes (bcrypt limit)"},
+            {"error": "Password must not exceed 72 bytes (bcrypt limit)"},
         )
 
     # Check if passwords match
     if new_password != confirm_password:
         return templates.TemplateResponse(
+            request,
             "auth/change_password.html",
-            {"request": request, "error": "New passwords do not match"},
+            {"error": "New passwords do not match"},
         )
 
     # Check if new password is same as old
     if verify_password(new_password, user.hashed_password):
         return templates.TemplateResponse(
+            request,
             "auth/change_password.html",
             {
-                "request": request,
                 "error": "New password must be different from current password",
             },
         )

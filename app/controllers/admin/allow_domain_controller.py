@@ -21,9 +21,9 @@ def allow_domain_controller(request: Request):
     domains = get_allow_domains()
 
     return templates.TemplateResponse(
+        request,
         "admin/allow_domain.html",
         {
-            "request": request,
             "domains": domains,
             "user": {"name": "Fahrezi"},
         },

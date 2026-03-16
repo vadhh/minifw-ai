@@ -17,9 +17,9 @@ def deny_ip_controller(request: Request):
     ips = get_deny_ips()
 
     return templates.TemplateResponse(
+        request,
         "admin/deny_ip.html",
         {
-            "request": request,
             "ips": ips,
             "user": {"name": "Fahrezi"},
         },

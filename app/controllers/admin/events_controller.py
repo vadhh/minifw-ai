@@ -10,5 +10,5 @@ def events_controller(request: Request):
     Shows real-time security events page
     """
     return templates.TemplateResponse(
-        "admin/events.html", {"request": request, "user": {"name": "Fahrezi"}}
+        request, "admin/events.html", {"user": {"name": "Fahrezi"}}
     )
