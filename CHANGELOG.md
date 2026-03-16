@@ -44,6 +44,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   results, port exposure verification, outstanding items.
 
 ### Fixed
+- **`collector_flow.py` kernel 6.8 compatibility** — `stream_conntrack_flows()` now
+  auto-detects procfs availability and falls back to the `conntrack -L` CLI when
+  `/proc/net/nf_conntrack` is absent (`CONFIG_NF_CONNTRACK_PROCFS=not set`). Hard threat
+  gates (burst flood, bot detection, flow frequency) are fully operational on Ubuntu 24.04
+  kernel 6.8. `conntrack` added to `.deb` Depends.
 - `interarrival_std_ms` property called non-existent `get_interarrival_std()` — fixed to
   `get_interarrival_std_ms()` in `collector_flow.py:138`.
 - Debug print `for route in app.routes: print(...)` removed from `app/web/app.py`.
@@ -57,9 +62,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `start_metrics_server()` default bind address changed from implicit 0.0.0.0 → 127.0.0.1.
 
 ### Known Limitations
-- `collector_flow.py` reads `/proc/net/nf_conntrack` — unavailable on Ubuntu 24.04
-  kernel 6.8 (`CONFIG_NF_CONNTRACK_PROCFS=not set`). Hard threat gates degraded on this kernel.
-  Migration to netlink API pending (tracked in `TODO.md`).
 - `audit_daemon_stop()` not called on SIGTERM — stop event absent from audit log on
   `systemctl stop`. Only fires on KeyboardInterrupt.
 

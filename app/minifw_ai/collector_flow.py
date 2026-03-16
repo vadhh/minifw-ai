@@ -4,6 +4,8 @@ Collects flow-level statistics from conntrack for MLP feature extraction.
 """
 
 from __future__ import annotations
+import logging
+import subprocess
 import time
 import hashlib
 from pathlib import Path
@@ -354,30 +356,66 @@ def parse_conntrack_line(line: str) -> Optional[tuple]:
         return None
 
 
+def _stream_conntrack_via_cli(poll_interval: float = 5.0) -> Iterator[tuple]:
+    """
+    Stream conntrack flows via the `conntrack -L` CLI tool.
+    Used as a fallback when /proc/net/nf_conntrack is unavailable
+    (e.g. Ubuntu 24.04 kernel 6.8 with CONFIG_NF_CONNTRACK_PROCFS=not set).
+    Output format is identical to the procfs format — parse_conntrack_line() works unchanged.
+    """
+    while True:
+        try:
+            result = subprocess.run(
+                ["conntrack", "-L"],
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            for line in result.stdout.splitlines():
+                parsed = parse_conntrack_line(line.strip())
+                if parsed:
+                    yield parsed
+        except FileNotFoundError:
+            logging.warning(
+                "[FLOW] conntrack CLI not found — install with: apt install conntrack"
+            )
+            time.sleep(poll_interval)
+        except subprocess.TimeoutExpired:
+            logging.warning("[FLOW] conntrack -L timed out")
+            time.sleep(poll_interval)
+        except Exception:
+            logging.exception("[FLOW] conntrack CLI error")
+            time.sleep(poll_interval)
+        else:
+            time.sleep(poll_interval)
+
+
 def stream_conntrack_flows(
     conntrack_path: str = "/proc/net/nf_conntrack",
 ) -> Iterator[tuple]:
     """
-    Stream flows from conntrack
+    Stream flows from conntrack.
+    Prefers reading /proc/net/nf_conntrack directly; falls back to the
+    `conntrack -L` CLI when the procfs path is absent (kernel 6.8+).
     Yields: (src_ip, dst_ip, dst_port, proto)
     """
     p = Path(conntrack_path)
 
+    if not p.exists():
+        logging.info(
+            "[FLOW] %s not found — falling back to conntrack CLI", conntrack_path
+        )
+        yield from _stream_conntrack_via_cli()
+        return
+
     while True:
         try:
-            if not p.exists():
-                time.sleep(5)
-                continue
-
             with p.open("r") as f:
                 for line in f:
                     parsed = parse_conntrack_line(line.strip())
                     if parsed:
                         yield parsed
-
-            # Poll every 5 seconds
             time.sleep(5)
-
         except Exception:
             time.sleep(5)
             continue

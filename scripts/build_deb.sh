@@ -85,7 +85,7 @@ Version: ${VERSION}
 Section: net
 Priority: optional
 Architecture: ${ARCH}
-Depends: python3 (>= 3.10), python3-venv, nftables, openssl
+Depends: python3 (>= 3.10), python3-venv, nftables, openssl, conntrack
 Recommends: dnsmasq
 Maintainer: Afridho Ikhsan <afridho@minifw.local>
 Description: MiniFW-AI Behavioral Firewall Engine (ARCHANGEL 2.0)

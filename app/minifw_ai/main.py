@@ -433,22 +433,17 @@ def run():
             )
             zeek_iter = None
 
-    # NEW: Conntrack flow stream for baseline tracking
+    # Conntrack flow stream for baseline tracking.
+    # stream_conntrack_flows() auto-detects procfs vs conntrack CLI — always start it.
     conntrack_path = os.environ.get("MINIFW_CONNTRACK_PATH", "/proc/net/nf_conntrack")
     flow_iter = None
-    if Path(conntrack_path).exists():
-        try:
-            flow_iter = stream_conntrack_flows(conntrack_path)
-            logging.info(f"[FLOW] Conntrack tracking enabled: {conntrack_path}")
-        except Exception:
-            logging.warning(
-                "Failed to start conntrack flow stream - hard gates may be degraded",
-                exc_info=True,
-            )
-    else:
+    try:
+        flow_iter = stream_conntrack_flows(conntrack_path)
+        logging.info("[FLOW] Conntrack flow tracking initialised (path=%s)", conntrack_path)
+    except Exception:
         logging.warning(
-            f"[FLOW] Conntrack unavailable at {conntrack_path} — "
-            "flow tracking disabled (hard threat gates degraded)"
+            "[FLOW] Failed to start conntrack flow stream — hard gates may be degraded",
+            exc_info=True,
         )
 
     flow_freq_window = _safe_int_cast(os.environ.get("MINIFW_FLOW_FREQ_WINDOW_SEC"), 60)

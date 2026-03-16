@@ -1,16 +1,21 @@
 """
 Conntrack Parser & Feature Vector Tests
 
-Tests parse_conntrack_line() with sample /proc/net/nf_conntrack data
-and validates build_feature_vector_24() output values.
+Tests parse_conntrack_line() with sample /proc/net/nf_conntrack data,
+validates build_feature_vector_24() output values, and verifies the
+conntrack CLI fallback path (_stream_conntrack_via_cli).
 """
+import subprocess
 import time
 from collections import deque
+from unittest.mock import MagicMock, patch
 
 import pytest
 
 from minifw_ai.collector_flow import (
+    _stream_conntrack_via_cli,
     parse_conntrack_line,
+    stream_conntrack_flows,
     FlowStats,
     FlowTracker,
     build_feature_vector_24,
@@ -172,3 +177,76 @@ def test_feature_vector_no_domain_no_tls():
     assert dns_seen == 0.0
     assert sni_len == 0.0
     assert fqdn_len == 0.0
+
+
+# ---------------------------------------------------------------------------
+# _stream_conntrack_via_cli() — netlink CLI fallback path
+# ---------------------------------------------------------------------------
+
+_CLI_OUTPUT = (
+    "ipv4     2 tcp      6 299 ESTABLISHED src=192.168.1.5 dst=8.8.8.8 "
+    "sport=50001 dport=443 src=8.8.8.8 dst=192.168.1.5 sport=443 dport=50001 "
+    "[ASSURED] mark=0 use=2\n"
+    "ipv4     2 udp      17 30 src=10.0.0.1 dst=1.1.1.1 sport=55555 dport=53 "
+    "src=1.1.1.1 dst=10.0.0.1 sport=53 dport=55555 mark=0 use=1\n"
+    "conntrack v1.4.8 (conntrack-tools): 2 flow entries have been shown.\n"
+)
+
+
+def test_stream_conntrack_via_cli_yields_parsed_tuples():
+    """CLI output is parsed and yields valid tuples; the summary line is ignored."""
+    mock_result = MagicMock()
+    mock_result.stdout = _CLI_OUTPUT
+
+    with patch("minifw_ai.collector_flow.subprocess.run", return_value=mock_result) as mock_run:
+        with patch("minifw_ai.collector_flow.time.sleep"):
+            gen = _stream_conntrack_via_cli(poll_interval=0)
+            tuples = [next(gen), next(gen)]
+
+    assert tuples[0] == ("8.8.8.8", "192.168.1.5", 50001, "tcp")
+    assert tuples[1] == ("1.1.1.1", "10.0.0.1", 55555, "udp")
+    mock_run.assert_called_once_with(
+        ["conntrack", "-L"],
+        capture_output=True,
+        text=True,
+        timeout=10,
+    )
+
+
+def test_stream_conntrack_via_cli_handles_missing_binary(caplog):
+    """FileNotFoundError when conntrack binary is absent logs a warning."""
+    call_count = 0
+
+    def limited_sleep(secs):
+        nonlocal call_count
+        call_count += 1
+        if call_count >= 2:
+            raise GeneratorExit  # stop the generator after two sleep calls
+
+    with patch(
+        "minifw_ai.collector_flow.subprocess.run",
+        side_effect=FileNotFoundError,
+    ):
+        with patch("minifw_ai.collector_flow.time.sleep", side_effect=limited_sleep):
+            gen = _stream_conntrack_via_cli(poll_interval=0)
+            try:
+                next(gen)
+            except GeneratorExit:
+                pass
+
+    assert any("conntrack CLI not found" in r.message for r in caplog.records)
+
+
+def test_stream_conntrack_flows_uses_cli_when_procfs_absent(tmp_path):
+    """stream_conntrack_flows() falls back to CLI when the procfs path doesn't exist."""
+    absent_path = str(tmp_path / "nf_conntrack_does_not_exist")
+
+    mock_result = MagicMock()
+    mock_result.stdout = _CLI_OUTPUT
+
+    with patch("minifw_ai.collector_flow.subprocess.run", return_value=mock_result):
+        with patch("minifw_ai.collector_flow.time.sleep"):
+            gen = stream_conntrack_flows(conntrack_path=absent_path)
+            first = next(gen)
+
+    assert first == ("8.8.8.8", "192.168.1.5", 50001, "tcp")
