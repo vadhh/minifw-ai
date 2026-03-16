@@ -6,7 +6,69 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
-## [2.0.0] — 2026-03-11
+## [2.0.0] — 2026-03-16
+
+### Security (breaking)
+- **Removed VSentinel GAMBLING_ONLY hard guard** — module-level `SystemExit` gate that
+  blocked all non-gambling deployments has been removed from `main.py`, both systemd
+  service units, and the `.deb` postinst. All sector deployments now work without this env var.
+- **PyJWT bumped 2.9.0 → 2.12.1** — fixes CVE-2026-32597 (`crit` header bypass, RFC 7515
+  §4.1.11 non-compliance). Zero CVEs confirmed via `pip-audit`.
+- **All service ports restricted to 127.0.0.1** — Prometheus (9090), Grafana (3000),
+  ipapi_guard (5514), nginx proxy (7004) were previously bound to 0.0.0.0.
+- **ipapi_guard source patched** — `server.bind(("0.0.0.0", port))` → `("127.0.0.1", port)`
+
+### Added
+- **ASN feed populated** — `config/feeds/asn_prefixes.txt` now ships with 141 CIDR-to-ASN
+  entries (Google, Cloudflare, AWS, Azure, Akamai, Fastly, Indonesian ISPs, threat hosting
+  ASNs). ASN scoring signal (+15) is fully operational.
+- **Prometheus metrics module** — full implementation replacing 0% stub:
+  counters (flows, decisions, hard-gate blocks), histograms (threat score, MLP/YARA latency),
+  gauges (active blocks, flows, model timestamp). Bound to 127.0.0.1 by default.
+- **ML retraining scheduler** — full implementation replacing 0% stub:
+  auto-labeling from event log, MLP training with 80/20 split, atomic model swap.
+- **Journald collector retry** — replaced infinite `yield None` degraded loop with
+  exponential backoff (5s → 5min). Collector retries instead of giving up permanently.
+- **Sector flags enforced** — `redact_payloads` (hospital HIPAA) and `block_tor`/
+  `block_anonymizers` (finance) are now active, not no-ops.
+- **DNS tunneling detection** — entropy-based tunnel score wired into `score_and_decide()`.
+- **Rate limiting and input validation** — login endpoint, admin API, nftables object names.
+- **CI pipeline** — `.github/workflows/test.yml` runs on push/PR, Python 3.12, no GAMBLING_ONLY.
+- **`vsentinel_scope_gate.sh` rewritten** — validates `MINIFW_SECTOR` against canonical list
+  (`hospital education government finance legal establishment`), rejects `gambling` and unknowns.
+- **GPG-signed release** — RSA 4096, key `BDB471E1FB46F58A`, expires 2028-03-15.
+  Verification instructions in `docs/release-verification.md`.
+- **`docs/monitoring-mode.md`** — analyst reference: thresholds, weights, scoring table,
+  how to enter observation-only mode, fail-safe behaviour.
+- **`docs/report-2026-03-16.md`** — client deployment readiness report, enforcement test
+  results, port exposure verification, outstanding items.
+
+### Fixed
+- `interarrival_std_ms` property called non-existent `get_interarrival_std()` — fixed to
+  `get_interarrival_std_ms()` in `collector_flow.py:138`.
+- Debug print `for route in app.routes: print(...)` removed from `app/web/app.py`.
+- `prometheus_client` and `schedule` added to `requirements.txt` (were missing).
+- `pyproject.toml` added with `pythonpath = ["app", "."]` — eliminates `sys.path.insert` hacks.
+
+### Changed
+- Sector name `school` → `education` throughout codebase, docs, and package metadata.
+- postinst expanded from 6 → 9 steps: adds nf_conntrack module load + persistence,
+  Grafana localhost hardening, CUPS disable.
+- `start_metrics_server()` default bind address changed from implicit 0.0.0.0 → 127.0.0.1.
+
+### Known Limitations
+- `collector_flow.py` reads `/proc/net/nf_conntrack` — unavailable on Ubuntu 24.04
+  kernel 6.8 (`CONFIG_NF_CONNTRACK_PROCFS=not set`). Hard threat gates degraded on this kernel.
+  Migration to netlink API pending (tracked in `TODO.md`).
+- `audit_daemon_stop()` not called on SIGTERM — stop event absent from audit log on
+  `systemctl stop`. Only fires on KeyboardInterrupt.
+
+### Test Suite
+246 passed, 1 skipped, 0 failed (up from broken/skip-heavy state in 1.0.0).
+
+---
+
+## [2.0.0] — 2026-03-11 (pre-release snapshot)
 
 ### Added
 - Formal versioned PRD (`PRD_3_MiniFW-AI_v3.docx`) with threat model (S14), compliance matrix (S15), quality targets & QA test plan (S16)

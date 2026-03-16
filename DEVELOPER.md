@@ -433,4 +433,4 @@ Stage 10  Production & Maintenance
 - Stage 5 (Staging): complete — enforcement tested live, 24-hour stability confirmed, all ports localhost-bound, security hardening applied
 - Stage 6 (Packaging): complete — `minifw-ai_2.0.0_amd64.deb` built, SHA-256 verified, postinst embeds all hardening steps for out-of-box install
 - Stage 7 (Code Signing & Security Audit): complete — GPG signed (RSA 4096, key `BDB471E1FB46F58A`), zero CVEs (`pip-audit` clean after PyJWT 2.9.0→2.12.1 bump for CVE-2026-32597)
-- Next: Stage 8 (Distribution / Release) — git tag `v2.0.0`, release notes, distribution
+- Stage 8 (Distribution / Release): complete — `v2.0.0` tagged and pushed, CHANGELOG updated, rollback procedure documented (`docs/rollback.md`), GitHub release created with package artifacts
