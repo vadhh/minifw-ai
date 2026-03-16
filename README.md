@@ -91,7 +91,7 @@ Each device is locked to a single sector at deployment. Set `MINIFW_SECTOR` in
 | Sector | Description | Special Behavior |
 |--------|-------------|------------------|
 | `hospital` | Healthcare facilities | HIPAA payload redaction, IoMT alerting |
-| `school` | Educational institutions | SafeSearch enforcement |
+| `education` | Educational institutions | SafeSearch enforcement |
 | `government` | Government networks | Geo-IP restrictions |
 | `finance` | Financial institutions | Tor/anonymizer blocking, lower block threshold |
 | `legal` | Law firms | Exfiltration monitoring |
@@ -166,8 +166,8 @@ Features:
 
 ```bash
 pip install pytest
-GAMBLING_ONLY=1 python -m pytest testing/ -v                       # all tests
-GAMBLING_ONLY=1 python -m pytest testing/ -m "not integration" -v  # unit tests only
+python -m pytest testing/ -v                       # all tests
+python -m pytest testing/ -m "not integration" -v  # unit tests only
 ```
 
 ### Retrain MLP Model
@@ -242,6 +242,8 @@ remain active, AI modules disabled).
 | [DEVELOPER.md](DEVELOPER.md) | Architecture deep-dive, module reference, 11-stage development model |
 | [CHANGELOG.md](CHANGELOG.md) | Version history |
 | [TODO.md](TODO.md) | Stage 4 readiness task list (all complete) |
+| [docs/monitoring-mode.md](docs/monitoring-mode.md) | Monitoring mode reference, scoring thresholds, analyst workflow |
+| [docs/report-2026-03-16.md](docs/report-2026-03-16.md) | Client deployment readiness report (2026-03-16) |
 
 ## License
 

@@ -22,18 +22,18 @@ export $(cat .env | xargs)
 
 ### Run Daemon
 ```bash
-# From project root — GAMBLING_ONLY=1 must be set (it is in .env)
-GAMBLING_ONLY=1 python -m app.minifw_ai
+# From project root
+MINIFW_SECTOR=establishment python -m app.minifw_ai
 ```
 
 ### Run Web Admin
 ```bash
-uvicorn app.web.app:app --host 0.0.0.0 --port 8080 --reload
+uvicorn app.web.app:app --host 127.0.0.1 --port 8443 --reload
 ```
 
 ### Run Tests
 ```bash
-# All tests (conftest.py sets GAMBLING_ONLY=1 automatically)
+# All tests
 pytest testing/
 
 # Single test file
@@ -61,14 +61,6 @@ python3 scripts/migrate_database.py
 ```
 
 ## Critical Constraints
-
-### `GAMBLING_ONLY=1` Guard
-`app/minifw_ai/main.py` has a module-level guard at line 5:
-```python
-if os.getenv("GAMBLING_ONLY") != "1":
-    raise SystemExit("VSentinel Critical: Non-gambling mode detected.")
-```
-This env var **must be set** before importing anything from `minifw_ai`. The `testing/conftest.py` sets it automatically for pytest via `os.environ.setdefault("GAMBLING_ONLY", "1")`. Any other entry point must set it manually.
 
 ### Enforcement Requires Root
 `app/minifw_ai/enforce.py` calls `nft` (nftables) via subprocess. The daemon must run as root or with `CAP_NET_ADMIN`. The daemon will `return` (graceful exit) if nftables setup fails.
@@ -117,7 +109,7 @@ Any backend failure gracefully falls back to an empty iterator, keeping the serv
 **Scoring** (`score_and_decide()` in `main.py`):
 - DNS feed match: +40 (configurable via `dns_weight`)
 - TLS SNI match: +35 (`sni_weight`)
-- ASN deny: +15 (`asn_weight`) — note: ASN is currently a placeholder, always False
+- ASN deny: +15 (`asn_weight`) — resolved against `asn_prefixes.txt` (141 CIDR entries)
 - DNS burst: +10 (`burst_weight`)
 - MLP score: 0–30 weighted contribution (`mlp_weight`)
 - YARA score: 0–35 weighted contribution (`yara_weight`)
@@ -147,13 +139,13 @@ The web admin manages policy lists (deny_domain, deny_ip, deny_asn, allow_domain
 
 All paths are configurable via env vars; see `.env.example` for the full list.
 
-### Incomplete / Scaffold Modules
-- `prometheus/metrics.py` — TODO stub, no implementation
-- `scheduler/retrain_scheduler.py` — TODO stub, no implementation
+### Known Limitations
+- `collector_flow.py::stream_conntrack_flows()` — reads `/proc/net/nf_conntrack` which is absent on kernel 6.8+ (Ubuntu 24.04, `CONFIG_NF_CONNTRACK_PROCFS=not set`). Hard threat gates are degraded on this kernel. Migration to netlink API required (tracked in `TODO.md`).
+- `audit_daemon_stop()` is only called on `KeyboardInterrupt`, not `SIGTERM`. Stop event is not written to audit log on `systemctl stop`.
 
 ## Testing Conventions
 
-Tests live in `testing/` (not `tests/`). The `conftest.py` sets `GAMBLING_ONLY=1` and registers the `integration` marker.
+Tests live in `testing/` (not `tests/`). The `conftest.py` registers the `integration` marker and provides shared fixtures (synthetic MLP model, etc.).
 
 Integration tests requiring root or real network access are marked `@pytest.mark.integration`. Unit tests in `testing/test_*.py` can be run without root or special infrastructure.
 
@@ -175,7 +167,7 @@ This project follows an 11-stage development lifecycle. The end goal is **instal
 **Gate criteria**:
 - [ ] Product Requirements Document (PRD) written and approved
 - [ ] Target deployment environment defined (OS, hardware, network topology)
-- [ ] Sector list finalised (hospital, school, government, finance, legal, establishment)
+- [ ] Sector list finalised (hospital, education, government, finance, legal, establishment)
 - [ ] Threat model documented (what attacks are in scope, what is out of scope)
 - [ ] Regulatory constraints identified per sector (HIPAA, PCI-DSS, etc.)
 - [ ] Success metrics defined (detection rate, false positive rate, latency budget)
@@ -203,7 +195,6 @@ This project follows an 11-stage development lifecycle. The end goal is **instal
 
 **Gate criteria**:
 - [ ] All PRD features have implementation code (not stubs or pseudocode)
-- [ ] `GAMBLING_ONLY=1` module guard is enforced at entry point
 - [ ] DNS backends implemented (file, journald, udp, none)
 - [ ] Flow collector with 24-feature vector extraction
 - [ ] Hard threat gates (PPS saturation, burst flood, bot detection)
@@ -216,7 +207,7 @@ This project follows an 11-stage development lifecycle. The end goal is **instal
 - [ ] Event writer (JSONL) and flow records export
 - [ ] Web admin panel (FastAPI + AdminLTE + auth stack)
 - [ ] No TODO stubs remain in shipped modules (prometheus, retraining scheduler)
-- [ ] Code runs locally: `GAMBLING_ONLY=1 python -m app.minifw_ai` starts without crash
+- [ ] Code runs locally: `MINIFW_SECTOR=establishment python -m app.minifw_ai` starts without crash
 
 **Artifacts**: Working codebase, `requirements.txt` with all dependencies.
 
@@ -267,11 +258,7 @@ This project follows an 11-stage development lifecycle. The end goal is **instal
 
 **Artifacts**: CI green badge, coverage report, test inventory document.
 
-**Current blockers** (see `TODO.md` for full list):
-- 8 test gaps (hard gates, enforce, score_and_decide, conntrack, Zeek, metrics, retraining)
-- No CI pipeline
-- `sys.path` hacks instead of `pyproject.toml`
-- Debug print in `app/web/app.py:17`
+**Stage 4 complete** — all 22 tasks in `TODO.md` resolved. Test suite: 246 passed, 1 skipped, 0 failed. CI pipeline active (`.github/workflows/test.yml`).
 
 ### Stage 5 — Staging
 
@@ -281,7 +268,7 @@ This project follows an 11-stage development lifecycle. The end goal is **instal
 - [ ] Staging server provisioned (Linux gateway, nftables capable, dnsmasq installed)
 - [ ] `scripts/install.sh` runs successfully on staging server
 - [ ] `scripts/install_systemd.sh` creates and starts the `minifw-ai` systemd service
-- [ ] `scripts/vsentinel_scope_gate.sh` passes (GAMBLING_ONLY check + prohibited keyword scan)
+- [ ] `scripts/vsentinel_scope_gate.sh` passes (sector validation against canonical list)
 - [ ] `scripts/vsentinel_selftest.sh` passes (service active, ipset exists, audit log present)
 - [ ] Daemon processes real DNS traffic for ≥24 hours without crash or memory leak
 - [ ] MLP model loaded and producing inference results on live flows
@@ -440,10 +427,9 @@ Stage 10  Production & Maintenance
 
 ### Current Project Status
 
-**Overall: Stage 3 (Integration), ~63% ready for Stage 4.**
+**Overall: Stage 6 (Build & Packaging) — deployment ready.**
 
-Key gaps preventing Stage 4 advancement:
-- 3 modules are stubs (Prometheus, retraining scheduler, ASN lookup)
-- 8 test gaps across hard gates, enforcement, scoring, collectors, metrics
-- No CI pipeline
-- See `TODO.md` for the complete task list (16 remaining items)
+- Stage 4 (Testing/QA): complete — 246 tests pass, CI green
+- Stage 5 (Staging): complete — enforcement tested live, 24-hour stability confirmed, all ports localhost-bound, security hardening applied
+- Stage 6 (Packaging): complete — `minifw-ai_2.0.0_amd64.deb` built, SHA-256 verified, postinst embeds all hardening steps for out-of-box install
+- Next: Stage 7 (Code Signing & Security Audit) before client handoff

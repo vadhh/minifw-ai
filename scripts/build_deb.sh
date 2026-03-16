@@ -92,7 +92,7 @@ Description: MiniFW-AI Behavioral Firewall Engine (ARCHANGEL 2.0)
  AI-powered network behavioral firewall for gateway appliances.
  Features: DNS/flow analysis, MLP threat detection, YARA scanning,
  nftables enforcement, sector-specific policies, web admin dashboard.
- Supports 6 deployment sectors: school, hospital, government,
+ Supports 6 deployment sectors: education, hospital, government,
  finance, legal, establishment.
 EOF
 
@@ -111,7 +111,7 @@ echo " MiniFW-AI: Post-install setup"
 echo "============================================"
 
 # --- 1. Python virtual environment ---
-echo "[1/6] Python environment..."
+echo "[1/9] Python environment..."
 if [ ! -d "${APP_ROOT}/venv" ]; then
     echo "  Creating virtual environment..."
     python3 -m venv "${APP_ROOT}/venv"
@@ -121,7 +121,7 @@ echo "  Installing dependencies..."
 "${APP_ROOT}/venv/bin/pip" install -r "${APP_ROOT}/requirements.txt" -q
 
 # --- 2. Generate secrets ---
-echo "[2/6] Secrets..."
+echo "[2/9] Secrets..."
 mkdir -p "${ENV_DIR}"
 chmod 755 "${ENV_DIR}"
 
@@ -151,7 +151,7 @@ if [ -f /etc/systemd/system/minifw-ai.service ]; then
 fi
 
 # --- 3. Generate TLS certificate ---
-echo "[3/6] TLS certificate..."
+echo "[3/9] TLS certificate..."
 mkdir -p "${TLS_DIR}"
 if [ ! -f "${TLS_DIR}/server.crt" ]; then
     openssl req -x509 -newkey rsa:2048 \
@@ -167,8 +167,7 @@ else
 fi
 
 # --- 4. Create admin user ---
-echo "[4/6] Admin user..."
-export GAMBLING_ONLY=1
+echo "[4/9] Admin user..."
 export PYTHONPATH="${APP_ROOT}/app"
 # shellcheck disable=SC2046
 export $(grep -v '^#' "${ENV_FILE}" | xargs)
@@ -208,13 +207,46 @@ chmod 664 "${APP_ROOT}/minifw.db" 2>/dev/null || true
 chmod 775 "${APP_ROOT}" 2>/dev/null || true
 
 # --- 5. Set permissions ---
-echo "[5/6] Permissions..."
+echo "[5/9] Permissions..."
 chmod -R 755 "${APP_ROOT}/app"
 chmod 644 "${APP_ROOT}/config/policy.json"
 chmod 755 "${APP_ROOT}/logs"
 
-# --- 6. Enable and start services ---
-echo "[6/6] Starting services..."
+# --- 6. Load nf_conntrack kernel module ---
+echo "[6/9] Flow tracking (nf_conntrack)..."
+if ! lsmod | grep -q nf_conntrack; then
+    modprobe nf_conntrack 2>/dev/null && echo "  nf_conntrack loaded." || echo "  Warning: could not load nf_conntrack (check kernel config)."
+else
+    echo "  nf_conntrack already loaded."
+fi
+if [ ! -f /etc/modules-load.d/minifw-conntrack.conf ]; then
+    echo "nf_conntrack" > /etc/modules-load.d/minifw-conntrack.conf
+    echo "  Persisted to /etc/modules-load.d/minifw-conntrack.conf"
+fi
+
+# --- 7. Restrict Grafana to localhost ---
+echo "[7/9] Grafana hardening..."
+GRAFANA_INI="/etc/grafana/grafana.ini"
+if [ -f "${GRAFANA_INI}" ]; then
+    if grep -qE "^;?http_addr\s*=" "${GRAFANA_INI}"; then
+        sed -i 's/^;*http_addr\s*=.*/http_addr = 127.0.0.1/' "${GRAFANA_INI}"
+    else
+        sed -i '/^\[server\]/a http_addr = 127.0.0.1' "${GRAFANA_INI}"
+    fi
+    echo "  Grafana bound to 127.0.0.1"
+    systemctl restart grafana-server 2>/dev/null && echo "  grafana-server restarted." || echo "  Warning: grafana-server restart failed (non-fatal)."
+else
+    echo "  grafana.ini not found — skipping (Grafana not installed)."
+fi
+
+# --- 8. Disable CUPS (not required on a firewall appliance) ---
+echo "[8/9] Removing unnecessary services..."
+systemctl stop cups cups-browsed 2>/dev/null || true
+systemctl disable cups cups-browsed 2>/dev/null || true
+echo "  CUPS disabled."
+
+# --- 9. Enable and start services ---
+echo "[9/9] Starting services..."
 systemctl daemon-reload
 systemctl enable --now minifw-ai
 systemctl enable --now minifw-ai-web

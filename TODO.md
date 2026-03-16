@@ -1,5 +1,18 @@
 # TODO.md — MiniFW-AI Stage 4 Readiness
 
+## Open Issue — collector_flow.py procfs incompatibility (kernel 6.8+)
+
+`collector_flow.py` reads `/proc/net/nf_conntrack` for flow tracking.
+Ubuntu 24.04 / kernel 6.8 was compiled with `CONFIG_NF_CONNTRACK_PROCFS=not set` —
+the proc file will never appear on this kernel. Flow tracking (hard threat gates)
+is permanently degraded on any Ubuntu 24.04+ deployment.
+
+**Fix required:** Migrate `stream_conntrack_flows()` to use the netlink API via
+`nf_conntrack_netlink` / `pynetfilter_conntrack` or `python-conntrack` library
+instead of parsing `/proc/net/nf_conntrack`.
+
+---
+
 Generated from PRD feature audit. Current state: **Stage 4 (QA-ready) — all tasks complete**.
 Target: **Stage 4 (QA-ready)** — full `pytest testing/` run passes with no skips, no stubs,
 and no features permanently disabled.
