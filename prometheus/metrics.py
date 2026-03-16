@@ -76,11 +76,11 @@ model_last_trained_timestamp = Gauge(
 )
 
 
-def start_metrics_server(port: int = 9090) -> None:
-    """Start the Prometheus HTTP metrics endpoint."""
+def start_metrics_server(port: int = 9090, addr: str = "127.0.0.1") -> None:
+    """Start the Prometheus HTTP metrics endpoint bound to localhost only."""
     try:
-        start_http_server(port)
-        logging.info(f"[METRICS] Prometheus metrics server started on port {port}")
+        start_http_server(port, addr=addr)
+        logging.info(f"[METRICS] Prometheus metrics server started on {addr}:{port}")
     except Exception as e:
         logging.error(f"[METRICS] Failed to start metrics server: {e}")
 

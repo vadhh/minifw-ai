@@ -2,27 +2,46 @@
 set -e
 
 # VSentinel Scope Gate
-# Objective: Ensure the environment is configured for gambling-only deployment.
-# This gate runs at install time to verify the GAMBLING_ONLY guard is active.
+# Validates that MINIFW_SECTOR is set to a recognised deployment sector
+# before installation proceeds.
+
+VALID_SECTORS="hospital education government finance legal establishment"
 
 echo "[VSentinel] Initiating Scope Gate Scan..."
 
-# 1. Environment Check
-if [[ "${GAMBLING_ONLY}" != "1" ]]; then
-    echo "[VSentinel] CRITICAL: GAMBLING_ONLY environment variable not set to '1'. Aborting."
+# 1. Sector presence check
+if [[ -z "${MINIFW_SECTOR}" ]]; then
+    echo "[VSentinel] CRITICAL: MINIFW_SECTOR is not set. Aborting."
     exit 1
 fi
 
-# 2. Verify GAMBLING_ONLY guard exists in main entry point
-MAIN_PY="$(dirname "$0")/../app/minifw_ai/main.py"
-if [[ -f "${MAIN_PY}" ]]; then
-    if ! grep -q 'GAMBLING_ONLY' "${MAIN_PY}"; then
-        echo "[VSentinel] CRITICAL: GAMBLING_ONLY guard missing from main.py!"
-        exit 1
+# 2. Sector validity check
+SECTOR_VALID=0
+for s in ${VALID_SECTORS}; do
+    if [[ "${MINIFW_SECTOR}" == "${s}" ]]; then
+        SECTOR_VALID=1
+        break
     fi
-    echo "[VSentinel] GAMBLING_ONLY guard verified in main.py."
+done
+
+if [[ "${SECTOR_VALID}" -ne 1 ]]; then
+    echo "[VSentinel] CRITICAL: '${MINIFW_SECTOR}' is not a valid sector."
+    echo "[VSentinel] Valid sectors: ${VALID_SECTORS}"
+    exit 1
+fi
+
+echo "[VSentinel] Sector validated: ${MINIFW_SECTOR}"
+
+# 3. Verify sector_lock.py references the sector
+SECTOR_LOCK="$(dirname "$0")/../app/minifw_ai/sector_lock.py"
+if [[ -f "${SECTOR_LOCK}" ]]; then
+    if ! grep -q "${MINIFW_SECTOR}" "${SECTOR_LOCK}"; then
+        echo "[VSentinel] WARNING: sector '${MINIFW_SECTOR}' not found in sector_lock.py — verify sector config."
+    else
+        echo "[VSentinel] sector_lock.py verified for sector: ${MINIFW_SECTOR}"
+    fi
 else
-    echo "[VSentinel] WARNING: main.py not found at ${MAIN_PY}, skipping guard check."
+    echo "[VSentinel] WARNING: sector_lock.py not found at ${SECTOR_LOCK}, skipping config check."
 fi
 
 echo "[VSentinel] Scope Gate Passed."

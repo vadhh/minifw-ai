@@ -9,7 +9,6 @@ User=root
 WorkingDirectory=/opt/minifw_ai
 EnvironmentFile=/etc/minifw/minifw.env
 Environment=PYTHONPATH=/opt/minifw_ai/app
-Environment=GAMBLING_ONLY=1
 Environment=MINIFW_AUDIT_LOG=/opt/minifw_ai/logs/audit.jsonl
 ExecStart=/opt/minifw_ai/venv/bin/uvicorn web.app:app --host 127.0.0.1 --port 8443 --ssl-keyfile /etc/minifw/tls/server.key --ssl-certfile /etc/minifw/tls/server.crt
 Restart=on-failure
