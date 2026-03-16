@@ -68,5 +68,5 @@ A `Good signature` result confirms the package has not been tampered with since 
 ## Release 2.0.0 Checksums
 
 ```
-SHA256: 4c6094228feabdcf6b297ad3f29303eaaebab854755691ceab6408e44f5a548e  minifw-ai_2.0.0_amd64.deb
+SHA256: c1c75051ab12744cc875f0442ce434480e3eda12681cc0140a9188ae63b01986  minifw-ai_2.0.0_amd64.deb
 ```
