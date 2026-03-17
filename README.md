@@ -53,8 +53,13 @@ decide now — see [Changing the Sector](#changing-the-sector) below.
 
 ```bash
 sudo apt update
-sudo apt install -y python3 python3-venv nftables openssl dnsmasq
+sudo apt install -y python3 python3-venv nftables openssl dnsmasq zeek
 ```
+
+> **Zeek** provides TLS/SNI scoring (+35 points) and populates 3 MLP flow features
+> (`alpn_h2`, `cert_self_signed_suspect`, `tls_handshake_time_ms`). The engine
+> runs in DNS-only mode if Zeek is not installed — all DNS-based detection still works,
+> but HTTPS traffic is not scored.
 
 ---
 
@@ -238,6 +243,26 @@ Set `MINIFW_DNS_SOURCE` in the systemd unit:
 | `journald` | Stream from systemd-resolved |
 | `udp` | Listen on UDP socket |
 | `none` | Degraded mode — flow-only, no DNS scoring |
+
+### Zeek TLS/SNI Collector
+
+Zeek is **enabled by default** (`use_zeek_sni: true` in `policy.json`). When Zeek is
+installed, the engine automatically reads `/var/log/zeek/ssl.log` for TLS SNI events.
+If Zeek is not installed, the engine logs a warning and continues in DNS-only mode.
+
+To disable Zeek explicitly:
+```json
+"collectors": {
+    "use_zeek_sni": false
+}
+```
+
+To verify Zeek is feeding events:
+```bash
+journalctl -u minifw-ai | grep -i zeek
+# Active:   [ZEEK] SNI collector started: /var/log/zeek/ssl.log
+# Inactive: Warning: Failed to start Zeek SNI event stream
+```
 
 ### Threat Feeds
 

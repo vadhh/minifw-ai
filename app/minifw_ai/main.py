@@ -16,7 +16,7 @@ from minifw_ai.netutil import ip_in_any_subnet, ASNResolver
 from minifw_ai.events import Event, EventWriter, now_iso
 from minifw_ai.enforce import ipset_create, ipset_add, nft_apply_forward_drop
 from minifw_ai.collector_dnsmasq import stream_dns_events_file
-from minifw_ai.collector_zeek import stream_zeek_sni_events
+from minifw_ai.collector_zeek import stream_zeek_sni_events, ZeekSSLEvent
 from minifw_ai.burst import BurstTracker
 from minifw_ai.audit import (
     audit_daemon_start, audit_daemon_stop, audit_config_loaded,
@@ -470,10 +470,15 @@ def run():
             return
         for _ in range(3):
             try:
-                client_ip, sni = next(zeek_iter)
-                last_sni[client_ip] = sni
-                # NEW: Enrich flows with SNI
-                flow_tracker.enrich_with_sni(client_ip, sni)
+                evt: ZeekSSLEvent = next(zeek_iter)
+                last_sni[evt.client_ip] = evt.sni
+                flow_tracker.enrich_with_sni(
+                    evt.client_ip,
+                    evt.sni,
+                    handshake_ms=evt.handshake_ms,
+                    alpn_h2=evt.alpn_h2,
+                    cert_self_signed=evt.cert_self_signed,
+                )
             except Exception:
                 logging.warning("Error pumping zeek event", exc_info=True)
                 break
@@ -803,7 +808,7 @@ def run():
                     if flow.pkt_count < 5:  # Skip very small flows
                         continue
 
-                    features = build_feature_vector_24(flow)
+                    features = build_feature_vector_24(flow, tracker=flow_tracker)
 
                     # HIPAA: Redact domain/SNI from flow records when sector requires it
                     _redact = sector_config.get("redact_payloads", False)

@@ -100,7 +100,7 @@ Section: net
 Priority: optional
 Architecture: ${ARCH}
 Depends: python3 (>= 3.10), python3-venv, nftables, openssl, conntrack
-Recommends: dnsmasq
+Recommends: dnsmasq, zeek
 Maintainer: Afridho Ikhsan <afridho@minifw.local>
 Description: MiniFW-AI Behavioral Firewall Engine (ARCHANGEL 2.0) [${SECTOR}]
  AI-powered network behavioral firewall for gateway appliances.
@@ -126,7 +126,7 @@ echo " MiniFW-AI: Post-install setup"
 echo "============================================"
 
 # --- 1. Python virtual environment ---
-echo "[1/9] Python environment..."
+echo "[1/10] Python environment..."
 if [ ! -d "${APP_ROOT}/venv" ]; then
     echo "  Creating virtual environment..."
     python3 -m venv "${APP_ROOT}/venv"
@@ -136,7 +136,7 @@ echo "  Installing dependencies..."
 "${APP_ROOT}/venv/bin/pip" install -r "${APP_ROOT}/requirements.txt" -q
 
 # --- 2. Generate secrets ---
-echo "[2/9] Secrets..."
+echo "[2/10] Secrets..."
 mkdir -p "${ENV_DIR}"
 chmod 755 "${ENV_DIR}"
 
@@ -166,7 +166,7 @@ if [ -f /etc/systemd/system/minifw-ai.service ]; then
 fi
 
 # --- 3. Generate TLS certificate ---
-echo "[3/9] TLS certificate..."
+echo "[3/10] TLS certificate..."
 mkdir -p "${TLS_DIR}"
 if [ ! -f "${TLS_DIR}/server.crt" ]; then
     openssl req -x509 -newkey rsa:2048 \
@@ -182,7 +182,7 @@ else
 fi
 
 # --- 4. Create admin user ---
-echo "[4/9] Admin user..."
+echo "[4/10] Admin user..."
 export PYTHONPATH="${APP_ROOT}/app"
 # shellcheck disable=SC2046
 export $(grep -v '^#' "${ENV_FILE}" | xargs)
@@ -222,13 +222,13 @@ chmod 664 "${APP_ROOT}/minifw.db" 2>/dev/null || true
 chmod 775 "${APP_ROOT}" 2>/dev/null || true
 
 # --- 5. Set permissions ---
-echo "[5/9] Permissions..."
+echo "[5/10] Permissions..."
 chmod -R 755 "${APP_ROOT}/app"
 chmod 644 "${APP_ROOT}/config/policy.json"
 chmod 755 "${APP_ROOT}/logs"
 
 # --- 6. Load nf_conntrack kernel module ---
-echo "[6/9] Flow tracking (nf_conntrack)..."
+echo "[6/10] Flow tracking (nf_conntrack)..."
 if ! lsmod | grep -q nf_conntrack; then
     modprobe nf_conntrack 2>/dev/null && echo "  nf_conntrack loaded." || echo "  Warning: could not load nf_conntrack (check kernel config)."
 else
@@ -240,7 +240,7 @@ if [ ! -f /etc/modules-load.d/minifw-conntrack.conf ]; then
 fi
 
 # --- 7. Restrict Grafana to localhost ---
-echo "[7/9] Grafana hardening..."
+echo "[7/10] Grafana hardening..."
 GRAFANA_INI="/etc/grafana/grafana.ini"
 if [ -f "${GRAFANA_INI}" ]; then
     if grep -qE "^;?http_addr\s*=" "${GRAFANA_INI}"; then
@@ -254,14 +254,37 @@ else
     echo "  grafana.ini not found — skipping (Grafana not installed)."
 fi
 
-# --- 8. Disable CUPS (not required on a firewall appliance) ---
-echo "[8/9] Removing unnecessary services..."
+# --- 8. Configure Zeek TLS/SNI collector ---
+echo "[8/10] Zeek TLS collector..."
+if command -v zeek >/dev/null 2>&1 || command -v zeekctl >/dev/null 2>&1; then
+    ZEEK_SITE="/etc/zeek/site/local.zeek"
+    if [ -f "${ZEEK_SITE}" ]; then
+        # Ensure ssl.log is written
+        if ! grep -q "frameworks/protocols/ssl/log" "${ZEEK_SITE}" 2>/dev/null; then
+            echo "@load frameworks/protocols/ssl/log" >> "${ZEEK_SITE}"
+            echo "  Added ssl.log to Zeek site config."
+        else
+            echo "  Zeek ssl.log already configured."
+        fi
+    fi
+    # Start Zeek if not running
+    if command -v zeekctl >/dev/null 2>&1; then
+        zeekctl deploy 2>/dev/null && echo "  Zeek deployed." || echo "  Warning: zeekctl deploy failed (check zeekctl status)."
+    fi
+    echo "  Zeek TLS collector active — SNI scoring and TLS features enabled."
+else
+    echo "  Zeek not installed — TLS/SNI scoring disabled (DNS-only mode)."
+    echo "  Install with: apt install zeek   then re-run: dpkg-reconfigure minifw-ai"
+fi
+
+# --- 9. Disable CUPS (not required on a firewall appliance) ---
+echo "[9/10] Removing unnecessary services..."
 systemctl stop cups cups-browsed 2>/dev/null || true
 systemctl disable cups cups-browsed 2>/dev/null || true
 echo "  CUPS disabled."
 
-# --- 9. Enable and start services ---
-echo "[9/9] Starting services..."
+# --- 10. Enable and start services ---
+echo "[10/10] Starting services..."
 systemctl daemon-reload
 systemctl enable --now minifw-ai
 systemctl enable --now minifw-ai-web

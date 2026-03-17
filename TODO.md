@@ -370,7 +370,7 @@ Identified before starting Stage 5 (remaining sector builds).
 
 ## TD-5 — Flow features hardcoded `0.0` (Zeek TLS collector not deployed)
 
-- [ ] **`collector_flow.py:449,455,456` — three MLP features always zero** —
+- [x] **`collector_flow.py:449,455,456` — three MLP features always zero** —
   `tls_handshake_time_ms`, `alpn_h2`, and `cert_self_signed_suspect` are hardcoded `0.0`
   because they require an active Zeek TLS collector. A fourth feature `domain_repeat`
   at line 465 is also a placeholder needing global frequency tracking.
@@ -403,5 +403,5 @@ Identified before starting Stage 5 (remaining sector builds).
 | TD-2 | `test_model_not_found` skipif bypass | Low | ✅ fixed |
 | TD-3 | `return True` instead of `assert` | Low | ✅ fixed |
 | TD-4 | Hardcoded uptime `"99.8%"` | Low | ✅ fixed |
-| TD-5 | 4 flow features hardcoded `0.0` | Medium (MLP accuracy) | ☐ deferred |
+| TD-5 | 4 flow features hardcoded `0.0` | Medium (MLP accuracy) | ✅ fixed |
 | TD-6 | SIGTERM missing from audit log | Low | ✅ fixed |

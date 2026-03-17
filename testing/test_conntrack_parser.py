@@ -162,6 +162,61 @@ def test_feature_vector_tls_fields():
     assert sni_len == len("example.com")
 
 
+def test_feature_vector_zeek_tls_fields_populated():
+    """When FlowStats carries Zeek TLS fields, build_feature_vector_24 uses them."""
+    flow = FlowStats(client_ip="10.0.0.1", dst_ip="8.8.8.8", dst_port=443, proto="tcp")
+    flow.tls_seen = True
+    flow.sni = "example.com"
+    flow.tls_handshake_ms = 45.3
+    flow.alpn_h2 = 1.0
+    flow.cert_self_signed_suspect = 1.0
+
+    vec = build_feature_vector_24(flow)
+    assert vec[15] == 45.3   # tls_handshake_time_ms
+    assert vec[18] == 1.0    # alpn_h2
+    assert vec[19] == 1.0    # cert_self_signed_suspect
+
+
+def test_feature_vector_domain_repeat_via_tracker():
+    """domain_repeat_5min is populated when a FlowTracker is passed."""
+    tracker = FlowTracker()
+    domain = "malware-c2.com"
+    for _ in range(5):
+        tracker.enrich_with_dns("10.0.0.1", domain)
+
+    flow = FlowStats(client_ip="10.0.0.1", dst_ip="1.2.3.4", dst_port=443, proto="tcp")
+    flow.domain = domain
+
+    vec = build_feature_vector_24(flow, tracker=tracker)
+    assert vec[23] == 5.0    # domain_repeat_5min
+
+
+def test_feature_vector_domain_repeat_zero_without_tracker():
+    """domain_repeat_5min is 0.0 when no tracker is passed."""
+    flow = FlowStats(client_ip="10.0.0.1", dst_ip="1.2.3.4", dst_port=443, proto="tcp")
+    flow.domain = "example.com"
+    vec = build_feature_vector_24(flow)
+    assert vec[23] == 0.0
+
+
+def test_flow_tracker_enrich_with_sni_populates_tls_fields():
+    """FlowTracker.enrich_with_sni stores all Zeek TLS fields on the flow."""
+    tracker = FlowTracker()
+    tracker.update_flow("10.0.0.1", "8.8.8.8", 443, "tcp", pkt_size=100)
+    tracker.enrich_with_sni(
+        "10.0.0.1", "example.com",
+        handshake_ms=32.5, alpn_h2=1.0, cert_self_signed=0.0
+    )
+    flows = tracker.get_flows_for_client("10.0.0.1")
+    assert flows
+    f = flows[0]
+    assert f.sni == "example.com"
+    assert f.tls_seen is True
+    assert f.tls_handshake_ms == 32.5
+    assert f.alpn_h2 == 1.0
+    assert f.cert_self_signed_suspect == 0.0
+
+
 def test_feature_vector_no_domain_no_tls():
     flow = FlowStats(client_ip="10.0.0.1", dst_ip="8.8.8.8", dst_port=80, proto="tcp")
     flow.first_seen = time.time() - 1.0

@@ -53,6 +53,11 @@ class FlowStats:
     sni: str = ""
     tls_seen: bool = False
 
+    # TLS detail fields — populated by Zeek ssl.log enrichment
+    tls_handshake_ms: float = 0.0        # Handshake duration from Zeek ssl.log
+    alpn_h2: float = 0.0                 # 1.0 if ALPN negotiated h2 (HTTP/2)
+    cert_self_signed_suspect: float = 0.0  # 1.0 if cert chain length == 1 (self-signed)
+
     def update(self, pkt_size: int, direction: str = "out") -> None:
         """Update flow stats with new packet"""
         now = time.time()
@@ -217,6 +222,11 @@ class FlowTracker:
         self.max_flows = max_flows
         self.last_cleanup = time.time()
 
+        # Domain frequency counter for domain_repeat_5min feature
+        # Tracks (domain -> [timestamp, ...]) within a 5-minute sliding window
+        self._domain_timestamps: dict[str, deque] = {}
+        self._domain_freq_window = 300  # 5 minutes in seconds
+
     def _flow_key(self, client_ip: str, dst_ip: str, dst_port: int, proto: str) -> str:
         """Generate unique flow key"""
         return f"{client_ip}:{dst_ip}:{dst_port}:{proto}"
@@ -263,17 +273,56 @@ class FlowTracker:
         return [flow for flow in self.flows.values() if flow.client_ip == client_ip]
 
     def enrich_with_dns(self, client_ip: str, domain: str) -> None:
-        """Enrich flows from this client with domain info"""
+        """Enrich flows from this client with domain info and record domain frequency."""
         for flow in self.flows.values():
             if flow.client_ip == client_ip and not flow.domain:
                 flow.domain = domain
+        if domain:
+            self._record_domain(domain)
 
-    def enrich_with_sni(self, client_ip: str, sni: str) -> None:
-        """Enrich flows from this client with SNI/TLS info"""
+    def _record_domain(self, domain: str) -> None:
+        """Record a domain query timestamp for frequency tracking."""
+        now = time.time()
+        if domain not in self._domain_timestamps:
+            self._domain_timestamps[domain] = deque()
+        ts = self._domain_timestamps[domain]
+        ts.append(now)
+        # Evict entries outside the 5-minute window
+        cutoff = now - self._domain_freq_window
+        while ts and ts[0] < cutoff:
+            ts.popleft()
+        # Prevent unbounded growth — cap at 10k unique domains
+        if len(self._domain_timestamps) > 10000:
+            oldest_key = next(iter(self._domain_timestamps))
+            del self._domain_timestamps[oldest_key]
+
+    def get_domain_repeat(self, domain: str) -> float:
+        """Return number of times domain was seen in the last 5 minutes."""
+        if not domain or domain not in self._domain_timestamps:
+            return 0.0
+        now = time.time()
+        cutoff = now - self._domain_freq_window
+        return float(sum(1 for t in self._domain_timestamps[domain] if t >= cutoff))
+
+    def enrich_with_sni(
+        self,
+        client_ip: str,
+        sni: str,
+        handshake_ms: float = 0.0,
+        alpn_h2: float = 0.0,
+        cert_self_signed: float = 0.0,
+    ) -> None:
+        """Enrich flows from this client with SNI/TLS info from Zeek ssl.log."""
         for flow in self.flows.values():
             if flow.client_ip == client_ip:
                 flow.sni = sni
                 flow.tls_seen = True
+                if handshake_ms > 0:
+                    flow.tls_handshake_ms = handshake_ms
+                if alpn_h2:
+                    flow.alpn_h2 = alpn_h2
+                if cert_self_signed:
+                    flow.cert_self_signed_suspect = cert_self_signed
 
     def cleanup_old_flows(self, force: bool = False) -> int:
         """Remove expired flows"""
@@ -421,10 +470,14 @@ def stream_conntrack_flows(
             continue
 
 
-def build_feature_vector_24(flow: FlowStats) -> list[float]:
+def build_feature_vector_24(flow: FlowStats, tracker: "FlowTracker | None" = None) -> list[float]:
     """
-    Build 24-feature vector from FlowStats for MLP input
-    Order matches MLP schema v1 from the document
+    Build 24-feature vector from FlowStats for MLP input.
+    Order matches MLP schema v1 from the document.
+
+    Args:
+        flow: FlowStats instance for the connection being scored.
+        tracker: Optional FlowTracker — required to populate domain_repeat_5min.
     """
     # Basic flow (8)
     duration_sec = flow.get_duration()
@@ -444,26 +497,19 @@ def build_feature_vector_24(flow: FlowStats) -> list[float]:
     interarrival_p95_ms = flow.get_interarrival_p95_ms()
     small_pkt_ratio = flow.get_small_pkt_ratio()
 
-    # TLS (6)
+    # TLS (6) — populated from Zeek ssl.log enrichment when Zeek is active
     tls_seen = 1.0 if flow.tls_seen else 0.0
-    tls_handshake_time_ms = 0.0  # TODO: implement if TLS handshake timing available
-
-    # JA3 hash bucket (not yet implemented, placeholder)
-    ja3_hash_bucket = 0.0
-
+    tls_handshake_time_ms = flow.tls_handshake_ms
+    ja3_hash_bucket = 0.0  # Reserved — requires JA3 library
     sni_len = float(len(flow.sni)) if flow.sni else 0.0
-    alpn_h2 = 0.0  # TODO: detect HTTP/2 ALPN
-    cert_self_signed_suspect = 0.0  # TODO: implement if cert validation available
+    alpn_h2 = flow.alpn_h2
+    cert_self_signed_suspect = flow.cert_self_signed_suspect
 
     # DNS / domain behavior (4)
     dns_seen = 1.0 if flow.domain else 0.0
     fqdn_len = float(len(flow.domain)) if flow.domain else 0.0
-
-    # Count dots in domain for subdomain depth
     subdomain_depth = float(flow.domain.count(".") - 1) if flow.domain else 0.0
-
-    # Domain repeat (TODO: needs global tracking, placeholder for now)
-    domain_repeat_5min = 0.0
+    domain_repeat_5min = tracker.get_domain_repeat(flow.domain) if tracker else 0.0
 
     return [
         # Basic flow (8)
