@@ -6,6 +6,48 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [2.2.0] — 2026-03-17
+
+### Changed
+- **Sector-versioned package naming** — `.deb` packages now include the sector as a
+  version suffix: `minifw-ai_2.2.0-establishment_amd64.deb`,
+  `minifw-ai_2.2.0-hospital_amd64.deb`. Makes parallel sector builds of the same
+  codebase version unambiguous. `BASE_VERSION` in `build_deb.sh` is set once; the
+  full `VERSION` is derived as `${BASE_VERSION}-${SECTOR}`.
+
+### Added
+- **Zeek TLS/SNI collector fully activated** — `use_zeek_sni: true` by default in
+  `policy.json`. `collector_zeek.py` now yields `ZeekSSLEvent` (NamedTuple) carrying
+  `handshake_ms`, `alpn_h2`, `cert_self_signed`. All four previously-hardcoded `0.0`
+  MLP features now populated from live Zeek and domain-frequency data.
+- **`domain_repeat_5min` frequency tracking** — `FlowTracker` maintains a 5-minute
+  sliding window per domain. `build_feature_vector_24()` accepts optional `tracker=`
+  argument to populate feature index 23.
+- **Dashboard: Collector Status** — Firewall Status panel shows live Active/Inactive
+  state for Zeek TLS/SNI, DNS Collector, and Flow Tracking (conntrack), read from
+  actual file presence at request time.
+- **Dashboard: SNI Blocks tile** — 7th System Intelligence counter tracking TLS/SNI
+  deny events.
+- **Dashboard: Monitor badge** — events table now shows amber "Monitor" badge for
+  `action=monitor` events (previously fell through to "Allowed").
+
+### Fixed
+- **SIGTERM audit gap** — `main.py` now registers a `SIGTERM` handler that calls
+  `audit_daemon_stop("sigterm")` before `sys.exit(0)`. `systemctl stop` is now
+  recorded in the audit log.
+- **`user_management.html` sector dropdown** — `school` corrected to `education` in
+  filter dropdown, Create User modal, Edit User modal, and sector-badge CSS class.
+- **`get_system_uptime()` was hardcoded** — now reads `/proc/uptime` and returns
+  uptime as a percentage of a 30-day reference window.
+
+### Build artifacts
+- `minifw-ai_2.2.0-establishment_amd64.deb`
+  SHA256: `9434eb27a89333f2d5b0aaa6f8f1ac98a55694b7a52af97dbf24041531964c2d`
+- `minifw-ai_2.2.0-hospital_amd64.deb`
+  SHA256: `2f9bd834a0ffe5d4cb213043c7c9371fa506a24778f8585b789692a489b89823`
+
+---
+
 ## [2.1.0] — 2026-03-17
 
 ### Added (Hospital Sector)

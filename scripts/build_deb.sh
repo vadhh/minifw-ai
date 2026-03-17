@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-VERSION="2.1.0"
+BASE_VERSION="2.2.0"
 PKG_NAME="minifw-ai"
 ARCH="amd64"
 SECTOR="${1:-establishment}"
 REPO_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+VERSION="${BASE_VERSION}-${SECTOR}"
 BUILD_DIR="${REPO_DIR}/build/${PKG_NAME}_${VERSION}_${ARCH}"
 DEB_OUTPUT="${REPO_DIR}/build/${PKG_NAME}_${VERSION}_${ARCH}.deb"
 

@@ -30,12 +30,12 @@ Before installing, confirm the package has not been tampered with:
 gpg --import minifw-ai-release.asc
 
 # Verify GPG signature (adjust filename for your sector/version)
-gpg --verify minifw-ai_2.1.0_amd64.deb.asc minifw-ai_2.1.0_amd64.deb
+gpg --verify minifw-ai_2.2.0-establishment_amd64.deb.asc minifw-ai_2.2.0-establishment_amd64.deb
 # Expected: "Good signature from MiniFW-AI Release ..."
 
 # Verify SHA-256 checksum
-sha256sum -c minifw-ai_2.1.0_amd64.deb.sha256
-# Expected: "minifw-ai_2.1.0_amd64.deb: OK"
+sha256sum -c minifw-ai_2.2.0-establishment_amd64.deb.sha256
+# Expected: "minifw-ai_2.2.0-establishment_amd64.deb: OK"
 ```
 
 See [docs/release-verification.md](docs/release-verification.md) for full details.
@@ -66,7 +66,7 @@ sudo apt install -y python3 python3-venv nftables openssl dnsmasq zeek
 ### Step 4 — Install the package
 
 ```bash
-sudo dpkg -i minifw-ai_2.1.0_amd64.deb
+sudo dpkg -i minifw-ai_2.2.0-establishment_amd64.deb
 ```
 
 The installer automatically:
@@ -161,8 +161,8 @@ bash scripts/build_deb.sh [sector]
 # Examples:
 #   bash scripts/build_deb.sh hospital
 #   bash scripts/build_deb.sh finance
-# Output: build/minifw-ai_2.1.0_amd64.deb
-# Checksum: build/minifw-ai_2.1.0_amd64.deb.sha256
+# Output: build/minifw-ai_2.2.0-<sector>_amd64.deb
+# Checksum: build/minifw-ai_2.2.0-<sector>_amd64.deb.sha256
 ```
 
 ---
@@ -189,7 +189,7 @@ service unit and locked at daemon startup — it cannot be changed at runtime.
 
 ```bash
 bash scripts/build_deb.sh hospital
-sudo dpkg -i build/minifw-ai_2.1.0_amd64.deb
+sudo dpkg -i build/minifw-ai_2.2.0-<sector>_amd64.deb
 # The sector is baked into the package — no post-install edits needed.
 ```
 
