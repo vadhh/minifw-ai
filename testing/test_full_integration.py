@@ -249,7 +249,6 @@ def test_decision_integration(tracker, mlp_detector, yara_scanner):  # noqa: F81
             print(f"    Result: ✓ ALLOW")
     
     print("\n✓ Decision integration OK")
-    return True
 
 
 def test_end_to_end():
@@ -352,7 +351,6 @@ def test_end_to_end():
     print(f"   Reasons: {reasons}")
     
     print("\n✓ End-to-end simulation complete")
-    return True
 
 
 if __name__ == "__main__":

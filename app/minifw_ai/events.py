@@ -15,6 +15,7 @@ class Event:
     score: int
     reasons: list[str]
     sector: str = "unknown"  # Factory-set sector (from sector lock)
+    severity: str = "info"   # Elevated to "critical" for hospital IoMT alerts
 
 
 def now_iso() -> str:

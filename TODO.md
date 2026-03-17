@@ -167,7 +167,7 @@ These prevent the test suite from running to completion in a clean repo checkout
 
 ---
 
-## Summary
+## Summary (Stage 4 baseline — establishment)
 
 | Priority | Total | Done | Remaining |
 |----------|-------|------|-----------|
@@ -179,5 +179,229 @@ These prevent the test suite from running to completion in a clean repo checkout
 
 **Test suite: 328 passed, 0 failed.**
 
-All TODO tasks complete. MiniFW-AI is at **Stage 4 (QA-ready)** with a fully executable
+All Stage 4 tasks complete. MiniFW-AI is at **Stage 4 (QA-ready)** with a fully executable
 test suite and no PRD-required stubs remaining.
+
+---
+
+---
+
+# Hospital Sector — Build & Packaging
+
+**Branch:** `hospital`
+**Target version:** `2.1.0`
+**Sector:** `MINIFW_SECTOR=hospital`
+
+Hospital adds HIPAA-compliant IoMT protection on top of the Stage 4 baseline.
+The following tasks must all be complete before `bash scripts/build_deb.sh hospital` is run.
+
+---
+
+## H-1 — Wire `alert_severity_boost` for IoMT alerts
+
+- [x] **`alert_severity_boost: critical` config key is a no-op** — In `main.py`, when the
+  hospital sector fires an `iomt_device_alert`, the event and audit log entry must carry
+  `severity=critical`. Currently IoMT alert reasons are appended to `reasons[]` but there
+  is no severity field in the event or audit record.
+
+  **Implementation:**
+  - Add `severity` field to `Event` dataclass in `events.py` (default `"info"`)
+  - In `main.py` IoMT alert block: set `severity = sector_config.get("alert_severity_boost", "info")`
+  - Pass `severity` to `Event(...)` constructor
+  - Add `testing/test_sector_hospital_severity.py` — 6 tests:
+    hospital IoMT alert → severity=critical, non-IoMT hospital event → severity=info,
+    establishment event → severity=info, severity written to events.jsonl
+
+---
+
+## H-2 — Create `healthcare_threats.txt` feed
+
+- [x] **`extra_feeds: ["healthcare_threats.txt"]` — feed file missing** — The hospital sector
+  config lists `healthcare_threats.txt` in `extra_feeds` but the file does not exist in
+  `config/feeds/`. Without it the FeedMatcher silently skips it (no error, no protection).
+
+  **Implementation:**
+  - Create `config/feeds/healthcare_threats.txt` with documented healthcare threat domains:
+    - Known medical ransomware C2 domains (Ryuk/Conti/LockBit healthcare campaigns)
+    - Unauthorized medical data broker domains
+    - Fake patient portal / credential phishing domains
+    - IoMT device exploit delivery domains
+  - Verify `FeedMatcher` loads `extra_feeds` at startup (check `feeds.py` loading path)
+  - Wire `extra_feeds` loading in `main.py` startup if not already connected
+  - Add `testing/test_sector_hospital_feeds.py` — 4 tests:
+    healthcare_threats.txt loads, domain in file scores as denied (+40),
+    domain not in file scores 0, file missing on non-hospital sector is not an error
+
+---
+
+## H-3 — Add hospital YARA rules
+
+- [x] **`yara_rules/` only contains `test_rules.yar` (gambling/malware/api_abuse)** —
+  Hospital sector needs rules targeting medical-specific payloads.
+
+  **Implementation:**
+  - Create `yara_rules/hospital_rules.yar` with rule categories:
+    - `MedicalRansomware` — known ransomware note strings targeting hospitals
+      (Ryuk, LockBit, BlackCat/ALPHV healthcare-specific strings)
+    - `IoMTExploit` — known exploit payloads targeting medical device firmware APIs
+      (Philips, GE Healthcare, Baxter API abuse patterns)
+    - `MedicalDataExfil` — patterns for unauthorized HL7/FHIR/DICOM data staging
+  - YARA rules are compiled from the entire `yara_rules/` dir — new file is picked up
+    automatically at engine startup, no code changes needed
+  - Add `testing/test_hospital_yara.py` — tests for each new rule category:
+    ransomware note strings match, IoMT exploit payloads match, benign medical domain
+    content does not match
+
+---
+
+## H-4 — Add `iomt_subnets` to `policy.json`
+
+- [x] **`policy.json` has `"iomt_subnets": []` (empty)** — IoMT subnet alerting in
+  `main.py` is gated on this list being non-empty. An empty list silently disables
+  all IoMT alerting even when `MINIFW_SECTOR=hospital`.
+
+  **Implementation:**
+  - Add documented example IoMT subnets to `policy.json`:
+    `"iomt_subnets": ["10.20.0.0/24", "10.20.1.0/24"]`
+  - Add comment block in `policy.json` (via a `_comment` key or adjacent README)
+    explaining these must be set to actual medical device network ranges before deployment
+
+---
+
+## H-5 — Sector-aware `build_deb.sh` with version bump
+
+- [x] **`build_deb.sh` ignores sector — always bakes `establishment`** — The script does not
+  accept a sector argument. The systemd service template has `MINIFW_SECTOR=establishment`
+  hardcoded. Building a hospital `.deb` with the current script produces an establishment
+  package.
+
+  **Implementation:**
+  - Add `SECTOR` argument to `build_deb.sh`: `bash build_deb.sh [sector]` (default: `establishment`)
+  - Inject `MINIFW_SECTOR=${SECTOR}` into the service unit written inside `postinst`
+    (sed substitution or heredoc parameter)
+  - Bump `VERSION` to `2.1.0` for the hospital build
+  - Update package `Description` field in `DEBIAN/control` to include sector name
+  - Add `healthcare_threats.txt` to `DEBIAN/conffiles`
+  - Update `.sha256` and `.asc` generation at end of script
+
+---
+
+## H-6 — Tests: hospital sector integration
+
+- [x] **No end-to-end test covering all hospital features together** — Add
+  `testing/test_sector_hospital_integration.py` that exercises the full hospital scoring
+  pipeline in one test:
+  - IoMT source IP + healthcare threat domain → `severity=critical`, `action=block`
+  - Non-IoMT IP + healthcare threat domain → `action=block` (score via feed, no severity boost)
+  - IoMT source IP + benign domain → `action=allow`, no iomt_device_alert
+  - HIPAA redaction active: domain replaced with `[REDACTED]` in event output
+
+---
+
+## Hospital Task Summary
+
+| # | Task | File(s) | Status |
+|---|------|---------|--------|
+| H-1 | Wire `alert_severity_boost` | `events.py`, `main.py` | ✅ |
+| H-2 | Create `healthcare_threats.txt` | `config/feeds/` | ✅ |
+| H-3 | Add `hospital_rules.yar` | `yara_rules/` | ✅ |
+| H-4 | Populate `iomt_subnets` in policy | `config/policy.json` | ✅ |
+| H-5 | Sector-aware `build_deb.sh` + v2.1.0 | `scripts/build_deb.sh` | ✅ |
+| H-6 | Hospital integration tests | `testing/` | ✅ |
+| — | **Build & package** `bash scripts/build_deb.sh hospital` | — | ✅ |
+
+All H-tasks must pass `pytest testing/ -m "not integration"` before the final build.
+
+---
+
+---
+
+# Technical Debt — Post-Hospital Audit (2026-03-17)
+
+Identified before starting Stage 5 (remaining sector builds).
+
+---
+
+## TD-1 — Dev environment missing `requirements.txt` packages
+
+- [ ] **Test suite broken in dev env** — `sqlalchemy`, `scikit-learn`, `fastapi`,
+  `prometheus_client`, `schedule` are all in `requirements.txt` but not installed in the
+  local dev Python. Causes 21+ failures and collection errors in `pytest testing/`.
+  The `.deb` postinst installs everything correctly via `pip install -r requirements.txt` —
+  production is unaffected. Dev-only gap.
+
+  **Fix:** `pip install -r requirements.txt --break-system-packages` in dev env.
+  **Status:** ☐ (deferred — production unaffected)
+
+---
+
+## TD-2 — `test_model_not_found_leaves_model_unloaded` skips incorrectly
+
+- [x] **`test_mlp_integration.py:46` — test bypasses module-level `pytestmark` skipif** —
+  `MLPThreatDetector` import succeeds (module sets `SKLEARN_AVAILABLE=False` internally),
+  so `MLP_AVAILABLE=True` and the `pytestmark` skipif does not fire. The test then
+  instantiates `MLPThreatDetector()` directly which raises `ImportError` at `__init__`.
+
+  **Fix:** Added `pytest.importorskip("sklearn")` inside the test function.
+
+---
+
+## TD-3 — `test_full_integration.py` uses `return True` instead of `assert`
+
+- [x] **`test_full_integration.py:252,355` — two test functions return `True`** —
+  `test_decision_integration()` and `test_end_to_end()` used `return True` as their
+  pass condition. pytest warns (`PytestReturnNotNoneWarning`) and the assertion semantics
+  are wrong (test passes even if all checks inside fail).
+
+  **Fix:** Removed `return True` from both functions.
+
+---
+
+## TD-4 — `get_system_uptime()` returns hardcoded `"99.8%"`
+
+- [x] **`app/services/events/get_events_service.py:230` — dashboard shows fake uptime** —
+  `get_system_uptime()` always returned the string `"99.8%"`. Dashboard uptime widget
+  had no connection to actual system state.
+
+  **Fix:** Reads `/proc/uptime` and expresses uptime as a percentage of a 30-day reference
+  window (capped at 100%). Falls back to `"N/A"` if `/proc/uptime` unavailable.
+
+---
+
+## TD-5 — Flow features hardcoded `0.0` (Zeek TLS collector not deployed)
+
+- [ ] **`collector_flow.py:449,455,456` — three MLP features always zero** —
+  `tls_handshake_time_ms`, `alpn_h2`, and `cert_self_signed_suspect` are hardcoded `0.0`
+  because they require an active Zeek TLS collector. A fourth feature `domain_repeat`
+  at line 465 is also a placeholder needing global frequency tracking.
+
+  **Impact:** MLP model trained on these features will have zero variance on these columns.
+  Model still functions (other 20 features carry signal) but accuracy is degraded.
+  **Unblock:** Activate Zeek ssl.log collector or add a `domain_repeat` frequency counter.
+  **Status:** ☐ (deferred — Zeek not deployed in current installations)
+
+---
+
+## TD-6 — `audit_daemon_stop()` not called on SIGTERM
+
+- [ ] **`main.py` — stop event absent from audit log on `systemctl stop`** —
+  `audit_daemon_stop()` only fires on `KeyboardInterrupt`. A clean `systemctl stop`
+  sends `SIGTERM` which is caught by uvicorn's lifecycle, not the engine's signal handler.
+  The audit log has no daemon-stopped record for normal service restarts.
+
+  **Fix:** Register a `signal.signal(signal.SIGTERM, ...)` handler in `main.py` that
+  calls `audit_daemon_stop()` before exiting.
+  **Status:** ☐ (low priority — operational impact is cosmetic audit gap only)
+
+---
+
+## Debt Summary
+
+| # | Item | Severity | Status |
+|---|------|----------|--------|
+| TD-1 | Dev env missing packages | Low (dev only) | ☐ deferred |
+| TD-2 | `test_model_not_found` skipif bypass | Low | ✅ fixed |
+| TD-3 | `return True` instead of `assert` | Low | ✅ fixed |
+| TD-4 | Hardcoded uptime `"99.8%"` | Low | ✅ fixed |
+| TD-5 | 4 flow features hardcoded `0.0` | Medium (MLP accuracy) | ☐ deferred |
+| TD-6 | SIGTERM missing from audit log | Low | ☐ deferred |

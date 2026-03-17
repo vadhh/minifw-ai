@@ -29,13 +29,13 @@ Before installing, confirm the package has not been tampered with:
 # Import the signing key
 gpg --import minifw-ai-release.asc
 
-# Verify GPG signature
-gpg --verify minifw-ai_2.0.0_amd64.deb.asc minifw-ai_2.0.0_amd64.deb
+# Verify GPG signature (adjust filename for your sector/version)
+gpg --verify minifw-ai_2.1.0_amd64.deb.asc minifw-ai_2.1.0_amd64.deb
 # Expected: "Good signature from MiniFW-AI Release ..."
 
 # Verify SHA-256 checksum
-sha256sum -c minifw-ai_2.0.0_amd64.deb.sha256
-# Expected: "minifw-ai_2.0.0_amd64.deb: OK"
+sha256sum -c minifw-ai_2.1.0_amd64.deb.sha256
+# Expected: "minifw-ai_2.1.0_amd64.deb: OK"
 ```
 
 See [docs/release-verification.md](docs/release-verification.md) for full details.
@@ -61,7 +61,7 @@ sudo apt install -y python3 python3-venv nftables openssl dnsmasq
 ### Step 4 — Install the package
 
 ```bash
-sudo dpkg -i minifw-ai_2.0.0_amd64.deb
+sudo dpkg -i minifw-ai_2.1.0_amd64.deb
 ```
 
 The installer automatically:
@@ -151,9 +151,13 @@ sudo dpkg -P minifw-ai      # purge (removes everything including secrets)
 ### Building the Package
 
 ```bash
-bash scripts/build_deb.sh
-# Output: build/minifw-ai_2.0.0_amd64.deb
-# Checksum: build/minifw-ai_2.0.0_amd64.deb.sha256
+bash scripts/build_deb.sh [sector]
+# Default sector: establishment
+# Examples:
+#   bash scripts/build_deb.sh hospital
+#   bash scripts/build_deb.sh finance
+# Output: build/minifw-ai_2.1.0_amd64.deb
+# Checksum: build/minifw-ai_2.1.0_amd64.deb.sha256
 ```
 
 ---
@@ -165,27 +169,26 @@ service unit and locked at daemon startup — it cannot be changed at runtime.
 
 ### Available sectors
 
-| Sector | Use case | Block threshold | Special behaviour |
-|--------|----------|-----------------|-------------------|
-| `establishment` | General commercial, SME, retail | 90 (default) | Balanced |
-| `hospital` | Hospitals, clinics | Higher (fewer false positives) | HIPAA payload redaction, IoMT alerts |
-| `finance` | Banks, financial institutions | Lower (stricter) | Tor/anonymizer blocking |
-| `education` | Schools, universities | 90 | SafeSearch enforcement |
-| `government` | Government networks | 90 | Geo-IP restrictions |
-| `legal` | Law firms | 90 | Exfiltration monitoring |
+| Sector | Use case | Monitor / Block threshold | Special behaviour |
+|--------|----------|--------------------------|-------------------|
+| `establishment` | General commercial, SME, retail | 60 / 90 (default) | Balanced |
+| `hospital` | Hospitals, clinics | **40 / 85** (stricter) | HIPAA payload redaction, IoMT device alerts (severity=critical), `healthcare_threats.txt` feed, hospital YARA rules |
+| `finance` | Banks, financial institutions | 60 / **80** (stricter) | Tor/anonymizer blocking |
+| `education` | Schools, universities | 60 / 90 | SafeSearch enforcement |
+| `government` | Government networks | 60 / 90 | Geo-IP restrictions |
+| `legal` | Law firms | 60 / 90 | Exfiltration monitoring |
 
 ### How to set the sector
 
-**Option A — Before first install (recommended)**
-
-Edit the service unit in the source repo before building the `.deb`:
+**Option A — Build a sector-specific package (recommended)**
 
 ```bash
-# Edit systemd/minifw-ai.service
-Environment=MINIFW_SECTOR=hospital   # change this line
-bash scripts/build_deb.sh
-sudo dpkg -i build/minifw-ai_2.0.0_amd64.deb
+bash scripts/build_deb.sh hospital
+sudo dpkg -i build/minifw-ai_2.1.0_amd64.deb
+# The sector is baked into the package — no post-install edits needed.
 ```
+
+Valid sectors: `hospital`, `education`, `government`, `finance`, `legal`, `establishment`
 
 **Option B — After install**
 
@@ -373,7 +376,8 @@ remain active, AI modules disabled).
 | [docs/monitoring-mode.md](docs/monitoring-mode.md) | Monitoring mode reference, scoring thresholds, analyst workflow |
 | [docs/release-verification.md](docs/release-verification.md) | GPG signing key, package verification steps |
 | [docs/rollback.md](docs/rollback.md) | Rollback and emergency removal procedure |
-| [docs/report-2026-03-16.md](docs/report-2026-03-16.md) | Client deployment readiness report (2026-03-16) |
+| [docs/report-2026-03-16.md](docs/report-2026-03-16.md) | Establishment deployment readiness report (2026-03-16) |
+| [docs/report-2026-03-17-hospital.md](docs/report-2026-03-17-hospital.md) | Hospital sector deployment readiness report (2026-03-17) |
 
 ## License
 
