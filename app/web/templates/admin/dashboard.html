@@ -156,6 +156,15 @@
                   <div class="mf-detect-label">Tor / Anon</div>
                 </div>
               </div>
+              <div class="col-lg-2 col-md-4 col-6">
+                <div class="mf-detect-card" style="border-top:2px solid #0891b2;">
+                  <div class="mf-detect-icon" style="background:rgba(8,145,178,0.1);color:#0891b2;">
+                    <i class="bi bi-shield-lock"></i>
+                  </div>
+                  <div class="mf-detect-value" style="color:#0891b2;">{{ detection_counters.sni_hits }}</div>
+                  <div class="mf-detect-label">SNI Blocks</div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -197,6 +206,8 @@
                       <td>
                         {% if event.status == 'blocked' %}
                           <span class="badge" style="background:#fef2f2;color:#ef4444;">Blocked</span>
+                        {% elif event.status == 'monitor' %}
+                          <span class="badge" style="background:#fffbeb;color:#f59e0b;">Monitor</span>
                         {% else %}
                           <span class="badge" style="background:#f0fdf4;color:#10b981;">Allowed</span>
                         {% endif %}
@@ -246,8 +257,18 @@
               </li>
               <li class="list-group-item d-flex justify-content-between align-items-center"
                   style="background:transparent;border-color:var(--mf-border);padding:12px 20px;">
-                <span style="font-size:13.5px;">Threat Feeds</span>
-                <span class="badge" style="background:#eff6ff;color:#3b82f6;">Updating</span>
+                <span style="font-size:13.5px;"><i class="bi bi-shield-lock me-1" style="color:#0891b2;"></i>Zeek TLS/SNI</span>
+                <span class="badge bg-{{ collector_status.zeek.color }}">{{ collector_status.zeek.label }}</span>
+              </li>
+              <li class="list-group-item d-flex justify-content-between align-items-center"
+                  style="background:transparent;border-color:var(--mf-border);padding:12px 20px;">
+                <span style="font-size:13.5px;"><i class="bi bi-globe2 me-1" style="color:#06b6d4;"></i>DNS Collector</span>
+                <span class="badge bg-{{ collector_status.dns.color }}">{{ collector_status.dns.label }}</span>
+              </li>
+              <li class="list-group-item d-flex justify-content-between align-items-center"
+                  style="background:transparent;border-color:var(--mf-border);padding:12px 20px;">
+                <span style="font-size:13.5px;"><i class="bi bi-diagram-3 me-1" style="color:#6366f1;"></i>Flow Tracking</span>
+                <span class="badge bg-{{ collector_status.conntrack.color }}">{{ collector_status.conntrack.label }}</span>
               </li>
             </ul>
           </div>

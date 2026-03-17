@@ -189,7 +189,7 @@ def get_event_statistics():
 def get_detection_counters():
     """
     Get detection type counters from events.
-    Returns counts for hard_gate, ai_scored, yara, dns_tunnel, port_scan, tor events.
+    Returns counts for hard_gate, ai_scored, yara, dns_tunnel, port_scan, tor, sni_hits events.
     """
     events = get_recent_events(limit=10000)
 
@@ -200,6 +200,7 @@ def get_detection_counters():
         "dns_tunnel": 0,
         "port_scan": 0,
         "tor_anon": 0,
+        "sni_hits": 0,
     }
 
     for event in events:
@@ -218,8 +219,32 @@ def get_detection_counters():
             counters["port_scan"] += 1
         if "tor" in reason_lower or "anonymizer" in reason_lower:
             counters["tor_anon"] += 1
+        if "tls_sni" in reason_lower or "sni_deny" in reason_lower or "sni" in reason_lower:
+            counters["sni_hits"] += 1
 
     return counters
+
+
+def get_collector_status():
+    """
+    Check live status of data collectors: Zeek TLS, DNS (dnsmasq), and flow tracking (conntrack).
+    Returns a dict with active flag and label for each collector.
+    """
+    from pathlib import Path
+
+    zeek_log = Path("/var/log/zeek/ssl.log")
+    dns_log = Path("/var/log/dnsmasq.log")
+    conntrack = Path("/proc/net/nf_conntrack")
+
+    def _status(active: bool) -> dict:
+        return {"active": active, "label": "Active" if active else "Inactive",
+                "color": "success" if active else "secondary"}
+
+    return {
+        "zeek": _status(zeek_log.exists()),
+        "dns": _status(dns_log.exists()),
+        "conntrack": _status(conntrack.exists()),
+    }
 
 
 def get_system_uptime():
