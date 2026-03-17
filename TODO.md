@@ -384,7 +384,7 @@ Identified before starting Stage 5 (remaining sector builds).
 
 ## TD-6 — `audit_daemon_stop()` not called on SIGTERM
 
-- [ ] **`main.py` — stop event absent from audit log on `systemctl stop`** —
+- [x] **`main.py` — stop event absent from audit log on `systemctl stop`** —
   `audit_daemon_stop()` only fires on `KeyboardInterrupt`. A clean `systemctl stop`
   sends `SIGTERM` which is caught by uvicorn's lifecycle, not the engine's signal handler.
   The audit log has no daemon-stopped record for normal service restarts.
@@ -404,4 +404,4 @@ Identified before starting Stage 5 (remaining sector builds).
 | TD-3 | `return True` instead of `assert` | Low | ✅ fixed |
 | TD-4 | Hardcoded uptime `"99.8%"` | Low | ✅ fixed |
 | TD-5 | 4 flow features hardcoded `0.0` | Medium (MLP accuracy) | ☐ deferred |
-| TD-6 | SIGTERM missing from audit log | Low | ☐ deferred |
+| TD-6 | SIGTERM missing from audit log | Low | ✅ fixed |

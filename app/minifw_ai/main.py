@@ -1,5 +1,7 @@
 from __future__ import annotations
 import os
+import signal
+import sys
 
 import json
 import logging
@@ -271,6 +273,14 @@ def run():
     logging.basicConfig(
         level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
     )
+
+    # Register SIGTERM handler so audit_daemon_stop fires on systemctl stop
+    def _handle_sigterm(signum, frame):
+        logging.info("Caught SIGTERM, shutting down.")
+        audit_daemon_stop("sigterm")
+        sys.exit(0)
+
+    signal.signal(signal.SIGTERM, _handle_sigterm)
 
     # Start Prometheus metrics server if available
     if METRICS_AVAILABLE:
