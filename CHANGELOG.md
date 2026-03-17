@@ -44,6 +44,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   results, port exposure verification, outstanding items.
 
 ### Fixed
+- **Dashboard `/admin/` HTTP 500** — `jinja2.UndefinedError: 'detection_counters' is undefined`
+  caused by Starlette 0.49 deprecating the old `TemplateResponse(name, context_dict)` API.
+  All 16 `TemplateResponse` calls across 12 files migrated to new API:
+  `TemplateResponse(request, name, context_dict)` with `request` removed from the context dict.
 - **`collector_flow.py` kernel 6.8 compatibility** — `stream_conntrack_flows()` now
   auto-detects procfs availability and falls back to the `conntrack -L` CLI when
   `/proc/net/nf_conntrack` is absent (`CONFIG_NF_CONNTRACK_PROCFS=not set`). Hard threat
