@@ -1,0 +1,66 @@
+# healthcare_threats.txt — Hospital sector extra feed
+# Loaded when MINIFW_SECTOR=hospital via sector_config extra_feeds
+#
+# Categories:
+#   [RANSOMWARE-C2]  — known ransomware C2 domains targeting healthcare
+#   [PHISHING]       — fake patient portal / credential harvesting
+#   [DATABROKER]     — unauthorized medical data broker / exfil staging
+#   [IOMT-EXPLOIT]   — exploit delivery targeting medical device APIs
+#
+# All entries use fnmatch patterns (wildcards supported).
+# Review and extend this list with threat intelligence before deployment.
+# -------------------------------------------------------------------------
+
+# [RANSOMWARE-C2] Ryuk / Conti / LockBit healthcare-specific C2 infrastructure
+*.onion.to
+*.tor2web.io
+*.darkweblink.com
+conti-news.com
+lockbit-blog.com
+alphv-leaks.com
+blackcat-ransomware.io
+hive-leaks.net
+*.ransom-recovery-help.com
+
+# [RANSOMWARE-C2] Generic healthcare ransomware delivery / payload staging
+healthnet-update.com
+meddata-sync.net
+clinical-patch.org
+ehr-software-update.com
+hospital-it-support.net
+*.meditech-update.ru
+*.allscripts-patch.cn
+
+# [PHISHING] Fake patient portal / MyChart / Epic credential phishing
+my-chart-login.com
+mychart-patient-portal.net
+epiccare-signin.com
+patient-portal-login.net
+epic-health-login.com
+cerner-portal.net
+athenahealth-login.biz
+*.patient-records-secure.com
+
+# [PHISHING] Healthcare insurance / billing fraud
+medicalclaim-submit.com
+insurance-verification-health.com
+*.healthplan-update.net
+billing-medical-online.com
+
+# [DATABROKER] Unauthorized medical data staging / exfiltration
+medrecords-transfer.io
+health-data-export.com
+*.phi-backup.net
+dicom-transfer-secure.com
+hl7-gateway-external.net
+fhir-export-api.io
+patient-data-archive.com
+
+# [IOMT-EXPLOIT] Known exploit delivery targeting medical device management APIs
+*.ge-healthcare-remote.ru
+*.philips-patient-monitor.cn
+*.baxter-infusion.cc
+*.iomt-device-config.biz
+medical-device-fw-update.com
+iomt-management-console.net
+infusion-pump-portal.com
