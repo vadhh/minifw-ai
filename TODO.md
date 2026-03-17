@@ -324,7 +324,7 @@ Identified before starting Stage 5 (remaining sector builds).
 
 ## TD-1 — Dev environment missing `requirements.txt` packages
 
-- [ ] **Test suite broken in dev env** — `sqlalchemy`, `scikit-learn`, `fastapi`,
+- [x] **Test suite broken in dev env** — `sqlalchemy`, `scikit-learn`, `fastapi`,
   `prometheus_client`, `schedule` are all in `requirements.txt` but not installed in the
   local dev Python. Causes 21+ failures and collection errors in `pytest testing/`.
   The `.deb` postinst installs everything correctly via `pip install -r requirements.txt` —
@@ -399,7 +399,7 @@ Identified before starting Stage 5 (remaining sector builds).
 
 | # | Item | Severity | Status |
 |---|------|----------|--------|
-| TD-1 | Dev env missing packages | Low (dev only) | ☐ deferred |
+| TD-1 | Dev env missing packages | Low (dev only) | ✅ fixed |
 | TD-2 | `test_model_not_found` skipif bypass | Low | ✅ fixed |
 | TD-3 | `return True` instead of `assert` | Low | ✅ fixed |
 | TD-4 | Hardcoded uptime `"99.8%"` | Low | ✅ fixed |
