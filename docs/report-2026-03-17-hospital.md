@@ -1,9 +1,9 @@
 # MiniFW-AI / ARCHANGEL 2.0 — Hospital Sector Deployment Readiness Report
 
 **Date:** 2026-03-17
-**Version:** 2.1.0
+**Version:** 2.2.0
 **Sector:** Hospital (`MINIFW_SECTOR=hospital`)
-**Build:** `16b387c` — feat(hospital): complete hospital sector 2.1.0 — H-1 through H-6 + build
+**Build:** `1bdb446` — Release 2.2.0: sector-versioned packages, Zeek activation, dashboard improvements
 **Prepared by:** Engineering (Claude Code assisted)
 **Status:** ✅ DEPLOYMENT READY (IoMT subnets require site-specific configuration)
 
@@ -11,7 +11,7 @@
 
 ## Executive Summary
 
-MiniFW-AI v2.1.0 (hospital sector) has been validated against the hospital deployment
+MiniFW-AI v2.2.0 (hospital sector) has been validated against the hospital deployment
 checklist. All 6 hospital feature tasks (H-1 through H-6) are implemented, tested, and
 passing. The package has been GPG-signed and SHA256-verified. One site-specific action
 is required before going live: set `iomt_subnets` in `policy.json` to the actual medical
@@ -30,7 +30,7 @@ device network ranges at the target facility.
 | H-5 | Sector-aware build | ✅ PASS | `MINIFW_SECTOR=hospital` baked into service unit |
 | H-6 | Hospital integration tests | ✅ PASS | 66/66 tests pass |
 | — | Package signed | ✅ PASS | RSA 4096, key `BDB471E1FB46F58A` |
-| — | SHA256 verified | ✅ PASS | `b766ee905b5f47059bd7ec0076131a80c920a5532f4a39273cf29acb3e9e0988` |
+| — | SHA256 verified | ✅ PASS | `2f9bd834a0ffe5d4cb213043c7c9371fa506a24778f8585b789692a489b89823` |
 
 ---
 
@@ -138,7 +138,7 @@ Benign payload — no false positives (7)  PASS
 
 ### H-5 — Sector Lock and Package
 
-**Package:** `minifw-ai_2.1.0_amd64.deb`
+**Package:** `minifw-ai_2.2.0-hospital_amd64.deb`
 **Sector baked in:**
 ```
 Environment=MINIFW_SECTOR=hospital   # in /etc/systemd/system/minifw-ai.service
@@ -183,9 +183,9 @@ Score 85 → block             ✓
 
 ---
 
-## 3. Inherited Establishment Baseline (from 2.0.0)
+## 3. Inherited Establishment Baseline (from 2.2.0)
 
-All 2.0.0 establishment features carry forward unchanged:
+All establishment features carry forward unchanged:
 
 | Feature | Status |
 |---------|--------|
@@ -195,12 +195,13 @@ All 2.0.0 establishment features carry forward unchanged:
 | YARA scanning | ✅ Active (test_rules.yar + hospital_rules.yar) |
 | nftables enforcement | ✅ Active (inet minifw table) |
 | HIPAA payload redaction | ✅ Active (redact_payloads=True) |
+| **Zeek TLS/SNI collector** | ✅ Active (use_zeek_sni=true; alpn_h2, cert_self_signed_suspect, tls_handshake_ms, domain_repeat_5min all live) |
 | Tor/anonymizer blocking | N/A — finance sector only |
 | Prometheus metrics | ✅ Active (127.0.0.1:9090) |
 | ML retraining scheduler | ✅ Active (24h cycle) |
 | JWT + bcrypt + TOTP auth | ✅ Active |
 | TLS web dashboard (port 8443) | ✅ Active |
-| Audit logging | ✅ Active |
+| Audit logging | ✅ Active (SIGTERM writes daemon-stopped record) |
 
 ---
 
@@ -262,13 +263,13 @@ Before powering on the hospital appliance:
 gpg --import minifw-ai-release.asc
 
 # Verify GPG signature
-gpg --verify minifw-ai_2.1.0_amd64.deb.asc minifw-ai_2.1.0_amd64.deb
+gpg --verify minifw-ai_2.2.0-hospital_amd64.deb.asc minifw-ai_2.2.0-hospital_amd64.deb
 # Expected: Good signature from "MiniFW-AI Release" [key BDB471E1FB46F58A]
 
 # Verify SHA-256
-sha256sum -c minifw-ai_2.1.0_amd64.deb.sha256
-# Expected: minifw-ai_2.1.0_amd64.deb: OK
-# SHA256: b766ee905b5f47059bd7ec0076131a80c920a5532f4a39273cf29acb3e9e0988
+sha256sum -c minifw-ai_2.2.0-hospital_amd64.deb.sha256
+# Expected: minifw-ai_2.2.0-hospital_amd64.deb: OK
+# SHA256: 2f9bd834a0ffe5d4cb213043c7c9371fa506a24778f8585b789692a489b89823
 ```
 
 ---
@@ -278,9 +279,8 @@ sha256sum -c minifw-ai_2.1.0_amd64.deb.sha256
 | Item | Severity | Notes |
 |------|----------|-------|
 | `iomt_subnets` must be set to actual facility ranges | **Required** | See H-4 above |
-| `audit_daemon_stop()` not called on SIGTERM | Low | Inherited from 2.0.0; stop event absent from audit log on `systemctl stop`. Only fires on KeyboardInterrupt. |
 | Wired NIC connection | Deployment step | `enp1s0/enp3s0/enp4s0` — physical cable required |
 
 ---
 
-*Report generated: 2026-03-17 | Build: 16b387c | Key: BDB471E1FB46F58A*
+*Report generated: 2026-03-17 | Updated: 2026-03-17 (v2.2.0) | Build: 1bdb446 | Key: BDB471E1FB46F58A*
