@@ -726,12 +726,15 @@ def run():
                 ipset_add(set_name, client_ip, timeout, family=table, table_name=table_name)
                 audit_ip_block(client_ip, score, reasons, domain, sector_name)
 
-            # NEW: Hospital sector IoMT high-priority alerting
+            # Hospital sector IoMT high-priority alerting
+            event_severity = "info"
             if sector_lock and sector_lock.is_hospital() and iomt_subnets:
                 if ip_in_any_subnet(client_ip, iomt_subnets):
                     if score >= thr.monitor_threshold:
+                        event_severity = sector_config.get("alert_severity_boost", "info")
                         logging.critical(
-                            f"[IOMT_ALERT] Medical device anomaly: {client_ip} -> {domain} (score={score})"
+                            f"[IOMT_ALERT] Medical device anomaly: {client_ip} -> {domain} "
+                            f"(score={score}, severity={event_severity})"
                         )
                         # Add IoMT flag to reasons
                         if "iomt_device_alert" not in reasons:
@@ -746,6 +749,7 @@ def run():
                 score=score,
                 reasons=reasons,
                 sector=sector_name,
+                severity=event_severity,
             )
 
             # HIPAA: Redact domain/SNI from event logs when sector requires it

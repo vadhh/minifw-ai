@@ -146,26 +146,18 @@ class YARAScanner:
             logger.warning(f"No YARA rule files found in {self.rules_dir}")
             return False
 
-        # Build namespace dict for compilation
-        # Namespace = category (gambling, malware, api_abuse, etc.)
+        # Build sources dict for compilation
+        # Use file stem as namespace so multiple .yar files in the same
+        # directory are all compiled (filepaths= silently drops duplicates).
         rule_dict = {}
 
         for rule_file in rule_files:
-            # Use parent directory name as namespace
-            namespace = rule_file.parent.name
-
-            if namespace not in rule_dict:
-                rule_dict[namespace] = str(rule_file)
-            else:
-                # Multiple files in same category - need to handle differently
-                # For now, just use first file per category
-                logger.debug(
-                    f"Multiple files in {namespace}, using {rule_dict[namespace]}"
-                )
+            namespace = rule_file.stem  # e.g. "test_rules", "hospital_rules"
+            rule_dict[namespace] = rule_file.read_text(encoding="utf-8")
 
         try:
             # Compile all rules
-            self.compiled_rules = yara.compile(filepaths=rule_dict)
+            self.compiled_rules = yara.compile(sources=rule_dict)
             self.rules_loaded = True
 
             logger.info(f"✓ Compiled {len(rule_dict)} YARA rule namespaces")

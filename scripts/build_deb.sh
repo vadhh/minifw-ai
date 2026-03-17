@@ -1,16 +1,26 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-VERSION="2.0.0"
+VERSION="2.1.0"
 PKG_NAME="minifw-ai"
 ARCH="amd64"
+SECTOR="${1:-establishment}"
 REPO_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 BUILD_DIR="${REPO_DIR}/build/${PKG_NAME}_${VERSION}_${ARCH}"
 DEB_OUTPUT="${REPO_DIR}/build/${PKG_NAME}_${VERSION}_${ARCH}.deb"
 
+# Validate sector
+VALID_SECTORS="hospital education government finance legal establishment"
+if ! echo "${VALID_SECTORS}" | grep -qw "${SECTOR}"; then
+    echo "ERROR: Invalid sector '${SECTOR}'"
+    echo "Valid sectors: ${VALID_SECTORS}"
+    exit 1
+fi
+
 echo "============================================"
 echo " Building ${PKG_NAME} ${VERSION}"
-echo " Output: ${DEB_OUTPUT}"
+echo " Sector:  ${SECTOR}"
+echo " Output:  ${DEB_OUTPUT}"
 echo "============================================"
 
 # Clean previous build
@@ -75,6 +85,10 @@ chmod +x "${BUILD_DIR}/opt/minifw_ai/scripts/"*.sh
 echo "[6/7] Installing systemd units..."
 cp "${REPO_DIR}/systemd/minifw-ai.service" "${BUILD_DIR}/etc/systemd/system/"
 cp "${REPO_DIR}/systemd/minifw-ai-web.service" "${BUILD_DIR}/etc/systemd/system/"
+# Bake the target sector into the service unit
+sed -i "s/^Environment=MINIFW_SECTOR=.*/Environment=MINIFW_SECTOR=${SECTOR}/" \
+    "${BUILD_DIR}/etc/systemd/system/minifw-ai.service"
+echo "  Sector '${SECTOR}' baked into minifw-ai.service"
 
 # --- DEBIAN control files ---
 echo "[7/7] Creating package metadata..."
@@ -88,10 +102,11 @@ Architecture: ${ARCH}
 Depends: python3 (>= 3.10), python3-venv, nftables, openssl, conntrack
 Recommends: dnsmasq
 Maintainer: Afridho Ikhsan <afridho@minifw.local>
-Description: MiniFW-AI Behavioral Firewall Engine (ARCHANGEL 2.0)
+Description: MiniFW-AI Behavioral Firewall Engine (ARCHANGEL 2.0) [${SECTOR}]
  AI-powered network behavioral firewall for gateway appliances.
  Features: DNS/flow analysis, MLP threat detection, YARA scanning,
  nftables enforcement, sector-specific policies, web admin dashboard.
+ Sector: ${SECTOR}
  Supports 6 deployment sectors: education, hospital, government,
  finance, legal, establishment.
 EOF
@@ -294,15 +309,22 @@ systemctl daemon-reload
 POSTRM
 chmod 755 "${BUILD_DIR}/DEBIAN/postrm"
 
-cat > "${BUILD_DIR}/DEBIAN/conffiles" <<'CONFFILES'
-/opt/minifw_ai/config/policy.json
+CONFFILES_BASE="/opt/minifw_ai/config/policy.json
 /opt/minifw_ai/config/feeds/allow_domains.txt
 /opt/minifw_ai/config/feeds/deny_domains.txt
 /opt/minifw_ai/config/feeds/deny_ips.txt
 /opt/minifw_ai/config/feeds/deny_asn.txt
 /opt/minifw_ai/config/feeds/tor_exit_nodes.txt
-/opt/minifw_ai/config/feeds/asn_prefixes.txt
-CONFFILES
+/opt/minifw_ai/config/feeds/asn_prefixes.txt"
+
+CONFFILES_HOSPITAL="/opt/minifw_ai/config/feeds/healthcare_threats.txt"
+
+{
+    echo "${CONFFILES_BASE}"
+    if [ "${SECTOR}" = "hospital" ]; then
+        echo "${CONFFILES_HOSPITAL}"
+    fi
+} > "${BUILD_DIR}/DEBIAN/conffiles"
 
 # --- Build the .deb ---
 dpkg-deb --build "${BUILD_DIR}" "${DEB_OUTPUT}"
