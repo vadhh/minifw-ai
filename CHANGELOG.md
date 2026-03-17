@@ -6,6 +6,56 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [2.1.0] — 2026-03-17
+
+### Added (Hospital Sector)
+- **`Event.severity` field** — `Event` dataclass now carries a `severity` field
+  (default `"info"`). Elevated to `"critical"` for IoMT device alerts when
+  `MINIFW_SECTOR=hospital` and the source IP is within `iomt_subnets`.
+- **`alert_severity_boost` wired** — `main.py` IoMT alert block now reads
+  `sector_config.get("alert_severity_boost", "info")` and passes the result to
+  `Event(severity=...)`, serialised to `events.jsonl`.
+- **`config/feeds/healthcare_threats.txt`** — Hospital sector extra feed: 35+ threat
+  entries across four categories: ransomware C2 (Ryuk/Conti/LockBit campaigns),
+  phishing/credential-harvest, unauthorised medical data brokers, IoMT exploit delivery.
+  Wildcard patterns supported (e.g. `*.patient-records-secure.com`).
+- **`yara_rules/hospital_rules.yar`** — Three hospital YARA rules:
+  - `MedicalRansomware` (severity=critical) — ransom note strings, Conti/Ryuk/LockBit
+    extensions, `vssadmin delete shadows`, `bcdedit /set recoveryenabled no`, `wbadmin`.
+  - `IoMTExploit` (severity=critical) — medical device API paths (`/infusion/rate/set`,
+    `/pump/bolus`, `/monitor/alarm/disable`), GE/Philips/Baxter API patterns, firmware
+    upload, shell injection.
+  - `MedicalDataExfil` (severity=high) — HL7 MSH/PID headers, FHIR bulk export
+    (`/$export`, `_outputFormat=application/fhir`), DICOM C-STORE/C-MOVE, `phi_archive`.
+- **`policy.json` IoMT subnets populated** — `iomt_subnets` set to example ranges
+  `["10.20.0.0/24", "10.20.1.0/24"]` with deployment note. Must be set to actual
+  medical device network ranges before production deployment.
+- **Hospital test suite** — 66 tests across 4 new files:
+  `test_sector_hospital_severity.py`, `test_sector_hospital_feeds.py`,
+  `test_sector_hospital_integration.py`, `test_hospital_yara.py`. All pass.
+- **Hospital deployment readiness report** — `docs/report-2026-03-17-hospital.md`.
+
+### Fixed
+- **YARA `compile_rules()` silent-drop bug** — `yara_scanner.py` used
+  `yara.compile(filepaths=dict)` keyed by parent directory name. With multiple `.yar`
+  files in the same directory, only the first file per key was compiled — `hospital_rules.yar`
+  was silently dropped. Fixed: switched to `yara.compile(sources=dict)` keyed by file stem.
+  All `.yar` files in `yara_rules/` are now compiled.
+
+### Changed
+- **`build_deb.sh` sector-aware** — accepts `$1` sector argument (default: `establishment`).
+  Sector validated against 6-sector allowlist. `MINIFW_SECTOR` baked into the copied
+  service unit via `sed`. Package `Description` now includes sector name.
+- **`DEBIAN/conffiles`** — `healthcare_threats.txt` added for hospital sector builds only.
+- **VERSION bump: 2.0.0 → 2.1.0** for hospital sector.
+
+### Build Artefacts (hospital)
+- `build/minifw-ai_2.1.0_amd64.deb`
+- SHA256: `b766ee905b5f47059bd7ec0076131a80c920a5532f4a39273cf29acb3e9e0988`
+- GPG: signed with key `BDB471E1FB46F58A` (release@minifw.local)
+
+---
+
 ## [2.0.0] — 2026-03-16
 
 ### Security (breaking)
