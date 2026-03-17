@@ -224,8 +224,15 @@ def get_detection_counters():
 
 def get_system_uptime():
     """
-    Calculate system uptime
-    Returns uptime percentage
+    Calculate system uptime as a percentage based on /proc/uptime.
+    Returns uptime relative to a 30-day reference window.
+    Falls back to "N/A" if /proc/uptime is unavailable.
     """
-    # TODO: Implement real uptime calculation
-    return "99.8%"
+    try:
+        with open("/proc/uptime") as f:
+            uptime_seconds = float(f.read().split()[0])
+        reference = 30 * 24 * 3600  # 30-day window
+        pct = min(uptime_seconds / reference * 100, 100.0)
+        return f"{pct:.1f}%"
+    except Exception:
+        return "N/A"

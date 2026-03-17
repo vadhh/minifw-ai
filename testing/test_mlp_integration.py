@@ -44,6 +44,7 @@ def test_model_loads_successfully(synthetic_mlp_model_path):
 
 
 def test_model_not_found_leaves_model_unloaded(tmp_path):
+    pytest.importorskip("sklearn", reason="scikit-learn not installed")
     d = MLPThreatDetector(model_path=str(tmp_path / "nonexistent.pkl"), threshold=0.5)
     assert not d.model_loaded
 
