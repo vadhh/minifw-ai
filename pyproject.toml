@@ -1,6 +1,31 @@
-[tool.pytest.ini_options]
-pythonpath = ["app", "."]
-testpaths = ["testing"]
-markers = [
-    "integration: marks tests as integration tests (deselect with '-m \"not integration\"')",
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "minifw-ai"
+version = "2.2.0"
+description = "MiniFW-AI Firewall with AI detection"
+authors = [{name = "MiniFW-AI Team"}]
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "sqlalchemy",
+    "python-dotenv",
+    "jinja2",
+    "python-multipart",
+    "pydantic",
+    "pydantic-settings",
+    "bcrypt",
+    "pyjwt",
+    "apscheduler",
+    "prometheus-client",
+    "scikit-learn",
+    "pandas",
+    "numpy"
 ]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["app*", "minifw_ai*"]   # hanya dua package ini
+exclude = ["logs*", "config*", "models*", "testing*", "systemd*", "prometheus*", "scheduler*", "yara_rules*"]

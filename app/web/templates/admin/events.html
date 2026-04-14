@@ -14,15 +14,20 @@
         <p class="text-muted">Real-time monitoring of firewall events</p>
       </div>
       <div class="col-md-4 text-end">
-        <div class="btn-group" role="group">
-          <button type="button" class="btn btn-sm btn-success" id="downloadBtn">
-            <i class="bi bi-download"></i> Download
+        <div class="events-action-buttons" role="group" aria-label="Event actions">
+          <button type="button" class="btn btn-sm btn-success" id="downloadBtn" title="Download">
+            <i class="bi bi-download"></i>
+            <span class="btn-label btn-label-download"> Download</span>
           </button>
-          <button type="button" class="btn btn-sm btn-outline-primary" id="autoRefreshToggle">
-            <i class="bi bi-arrow-clockwise"></i> Auto-Refresh: <span id="autoRefreshStatus">ON</span>
+
+          <button type="button" class="btn btn-sm btn-outline-primary" id="autoRefreshToggle" title="Auto Refresh">
+            <i class="bi bi-arrow-clockwise"></i>
+            <span class="btn-label btn-label-auto"> Auto-Refresh: <span id="autoRefreshStatus">ON</span></span>
           </button>
-          <button type="button" class="btn btn-sm btn-outline-secondary" onclick="refreshTable()">
-            <i class="bi bi-arrow-clockwise"></i> Refresh Now
+
+          <button type="button" class="btn btn-sm btn-outline-secondary" onclick="refreshTable()" title="Refresh Now">
+            <i class="bi bi-arrow-clockwise"></i>
+            <span class="btn-label btn-label-refresh"> Refresh Now</span>
           </button>
         </div>
       </div>
@@ -130,6 +135,36 @@
 </div>
 
 <style>
+
+/* Action buttons: always 1 row, 3 columns */
+.events-action-buttons {
+  display: flex;
+  flex-wrap: nowrap;      /* tetap sejajar 3 */
+  gap: 8px;
+  width: 100%;
+  justify-content: flex-end;
+}
+
+.events-action-buttons > .btn {
+  flex: 1 1 0;
+  min-width: 0;           /* biar bisa mengecil */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Saat area konten mengecil (sidebar/nav aktif + layar sempit), tampil ikon saja */
+@media (max-width: 400px) {
+  .events-action-buttons .btn-label {
+    display: none;
+  }
+
+  .events-action-buttons > .btn {
+    text-align: center;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+}
 /* Live indicator animation */
 @keyframes blink {
   0%, 50%, 100% { opacity: 1; }

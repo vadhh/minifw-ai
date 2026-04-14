@@ -32,6 +32,7 @@
   --mf-ease:           cubic-bezier(0.4, 0, 0.2, 1);
   --mf-transition:     0.2s var(--mf-ease);
   --mf-transition-lg:  0.35s var(--mf-ease);
+  --mf-theme-switch:   0.2s var(--mf-ease);
 
   --mf-sidebar-width:  260px;
   --mf-navbar-h:       56px;
@@ -182,6 +183,10 @@ body {
   background: var(--mf-surface) !important;
   border-right: 1px solid var(--mf-border) !important;
   box-shadow: var(--mf-shadow) !important;
+  transition:
+    background-color var(--mf-theme-switch),
+    border-color var(--mf-theme-switch),
+    box-shadow var(--mf-theme-switch) !important;
 }
 
 [data-bs-theme="dark"] .app-sidebar {
@@ -248,6 +253,17 @@ body {
   font-weight: 500;
   position: relative;
   overflow: hidden;
+}
+
+.sidebar-menu .nav-link,
+.sidebar-brand,
+.sidebar-brand .brand-link,
+.sidebar-brand .brand-text {
+  transition:
+    background-color var(--mf-theme-switch),
+    color var(--mf-theme-switch),
+    border-color var(--mf-theme-switch),
+    box-shadow var(--mf-theme-switch) !important;
 }
 .sidebar-menu .nav-link::before {
   content: '';
