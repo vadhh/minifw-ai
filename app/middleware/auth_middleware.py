@@ -1,8 +1,27 @@
+import os
 from fastapi import Request, HTTPException, status, Depends
 from app.services.auth.token_service import verify_token
 from app.database import get_db
 from sqlalchemy.orm import Session
 from app.services.auth.user_service import get_user_by_username
+from app.models.user import User, UserRole, SectorType
+
+_DEV_MODE = os.environ.get("DEV_MODE", "0") == "1"
+
+# Synthetic admin user injected in dev mode — never touches the DB
+_DEV_USER = User(
+    id=0,
+    username="dev_admin",
+    email="dev@minifw.local",
+    hashed_password="",
+    role=UserRole.SUPER_ADMIN.value,
+    sector=SectorType.ESTABLISHMENT.value,
+    is_active=True,
+    is_locked=False,
+    failed_login_attempts=0,
+    is_2fa_enabled=False,
+    must_change_password=False,
+)
 
 
 def get_current_user(request: Request, db: Session = Depends(get_db)):
@@ -10,6 +29,9 @@ def get_current_user(request: Request, db: Session = Depends(get_db)):
     Dependency untuk get current user dari token
     Raise exception jika tidak ada token atau token invalid
     """
+    if _DEV_MODE:
+        return _DEV_USER
+
     token = request.cookies.get("access_token")
 
     # Check jika tidak ada token
