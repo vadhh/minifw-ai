@@ -47,4 +47,4 @@ app.include_router(status.router, prefix="/status", tags=["Status"])
 
 @app.get("/")
 def root():
-    return {"service": "RITAPI Sentinel MiniFW AI", "status": "running"}
+    return RedirectResponse(url="/admin/", status_code=303)

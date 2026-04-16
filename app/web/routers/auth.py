@@ -1,3 +1,4 @@
+import os
 from fastapi import APIRouter, Request, Depends, Form, HTTPException
 from fastapi.responses import RedirectResponse, HTMLResponse
 from sqlalchemy.orm import Session
@@ -95,6 +96,8 @@ def _reset_failed_attempts(db: Session, user) -> None:
 @router.get("/login", response_class=HTMLResponse)
 def login_page(request: Request):
     """Show login page"""
+    if os.environ.get("DEV_MODE") == "1":
+        return RedirectResponse(url="/admin/", status_code=303)
     return templates.TemplateResponse(request, "auth/login.html")
 
 
