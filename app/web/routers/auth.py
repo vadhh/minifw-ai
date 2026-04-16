@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Request, Depends, Form, HTTPException
 from fastapi.responses import RedirectResponse, HTMLResponse
-from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 from collections import OrderedDict
@@ -22,7 +21,7 @@ from minifw_ai.audit import (
 )
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
-templates = Jinja2Templates(directory="app/web/templates")
+from app.web.templates_config import templates
 
 # --- Login Rate Limiter (IP-based) ---
 MAX_LOGIN_ATTEMPTS_PER_IP = 10  # per window

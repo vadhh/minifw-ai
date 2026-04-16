@@ -17,7 +17,7 @@ except ImportError:
 
     class SectorType(str, Enum):
         HOSPITAL = "hospital"
-        SCHOOL = "school"
+        SCHOOL = "education"
         GOVERNMENT = "government"
         FINANCE = "finance"
         LEGAL = "legal"

@@ -1,5 +1,4 @@
 from fastapi import Request, HTTPException
-from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
 from app.models.user import User, UserRole
@@ -9,8 +8,7 @@ from app.services.deny_ip.get_deny_ips_service import get_deny_ips
 from app.services.deny_ip.add_deny_ip_service import add_deny_ip_service
 from app.services.deny_ip.update_deny_ip_service import update_deny_ip_service
 from app.services.deny_ip.delete_deny_ip_service import delete_deny_ip_service
-
-templates = Jinja2Templates(directory="app/web/templates")
+from app.web.templates_config import templates
 
 
 def deny_ip_controller(request: Request):

@@ -36,38 +36,38 @@ class TestSectorLock:
         sector_lock.SectorLock._instance = None
         sector_lock.SectorLock._initialized = False
     
-    def test_sector_loads_from_env_school(self, monkeypatch):
+    def test_sector_loads_from_env_education(self, monkeypatch):
         """Test that sector loads correctly from MINIFW_SECTOR env var."""
-        monkeypatch.setenv("MINIFW_SECTOR", "school")
-        
+        monkeypatch.setenv("MINIFW_SECTOR", "education")
+
         from minifw_ai.sector_lock import get_sector_lock
         lock = get_sector_lock()
-        
-        assert lock.get_sector() == "school"
+
+        assert lock.get_sector() == "education"
         assert lock.is_locked() is True
-        assert lock.is_school() is True
+        assert lock.is_education() is True
         assert lock.is_hospital() is False
-    
+
     def test_sector_loads_from_env_hospital(self, monkeypatch):
         """Test hospital sector loading."""
         monkeypatch.setenv("MINIFW_SECTOR", "hospital")
-        
+
         from minifw_ai.sector_lock import get_sector_lock
         lock = get_sector_lock()
-        
+
         assert lock.get_sector() == "hospital"
         assert lock.is_hospital() is True
-        assert lock.is_school() is False
-    
+        assert lock.is_education() is False
+
     def test_sector_loads_from_env_case_insensitive(self, monkeypatch):
         """Test that sector matching is case-insensitive."""
-        monkeypatch.setenv("MINIFW_SECTOR", "SCHOOL")
-        
+        monkeypatch.setenv("MINIFW_SECTOR", "EDUCATION")
+
         from minifw_ai.sector_lock import get_sector_lock
         lock = get_sector_lock()
-        
-        assert lock.get_sector() == "school"
-        assert lock.is_school() is True
+
+        assert lock.get_sector() == "education"
+        assert lock.is_education() is True
     
     def test_invalid_sector_raises_error(self, monkeypatch):
         """Test that invalid sector raises RuntimeError."""
@@ -90,9 +90,9 @@ class TestSectorLock:
         with pytest.raises(RuntimeError, match="Missing Sector"):
             sector_lock.get_sector_lock()
     
-    def test_school_config_has_safesearch(self, monkeypatch):
-        """Test that school sector config has SafeSearch enabled."""
-        monkeypatch.setenv("MINIFW_SECTOR", "school")
+    def test_education_config_has_safesearch(self, monkeypatch):
+        """Test that education sector config has SafeSearch enabled."""
+        monkeypatch.setenv("MINIFW_SECTOR", "education")
         
         from minifw_ai.sector_lock import get_sector_lock
         lock = get_sector_lock()
@@ -159,7 +159,7 @@ class TestSectorLock:
     
     def test_singleton_pattern(self, monkeypatch):
         """Test that SectorLock is a true singleton."""
-        monkeypatch.setenv("MINIFW_SECTOR", "school")
+        monkeypatch.setenv("MINIFW_SECTOR", "education")
         
         from minifw_ai.sector_lock import get_sector_lock, SectorLock
         
@@ -237,7 +237,7 @@ class TestSectorTypeEnum:
         """Verify all 6 required sectors exist."""
         from models.user import SectorType
         
-        expected_sectors = {"hospital", "school", "government", "finance", "legal", "establishment"}
+        expected_sectors = {"hospital", "education", "government", "finance", "legal", "establishment"}
         actual_sectors = {s.value for s in SectorType}
         
         assert actual_sectors == expected_sectors

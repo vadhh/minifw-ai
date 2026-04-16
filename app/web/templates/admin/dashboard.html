@@ -340,20 +340,27 @@
 {% block extra_js %}
 <script>
 (function() {
+  // Sector-lock badge — enriched with product_mode / mode_label from API
   fetch('/admin/api/sector-lock', { credentials: 'same-origin' })
     .then(function(r) { return r.ok ? r.json() : null; })
     .then(function(data) {
       var el = document.getElementById('protectionStateBadge');
-      if (!el) return;
-      if (data && data.sector) {
-        var s = data.sector.charAt(0).toUpperCase() + data.sector.slice(1);
-        el.textContent = s + ' Sector';
-        el.className = 'mf-sector-badge mf-sector-' + data.sector;
-      } else {
-        el.textContent = 'Default';
-        el.className = 'badge';
-        el.style.background = '#eff6ff';
-        el.style.color = '#3b82f6';
+      if (!el || !data) return;
+
+      var label = data.mode_label || (data.sector
+        ? data.sector.charAt(0).toUpperCase() + data.sector.slice(1) + ' Sector'
+        : 'Default');
+
+      el.textContent = label;
+      el.className   = 'mf-sector-badge';
+
+      if (data.sector) {
+        el.classList.add('mf-sector-' + data.sector);
+      }
+      if (data.mode_color) {
+        el.style.setProperty('color',      data.mode_color);
+        el.style.setProperty('background', data.mode_color + '18');
+        el.style.setProperty('border',     '1px solid ' + data.mode_color + '44');
       }
     })
     .catch(function() {

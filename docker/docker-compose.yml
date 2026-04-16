@@ -1,0 +1,83 @@
+name: minifw-hospital
+# PRODUCT_MODE: minifw_hospital — healthcare / HIPAA / IoMT
+# Start: docker compose -f docker/docker-compose.yml up
+
+volumes:
+  minifw_logs:   # engine writes events.jsonl + audit.jsonl; web reads; injector writes dnsmasq.log
+
+services:
+
+  # ── Firewall Engine ─────────────────────────────────────────────────────────
+  engine:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: minifw_engine
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    volumes:
+      - minifw_logs:/opt/minifw_ai/logs
+      - ../config/modes:/opt/minifw_ai/config/modes
+    entrypoint: ["/bin/bash", "/opt/minifw_ai/docker/entrypoint-engine.sh"]
+    environment:
+      PRODUCT_MODE: minifw_hospital
+      MINIFW_SECTOR: hospital
+      MINIFW_SECRET_KEY: "demo-hospital-key-change-in-prod!!"
+      MINIFW_POLICY: /opt/minifw_ai/config/modes/minifw_hospital/policy.json
+      MINIFW_FEEDS: /opt/minifw_ai/config/feeds
+      MINIFW_LOG: /opt/minifw_ai/logs/events.jsonl
+      MINIFW_FLOW_RECORDS: /opt/minifw_ai/logs/flow_records.jsonl
+      MINIFW_AUDIT_LOG: /opt/minifw_ai/logs/audit.jsonl
+      MINIFW_MLP_MODEL: /opt/minifw_ai/models/mlp_model.pkl
+      MINIFW_YARA_RULES: /opt/minifw_ai/yara_rules
+      MINIFW_DNS_SOURCE: file
+      AI_ENABLED: "1"
+      MINIFW_DISABLE_FLOWS: "1"   # no real traffic in demo — skip conntrack to avoid blocking
+    # audit.jsonl is written by audit_daemon_start() at engine startup (main.py:576),
+    # before any DNS events are processed — reliable init sentinel.
+    healthcheck:
+      test: ["CMD", "test", "-f", "/opt/minifw_ai/logs/audit.jsonl"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  # ── Web Dashboard ────────────────────────────────────────────────────────────
+  web:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: minifw_web
+    depends_on:
+      engine:
+        condition: service_healthy
+    volumes:
+      - minifw_logs:/opt/minifw_ai/logs
+      - ../config/modes:/opt/minifw_ai/config/modes
+    entrypoint: ["/bin/bash", "/opt/minifw_ai/docker/entrypoint-web.sh"]
+    environment:
+      PRODUCT_MODE: minifw_hospital
+      MINIFW_SECRET_KEY: "demo-hospital-key-change-in-prod!!"
+      MINIFW_ADMIN_PASSWORD: "Hospital1!"
+      MINIFW_AUDIT_LOG: /opt/minifw_ai/logs/audit.jsonl
+      MINIFW_SECTOR: hospital
+      MINIFW_POLICY: /opt/minifw_ai/config/modes/minifw_hospital/policy.json
+      PYTHONPATH: /opt/minifw_ai/app
+    ports:
+      - "8443:8443"
+    restart: unless-stopped
+
+  # ── Demo Traffic Injector ────────────────────────────────────────────────────
+  injector:
+    build:
+      context: demo-injector/
+    container_name: minifw_injector
+    depends_on:
+      engine:
+        condition: service_healthy
+    volumes:
+      - minifw_logs:/logs    # writes to /logs/dnsmasq.log (engine tails same path)
+    environment:
+      DNS_LOG_PATH: /logs/dnsmasq.log
+    restart: unless-stopped

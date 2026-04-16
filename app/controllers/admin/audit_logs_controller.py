@@ -4,7 +4,6 @@ Controller functions for viewing audit logs and system activity
 """
 
 from fastapi import Request, HTTPException
-from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 from typing import Optional
@@ -12,8 +11,7 @@ from typing import Optional
 from app.models.user import User, UserRole
 from app.models.audit import AuditLog, AuditAction, AuditSeverity
 from app.services.rbac_service import RBACService, AuditService
-
-templates = Jinja2Templates(directory="app/web/templates")
+from app.web.templates_config import templates
 
 
 def audit_logs_page_controller(request: Request):

@@ -6,28 +6,24 @@
 <div class="app-content">
   <div class="container-fluid">
     <!-- Header -->
-    <div class="row mb-4 mt-2">
+    <div class="row mb-4 align-items-center">
       <div class="col-md-8">
         <h3 class="mb-1">
           <i class="bi bi-activity"></i> Security Events & Logs
         </h3>
-        <p class="text-muted">Real-time monitoring of firewall events</p>
+        <p class="text-muted mb-0">Real-time monitoring of firewall events</p>
       </div>
       <div class="col-md-4 text-end">
-        <div class="events-action-buttons" role="group" aria-label="Event actions">
-          <button type="button" class="btn btn-sm btn-success" id="downloadBtn" title="Download">
-            <i class="bi bi-download"></i>
-            <span class="btn-label btn-label-download"> Download</span>
+        <div class="btn-group" role="group">
+          <button type="button" class="btn btn-success" id="downloadBtn" title="Download events report">
+            <i class="bi bi-download"></i> Download
           </button>
-
-          <button type="button" class="btn btn-sm btn-outline-primary" id="autoRefreshToggle" title="Auto Refresh">
-            <i class="bi bi-arrow-clockwise"></i>
-            <span class="btn-label btn-label-auto"> Auto-Refresh: <span id="autoRefreshStatus">ON</span></span>
+          <button type="button" class="btn btn-outline-primary" id="autoRefreshToggle" title="Toggle auto-refresh">
+            <span id="autoRefreshDot" class="me-1" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#0d6efd;vertical-align:middle;"></span>
+            Auto-Refresh: <span id="autoRefreshStatus">ON</span>
           </button>
-
-          <button type="button" class="btn btn-sm btn-outline-secondary" onclick="refreshTable()" title="Refresh Now">
-            <i class="bi bi-arrow-clockwise"></i>
-            <span class="btn-label btn-label-refresh"> Refresh Now</span>
+          <button type="button" class="btn btn-outline-secondary" onclick="refreshTable()" title="Reload page now">
+            <i class="bi bi-arrow-repeat"></i> Refresh Now
           </button>
         </div>
       </div>
@@ -41,7 +37,7 @@
             <div class="d-flex justify-content-between align-items-center">
               <div>
                 <h6 class="text-white mb-0">Allowed</h6>
-                <h3 class="mb-0" id="stat-allowed">-</h3>
+                <h3 class="mb-0" id="stat-allowed">{{ stat_allowed }}</h3>
               </div>
               <i class="bi bi-check-circle" style="font-size: 2rem; opacity: 0.3;"></i>
             </div>
@@ -54,7 +50,7 @@
             <div class="d-flex justify-content-between align-items-center">
               <div>
                 <h6 class="text-white mb-0">Blocked</h6>
-                <h3 class="mb-0" id="stat-blocked">-</h3>
+                <h3 class="mb-0" id="stat-blocked">{{ stat_blocked }}</h3>
               </div>
               <i class="bi bi-x-circle" style="font-size: 2rem; opacity: 0.3;"></i>
             </div>
@@ -62,14 +58,14 @@
         </div>
       </div>
       <div class="col-md-3">
-        <div class="card text-white bg-warning">
+        <div class="card text-dark bg-warning">
           <div class="card-body">
             <div class="d-flex justify-content-between align-items-center">
               <div>
-                <h6 class="text-white mb-0">Threats</h6>
-                <h3 class="mb-0" id="stat-threats">-</h3>
+                <h6 class="text-dark mb-0">Monitored</h6>
+                <h3 class="mb-0" id="stat-monitored">{{ stat_monitored }}</h3>
               </div>
-              <i class="bi bi-exclamation-triangle" style="font-size: 2rem; opacity: 0.3;"></i>
+              <i class="bi bi-eye" style="font-size: 2rem; opacity: 0.3;"></i>
             </div>
           </div>
         </div>
@@ -80,7 +76,7 @@
             <div class="d-flex justify-content-between align-items-center">
               <div>
                 <h6 class="text-white mb-0">Total Events</h6>
-                <h3 class="mb-0" id="stat-total">-</h3>
+                <h3 class="mb-0" id="stat-total">{{ total_events }}{% if total_events >= 500 %}+{% endif %}</h3>
               </div>
               <i class="bi bi-activity" style="font-size: 2rem; opacity: 0.3;"></i>
             </div>
@@ -104,19 +100,63 @@
             </div>
           </div>
           <div class="card-body">
-            <table class="table table-bordered table-striped table-hover" id="eventsTable">
+            <table class="table table-striped table-hover" id="eventsTable">
               <thead>
                 <tr>
-                  <th>Time</th>
+                  <th style="width: 140px;">Time</th>
                   <th>Event Type</th>
-                  <th>Source</th>
-                  <th>Score</th>
-                  <th>Status</th>
-                  <th style="width: 100px;">Action</th>
+                  <th style="width: 200px;">Source</th>
+                  <th>Reason</th>
+                  <th style="width: 130px;">Status</th>
+                  <th style="width: 60px;" class="text-center">Action</th>
                 </tr>
               </thead>
-              <tbody>
-                <!-- Data loaded via AJAX -->
+              <tbody id="eventsTableBody">
+                {% for e in events %}
+                <tr>
+                  <td><small class="text-muted">{{ e.time }}</small></td>
+                  <td>
+                    <span class="badge bg-{{ e.type_color }}">{{ e.type }}</span>
+                    {% if "hard_threat_gate" in (e.reason or "") %}
+                    <span class="badge mf-badge-hardgate ms-1"><i class="bi bi-lightning-fill"></i> HARD GATE</span>
+                    {% elif e.status == "blocked" and e.score %}
+                    <span class="badge mf-badge-ai-block ms-1"><i class="bi bi-cpu"></i> AI SCORED</span>
+                    {% endif %}
+                  </td>
+                  <td style="max-width:200px;">
+                    <small class="d-block text-truncate" title="{{ e.source }}">{{ e.source }}</small>
+                  </td>
+                  <td style="max-width:220px;">
+                    {% if e.reason and e.reason != "Normal traffic" %}
+                    <small class="text-muted d-block text-truncate" title="{{ e.reason }}">{{ e.reason }}</small>
+                    {% else %}
+                    <small class="text-muted">—</small>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if e.status == "blocked" %}
+                    <span class="badge bg-danger"><i class="bi bi-x-circle"></i> Blocked</span>
+                    {% elif e.status == "monitor" %}
+                    <span class="badge mf-badge-monitor"><i class="bi bi-eye"></i> Monitor</span>
+                    {% else %}
+                    <span class="badge bg-success"><i class="bi bi-check-circle"></i> Allowed</span>
+                    {% endif %}
+                    {% if e.score %}
+                    <br><small class="{% if e.score >= 65 %}text-danger{% elif e.score >= 40 %}text-warning{% else %}text-success{% endif %} fw-semibold">score {{ e.score }}</small>
+                    {% endif %}
+                  </td>
+                  <td class="text-center">
+                    <button class="btn btn-sm btn-outline-primary view-details-ssr"
+                            data-idx="{{ loop.index0 }}"
+                            title="View event details"
+                            aria-label="View details for event {{ loop.index }}">
+                      <i class="bi bi-eye"></i>
+                    </button>
+                  </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="6" class="text-center text-muted py-4">No events yet — waiting for traffic...</td></tr>
+                {% endfor %}
               </tbody>
             </table>
           </div>
@@ -124,8 +164,13 @@
             <small class="text-muted">
               <i class="bi bi-clock"></i> Last updated: <span id="lastUpdate">-</span>
               <span class="ms-3">
-                <i class="bi bi-arrow-clockwise"></i> Auto-refresh every <span id="refreshInterval">15</span> seconds
+                <i class="bi bi-arrow-clockwise"></i> Auto-refresh every 30 seconds
               </span>
+              {% if total_events > 500 %}
+              <span class="ms-3 text-warning">
+                <i class="bi bi-info-circle"></i> Showing most recent 500 of {{ total_events }} total events
+              </span>
+              {% endif %}
             </small>
           </div>
         </div>
@@ -135,286 +180,150 @@
 </div>
 
 <style>
-
-/* Action buttons: always 1 row, 3 columns */
-.events-action-buttons {
-  display: flex;
-  flex-wrap: nowrap;      /* tetap sejajar 3 */
-  gap: 8px;
-  width: 100%;
-  justify-content: flex-end;
-}
-
-.events-action-buttons > .btn {
-  flex: 1 1 0;
-  min-width: 0;           /* biar bisa mengecil */
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* Saat area konten mengecil (sidebar/nav aktif + layar sempit), tampil ikon saja */
-@media (max-width: 400px) {
-  .events-action-buttons .btn-label {
-    display: none;
-  }
-
-  .events-action-buttons > .btn {
-    text-align: center;
-    padding-left: 0.5rem;
-    padding-right: 0.5rem;
-  }
-}
 /* Live indicator animation */
 @keyframes blink {
   0%, 50%, 100% { opacity: 1; }
   25%, 75% { opacity: 0.3; }
 }
+#liveIndicator { animation: blink 2s infinite; }
 
-#liveIndicator {
-  animation: blink 2s infinite;
+/* Auto-refresh dot pulse */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.75); }
 }
+#autoRefreshDot.active { animation: pulse-dot 1.5s ease-in-out infinite; }
 
 /* DataTable Processing Indicator */
 .dataTables_processing {
   position: absolute;
-  top: 50%;
-  left: 50%;
+  top: 50%; left: 50%;
   width: 200px;
-  margin-left: -100px;
-  margin-top: -26px;
+  margin-left: -100px; margin-top: -26px;
   text-align: center;
   padding: 10px;
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid #ddd;
+  background: var(--bs-body-bg, #fff);
+  border: 1px solid var(--bs-border-color, #dee2e6);
   border-radius: 4px;
   font-size: 14px;
+  color: var(--bs-body-color);
   z-index: 1000;
 }
 
-/* Custom DataTables styles */
-.dataTables_wrapper .dataTables_length select {
-  padding: 4px 8px;
-  border-radius: 4px;
-  border: 1px solid #dee2e6;
-}
-
+/* DataTables controls */
+.dataTables_wrapper .dataTables_length select,
 .dataTables_wrapper .dataTables_filter input {
   padding: 4px 8px;
   border-radius: 4px;
-  border: 1px solid #dee2e6;
-  margin-left: 8px;
+  border: 1px solid var(--bs-border-color, #dee2e6);
+  background: var(--bs-body-bg);
+  color: var(--bs-body-color);
 }
-
-.dataTables_wrapper .dataTables_info {
-  padding-top: 8px;
-}
+.dataTables_wrapper .dataTables_filter input { margin-left: 8px; }
+.dataTables_wrapper .dataTables_info { padding-top: 8px; }
 
 .dataTables_wrapper .dataTables_paginate .paginate_button {
-  padding: 4px 12px;
-  margin: 0 2px;
-  border-radius: 4px;
+  padding: 4px 12px; margin: 0 2px; border-radius: 4px;
 }
-
 .dataTables_wrapper .dataTables_paginate .paginate_button.current {
-  background: #0d6efd;
-  color: white !important;
-  border: 1px solid #0d6efd;
+  background: var(--bs-primary, #0d6efd);
+  color: #fff !important;
+  border: 1px solid var(--bs-primary, #0d6efd);
 }
-
 .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
-  background: #e9ecef;
-  border: 1px solid #dee2e6;
-  color: #000 !important;
+  background: var(--bs-secondary-bg, #e9ecef);
+  border: 1px solid var(--bs-border-color, #dee2e6);
+  color: var(--bs-body-color) !important;
 }
-
 .dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
-  color: #6c757d !important;
+  color: var(--bs-secondary-color, #6c757d) !important;
 }
 
-/* SweetAlert2 custom styles */
-.swal-wide {
-  max-width: 650px !important;
-}
+/* SweetAlert2 */
+.swal-wide { max-width: 650px !important; }
 
 .swal2-html-container .card {
-  border: 1px solid #dee2e6;
+  border: 1px solid var(--bs-border-color, #dee2e6);
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
   margin-bottom: 15px;
 }
-
 .swal2-html-container .card-header {
   font-size: 14px;
   padding: 10px 15px;
-  border-bottom: 1px solid #dee2e6;
-  background-color: #f8f9fa;
+  border-bottom: 1px solid var(--bs-border-color, #dee2e6);
+  background: var(--bs-tertiary-bg, #f8f9fa);
+  color: var(--bs-body-color);
 }
-
-.swal2-html-container .card-body {
-  padding: 15px;
-}
-
+.swal2-html-container .card-body { padding: 15px; }
 .swal2-html-container code {
-  font-size: 13px;
-  padding: 3px 8px;
-  background-color: #f8f9fa;
+  font-size: 13px; padding: 3px 8px;
+  background: var(--bs-tertiary-bg, #f8f9fa);
   border-radius: 4px;
 }
-
-.swal2-html-container .badge {
-  font-size: 12px;
-  padding: 5px 10px;
-}
-
-.swal2-html-container .table {
-  margin-bottom: 0;
-}
-
-.swal2-html-container .table td {
-  padding: 8px;
-  border: none;
-}
+.swal2-html-container .badge { font-size: 12px; padding: 5px 10px; }
+.swal2-html-container .table { margin-bottom: 0; }
+.swal2-html-container .table td { padding: 8px; border: none; }
 </style>
 {% endblock %}
 
 {% block extra_js %}
+<!-- Events data embedded for detail modal (server-rendered) -->
+<script>
+var EVENTS_DATA = {{ events | tojson }};
+</script>
 <script>
 let table;
 let autoRefresh = true;
 let refreshTimer = null;
-const REFRESH_INTERVAL = 15000; // 15 seconds
+const REFRESH_INTERVAL = 30000; // 30 seconds — full page reload
 
 $(document).ready(function() {
-  console.log('Initializing Events DataTable...');
-  
-  // Initialize DataTable with server-side processing
-  table = $('#eventsTable').DataTable({
-    processing: true,
-    serverSide: true,
-    ajax: {
-      url: '/admin/api/events',
-      type: 'GET',
-      data: function(d) {
-        return {
-          draw: d.draw,
-          start: d.start,
-          length: d.length,
-          search_value: d.search.value,
-          order_column: d.order[0].column,
-          order_dir: d.order[0].dir
-        };
-      },
-      dataSrc: function(json) {
-        console.log('DataTable loaded:', json.data.length, 'events');
-        updateStatsFromServer();
-        updateLastUpdateTime();
-        return json.data;
-      },
-      error: function(xhr, error, code) {
-        console.error('DataTable error:', error, code);
-      }
-    },
-    columns: [
-      {
-        data: 'time',
-        render: function(data) {
-          return '<small>' + data + '</small>';
-        }
-      },
-      {
-        data: null,
-        render: function(data) {
-          var html = '<span class="badge bg-' + data.type_color + '">' + data.type + '</span>';
-          var reason = (data.reason || '').toLowerCase();
-          if (reason.indexOf('hard_threat_gate') !== -1) {
-            html += ' <span class="badge mf-badge-hardgate"><i class="bi bi-lightning-fill"></i> HARD GATE</span>';
-          } else if (data.status === 'blocked' && data.score > 0) {
-            html += ' <span class="badge mf-badge-ai-block"><i class="bi bi-cpu"></i> AI SCORED</span>';
-          }
-          return html;
-        }
-      },
-      {
-        data: 'source',
-        render: function(data) {
-          return '<small>' + data + '</small>';
-        }
-      },
-      {
-        data: null,
-        render: function(data) {
-          var score = data.score || 0;
-          var pct = Math.min(score, 100);
-          var zone, zoneClass;
-          if (score < 40) { zone = 'Allow'; zoneClass = 'zone-allow'; }
-          else if (score < 65) { zone = 'Monitor'; zoneClass = 'zone-monitor'; }
-          else { zone = 'Block'; zoneClass = 'zone-block'; }
-          return '<div class="mf-score-bar">' +
-            '<div class="mf-score-track"><div class="mf-score-pointer" style="left:' + pct + '%"></div></div>' +
-            '<div class="mf-score-label ' + zoneClass + '">' + score + ' &middot; ' + zone + '</div>' +
-            '</div>';
-        }
-      },
-      {
-        data: 'status',
-        render: function(data) {
-          if (data === 'blocked') {
-            return '<span class="badge bg-danger"><i class="bi bi-x-circle"></i> Blocked</span>';
-          } else if (data === 'monitor') {
-            return '<span class="badge mf-badge-monitor"><i class="bi bi-eye"></i> Monitor</span>';
-          } else {
-            return '<span class="badge bg-success"><i class="bi bi-check-circle"></i> Allowed</span>';
-          }
-        }
-      },
-      {
-        data: null,
-        orderable: false,
-        searchable: false,
-        render: function(data, type, row) {
-          return '<button class="btn btn-sm btn-outline-primary view-details"><i class="bi bi-eye"></i></button>';
-        }
-      }
-    ],
-    order: [[0, 'desc']],
-    pageLength: 25,
-    lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
-    language: {
-      processing: '<i class="bi bi-arrow-repeat"></i> Loading events...',
-      search: "Search:",
-      lengthMenu: "Show _MENU_ per page",
-      info: "Showing _START_ to _END_ of _TOTAL_ events",
-      infoEmpty: "No events available",
-      infoFiltered: "(filtered from _MAX_ total)",
-      zeroRecords: "No matching events found",
-      emptyTable: "No events available",
-      paginate: {
-        first: '<i class="bi bi-chevron-bar-left"></i>',
-        last: '<i class="bi bi-chevron-bar-right"></i>',
-        next: '<i class="bi bi-chevron-right"></i>',
-        previous: '<i class="bi bi-chevron-left"></i>'
-      }
-    }
-  });
 
-  // Event delegation for view details button
-  $('#eventsTable tbody').on('click', '.view-details', function() {
-    const row = table.row($(this).parents('tr'));
-    const eventData = row.data();
-    console.log('View details clicked:', eventData);
-    viewEventDetails(eventData);
+  // Rows are server-rendered HTML — DataTables reads them from the DOM.
+  // columnDefs uses positional targets, no data-binding to JS objects.
+  try {
+    table = $('#eventsTable').DataTable({
+      order: [[0, 'desc']],
+      pageLength: 25,
+      lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
+      columnDefs: [
+        { orderable: false, searchable: false, targets: 5 }  // Action column
+      ],
+      language: {
+        search: "Search:",
+        lengthMenu: "Show _MENU_ per page",
+        info: "Showing _START_ to _END_ of _TOTAL_ events",
+        infoEmpty: "No events available",
+        infoFiltered: "(filtered from _MAX_ total)",
+        zeroRecords: "No matching events found",
+        emptyTable: "No events yet — waiting for traffic...",
+        paginate: {
+          first: '<i class="bi bi-chevron-bar-left"></i>',
+          last: '<i class="bi bi-chevron-bar-right"></i>',
+          next: '<i class="bi bi-chevron-right"></i>',
+          previous: '<i class="bi bi-chevron-left"></i>'
+        }
+      }
+    });
+  } catch (dtErr) {
+    table = null;
+  }
+
+  // View details — read structured data from EVENTS_DATA by row index stored on button
+  $('#eventsTable tbody').on('click', '.view-details-ssr', function() {
+    var idx = parseInt(this.getAttribute('data-idx'), 10);
+    var eventData = EVENTS_DATA[idx];
+    if (eventData) viewEventDetails(eventData);
   });
 
   // Auto-refresh toggle
+  setAutoRefreshUI(true); // init dot state
   $('#autoRefreshToggle').on('click', function() {
     autoRefresh = !autoRefresh;
-    $('#autoRefreshStatus').text(autoRefresh ? 'ON' : 'OFF');
-    
+    setAutoRefreshUI(autoRefresh);
     if (autoRefresh) {
-      $(this).removeClass('btn-outline-secondary').addClass('btn-outline-primary');
       startAutoRefresh();
     } else {
-      $(this).removeClass('btn-outline-primary').addClass('btn-outline-secondary');
       stopAutoRefresh();
     }
   });
@@ -475,72 +384,43 @@ $(document).ready(function() {
     });
   });
 
-  // Start auto-refresh
+  updateLastUpdateTime();
   if (autoRefresh) {
     startAutoRefresh();
   }
 });
 
-// Start auto-refresh
-function startAutoRefresh() {
-  if (refreshTimer) clearInterval(refreshTimer);
-  refreshTimer = setInterval(refreshTable, REFRESH_INTERVAL);
-  console.log('Auto-refresh started');
+function setAutoRefreshUI(on) {
+  $('#autoRefreshStatus').text(on ? 'ON' : 'OFF');
+  $('#autoRefreshToggle')
+    .toggleClass('btn-outline-primary', on)
+    .toggleClass('btn-outline-secondary', !on);
+  var dot = document.getElementById('autoRefreshDot');
+  if (dot) {
+    dot.style.background = on ? '#0d6efd' : '#6c757d';
+    dot.classList.toggle('active', on);
+  }
 }
 
-// Stop auto-refresh
+function startAutoRefresh() {
+  if (refreshTimer) clearInterval(refreshTimer);
+  refreshTimer = setInterval(function() { window.location.reload(); }, REFRESH_INTERVAL);
+}
+
 function stopAutoRefresh() {
   if (refreshTimer) {
     clearInterval(refreshTimer);
     refreshTimer = null;
-    console.log('Auto-refresh stopped');
   }
 }
 
-// Refresh table
 function refreshTable() {
-  console.log('Refreshing table...');
-  table.ajax.reload(null, false);
+  window.location.reload();
 }
 
-// Update stats from server
-function updateStatsFromServer() {
-  $.ajax({
-    url: '/admin/api/events?start=0&length=10000',
-    type: 'GET',
-    success: function(response) {
-      const events = response.data;
-      
-      let allowed = 0;
-      let blocked = 0;
-      let threats = 0;
-      let monitored = 0;
-
-      events.forEach(function(event) {
-        if (event.status === 'allowed') {
-          allowed++;
-        } else if (event.status === 'monitor') {
-          monitored++;
-          threats++;
-        } else if (event.status === 'blocked') {
-          blocked++;
-          threats++;
-        }
-      });
-
-      $('#stat-allowed').text(allowed);
-      $('#stat-blocked').text(blocked + ' / ' + monitored + ' mon');
-      $('#stat-threats').text(threats);
-      $('#stat-total').text(events.length);
-    }
-  });
-}
-
-// Update last update time
 function updateLastUpdateTime() {
-  const now = new Date();
-  const timeString = now.toLocaleTimeString();
-  $('#lastUpdate').text(timeString);
+  var el = document.getElementById('lastUpdate');
+  if (el) el.textContent = new Date().toLocaleTimeString();
 }
 
 // Parse reasons into styled breakdown items
@@ -578,12 +458,7 @@ function parseReasons(reasonStr) {
 
 // View event details in modal
 function viewEventDetails(event) {
-  console.log('Opening detail modal for:', event);
-  
-  if (!event) {
-    console.error('No event data provided');
-    return;
-  }
+  if (!event) return;
   
   // Determine icon and title color based on status
   let iconType = 'info';
@@ -737,12 +612,12 @@ function viewEventDetails(event) {
           </div>
         </div>
 
-        ${event.threat_detected ? \`
+        ${event.threat_detected ? `
         <div class="alert alert-warning mb-0" role="alert">
           <strong><i class="bi bi-exclamation-triangle"></i> Security Notice:</strong>
           This event has been flagged as a potential security threat and requires attention.
         </div>
-        \` : ''}
+        ` : ''}
       </div>
     `,
     showCloseButton: true,

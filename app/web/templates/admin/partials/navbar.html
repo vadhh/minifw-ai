@@ -1,4 +1,4 @@
-<nav class="app-header navbar navbar-expand bg-body sticky-top">
+<nav class="app-header navbar navbar-expand bg-body">
   <div class="container-fluid">
 
     <!-- Sidebar toggle -->
@@ -9,6 +9,16 @@
         </a>
       </li>
     </ul>
+
+    <!-- Mode badge — always visible, server-side rendered -->
+    <span class="mf-mode-badge ms-2"
+          style="background:{{ mode_ui.bg }};color:{{ mode_ui.color }};border:1px solid {{ mode_ui.color }}22;">
+      <i class="bi {{ mode_ui.icon }} me-1"></i>
+      <span class="mf-mode-label">Mode: <strong>{{ mode_ui.label }}</strong></span>
+      <span class="mf-mode-sublabel d-none d-lg-inline ms-1 opacity-75" style="font-size:11px;">
+        — {{ mode_ui.sublabel }}
+      </span>
+    </span>
 
     <!-- Right controls -->
     <ul class="navbar-nav ms-auto align-items-center gap-1">

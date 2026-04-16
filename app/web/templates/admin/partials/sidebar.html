@@ -1,12 +1,18 @@
-<aside class="app-sidebar bg-body-secondary shadow">
+<aside class="app-sidebar bg-body-secondary shadow" data-bs-theme="dark">
   <div class="sidebar-brand">
-    <a href="/admin" class="brand-link" style="display: grid; grid-template-columns: 1fr auto 2fr; align-items: center; gap: 55px; text-decoration: none;">
-      <img src="{{ url_for('static', path='adminLTE/dist/assets/img/AdminLTELogo.png') }}"
-          class="brand-image"
-          style="width: 44px; height: 44px; border-radius: 12px; justify-self: start;">
-      <span class="brand-text fw-light" style="font-size: 1.1rem; font-weight: 600; text-align: center;">MINIFW-AI</span>
-      <span></span>
+    <a href="/admin" class="brand-link">
+      <img
+        src="{{ url_for('static', path='adminLTE/dist/assets/img/AdminLTELogo.png') }}"
+        class="brand-image opacity-75 shadow"
+      />
+      <span class="brand-text fw-light">MINIFW-AI</span>
     </a>
+    <!-- Mode pill under brand name -->
+    <div class="mf-sidebar-mode-pill"
+         style="background:{{ mode_ui.bg }};color:{{ mode_ui.color }};border-top:1px solid {{ mode_ui.color }}33;">
+      <i class="bi {{ mode_ui.icon }} me-1" style="font-size:11px;"></i>
+      <span style="font-size:11px;font-weight:600;letter-spacing:.3px;">{{ mode_ui.label }}</span>
+    </div>
   </div>
 
   <div class="sidebar-wrapper">
@@ -37,6 +43,7 @@
           </a>
         </li>
 
+        {% if mode_ui.product_mode == "minifw_hospital" or mode_ui.sector == "hospital" %}
         <li class="nav-item">
           <a
             href="/admin/iomt-alerts"
@@ -51,6 +58,7 @@
             </p>
           </a>
         </li>
+        {% endif %}
 
         <!-- Divider -->
         <li class="nav-header">FIREWALL RULES</li>

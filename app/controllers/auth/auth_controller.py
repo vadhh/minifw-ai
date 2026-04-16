@@ -1,6 +1,5 @@
 from fastapi import Request, Depends, HTTPException, status
 from fastapi.responses import RedirectResponse
-from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.services.auth.user_service import (
@@ -12,7 +11,7 @@ from app.services.auth.user_service import (
 from app.services.auth.token_service import create_access_token
 from app.services.auth.totp_service import verify_totp, get_totp_uri, generate_qr_code
 
-templates = Jinja2Templates(directory="app/web/templates")
+from app.web.templates_config import templates
 
 
 def login_page_controller(request: Request):

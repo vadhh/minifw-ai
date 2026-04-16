@@ -1,5 +1,4 @@
 from fastapi import Request, HTTPException
-from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
 from app.models.user import User, UserRole
@@ -23,7 +22,7 @@ from app.services.policy.update_policy_service import (
     update_burst,
 )
 
-templates = Jinja2Templates(directory="app/web/templates")
+from app.web.templates_config import templates
 
 
 def policy_controller(request: Request):

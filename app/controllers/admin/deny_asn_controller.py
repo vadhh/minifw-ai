@@ -1,5 +1,4 @@
 from fastapi import Request, HTTPException
-from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
 from app.models.user import User, UserRole
@@ -9,8 +8,7 @@ from app.services.deny_asn.get_deny_asns_service import get_deny_asns
 from app.services.deny_asn.add_deny_asn_service import add_deny_asn_service
 from app.services.deny_asn.update_deny_asn_service import update_deny_asn_service
 from app.services.deny_asn.delete_deny_asn_service import delete_deny_asn_service
-
-templates = Jinja2Templates(directory="app/web/templates")
+from app.web.templates_config import templates
 
 
 def deny_asn_controller(request: Request):

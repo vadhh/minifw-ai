@@ -1,5 +1,4 @@
 from fastapi import Request
-from fastapi.templating import Jinja2Templates
 from datetime import datetime
 import subprocess
 import json
@@ -17,41 +16,57 @@ from app.services.events.get_events_service import (
     get_collector_status,
 )
 
-templates = Jinja2Templates(directory="app/web/templates")
+from app.web.templates_config import templates
 
 
 def get_service_status():
     """
-    Check if the minifw_ai service is running and get its mode.
+    Check if the minifw_ai engine is running and get its mode.
+
+    Process detection uses a two-stage approach so it works both on a single
+    host (systemd) and in a containerised deployment where the engine and web
+    run in separate containers and pgrep cannot see cross-container processes:
+
+      Stage 1 — pgrep (works on bare-metal / single-host installs)
+      Stage 2 — audit log sentinel (works in Docker; engine writes audit.jsonl
+                 at startup via audit_daemon_start(), visible on the shared volume)
+
     Returns a dict with label, color, and mode.
     """
     status = {"label": "Stopped", "color": "danger", "mode": "Unknown"}
 
-    # 1. Check if process is running
+    # Stage 1: same-host process check
+    engine_running = False
     try:
-        # pgrep -f "python -m minifw_ai" (matches the command used in systemd)
         subprocess.check_call(
             ["pgrep", "-f", "python -m minifw_ai"], stdout=subprocess.DEVNULL
         )
-        status["label"] = "Active"
-        status["color"] = "success"
-    except subprocess.CalledProcessError:
-        status["label"] = "Stopped"
-        status["color"] = "danger"
+        engine_running = True
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        pass
 
-    # 2. Check deployment mode from state file
+    # Stage 2: cross-container / shared-volume check — engine writes audit.jsonl
+    # at startup (audit_daemon_start) and events.jsonl on every processed event.
+    audit_log = os.environ.get("MINIFW_AUDIT_LOG", "/opt/minifw_ai/logs/audit.jsonl")
+    events_log = os.environ.get("MINIFW_LOG", "/opt/minifw_ai/logs/events.jsonl")
+    if not engine_running:
+        engine_running = os.path.exists(audit_log) or os.path.exists(events_log)
+
+    status["label"] = "Active" if engine_running else "Stopped"
+    status["color"] = "success" if engine_running else "danger"
+
+    # Deployment mode from state file (written by state_manager on transitions)
     state_file = "/opt/minifw_ai/logs/deployment_state.json"
     if os.path.exists(state_file):
         try:
             with open(state_file, "r") as f:
                 data = json.load(f)
-                # "dns_telemetry": { "status": "BASELINE_PROTECTION" ... }
                 dns_status = data.get("dns_telemetry", {}).get("status", "Unknown")
                 status["mode"] = dns_status.replace("_", " ").title()
         except Exception:
             status["mode"] = "Error reading state"
     else:
-        status["mode"] = " ongoing..."
+        status["mode"] = "AI Enhanced" if engine_running else "Unknown"
 
     return status
 
@@ -68,16 +83,16 @@ def dashboard_controller(request: Request):
     deny_asns = len(get_deny_asns())
     deny_domains = len(get_deny_domains())
 
-    # Get events and statistics
-    events = get_recent_events(limit=5)
-    event_stats = get_event_statistics()
+    # Read events once — reuse the same list for stats and counters.
+    all_events = get_recent_events(limit=500)
+    events = all_events[:5]
+    event_stats = get_event_statistics(events=all_events)
+    detection_counters = get_detection_counters(events=all_events)
+
     uptime = get_system_uptime()
 
     # Get service status
     service_status = get_service_status()
-
-    # Get detection counters
-    detection_counters = get_detection_counters()
 
     # Get collector status (Zeek, DNS, conntrack)
     collector_status = get_collector_status()
@@ -119,7 +134,8 @@ def get_dashboard_stats():
     deny_ips = len(get_deny_ips())
     deny_asns = len(get_deny_asns())
     deny_domains = len(get_deny_domains())
-    event_stats = get_event_statistics()
+    _evts = get_recent_events(limit=500)
+    event_stats = get_event_statistics(events=_evts)
     service_status = get_service_status()
 
     return {

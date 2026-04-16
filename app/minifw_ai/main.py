@@ -445,16 +445,20 @@ def run():
 
     # Conntrack flow stream for baseline tracking.
     # stream_conntrack_flows() auto-detects procfs vs conntrack CLI — always start it.
+    # Set MINIFW_DISABLE_FLOWS=1 to skip flow tracking (e.g. Docker demo with no real traffic).
     conntrack_path = os.environ.get("MINIFW_CONNTRACK_PATH", "/proc/net/nf_conntrack")
     flow_iter = None
-    try:
-        flow_iter = stream_conntrack_flows(conntrack_path)
-        logging.info("[FLOW] Conntrack flow tracking initialised (path=%s)", conntrack_path)
-    except Exception:
-        logging.warning(
-            "[FLOW] Failed to start conntrack flow stream — hard gates may be degraded",
-            exc_info=True,
-        )
+    if os.environ.get("MINIFW_DISABLE_FLOWS", "0") != "1":
+        try:
+            flow_iter = stream_conntrack_flows(conntrack_path)
+            logging.info("[FLOW] Conntrack flow tracking initialised (path=%s)", conntrack_path)
+        except Exception:
+            logging.warning(
+                "[FLOW] Failed to start conntrack flow stream — hard gates may be degraded",
+                exc_info=True,
+            )
+    else:
+        logging.info("[FLOW] Flow tracking disabled via MINIFW_DISABLE_FLOWS=1")
 
     flow_freq_window = _safe_int_cast(os.environ.get("MINIFW_FLOW_FREQ_WINDOW_SEC"), 60)
     flow_freq_threshold = _safe_int_cast(

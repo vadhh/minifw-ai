@@ -4,7 +4,6 @@ Controller functions for user CRUD operations
 """
 
 from fastapi import Request, HTTPException
-from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from datetime import datetime
 from typing import Optional
@@ -14,8 +13,7 @@ from app.models.user import User, UserRole, SectorType
 from app.models.audit import AuditAction, AuditSeverity
 from app.services.rbac_service import RBACService, AuditService
 from app.services.user_management_service import UserManagementService
-
-templates = Jinja2Templates(directory="app/web/templates")
+from app.web.templates_config import templates
 
 
 def user_management_page_controller(request: Request):

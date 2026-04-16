@@ -43,22 +43,24 @@
       </div>
     </div>
   </div>
-  
-  <div class="modal fade" id="ipModal">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">IP Address</h5>
-        </div>
-        <div class="modal-body">
-          <input type="hidden" id="oldIp" />
-          <input type="text" id="ipInput" class="form-control" placeholder="192.168.1.1" />
-          <small class="form-text text-muted">Enter a valid IPv4 address</small>
-        </div>
-        <div class="modal-footer">
-          <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button class="btn btn-primary" id="saveIp">Save</button>
-        </div>
+</div>
+{% endblock %}
+
+{% block modals %}
+<div class="modal fade" id="ipModal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">IP Address</h5>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="oldIp" />
+        <input type="text" id="ipInput" class="form-control" placeholder="192.168.1.1" />
+        <small class="form-text text-muted">Enter a valid IPv4 address</small>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary" id="saveIp">Save</button>
       </div>
     </div>
   </div>
@@ -66,7 +68,6 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   // Check jQuery

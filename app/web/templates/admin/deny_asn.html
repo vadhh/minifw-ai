@@ -43,22 +43,24 @@
       </div>
     </div>
   </div>
-  
-  <div class="modal fade" id="asnModal">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">ASN</h5>
-        </div>
-        <div class="modal-body">
-          <input type="hidden" id="oldAsn" />
-          <input type="text" id="asnInput" class="form-control" placeholder="AS12345" style="text-transform: uppercase;" />
-          <small class="form-text text-muted">Enter ASN in format: AS12345</small>
-        </div>
-        <div class="modal-footer">
-          <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button class="btn btn-primary" id="saveAsn">Save</button>
-        </div>
+</div>
+{% endblock %}
+
+{% block modals %}
+<div class="modal fade" id="asnModal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">ASN</h5>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="oldAsn" />
+        <input type="text" id="asnInput" class="form-control" placeholder="AS12345" style="text-transform: uppercase;" />
+        <small class="form-text text-muted">Enter ASN in format: AS12345</small>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary" id="saveAsn">Save</button>
       </div>
     </div>
   </div>
@@ -66,7 +68,6 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   // Check jQuery

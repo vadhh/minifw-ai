@@ -45,7 +45,7 @@ class RBACService:
 
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Insufficient permissions. Required role: {required_role.value}, your role: {user.role.value}",
+                detail=f"Insufficient permissions. Required role: {required_role.value}, your role: {user.role}",
             )
 
         return True

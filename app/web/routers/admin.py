@@ -1,7 +1,6 @@
 import re
 
 from fastapi import APIRouter, Request, Depends, HTTPException
-from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, field_validator
 from app.middleware.auth_middleware import get_current_user
 from app.models.user import User
@@ -66,7 +65,7 @@ from app.database import get_db
 from minifw_ai.audit import audit_policy_change, audit_user_mgmt
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
-templates = Jinja2Templates(directory="app/web/templates")
+from app.web.templates_config import templates
 
 
 # --- Input validation patterns ---
@@ -384,7 +383,7 @@ class CreateUserRequest(BaseModel):
     @field_validator("sector")
     @classmethod
     def check_sector(cls, v: str) -> str:
-        allowed = {"school", "hospital", "government", "finance", "legal", "establishment", "gambling"}
+        allowed = {"education", "hospital", "government", "finance", "legal", "establishment", "gambling"}
         if v.strip().lower() not in allowed:
             raise ValueError(f"Sector must be one of: {', '.join(sorted(allowed))}")
         return v.strip().lower()
@@ -422,7 +421,7 @@ class UpdateUserRequest(BaseModel):
     @classmethod
     def check_sector(cls, v: Optional[str]) -> Optional[str]:
         if v is not None:
-            allowed = {"school", "hospital", "government", "finance", "legal", "establishment", "gambling"}
+            allowed = {"education", "hospital", "government", "finance", "legal", "establishment", "gambling"}
             if v.strip().lower() not in allowed:
                 raise ValueError(f"Sector must be one of: {', '.join(sorted(allowed))}")
             return v.strip().lower()
@@ -652,7 +651,7 @@ def api_download_events(
 def iomt_alerts_page(request: Request, current_user: User = Depends(get_current_user)):
     """IoMT device alert panel — filtered view of medical device anomalies."""
     from app.services.events.get_events_service import get_recent_events
-    all_events = get_recent_events(limit=10000)
+    all_events = get_recent_events(limit=500)
     iomt_events = [e for e in all_events if "iomt_device_alert" in e.get("reason", "")]
     return templates.TemplateResponse(
         request,
@@ -665,7 +664,7 @@ def iomt_alerts_page(request: Request, current_user: User = Depends(get_current_
 def api_iomt_alerts(current_user: User = Depends(get_current_user)):
     """API: Get IoMT device alerts filtered from event stream."""
     from app.services.events.get_events_service import get_recent_events
-    all_events = get_recent_events(limit=10000)
+    all_events = get_recent_events(limit=500)
     iomt_events = [e for e in all_events if "iomt_device_alert" in e.get("reason", "")]
     return {
         "success": True,
@@ -987,13 +986,19 @@ def get_sector_lock_status(current_user: User = Depends(get_current_user)):
     """
     try:
         from app.minifw_ai.sector_lock import get_sector_lock
+        from minifw_ai.mode_context import get_mode_ui
 
         lock = get_sector_lock()
         config = lock.get_sector_config()
+        mode_ui = get_mode_ui()
 
         return {
             "success": True,
             "sector": lock.get_sector(),
+            "product_mode": mode_ui.product_mode or None,
+            "mode_label": mode_ui.label,
+            "mode_sublabel": mode_ui.sublabel,
+            "mode_color": mode_ui.color,
             "locked": True,  # Always locked - factory-set
             "description": config.get("description", "Factory-set sector"),
             "config": {

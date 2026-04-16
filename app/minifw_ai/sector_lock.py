@@ -5,9 +5,10 @@ This module provides an immutable sector configuration that is set at
 factory/deployment time and cannot be changed via the Admin UI.
 
 Priority:
-1. Environment Variable: MINIFW_SECTOR (for containers/dev)
-2. Lock File: /opt/minifw_ai/config/sector_lock.json (production hardware)
-3. Fallback: Fail closed (system cannot start without valid sector)
+1. PRODUCT_MODE env var  — canonical unified mode (e.g. minifw_hospital)
+2. MINIFW_SECTOR env var — legacy direct sector value (backward-compatible)
+3. Lock File             — /opt/minifw_ai/config/sector_lock.json (production hardware)
+4. Fallback              — fail closed (system cannot start without valid sector)
 """
 
 from __future__ import annotations
@@ -64,20 +65,39 @@ class SectorLock:
         """
         Load sector from environment or lock file.
 
-        Priority 1: Environment Variable (Container/Dev)
-        Priority 2: Lock File (Production Hardware)
+        Priority 1: PRODUCT_MODE (canonical unified mode)
+        Priority 2: MINIFW_SECTOR (legacy direct sector, backward-compatible)
+        Priority 3: Lock File (Production Hardware)
         Fallback: Error (Fail Closed)
         """
         valid_sectors = self._get_valid_sectors()
 
-        # Priority 1: Environment Variable
+        # Priority 1: PRODUCT_MODE (canonical)
+        product_mode = os.getenv("PRODUCT_MODE", "").strip().lower()
+        if product_mode:
+            try:
+                from minifw_ai.mode_loader import resolve_sector_from_mode
+                derived_sector = resolve_sector_from_mode(product_mode)
+                if derived_sector in valid_sectors:
+                    self._sector = derived_sector
+                    logger.info(
+                        f"[SECTOR_LOCK] Loaded from PRODUCT_MODE={product_mode}: "
+                        f"sector={self._sector}"
+                    )
+                    self._load_config()
+                    return
+            except ValueError as exc:
+                logger.critical(f"[SECTOR_LOCK] {exc}")
+                raise RuntimeError(str(exc)) from exc
+
+        # Priority 2: MINIFW_SECTOR (legacy)
         env_sector = os.getenv("MINIFW_SECTOR")
 
         if env_sector:
             sector_lower = env_sector.lower().strip()
             if sector_lower in valid_sectors:
                 self._sector = sector_lower
-                logger.info(f"[SECTOR_LOCK] Loaded from ENV: {self._sector}")
+                logger.info(f"[SECTOR_LOCK] Loaded from MINIFW_SECTOR: {self._sector}")
                 self._load_config()
                 return
             else:
@@ -87,7 +107,7 @@ class SectorLock:
                 logger.critical(f"[SECTOR_LOCK] Valid sectors: {valid_sectors}")
                 raise RuntimeError(f"Invalid Sector Configuration: {env_sector}")
 
-        # Priority 2: Production Lock File
+        # Priority 3: Production Lock File
         lock_file = LOCK_FILE_PATH if LOCK_FILE_PATH.exists() else DEV_LOCK_FILE_PATH
 
         if lock_file.exists():
@@ -154,9 +174,9 @@ class SectorLock:
         """Check if sector is locked (always True once initialized)."""
         return self._initialized and self._sector is not None
 
-    def is_school(self) -> bool:
-        """Check if this device is configured for school sector."""
-        return self._sector == "school"
+    def is_education(self) -> bool:
+        """Check if this device is configured for education sector."""
+        return self._sector == "education"
 
     def is_hospital(self) -> bool:
         """Check if this device is configured for hospital sector."""

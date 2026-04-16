@@ -1,0 +1,64 @@
+{
+  "_mode": "minifw_financial",
+  "_sector": "finance",
+  "_note": "PCI-DSS compliance. Tor/anonymizer blocking. Strict TLS 1.2+ enforcement. Thresholds pre-adjusted: block-5, monitor-5 from base.",
+  "segments": {
+    "default": {
+      "block_threshold": 85,
+      "monitor_threshold": 55
+    },
+    "trading": {
+      "block_threshold": 80,
+      "monitor_threshold": 45,
+      "_note": "Trading floor / high-frequency systems — tightest enforcement."
+    },
+    "internal": {
+      "block_threshold": 80,
+      "monitor_threshold": 45
+    },
+    "guest": {
+      "block_threshold": 65,
+      "monitor_threshold": 35,
+      "_note": "Client / visitor WiFi — Tor exit nodes always blocked."
+    },
+    "dmz": {
+      "block_threshold": 75,
+      "monitor_threshold": 50,
+      "_note": "Public-facing servers — SNI and TLS strict enforcement."
+    }
+  },
+  "segment_subnets": {
+    "trading":  ["10.50.0.0/24"],
+    "internal": ["192.168.1.0/24", "10.0.0.0/8"],
+    "guest":    ["192.168.100.0/24"],
+    "dmz":      ["10.10.0.0/24"]
+  },
+  "features": {
+    "dns_weight":       40,
+    "sni_weight":       35,
+    "asn_weight":       15,
+    "ip_denied_weight": 15,
+    "burst_weight":     10,
+    "mlp_weight":       30,
+    "yara_weight":      35
+  },
+  "enforcement": {
+    "ipset_name_v4":      "minifw_block_v4",
+    "ip_timeout_seconds": 86400,
+    "nft_table":          "inet",
+    "nft_table_name":     "minifw",
+    "nft_chain":          "forward"
+  },
+  "collectors": {
+    "dnsmasq_log_path": "/opt/minifw_ai/logs/dnsmasq.log",
+    "zeek_ssl_log_path": "/var/log/zeek/ssl.log",
+    "use_zeek_sni": true,
+    "_zeek_note": "SNI inspection mandatory for PCI-DSS TLS enforcement."
+  },
+  "burst": {
+    "dns_queries_per_minute_monitor": 30,
+    "dns_queries_per_minute_block":   50
+  },
+  "iomt_subnets": [],
+  "minimum_tls_version": "1.2"
+}

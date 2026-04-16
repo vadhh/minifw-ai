@@ -6,13 +6,27 @@ from typing import Dict, Any
 
 
 def _backup_policy():
-    """Create backup of current policy"""
+    """Create backup of current policy in the logs directory (writable volume)."""
     policy_path = os.environ.get("MINIFW_POLICY", "config/policy.json")
-    if os.path.exists(policy_path):
-        backup_path = f"{policy_path}.backup.{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-        shutil.copy2(policy_path, backup_path)
-        return backup_path
-    return None
+    if not os.path.exists(policy_path):
+        return None
+
+    # Derive a writable backup directory from MINIFW_LOG (e.g. /opt/minifw_ai/logs/events.jsonl)
+    # Fall back to /tmp if no log env var is set.
+    log_env = os.environ.get("MINIFW_LOG", "")
+    if log_env:
+        backup_dir = os.path.dirname(log_env)
+    else:
+        backup_dir = "/tmp"
+
+    os.makedirs(backup_dir, exist_ok=True)
+    basename = os.path.basename(policy_path)
+    backup_path = os.path.join(
+        backup_dir,
+        f"{basename}.backup.{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+    )
+    shutil.copy2(policy_path, backup_path)
+    return backup_path
 
 
 def _save_policy(policy_data: Dict[str, Any]):

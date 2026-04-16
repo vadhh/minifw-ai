@@ -20,7 +20,7 @@ class SectorType(str, enum.Enum):
     """Sector classifications for different organization types (Factory-Set)"""
 
     HOSPITAL = "hospital"
-    SCHOOL = "school"
+    SCHOOL = "education"
     GOVERNMENT = "government"
     FINANCE = "finance"
     LEGAL = "legal"

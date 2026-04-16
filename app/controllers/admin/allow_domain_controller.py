@@ -1,5 +1,4 @@
 from fastapi import Request, HTTPException
-from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
 from app.models.user import User, UserRole
@@ -14,7 +13,7 @@ from app.services.allow_domain.delete_allow_domain_service import (
     delete_allow_domain_service,
 )
 
-templates = Jinja2Templates(directory="app/web/templates")
+from app.web.templates_config import templates
 
 
 def allow_domain_controller(request: Request):

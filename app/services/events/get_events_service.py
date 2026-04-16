@@ -1,46 +1,46 @@
 from pathlib import Path
 from datetime import datetime
 import json
+import os
 
 BASE_DIR = Path(__file__).resolve().parents[3]
-EVENTS_FILE = BASE_DIR / "logs" / "events.jsonl"
+
+def _get_events_file() -> Path:
+    """Resolve events log path: MINIFW_LOG env var → project logs/ fallback."""
+    env_path = os.environ.get("MINIFW_LOG")
+    if env_path:
+        return Path(env_path)
+    return BASE_DIR / "logs" / "events.jsonl"
 
 
 def get_recent_events(limit: int = 100):
     """
-    Get recent security events from JSONL file
-    Returns list of recent events from log file
+    Get recent security events from JSONL file.
+    Returns an empty list when the file does not exist (clean-start / demo reset).
     """
-    if not EVENTS_FILE.exists():
-        # Return sample data if file doesn't exist
-        return _get_sample_events()
+    events_file = _get_events_file()
+    if not events_file.exists():
+        return []
 
     try:
         events = []
-
-        # Read JSONL file (each line is a JSON object)
-        with open(EVENTS_FILE, "r") as f:
+        with open(events_file, "r") as f:
             for line in f:
                 line = line.strip()
                 if not line:
                     continue
-
                 try:
                     event = json.loads(line)
-                    formatted_event = _format_event(event)
-                    events.append(formatted_event)
+                    events.append(_format_event(event))
                 except json.JSONDecodeError:
                     continue
 
-        # Sort by timestamp (newest first)
         events.sort(key=lambda x: x.get("time", ""), reverse=True)
-
-        # Return limited events
         return events[:limit]
 
     except (IOError, Exception) as e:
         print(f"Error reading events file: {e}")
-        return _get_sample_events()
+        return []
 
 
 def _format_event(event: dict) -> dict:
@@ -165,33 +165,32 @@ def _get_sample_events():
     return []
 
 
-def get_event_statistics():
+def get_event_statistics(events=None):
     """
-    Get event statistics
-    Returns counts of allowed, blocked, threats
+    Get event statistics from a pre-loaded events list or by reading the file.
+    Pass ``events`` from a prior get_recent_events() call to avoid a second read.
     """
-    events = get_recent_events(limit=10000)
+    if events is None:
+        events = get_recent_events(limit=500)
 
     stats = {"total_allowed": 0, "total_blocked": 0, "threats_detected": 0}
-
     for event in events:
         if event.get("status") == "allowed":
             stats["total_allowed"] += 1
         elif event.get("status") == "blocked":
             stats["total_blocked"] += 1
-
         if event.get("threat_detected", False):
             stats["threats_detected"] += 1
-
     return stats
 
 
-def get_detection_counters():
+def get_detection_counters(events=None):
     """
-    Get detection type counters from events.
-    Returns counts for hard_gate, ai_scored, yara, dns_tunnel, port_scan, tor, sni_hits events.
+    Get detection type counters from a pre-loaded events list or by reading the file.
+    Pass ``events`` from a prior get_recent_events() call to avoid a second read.
     """
-    events = get_recent_events(limit=10000)
+    if events is None:
+        events = get_recent_events(limit=500)
 
     counters = {
         "hard_gate": 0,
@@ -202,38 +201,52 @@ def get_detection_counters():
         "tor_anon": 0,
         "sni_hits": 0,
     }
-
     for event in events:
-        reason = event.get("reason", "")
-        reason_lower = reason.lower()
-
-        if "hard_threat_gate" in reason_lower:
+        reason = event.get("reason", "").lower()
+        if "hard_threat_gate" in reason:
             counters["hard_gate"] += 1
-        if "mlp_threat_score" in reason_lower:
+        if "mlp_threat_score" in reason:
             counters["ai_scored"] += 1
-        if "yara" in reason_lower:
+        if "yara" in reason:
             counters["yara"] += 1
-        if "dns_tunnel" in reason_lower:
+        if "dns_tunnel" in reason:
             counters["dns_tunnel"] += 1
-        if "port_scan" in reason_lower or "pps" in reason_lower:
+        if "port_scan" in reason or "pps" in reason:
             counters["port_scan"] += 1
-        if "tor" in reason_lower or "anonymizer" in reason_lower:
+        if "tor" in reason or "anonymizer" in reason:
             counters["tor_anon"] += 1
-        if "tls_sni" in reason_lower or "sni_deny" in reason_lower or "sni" in reason_lower:
+        if "tls_sni" in reason or "sni_deny" in reason or "sni" in reason:
             counters["sni_hits"] += 1
-
     return counters
 
 
 def get_collector_status():
     """
     Check live status of data collectors: Zeek TLS, DNS (dnsmasq), and flow tracking (conntrack).
+
+    DNS log path is resolved from policy.json (collectors.dnsmasq_log_path) so it works
+    regardless of deployment layout — bare-metal (/var/log/dnsmasq.log) or Docker
+    (/opt/minifw_ai/logs/dnsmasq.log). Falls back to the hardcoded default if the policy
+    cannot be read.
+
     Returns a dict with active flag and label for each collector.
     """
     from pathlib import Path
 
+    # Resolve dnsmasq log path from policy.json; fall back to OS default
+    _default_dns_log = "/var/log/dnsmasq.log"
+    policy_path = os.environ.get("MINIFW_POLICY", "/opt/minifw_ai/config/policy.json")
+    try:
+        with open(policy_path) as _f:
+            _policy = json.load(_f)
+        _default_dns_log = _policy.get("collectors", {}).get(
+            "dnsmasq_log_path", _default_dns_log
+        )
+    except Exception:
+        pass
+
     zeek_log = Path("/var/log/zeek/ssl.log")
-    dns_log = Path("/var/log/dnsmasq.log")
+    dns_log = Path(_default_dns_log)
     conntrack = Path("/proc/net/nf_conntrack")
 
     def _status(active: bool) -> dict:

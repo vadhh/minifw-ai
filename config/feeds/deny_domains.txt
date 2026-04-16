@@ -1,4 +1,27 @@
-# Deny domains — one pattern per line (fnmatch syntax)
-# Example:
-# *.malware-domain.com
-# phishing-site.example.org
+# deny_domains.txt — base deny feed, loaded by ALL sectors
+# One fnmatch pattern per line. Blank lines and # comments are ignored.
+# Sector-specific entries belong in the relevant extra feed file
+# (e.g. healthcare_threats.txt).
+# -------------------------------------------------------------------------
+
+# [SME-DEMO] Phishing — credential harvesting landing pages
+login-paypal-secure-verify.com
+*.secure-account-verify.net
+
+# [SME-DEMO] Ransomware C2 + YARA trigger
+# "Locky" in hostname fires SmeRansomware YARA rule (+35)
+# dns_denied(40) + yara(35) = score 75 — MONITOR from office (threshold 80)
+Locky.decrypt-files.net
+*.decrypt-files.net
+
+# [SME-DEMO] Cryptominer C2 — triggers SmeCryptoMiner YARA rule
+# dns_denied(40) + yara(35) = score 75 — MONITOR from office
+xmrig-pool.crypto-mine.io
+*.crypto-mine.io
+
+# [SME-DEMO] Generic C2 / data collection staging
+c2-data-collect.net
+
+# [SME-DEMO] Guest network burst target
+# dns_denied(40) >= guest block_threshold(40) -> immediate BLOCK
+ads-malware-tracker.net
