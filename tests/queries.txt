@@ -1,0 +1,173 @@
+; dns_queries.txt — dnsperf query file for MiniFW-AI DNS Abuse Detection Test
+
+; Usage: dnsperf -s 127.0.0.1 -d dns_queries.txt -l 60
+
+; Format: <domain> <record_type>
+
+; ── Normal / baseline domains (mix in to test ratio detection) ──────────────
+
+google.com A
+
+facebook.com A
+
+youtube.com A
+
+cloudflare.com A
+
+microsoft.com A
+
+apple.com A
+
+amazon.com AAAA
+
+twitter.com A
+
+github.com A
+
+wikipedia.org A
+
+; ── High-frequency repeat queries (abnormal rate simulation) ────────────────
+
+; dnsperf loops through this file, but repeating these here raises their hit rate
+
+google.com A
+
+google.com A
+
+google.com A
+
+facebook.com A
+
+facebook.com A
+
+; ── Suspicious / C2-style domains (should trigger DNS feed match) ────────────
+
+malware-c2-test.example.com A
+
+botnet-beacon.test.local A
+
+update.evil-payload.xyz A
+
+cdn.malware-dropper.net A
+
+tracker.exfil-data.io A
+
+api.ransomware-test.local A
+
+; ── Long random-looking subdomains (entropy anomaly) ────────────────────────
+
+; These simulate DGA (Domain Generation Algorithm) domains
+
+xkqzjvwmnprstb.example.com A
+
+aabbccddeeff1122.test.io A
+
+7f3a9b2c1d4e.malicious-check.net A
+
+qwertyuiopasdfgh.dga-sim.local A
+
+mnbvcxzlkjhgfdsapoiuytr.test.com A
+
+zxcvbnmasdfghjklqwertyuiop.xyz A
+
+a1b2c3d4e5f6789012345678.cdn.test A
+
+randomdomainxyz123abc.ddns.net A
+
+; ── Gambling / deny-listed keyword domains (YARA rule triggers) ─────────────
+
+slot-gacor-test.io A
+
+togel-online-sim.net A
+
+casino-test-domain.xyz A
+
+poker-online-check.local A
+
+judi-online-test.com A
+
+bandar-bola-sim.net A
+
+; ── Malware category domains ─────────────────────────────────────────────────
+
+malware-test-domain.com A
+
+phishing-site-sim.net A
+
+virus-payload-test.xyz A
+
+trojan-dropper-check.io A
+
+spyware-test.local A
+
+; ── Burst flood pattern (rapid repeat of the same query) ────────────────────
+
+; Simulates beaconing — bot checking in with C2 at regular intervals
+
+beacon-test.malicious-c2.local A
+
+beacon-test.malicious-c2.local A
+
+beacon-test.malicious-c2.local A
+
+beacon-test.malicious-c2.local A
+
+beacon-test.malicious-c2.local A
+
+beacon-test.malicious-c2.local A
+
+beacon-test.malicious-c2.local A
+
+beacon-test.malicious-c2.local A
+
+beacon-test.malicious-c2.local A
+
+beacon-test.malicious-c2.local A
+
+; ── TXT record queries (used in DNS tunneling) ───────────────────────────────
+
+; NOTE: for full tunneling sim, use dnscat2 (Test 02). These just test TXT parsing.
+
+exfil-test.tunnel-sim.local TXT
+
+data-chunk-01.exfil-channel.test TXT
+
+base64payload.dns-tunnel.local TXT
+
+; ── AAAA (IPv6) flood mix ────────────────────────────────────────────────────
+
+suspicious-ipv6-host.test.com AAAA
+
+malicious-ipv6-beacon.local AAAA
+
+; ── MX record abuse (less common, tests parser robustness) ───────────────────
+
+mail.evil-spam-relay.test MX
+
+smtp.phishing-mx.local MX
+
+; ── Repeat burst to push rate counters above threshold ──────────────────────
+
+malware-c2-test.example.com A
+
+malware-c2-test.example.com A
+
+malware-c2-test.example.com A
+
+slot-gacor-test.io A
+
+slot-gacor-test.io A
+
+xkqzjvwmnprstb.example.com A
+
+xkqzjvwmnprstb.example.com A
+
+7f3a9b2c1d4e.malicious-check.net A
+
+7f3a9b2c1d4e.malicious-check.net A
+
+beacon-test.malicious-c2.local A
+
+beacon-test.malicious-c2.local A
+
+beacon-test.malicious-c2.local A
