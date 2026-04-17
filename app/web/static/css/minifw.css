@@ -102,7 +102,40 @@ body {
   50%       { opacity: 0.5; transform: scale(0.8); }
 }
 
-.app-main { animation: mf-fade-up var(--mf-transition-lg) both; }
+.app-main { 
+  animation: mf-fade-up var(--mf-transition-lg) both;
+  margin-top: var(--mf-navbar-h) !important;
+  margin-left: 0 !important;
+  width: 100% !important;
+}
+
+/* Sidebar dan content layout di desktop (lg breakpoint 992px+) */
+@media (min-width: 992px) {
+  /* Default - sidebar visible */
+  .app-main {
+    margin-left: var(--mf-sidebar-width) !important;
+    width: calc(100% - var(--mf-sidebar-width)) !important;
+    transition: margin-left 0.3s ease, width 0.3s ease;
+  }
+  
+  /* Saat sidebar hidden dengan inline style display:none */
+  .app-sidebar[style*="display: none"] ~ .app-main {
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
+  
+  /* Saat sidebar hidden dengan class collapse/closed dari AdminLTE */
+  body.sidebar-collapse .app-main,
+  body.sidebar-collapsed .app-main,
+  body.sidebar-close .app-main,
+  body.sidebar-closed .app-main,
+  .app-sidebar.hidden ~ .app-main,
+  .app-sidebar[style*="display: none"] ~ .app-main,
+  .app-sidebar[style*="transform: translateX(-100%)"] ~ .app-main {
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
+}
 
 /* ── 4. Navbar ─────────────────────────────────────────────── */
 .app-header {
@@ -112,6 +145,11 @@ body {
   box-shadow: var(--mf-shadow-sm) !important;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  z-index: 1030 !important;
 }
 
 .app-header .nav-link {
@@ -197,6 +235,35 @@ body {
   background: var(--mf-surface) !important;
   border-right: 1px solid var(--mf-border) !important;
   box-shadow: var(--mf-shadow) !important;
+  position: fixed !important;
+  top: var(--mf-navbar-h) !important;
+  left: 0 !important;
+  height: calc(100vh - var(--mf-navbar-h)) !important;
+  overflow-y: auto !important;
+  z-index: 1020 !important;
+  display: none;
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+}
+
+/* Sidebar visible saat hamburger diklik di mobile */
+body.sidebar-expand-lg .app-sidebar {
+  display: block !important;
+  transform: translateX(0) !important;
+}
+
+/* Sidebar visible di lg breakpoint (992px+) */
+@media (min-width: 992px) {
+  .app-sidebar {
+    display: block !important;
+    transform: translateX(0) !important;
+  }
+  
+  /* Saat sidebar ditutup di desktop dengan AdminLTE collapse */
+  body.sidebar-collapse .app-sidebar,
+  body.sidebar-closed .app-sidebar {
+    display: none !important;
+  }
 }
 
 [data-bs-theme="dark"] .app-sidebar {
