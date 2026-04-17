@@ -132,5 +132,50 @@
       }
     }
   }, 10000);
+
+  // ── Sidebar state monitor (responsive content margin) ──
+  var sidebar = document.querySelector('.app-sidebar');
+  var appMain = document.querySelector('.app-main');
+  
+  if (sidebar && appMain) {
+    // Monitor sidebar visibility changes
+    var observer = new MutationObserver(function() {
+      var sidebarStyle = window.getComputedStyle(sidebar);
+      var sidebarDisplay = sidebarStyle.display;
+      var sidebarOpacity = sidebarStyle.opacity;
+      
+      // Check if sidebar is hidden
+      if (sidebarDisplay === 'none' || sidebarOpacity === '0') {
+        appMain.style.marginLeft = '0';
+        appMain.style.width = '100%';
+      }
+    });
+    
+    // Watch for style and class changes
+    observer.observe(sidebar, {
+      attributes: true,
+      attributeFilter: ['style', 'class'],
+      subtree: false
+    });
+    
+    // Also monitor body class changes
+    var bodyObserver = new MutationObserver(function() {
+      if (document.body.classList.contains('sidebar-collapse') || 
+          document.body.classList.contains('sidebar-collapsed') ||
+          document.body.classList.contains('sidebar-closed')) {
+        appMain.style.marginLeft = '0';
+        appMain.style.width = '100%';
+      } else if (window.innerWidth >= 992 && !document.body.classList.contains('sidebar-collapse')) {
+        appMain.style.marginLeft = 'var(--mf-sidebar-width)';
+        appMain.style.width = 'calc(100% - var(--mf-sidebar-width))';
+      }
+    });
+    
+    bodyObserver.observe(document.body, {
+      attributes: true,
+      attributeFilter: ['class'],
+      subtree: false
+    });
+  }
 })();
 </script>
