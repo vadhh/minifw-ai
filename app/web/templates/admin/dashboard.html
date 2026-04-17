@@ -348,35 +348,33 @@
           </div>
           <div class="card-body p-3">
             <!-- Hero area -->
-            <div id="synthHero"
-                 style="background:linear-gradient(135deg,#7f1d1d,#1e293b);border-radius:8px;padding:16px;margin-bottom:12px;border:1px solid #ef444466;">
+            <div id="synthHero" class="synth-hero">
               <div class="d-flex justify-content-between align-items-center mb-2">
-                <span style="font-size:16px;font-weight:900;color:#f87171;letter-spacing:1px;">THREAT BLOCKED</span>
-                <span id="synthTimestamp" style="font-size:10px;color:#64748b;"></span>
+                <span class="synth-hero-title">THREAT BLOCKED</span>
+                <span id="synthTimestamp" style="font-size:10px;color:var(--mf-text-muted);"></span>
               </div>
-              <div id="synthSource"
-                   style="font-size:14px;font-weight:700;color:#fca5a5;margin-bottom:12px;">
+              <div id="synthSource" class="synth-hero-source">
                 Waiting for a block event&hellip;
               </div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-                <div style="background:#0f172a88;border-radius:6px;padding:10px;">
+                <div class="synth-cell">
                   <div style="font-size:9px;color:#7c3aed;font-weight:700;letter-spacing:1px;margin-bottom:4px;">AI REASON</div>
-                  <div id="synthAiCategory" style="font-size:13px;font-weight:700;color:#a78bfa;">&mdash;</div>
-                  <div id="synthAiScore"    style="font-size:11px;color:#7c3aed;">&mdash;</div>
+                  <div id="synthAiCategory" style="font-size:13px;font-weight:700;color:#7c3aed;">&mdash;</div>
+                  <div id="synthAiScore"    style="font-size:11px;color:var(--mf-text-muted);">&mdash;</div>
                 </div>
-                <div style="background:#0f172a88;border-radius:6px;padding:10px;">
+                <div class="synth-cell">
                   <div style="font-size:9px;color:#10b981;font-weight:700;letter-spacing:1px;margin-bottom:4px;">KERNEL BLOCKED</div>
-                  <div id="synthKernelLabel"  style="font-size:13px;font-weight:700;color:#34d399;">Checking&hellip;</div>
-                  <div id="synthKernelDetail" style="font-size:11px;color:#10b981;"></div>
+                  <div id="synthKernelLabel"  style="font-size:13px;font-weight:700;color:#10b981;">Checking&hellip;</div>
+                  <div id="synthKernelDetail" style="font-size:11px;color:var(--mf-text-muted);"></div>
                 </div>
-                <div style="background:#0f172a88;border-radius:6px;padding:10px;">
-                  <div style="font-size:9px;color:#22d3ee;font-weight:700;letter-spacing:1px;margin-bottom:4px;">TIME TO BLOCK</div>
-                  <div id="synthTime" style="font-size:22px;font-weight:900;color:#22d3ee;">&mdash; ms</div>
+                <div class="synth-cell">
+                  <div style="font-size:9px;color:#06b6d4;font-weight:700;letter-spacing:1px;margin-bottom:4px;">TIME TO BLOCK</div>
+                  <div id="synthTime" style="font-size:22px;font-weight:900;color:#06b6d4;">&mdash; ms</div>
                 </div>
-                <div style="background:#0f172a88;border-radius:6px;padding:10px;">
+                <div class="synth-cell">
                   <div style="font-size:9px;color:#ef4444;font-weight:700;letter-spacing:1px;margin-bottom:4px;">THREAT TYPE</div>
-                  <div id="synthThreatType" style="font-size:13px;font-weight:700;color:#f87171;">&mdash;</div>
-                  <div id="synthSignals"    style="font-size:11px;color:#ef4444;"></div>
+                  <div id="synthThreatType" style="font-size:13px;font-weight:700;color:#ef4444;">&mdash;</div>
+                  <div id="synthSignals"    style="font-size:11px;color:var(--mf-text-muted);"></div>
                 </div>
               </div>
             </div>
@@ -456,6 +454,29 @@
   from { opacity: 0; transform: translateY(-4px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+
+/* Synthesis hero — light mode */
+.synth-hero {
+  background: linear-gradient(135deg, #fee2e2, #fff1f2);
+  border: 1px solid #fca5a5;
+  border-radius: 8px; padding: 16px; margin-bottom: 12px;
+}
+.synth-hero-title  { font-size:16px; font-weight:900; color:#dc2626; letter-spacing:1px; }
+.synth-hero-source { font-size:14px; font-weight:700; color:#9f1239; margin-bottom:12px; }
+.synth-cell {
+  background: var(--mf-surface-2);
+  border: 1px solid var(--mf-border);
+  border-radius: 6px; padding: 10px;
+}
+
+/* Synthesis hero — dark mode */
+[data-bs-theme="dark"] .synth-hero {
+  background: linear-gradient(135deg, #7f1d1d, #1e293b);
+  border-color: #ef444466;
+}
+[data-bs-theme="dark"] .synth-hero-title  { color: #f87171; }
+[data-bs-theme="dark"] .synth-hero-source { color: #fca5a5; }
+[data-bs-theme="dark"] .synth-cell        { background: #0f172a88; border: none; }
 </style>
 <script>
 (function() {
@@ -491,15 +512,13 @@
     if (!lbl) return;
     if (kernelState.active) {
       lbl.textContent = '\u2714 nftables DROP';
-      lbl.style.color = '#34d399';
-      det.textContent = 'inet/minifw \u00b7 active';
-      det.style.color = '#10b981';
+      lbl.style.color = '#10b981';
     } else {
       lbl.textContent = 'Not enforced';
       lbl.style.color = '#f59e0b';
-      det.textContent = kernelState.detail || '';
-      det.style.color = '#f59e0b';
     }
+    det.textContent = kernelState.active ? 'inet/minifw \u00b7 active' : (kernelState.detail || '');
+    det.style.color = '';
   }
 
   function pollKernel() {
