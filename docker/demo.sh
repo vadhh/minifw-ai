@@ -33,8 +33,6 @@ ACTION="${2:-up}"
 
 # ── Mode definitions ──────────────────────────────────────────
 
-RITAPI_DIR="$(realpath "$(dirname "$0")/../../ritapi/ritapi-adv sc/ritapi-advanced")"
-
 case "$MODE" in
 
   hospital)
@@ -66,6 +64,7 @@ case "$MODE" in
 
   api)
     # RitAPI Advanced lives in a sibling project directory
+    RITAPI_DIR="$(realpath "$(dirname "$0")/../../ritapi/ritapi-adv sc/ritapi-advanced" 2>/dev/null || true)"
     if [[ ! -f "$RITAPI_DIR/docker/demo.yml" ]]; then
       echo ""
       echo "  ERROR: RitAPI Advanced demo not found at:"
