@@ -519,6 +519,7 @@
 
   /* ── Synthesis helpers ─────────────────────────────────────── */
   var lastEventKey = '';
+  var liveBadgeTimer = null;
 
   function scoreColor(score) {
     if (score >= 80) return '#ef4444';
@@ -528,6 +529,8 @@
   }
 
   function renderSynthesis(ev) {
+    var srcEl = document.getElementById('synthSource');
+    if (!srcEl) return;
     var x       = ev.ai_explanation || {};
     var score   = x.score || ev.score || 0;
     var cat     = x.category || ev.type || 'Unknown';
@@ -535,7 +538,7 @@
     var dom     = ev.domain ? ' \u2192 ' + ev.domain : '';
     var signals = [].concat(x.asn || [], x.tls || [], x.behavior || []);
 
-    document.getElementById('synthSource').textContent     = src + dom;
+    srcEl.textContent     = src + dom;
     document.getElementById('synthTimestamp').textContent  = ev.time || '';
     document.getElementById('synthAiCategory').textContent = cat;
     document.getElementById('synthAiScore').textContent    =
@@ -548,8 +551,9 @@
 
     var liveBadge = document.getElementById('synthLiveBadge');
     if (liveBadge) {
+      if (liveBadgeTimer) { clearTimeout(liveBadgeTimer); }
       liveBadge.style.display = '';
-      setTimeout(function() { liveBadge.style.display = 'none'; }, 3000);
+      liveBadgeTimer = setTimeout(function() { liveBadge.style.display = 'none'; }, 3000);
     }
     updateKernelInSynthesis();
   }
@@ -589,9 +593,12 @@
         var status = document.getElementById('synthStatus');
         var badge  = document.getElementById('synthCountBadge');
         var feed   = document.getElementById('synthFeed');
+        if (!badge || !feed) return;
         badge.textContent  = d.count + ' in last 5s';
         status.textContent = 'Live \u00b7 polling every 2s';
         if (dot) dot.classList.remove('inactive');
+        var headerDot = document.getElementById('synthDot');
+        if (headerDot) headerDot.classList.remove('inactive');
 
         clearFeed(feed);
 
@@ -604,7 +611,7 @@
           return;
         }
 
-        var topKey = (d.events[0].time || '') + (d.events[0].source || '');
+        var topKey = (d.events[0].time || '') + (d.events[0].source || d.events[0].client_ip || '');
         if (topKey !== lastEventKey) {
           lastEventKey = topKey;
           renderSynthesis(d.events[0]);
@@ -617,6 +624,8 @@
         var dot    = document.getElementById('synthDotFooter');
         var status = document.getElementById('synthStatus');
         if (dot)    dot.classList.add('inactive');
+        var headerDot = document.getElementById('synthDot');
+        if (headerDot) headerDot.classList.add('inactive');
         if (status) status.textContent = 'Connection error';
       });
   }
