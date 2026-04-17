@@ -1,4 +1,6 @@
 import re
+import threading
+import time as _time
 
 from fastapi import APIRouter, Request, Depends, HTTPException
 from pydantic import BaseModel, field_validator
@@ -963,6 +965,179 @@ def export_audit_logs(
     end_date: Optional[str] = None,
 ):
     return export_audit_logs_controller(db, current_user, format, start_date, end_date)
+
+
+# ============================================================
+# LIVE BLOCK FEED (last 5 seconds of blocked events)
+# ============================================================
+
+
+@router.get("/api/live-blocks")
+def api_live_blocks(current_user: User = Depends(get_current_user)):
+    """
+    Return events blocked within the last 5 seconds.
+    Polled every 2 s by the dashboard Live Block Feed panel.
+    """
+    from app.services.events.get_events_service import get_recent_events
+    from datetime import datetime, timezone, timedelta
+
+    cutoff = datetime.now(timezone.utc) - timedelta(seconds=5)
+    all_events = get_recent_events(limit=200)
+    live = []
+    for ev in all_events:
+        if ev.get("status") != "blocked":
+            continue
+        try:
+            dt = datetime.fromisoformat(ev["time"].replace(" ", "T") + "+00:00")
+        except Exception:
+            continue
+        if dt >= cutoff:
+            live.append({
+                "time": ev["time"],
+                "source": ev.get("source", ""),
+                "client_ip": ev.get("client_ip", ""),
+                "domain": ev.get("domain", ""),
+                "score": ev.get("score", 0),
+                "reason": ev.get("reason", ""),
+                "type": ev.get("type", ""),
+                "ai_explanation": _build_ai_explanation(ev),
+            })
+    return {"count": len(live), "events": live}
+
+
+def _build_ai_explanation(ev: dict) -> dict:
+    """
+    Categorise the raw reasons string into ASN / TLS / Behavior buckets
+    and return a structured explanation dict for the AI Decision panel.
+    """
+    reason = ev.get("reason", "").lower()
+    score = ev.get("score", 0)
+
+    asn_signals = []
+    tls_signals = []
+    behavior_signals = []
+
+    if "asn" in reason:
+        asn_signals.append("ASN blocklist match")
+    if "tor" in reason or "anonymizer" in reason:
+        asn_signals.append("Tor / anonymizer network")
+    if "tls" in reason or "sni" in reason:
+        tls_signals.append("TLS/SNI policy violation")
+    if "dns_tunnel" in reason:
+        behavior_signals.append("DNS tunnelling detected")
+    if "port_scan" in reason or "pps" in reason:
+        behavior_signals.append("Port scan / high PPS")
+    if "burst" in reason or "rate" in reason:
+        behavior_signals.append("Burst / rate-limit breach")
+    if "yara" in reason:
+        behavior_signals.append("YARA pattern match")
+    if "hard_threat_gate" in reason:
+        behavior_signals.append("Hard threat gate triggered")
+    if "mlp_threat_score" in reason or "mlp" in reason:
+        behavior_signals.append(f"AI threat score: {score}")
+    if "ip" in reason and not any(asn_signals + tls_signals + behavior_signals):
+        asn_signals.append("IP blocklist match")
+
+    # Determine dominant category
+    category = "Behavior"
+    if tls_signals and not asn_signals and not behavior_signals:
+        category = "TLS/SNI"
+    elif asn_signals and not behavior_signals:
+        category = "ASN / Network"
+
+    return {
+        "score": score,
+        "category": category,
+        "asn": asn_signals,
+        "tls": tls_signals,
+        "behavior": behavior_signals,
+    }
+
+
+# ============================================================
+# KERNEL PROOF INDICATOR (nftables enforcement check)
+# ============================================================
+
+_kernel_proof_lock = threading.Lock()
+_kernel_proof_cache: dict = {}
+_kernel_proof_expires: float = 0.0
+
+
+@router.get("/api/kernel-proof")
+def api_kernel_proof(current_user: User = Depends(get_current_user)):
+    """
+    Check whether the nftables minifw table/chain is active.
+    Result is cached for 15 s (matching the JS poll interval) to avoid
+    repeated subprocess + audit.jsonl reads across concurrent requests.
+
+    Two-stage detection:
+      Stage 1 — nft list (bare-metal, same network namespace)
+      Stage 2 — audit.jsonl firewall_init sentinel (Docker shared volume)
+    """
+    global _kernel_proof_cache, _kernel_proof_expires
+
+    now = _time.monotonic()
+    with _kernel_proof_lock:
+        if now < _kernel_proof_expires:
+            return dict(_kernel_proof_cache)
+
+    result = _compute_kernel_proof()
+
+    with _kernel_proof_lock:
+        _kernel_proof_cache = result
+        _kernel_proof_expires = _time.monotonic() + 15.0
+
+    return result
+
+
+def _compute_kernel_proof() -> dict:
+    import subprocess
+    import json as _json
+    from pathlib import Path as _Path
+
+    result = {"active": False, "label": "Not active", "detail": "", "table": "minifw"}
+
+    # Stage 1 — direct nft probe (same network namespace)
+    try:
+        out = subprocess.run(
+            ["nft", "list", "table", "inet", "minifw"],
+            capture_output=True, text=True, timeout=3
+        )
+        if out.returncode == 0 and "MiniFW-AI-Blocklist" in out.stdout:
+            result.update(active=True, label="Blocked at kernel level (nftables)",
+                          detail="inet/minifw table active with drop rule")
+            return result
+        if out.returncode == 0:
+            result.update(active=True, label="nftables table active",
+                          detail="inet/minifw table present (drop rule pending first block)")
+            return result
+    except (FileNotFoundError, Exception):
+        pass  # not on same namespace — fall through to Stage 2
+
+    # Stage 2 — audit.jsonl sentinel (Docker shared-volume)
+    audit_log = os.environ.get("MINIFW_AUDIT_LOG", "/opt/minifw_ai/logs/audit.jsonl")
+    try:
+        audit_path = _Path(audit_log)
+        if audit_path.exists():
+            for _line in audit_path.open("r", encoding="utf-8"):
+                _line = _line.strip()
+                if not _line:
+                    continue
+                try:
+                    if _json.loads(_line).get("action") == "firewall_init":
+                        result.update(active=True,
+                                      label="Blocked at kernel level (nftables)",
+                                      detail="Confirmed via engine audit log (Docker deployment)")
+                        return result
+                except _json.JSONDecodeError:
+                    continue
+            result["detail"] = "Engine starting — nftables init pending"
+        else:
+            result["detail"] = "Engine not started (no audit log found)"
+    except Exception as exc:
+        result["detail"] = f"Audit log check failed: {exc}"
+
+    return result
 
 
 # ============================================================

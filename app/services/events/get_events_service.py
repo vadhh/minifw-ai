@@ -2,8 +2,11 @@ from pathlib import Path
 from datetime import datetime
 import json
 import os
+import threading
+import time
 
 BASE_DIR = Path(__file__).resolve().parents[3]
+
 
 def _get_events_file() -> Path:
     """Resolve events log path: MINIFW_LOG env var → project logs/ fallback."""
@@ -13,82 +16,88 @@ def _get_events_file() -> Path:
     return BASE_DIR / "logs" / "events.jsonl"
 
 
-def get_recent_events(limit: int = 100):
-    """
-    Get recent security events from JSONL file.
-    Returns an empty list when the file does not exist (clean-start / demo reset).
-    """
-    events_file = _get_events_file()
-    if not events_file.exists():
-        return []
+# ---------------------------------------------------------------------------
+# File-mtime cache — re-parses events.jsonl only when the file changes.
+# Shared across all callers in the same process (dashboard, live-blocks,
+# datatable, IoMT alerts), so a burst of simultaneous requests pays one
+# parse cost instead of N.
+# ---------------------------------------------------------------------------
 
+class _EventsCache:
+    def __init__(self):
+        self._lock = threading.Lock()
+        self._mtime: float = -1.0
+        self._events: list = []
+
+    def get(self, limit: int) -> list:
+        path = _get_events_file()
+        if not path.exists():
+            return []
+
+        try:
+            current_mtime = path.stat().st_mtime
+        except OSError:
+            return []
+
+        with self._lock:
+            if current_mtime != self._mtime:
+                self._events = _parse_events_file(path)
+                self._mtime = current_mtime
+
+            return self._events[:limit]
+
+
+_cache = _EventsCache()
+
+
+def _parse_events_file(path: Path) -> list:
+    """Read, parse, and sort all events. Called only when the file changes."""
+    events = []
     try:
-        events = []
-        with open(events_file, "r") as f:
+        with path.open("r", encoding="utf-8") as f:
             for line in f:
                 line = line.strip()
                 if not line:
                     continue
                 try:
-                    event = json.loads(line)
-                    events.append(_format_event(event))
-                except json.JSONDecodeError:
+                    events.append(_format_event(json.loads(line)))
+                except (json.JSONDecodeError, Exception):
                     continue
-
         events.sort(key=lambda x: x.get("time", ""), reverse=True)
-        return events[:limit]
-
-    except (IOError, Exception) as e:
+    except (IOError, OSError) as e:
         print(f"Error reading events file: {e}")
-        return []
+    return events
+
+
+def get_recent_events(limit: int = 100):
+    """
+    Return recent security events from the JSONL log.
+
+    Results are served from an in-process file-mtime cache; the file is
+    re-parsed only when its modification time changes, making repeated
+    calls (dashboard render, 2-second live-block poll, datatable query)
+    effectively free until the engine writes a new event.
+    """
+    return _cache.get(limit)
 
 
 def _format_event(event: dict) -> dict:
-    """
-    Format event from JSONL to display format
-
-    Log format:
-    {
-        "ts": "2025-12-17T06:32:51.298337+00:00",
-        "segment": "default",
-        "client_ip": "127.0.0.1",
-        "domain": "chatgpt.com",
-        "action": "allow",
-        "score": 0,
-        "reasons": []
-    }
-
-    Args:
-        event: Raw event dict from JSONL
-
-    Returns:
-        Formatted event dict for DataTable
-    """
-    # Parse timestamp
     timestamp = event.get("ts", "")
     try:
-        # Parse ISO format timestamp
         dt = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
         time_str = dt.strftime("%Y-%m-%d %H:%M:%S")
-    except:
+    except Exception:
         time_str = timestamp
 
-    # Get action (allow/block/deny)
     action = event.get("action", "unknown")
-
-    # Determine event type based on action and reasons
     reasons = event.get("reasons", [])
     event_type = _determine_event_type(action, reasons, event)
-
-    # Get color based on action
     type_color = _get_action_color(action)
 
-    # Get source (domain or IP)
     domain = event.get("domain", "")
     client_ip = event.get("client_ip", "")
     source = f"{domain} ({client_ip})" if domain else client_ip
 
-    # Get status
     if action == "allow":
         status = "allowed"
     elif action == "monitor":
@@ -96,11 +105,8 @@ def _format_event(event: dict) -> dict:
     else:
         status = "blocked"
 
-    # Check if threat detected
     score = event.get("score", 0)
     threat_detected = (score > 0) or (action != "allow") or (len(reasons) > 0)
-
-    # Format reasons
     reason_text = ", ".join(reasons) if reasons else "Normal traffic"
 
     return {
@@ -119,46 +125,28 @@ def _format_event(event: dict) -> dict:
 
 
 def _determine_event_type(action: str, reasons: list, event: dict) -> str:
-    """
-    Determine event type based on action and reasons
-    """
-    # If has reasons, it's a specific block
     if reasons:
-        if "ip" in str(reasons).lower():
+        r = str(reasons).lower()
+        if "ip" in r:
             return "IP Block"
-        elif "domain" in str(reasons).lower():
+        if "domain" in r:
             return "Domain Block"
-        elif "asn" in str(reasons).lower():
+        if "asn" in r:
             return "ASN Block"
-        elif "burst" in str(reasons).lower() or "rate" in str(reasons).lower():
+        if "burst" in r or "rate" in r:
             return "Rate Limit"
-        else:
-            return "Security Block"
+        return "Security Block"
 
-    # Based on action
     if action == "allow":
-        domain = event.get("domain", "")
-        if domain:
-            return "Domain Allow"
-        else:
-            return "Traffic Allow"
-    elif action in ["block", "deny"]:
+        return "Domain Allow" if event.get("domain") else "Traffic Allow"
+    if action in ("block", "deny"):
         return "Traffic Block"
-    else:
-        return "Unknown"
+    return "Unknown"
 
 
 def _get_action_color(action: str) -> str:
-    """
-    Get Bootstrap color class based on action
-    """
-    color_map = {
-        "allow": "success",
-        "block": "danger",
-        "deny": "danger",
-        "warn": "warning",
-    }
-    return color_map.get(action.lower(), "secondary")
+    return {"allow": "success", "block": "danger", "deny": "danger",
+            "warn": "warning"}.get(action.lower(), "secondary")
 
 
 def _get_sample_events():
@@ -166,74 +154,74 @@ def _get_sample_events():
 
 
 def get_event_statistics(events=None):
-    """
-    Get event statistics from a pre-loaded events list or by reading the file.
-    Pass ``events`` from a prior get_recent_events() call to avoid a second read.
-    """
     if events is None:
         events = get_recent_events(limit=500)
-
     stats = {"total_allowed": 0, "total_blocked": 0, "threats_detected": 0}
-    for event in events:
-        if event.get("status") == "allowed":
+    for ev in events:
+        s = ev.get("status")
+        if s == "allowed":
             stats["total_allowed"] += 1
-        elif event.get("status") == "blocked":
+        elif s == "blocked":
             stats["total_blocked"] += 1
-        if event.get("threat_detected", False):
+        if ev.get("threat_detected"):
             stats["threats_detected"] += 1
     return stats
 
 
 def get_detection_counters(events=None):
-    """
-    Get detection type counters from a pre-loaded events list or by reading the file.
-    Pass ``events`` from a prior get_recent_events() call to avoid a second read.
-    """
     if events is None:
         events = get_recent_events(limit=500)
-
     counters = {
-        "hard_gate": 0,
-        "ai_scored": 0,
-        "yara": 0,
-        "dns_tunnel": 0,
-        "port_scan": 0,
-        "tor_anon": 0,
-        "sni_hits": 0,
+        "hard_gate": 0, "ai_scored": 0, "yara": 0,
+        "dns_tunnel": 0, "port_scan": 0, "tor_anon": 0, "sni_hits": 0,
     }
-    for event in events:
-        reason = event.get("reason", "").lower()
-        if "hard_threat_gate" in reason:
-            counters["hard_gate"] += 1
-        if "mlp_threat_score" in reason:
-            counters["ai_scored"] += 1
-        if "yara" in reason:
-            counters["yara"] += 1
-        if "dns_tunnel" in reason:
-            counters["dns_tunnel"] += 1
-        if "port_scan" in reason or "pps" in reason:
-            counters["port_scan"] += 1
-        if "tor" in reason or "anonymizer" in reason:
-            counters["tor_anon"] += 1
-        if "tls_sni" in reason or "sni_deny" in reason or "sni" in reason:
-            counters["sni_hits"] += 1
+    for ev in events:
+        r = ev.get("reason", "").lower()
+        if "hard_threat_gate" in r:   counters["hard_gate"]  += 1
+        if "mlp_threat_score" in r:   counters["ai_scored"]  += 1
+        if "yara" in r:               counters["yara"]       += 1
+        if "dns_tunnel" in r:         counters["dns_tunnel"] += 1
+        if "port_scan" in r or "pps" in r: counters["port_scan"] += 1
+        if "tor" in r or "anonymizer" in r: counters["tor_anon"] += 1
+        if "tls_sni" in r or "sni_deny" in r or "sni" in r: counters["sni_hits"] += 1
     return counters
+
+
+# ---------------------------------------------------------------------------
+# Collector status — TTL cache (10 s).  Reads policy.json + 3 stat() calls;
+# not worth repeating on every dashboard render or live-blocks poll.
+# ---------------------------------------------------------------------------
+
+class _TTLCache:
+    """Generic TTL cache for a single computed value."""
+    def __init__(self, ttl: float):
+        self._ttl = ttl
+        self._value = None
+        self._expires = 0.0
+        self._lock = threading.Lock()
+
+    def get_or_compute(self, fn):
+        now = time.monotonic()
+        with self._lock:
+            if now < self._expires:
+                return self._value
+            self._value = fn()
+            self._expires = now + self._ttl
+            return self._value
+
+
+_collector_cache = _TTLCache(ttl=10.0)
 
 
 def get_collector_status():
     """
-    Check live status of data collectors: Zeek TLS, DNS (dnsmasq), and flow tracking (conntrack).
-
-    DNS log path is resolved from policy.json (collectors.dnsmasq_log_path) so it works
-    regardless of deployment layout — bare-metal (/var/log/dnsmasq.log) or Docker
-    (/opt/minifw_ai/logs/dnsmasq.log). Falls back to the hardcoded default if the policy
-    cannot be read.
-
-    Returns a dict with active flag and label for each collector.
+    Check live status of data collectors: Zeek TLS, DNS (dnsmasq), flow tracking.
+    Result is cached for 10 seconds to avoid repeated policy.json reads.
     """
-    from pathlib import Path
+    return _collector_cache.get_or_compute(_compute_collector_status)
 
-    # Resolve dnsmasq log path from policy.json; fall back to OS default
+
+def _compute_collector_status() -> dict:
     _default_dns_log = "/var/log/dnsmasq.log"
     policy_path = os.environ.get("MINIFW_POLICY", "/opt/minifw_ai/config/policy.json")
     try:
@@ -245,32 +233,23 @@ def get_collector_status():
     except Exception:
         pass
 
-    zeek_log = Path("/var/log/zeek/ssl.log")
-    dns_log = Path(_default_dns_log)
-    conntrack = Path("/proc/net/nf_conntrack")
-
     def _status(active: bool) -> dict:
-        return {"active": active, "label": "Active" if active else "Inactive",
+        return {"active": active,
+                "label": "Active" if active else "Inactive",
                 "color": "success" if active else "secondary"}
 
     return {
-        "zeek": _status(zeek_log.exists()),
-        "dns": _status(dns_log.exists()),
-        "conntrack": _status(conntrack.exists()),
+        "zeek":     _status(Path("/var/log/zeek/ssl.log").exists()),
+        "dns":      _status(Path(_default_dns_log).exists()),
+        "conntrack": _status(Path("/proc/net/nf_conntrack").exists()),
     }
 
 
-def get_system_uptime():
-    """
-    Calculate system uptime as a percentage based on /proc/uptime.
-    Returns uptime relative to a 30-day reference window.
-    Falls back to "N/A" if /proc/uptime is unavailable.
-    """
+def get_system_uptime() -> str:
     try:
         with open("/proc/uptime") as f:
             uptime_seconds = float(f.read().split()[0])
-        reference = 30 * 24 * 3600  # 30-day window
-        pct = min(uptime_seconds / reference * 100, 100.0)
+        pct = min(uptime_seconds / (30 * 24 * 3600) * 100, 100.0)
         return f"{pct:.1f}%"
     except Exception:
         return "N/A"

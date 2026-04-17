@@ -50,6 +50,16 @@
     });
   }
 
+  // ── Local SVG avatar — no external requests ──────────────────
+  function makeAvatar(initials, bg, fg, size) {
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + size + '" height="' + size + '">'
+      + '<rect width="100%" height="100%" fill="' + bg + '"/>'
+      + '<text x="50%" y="50%" dominant-baseline="central" text-anchor="middle"'
+      + ' font-family="system-ui,sans-serif" font-size="' + Math.round(size * 0.4) + '"'
+      + ' font-weight="600" fill="' + fg + '">' + initials + '</text></svg>';
+    return 'data:image/svg+xml;base64,' + btoa(svg);
+  }
+
   // ── Populate navbar user info from /admin/api/auth/current-user ──
   fetch('/admin/api/auth/current-user', { credentials: 'same-origin' })
     .then(function (r) { return r.ok ? r.json() : null; })
@@ -58,8 +68,8 @@
       const name   = user.full_name || user.username || 'User';
       const initials = name.split(' ').map(function (n) { return n[0]; }).join('').slice(0, 2).toUpperCase();
       const role   = (user.role || '').replace(/_/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); });
-      const avatarUrl = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(initials) + '&background=4f46e5&color=fff&size=128';
-      const avatarUrlWhite = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(initials) + '&background=ffffff&color=4f46e5&size=128';
+      const avatarUrl      = makeAvatar(initials, '#4f46e5', '#fff', 128);
+      const avatarUrlWhite = makeAvatar(initials, '#ffffff', '#4f46e5', 128);
 
       var el;
       el = document.getElementById('navUsername');       if (el) el.textContent = initials;

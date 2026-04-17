@@ -296,6 +296,80 @@
       </div>
     </div>
 
+    <!-- Live Block Feed + AI Decision Explanation + Kernel Proof -->
+    <div class="row g-3 mb-4">
+
+      <!-- Live Block Feed -->
+      <div class="col-lg-5">
+        <div class="card h-100">
+          <div class="card-header d-flex align-items-center justify-content-between">
+            <span><i class="bi bi-broadcast me-1" style="color:#ef4444;"></i> Live Block Feed</span>
+            <span class="badge" id="lbfCountBadge"
+                  style="background:#fef2f2;color:#ef4444;font-size:11px;">0 in last 5s</span>
+          </div>
+          <div class="card-body p-0" style="max-height:280px;overflow-y:auto;">
+            <ul class="list-group list-group-flush" id="liveBlockList">
+              <li class="list-group-item text-center py-4" id="lbfEmpty"
+                  style="background:transparent;color:var(--mf-text-muted);font-size:13px;">
+                <i class="bi bi-shield-check fs-4 d-block mb-1 opacity-25"></i>
+                No blocks in the last 5 seconds
+              </li>
+            </ul>
+          </div>
+          <div class="card-footer d-flex align-items-center gap-2"
+               style="font-size:11px;color:var(--mf-text-muted);">
+            <span class="pulse-dot" id="lbfDot"></span>
+            <span id="lbfStatus">Connecting…</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI Decision Explanation -->
+      <div class="col-lg-4">
+        <div class="card h-100">
+          <div class="card-header">
+            <i class="bi bi-cpu me-1" style="color:#7c3aed;"></i> AI Decision Explanation
+          </div>
+          <div class="card-body" id="aiExplainBody">
+            <div class="text-center py-4" style="color:var(--mf-text-muted);font-size:13px;">
+              <i class="bi bi-clock fs-4 d-block mb-1 opacity-25"></i>
+              Waiting for a block event…
+            </div>
+          </div>
+          <div class="card-footer" style="font-size:11px;color:var(--mf-text-muted);">
+            <i class="bi bi-info-circle me-1"></i>
+            Updates on each new blocked event
+          </div>
+        </div>
+      </div>
+
+      <!-- Kernel Proof Indicator -->
+      <div class="col-lg-3">
+        <div class="card h-100">
+          <div class="card-header">
+            <i class="bi bi-terminal me-1" style="color:#0891b2;"></i> Kernel Enforcement
+          </div>
+          <div class="card-body d-flex flex-column align-items-center justify-content-center gap-3 py-4">
+            <div id="kernelIcon" style="font-size:2.5rem;color:#64748b;">
+              <i class="bi bi-hourglass-split"></i>
+            </div>
+            <div id="kernelLabel"
+                 style="font-size:13px;font-weight:600;text-align:center;color:var(--mf-text-muted);">
+              Checking…
+            </div>
+            <div id="kernelDetail"
+                 style="font-size:11px;text-align:center;color:var(--mf-text-muted);line-height:1.4;">
+            </div>
+            <div id="kernelBadge"></div>
+          </div>
+          <div class="card-footer" style="font-size:11px;color:var(--mf-text-muted);">
+            <i class="bi bi-shield-lock me-1"></i> nftables · table&nbsp;<code>inet/minifw</code>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
     <!-- Protection summary -->
     <div class="row g-3">
       <div class="col-12">
@@ -338,25 +412,48 @@
 {% endblock %}
 
 {% block extra_js %}
+<style>
+.pulse-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #10b981; display: inline-block; flex-shrink: 0;
+  animation: pulse-green 2s infinite;
+}
+.pulse-dot.inactive { background: #94a3b8; animation: none; }
+@keyframes pulse-green {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: .5; transform: scale(1.3); }
+}
+.lbf-row {
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--mf-border, #e2e8f0);
+  background: transparent;
+  animation: lbf-fade-in .3s ease;
+}
+@keyframes lbf-fade-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.ai-score-bar-wrap { background: #f1f5f9; border-radius: 4px; height: 8px; overflow: hidden; }
+.ai-score-bar      { height: 8px; border-radius: 4px; transition: width .4s ease; }
+.sig-pill {
+  display: inline-block; padding: 2px 8px; border-radius: 20px;
+  font-size: 11px; font-weight: 500; margin: 2px 2px 0 0;
+}
+</style>
 <script>
 (function() {
-  // Sector-lock badge — enriched with product_mode / mode_label from API
+  /* ── Sector-lock badge ─────────────────────────────────────── */
   fetch('/admin/api/sector-lock', { credentials: 'same-origin' })
     .then(function(r) { return r.ok ? r.json() : null; })
     .then(function(data) {
       var el = document.getElementById('protectionStateBadge');
       if (!el || !data) return;
-
       var label = data.mode_label || (data.sector
         ? data.sector.charAt(0).toUpperCase() + data.sector.slice(1) + ' Sector'
         : 'Default');
-
       el.textContent = label;
       el.className   = 'mf-sector-badge';
-
-      if (data.sector) {
-        el.classList.add('mf-sector-' + data.sector);
-      }
+      if (data.sector)     el.classList.add('mf-sector-' + data.sector);
       if (data.mode_color) {
         el.style.setProperty('color',      data.mode_color);
         el.style.setProperty('background', data.mode_color + '18');
@@ -367,6 +464,217 @@
       var el = document.getElementById('protectionStateBadge');
       if (el) el.textContent = 'N/A';
     });
+
+  /* ── Kernel Proof Indicator ────────────────────────────────── */
+  function loadKernelProof() {
+    fetch('/admin/api/kernel-proof', { credentials: 'same-origin' })
+      .then(function(r) { return r.ok ? r.json() : null; })
+      .then(function(d) {
+        if (!d) return;
+        var icon   = document.getElementById('kernelIcon');
+        var label  = document.getElementById('kernelLabel');
+        var detail = document.getElementById('kernelDetail');
+        var badge  = document.getElementById('kernelBadge');
+        if (d.active) {
+          /* Bootstrap Icons are internal markup, not user data */
+          icon.innerHTML  = '<i class="bi bi-shield-fill-check" style="color:#10b981;"></i>';
+          label.style.color = '#10b981';
+          label.textContent = '\u2714 Blocked at kernel level (nftables)';
+          badge.innerHTML = '<span class="badge" style="background:#f0fdf4;color:#10b981;border:1px solid #bbf7d0;font-size:11px;">Active</span>';
+        } else {
+          icon.innerHTML  = '<i class="bi bi-shield-exclamation" style="color:#f59e0b;"></i>';
+          label.style.color = '#f59e0b';
+          label.textContent = 'Kernel enforcement not active';
+          badge.innerHTML = '<span class="badge" style="background:#fffbeb;color:#f59e0b;border:1px solid #fde68a;font-size:11px;">Inactive</span>';
+        }
+        /* d.detail is server-controlled status text — use textContent */
+        detail.textContent = d.detail || '';
+      })
+      .catch(function() {});
+  }
+  loadKernelProof();
+  setInterval(loadKernelProof, 15000);
+
+  /* ── Live Block Feed + AI Decision Explanation ─────────────── */
+  var lastEventKey = '';
+
+  function scoreColor(score) {
+    if (score >= 80) return '#ef4444';
+    if (score >= 50) return '#f59e0b';
+    if (score >= 20) return '#6366f1';
+    return '#64748b';
+  }
+
+  function makePill(text, color) {
+    var span = document.createElement('span');
+    span.className = 'sig-pill';
+    span.style.cssText = 'background:' + color + '18;color:' + color + ';border:1px solid ' + color + '33;';
+    span.textContent = text; /* textContent prevents XSS */
+    return span;
+  }
+
+  function renderAiExplain(ev) {
+    var x     = ev.ai_explanation || {};
+    var score = x.score || 0;
+    var pct   = Math.min(score, 100);
+    var cat   = x.category || 'Unknown';
+    var catColor = cat === 'TLS/SNI' ? '#0891b2' : cat === 'ASN / Network' ? '#f59e0b' : '#7c3aed';
+    var body  = document.getElementById('aiExplainBody');
+    body.textContent = '';
+
+    /* Header */
+    var hdr = document.createElement('div');
+    hdr.className = 'mb-3 pb-2';
+    hdr.style.borderBottom = '1px solid var(--mf-border, #e2e8f0)';
+    var lbl = document.createElement('div');
+    lbl.style.cssText = 'font-size:11px;color:var(--mf-text-muted);';
+    lbl.textContent = 'Last blocked event';
+    hdr.appendChild(lbl);
+    var srcLine = document.createElement('div');
+    srcLine.style.cssText = 'font-size:13px;font-weight:600;';
+    srcLine.textContent = ev.source || ev.client_ip || '\u2014';
+    if (ev.domain) {
+      var domSpan = document.createElement('span');
+      domSpan.style.cssText = 'color:var(--mf-text-muted);font-size:12px;';
+      domSpan.textContent = ' \u2192 ' + ev.domain;
+      srcLine.appendChild(domSpan);
+    }
+    hdr.appendChild(srcLine);
+    var timeLine = document.createElement('div');
+    timeLine.style.cssText = 'font-size:11px;color:var(--mf-text-muted);';
+    timeLine.textContent = ev.time || '';
+    hdr.appendChild(timeLine);
+    body.appendChild(hdr);
+
+    /* Score bar */
+    var scoreWrap = document.createElement('div');
+    scoreWrap.className = 'mb-3';
+    var scoreRow = document.createElement('div');
+    scoreRow.className = 'd-flex justify-content-between align-items-center mb-1';
+    var scoreLbl = document.createElement('span');
+    scoreLbl.style.cssText = 'font-size:12px;font-weight:600;color:var(--mf-text-muted);';
+    scoreLbl.textContent = 'AI Threat Score';
+    scoreRow.appendChild(scoreLbl);
+    var scoreVal = document.createElement('span');
+    scoreVal.style.cssText = 'font-size:1.2rem;font-weight:800;color:' + scoreColor(score) + ';';
+    scoreVal.textContent = score;
+    scoreRow.appendChild(scoreVal);
+    scoreWrap.appendChild(scoreRow);
+    var barWrap = document.createElement('div');
+    barWrap.className = 'ai-score-bar-wrap';
+    var bar = document.createElement('div');
+    bar.className = 'ai-score-bar';
+    bar.style.cssText = 'width:' + pct + '%;background:' + scoreColor(score) + ';';
+    barWrap.appendChild(bar);
+    scoreWrap.appendChild(barWrap);
+    body.appendChild(scoreWrap);
+
+    /* Category */
+    var catRow = document.createElement('div');
+    catRow.className = 'mb-2';
+    var catLbl = document.createElement('span');
+    catLbl.style.cssText = 'font-size:11px;font-weight:600;color:var(--mf-text-muted);';
+    catLbl.textContent = 'Category';
+    catRow.appendChild(catLbl);
+    catRow.appendChild(document.createTextNode(' '));
+    catRow.appendChild(makePill(cat, catColor));
+    body.appendChild(catRow);
+
+    /* Signal groups */
+    var groups = [
+      { label: 'ASN / Network', items: x.asn,      color: '#f59e0b' },
+      { label: 'TLS / SNI',     items: x.tls,      color: '#0891b2' },
+      { label: 'Behavior',      items: x.behavior,  color: '#7c3aed' },
+    ];
+    groups.forEach(function(g) {
+      var grp = document.createElement('div');
+      grp.className = 'mb-2';
+      var glbl = document.createElement('div');
+      glbl.style.cssText = 'font-size:11px;font-weight:600;color:var(--mf-text-muted);margin-bottom:3px;';
+      glbl.textContent = g.label;
+      grp.appendChild(glbl);
+      if (!g.items || !g.items.length) {
+        var dash = document.createElement('span');
+        dash.style.cssText = 'color:var(--mf-text-muted);font-size:11px;';
+        dash.textContent = '\u2014';
+        grp.appendChild(dash);
+      } else {
+        g.items.forEach(function(sig) { grp.appendChild(makePill(sig, g.color)); });
+      }
+      body.appendChild(grp);
+    });
+  }
+
+  function buildLbfRow(ev) {
+    var li = document.createElement('li');
+    li.className = 'lbf-row';
+    if (ev.score > 0) {
+      var scBadge = document.createElement('span');
+      scBadge.style.cssText = 'float:right;font-size:11px;font-weight:700;color:' + scoreColor(ev.score) + ';';
+      scBadge.textContent = 'score ' + ev.score;
+      li.appendChild(scBadge);
+    }
+    var srcEl = document.createElement('div');
+    srcEl.style.cssText = 'font-size:12px;font-weight:600;';
+    srcEl.textContent = ev.source || ev.client_ip || '\u2014';
+    if (ev.domain) {
+      var domEl = document.createElement('span');
+      domEl.style.cssText = 'color:var(--mf-text-muted);font-size:11px;';
+      domEl.textContent = ' \u2192 ' + ev.domain;
+      srcEl.appendChild(domEl);
+    }
+    li.appendChild(srcEl);
+    var timeEl = document.createElement('div');
+    timeEl.style.cssText = 'font-size:10px;color:#ef4444;';
+    timeEl.textContent = ev.time || '';
+    li.appendChild(timeEl);
+    if (ev.reason) {
+      var reas = document.createElement('div');
+      reas.style.cssText = 'font-size:10px;color:var(--mf-text-muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;';
+      reas.textContent = ev.reason;
+      li.appendChild(reas);
+    }
+    return li;
+  }
+
+  function pollLiveBlocks() {
+    fetch('/admin/api/live-blocks', { credentials: 'same-origin' })
+      .then(function(r) { return r.ok ? r.json() : null; })
+      .then(function(d) {
+        if (!d) return;
+        var dot    = document.getElementById('lbfDot');
+        var status = document.getElementById('lbfStatus');
+        var badge  = document.getElementById('lbfCountBadge');
+        var list   = document.getElementById('liveBlockList');
+        var empty  = document.getElementById('lbfEmpty');
+        badge.textContent = d.count + ' in last 5s';
+        status.textContent = 'Live \u00b7 polling every 2s';
+        dot.classList.remove('inactive');
+        list.querySelectorAll('.lbf-row').forEach(function(el) { el.remove(); });
+        if (!d.events || d.events.length === 0) {
+          if (empty) empty.style.display = '';
+          return;
+        }
+        if (empty) empty.style.display = 'none';
+        var topKey = (d.events[0].time || '') + (d.events[0].source || '');
+        var changed = topKey !== lastEventKey;
+        lastEventKey = topKey;
+        d.events.forEach(function(ev) {
+          list.insertBefore(buildLbfRow(ev), list.firstChild);
+        });
+        if (changed) renderAiExplain(d.events[0]);
+      })
+      .catch(function() {
+        var dot    = document.getElementById('lbfDot');
+        var status = document.getElementById('lbfStatus');
+        if (dot)    dot.classList.add('inactive');
+        if (status) status.textContent = 'Connection error';
+      });
+  }
+
+  pollLiveBlocks();
+  setInterval(pollLiveBlocks, 2000);
+
 })();
 </script>
 {% endblock %}

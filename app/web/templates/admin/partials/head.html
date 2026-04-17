@@ -5,15 +5,25 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="color-scheme" content="light dark" />
 
-  <!-- Font -->
-  <link rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/@fontsource/source-sans-3@5.0.12/index.css" />
+  <!-- Preconnect to CDNs used below — resolves DNS before the browser
+       needs the stylesheets, cutting ~100–300 ms on cold loads. -->
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
 
-  <!-- Bootstrap Icons -->
+  <!-- Bootstrap Icons (icons are used throughout; load early) -->
   <link rel="stylesheet"
     href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" />
 
-  <!-- OverlayScrollbars -->
+  <!-- Source Sans 3 — font-display:swap so text renders immediately in
+       the system font while the web font loads in the background. -->
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/@fontsource/source-sans-3@5.0.12/index.css"
+    media="print" onload="this.media='all'" />
+  <noscript>
+    <link rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@fontsource/source-sans-3@5.0.12/index.css" />
+  </noscript>
+
+  <!-- OverlayScrollbars CSS -->
   <link rel="stylesheet"
     href="https://cdn.jsdelivr.net/npm/overlayscrollbars@2.11.0/styles/overlayscrollbars.min.css" />
 
@@ -28,10 +38,25 @@
   {% block extra_css %}{% endblock %}
 
   <script>
-    // Apply saved theme before paint to avoid flash
+    // Apply saved theme before paint to avoid flash.
+    // Also injects font-display:swap so Source Sans 3 never blocks rendering.
     (function () {
-      const t = localStorage.getItem('mf-theme') || 'light';
+      var t = localStorage.getItem('mf-theme') || 'light';
       document.documentElement.setAttribute('data-bs-theme', t);
+      // Patch the fontsource stylesheet to use font-display:swap once loaded.
+      document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('link[href*="source-sans"]').forEach(function (l) {
+          if (l.sheet) {
+            try {
+              Array.from(l.sheet.cssRules || []).forEach(function (r) {
+                if (r.style && r.style.fontDisplay !== undefined) {
+                  r.style.fontDisplay = 'swap';
+                }
+              });
+            } catch (e) { /* cross-origin sheets may block access */ }
+          }
+        });
+      });
     })();
   </script>
 </head>

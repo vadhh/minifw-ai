@@ -3,6 +3,8 @@ from datetime import datetime
 import subprocess
 import json
 import os
+import threading
+import time
 
 from app.services.allow_domain.get_allow_domains_service import get_allow_domains
 from app.services.deny_ip.get_deny_ips_service import get_deny_ips
@@ -19,23 +21,42 @@ from app.services.events.get_events_service import (
 from app.web.templates_config import templates
 
 
-def get_service_status():
+# ---------------------------------------------------------------------------
+# TTL cache for service_status — avoids a pgrep subprocess + file read on
+# every dashboard page load.  5-second TTL keeps the display responsive.
+# ---------------------------------------------------------------------------
+
+class _TTLCache:
+    def __init__(self, ttl: float):
+        self._ttl = ttl
+        self._value = None
+        self._expires = 0.0
+        self._lock = threading.Lock()
+
+    def get_or_compute(self, fn):
+        now = time.monotonic()
+        with self._lock:
+            if now < self._expires:
+                return self._value
+            self._value = fn()
+            self._expires = now + self._ttl
+            return self._value
+
+
+_service_status_cache = _TTLCache(ttl=5.0)
+
+
+def _compute_service_status() -> dict:
     """
     Check if the minifw_ai engine is running and get its mode.
 
-    Process detection uses a two-stage approach so it works both on a single
-    host (systemd) and in a containerised deployment where the engine and web
-    run in separate containers and pgrep cannot see cross-container processes:
-
-      Stage 1 — pgrep (works on bare-metal / single-host installs)
-      Stage 2 — audit log sentinel (works in Docker; engine writes audit.jsonl
-                 at startup via audit_daemon_start(), visible on the shared volume)
-
-    Returns a dict with label, color, and mode.
+    Two-stage detection:
+      Stage 1 — pgrep (same-host / bare-metal installs)
+      Stage 2 — audit log sentinel (Docker; engine writes audit.jsonl at
+                 startup on the shared volume before processing events)
     """
     status = {"label": "Stopped", "color": "danger", "mode": "Unknown"}
 
-    # Stage 1: same-host process check
     engine_running = False
     try:
         subprocess.check_call(
@@ -45,8 +66,6 @@ def get_service_status():
     except (subprocess.CalledProcessError, FileNotFoundError):
         pass
 
-    # Stage 2: cross-container / shared-volume check — engine writes audit.jsonl
-    # at startup (audit_daemon_start) and events.jsonl on every processed event.
     audit_log = os.environ.get("MINIFW_AUDIT_LOG", "/opt/minifw_ai/logs/audit.jsonl")
     events_log = os.environ.get("MINIFW_LOG", "/opt/minifw_ai/logs/events.jsonl")
     if not engine_running:
@@ -55,7 +74,6 @@ def get_service_status():
     status["label"] = "Active" if engine_running else "Stopped"
     status["color"] = "success" if engine_running else "danger"
 
-    # Deployment mode from state file (written by state_manager on transitions)
     state_file = "/opt/minifw_ai/logs/deployment_state.json"
     if os.path.exists(state_file):
         try:
@@ -71,33 +89,25 @@ def get_service_status():
     return status
 
 
-def dashboard_controller(request: Request):
-    """
-    Dashboard controller for Minifw-AI
-    Shows statistics and recent events
-    """
+def get_service_status() -> dict:
+    return _service_status_cache.get_or_compute(_compute_service_status)
 
-    # Get counts from all firewall rules
+
+def dashboard_controller(request: Request):
     allow_domains = len(get_allow_domains())
     deny_ips = len(get_deny_ips())
     deny_asns = len(get_deny_asns())
     deny_domains = len(get_deny_domains())
 
-    # Read events once — reuse the same list for stats and counters.
     all_events = get_recent_events(limit=500)
     events = all_events[:5]
     event_stats = get_event_statistics(events=all_events)
     detection_counters = get_detection_counters(events=all_events)
 
     uptime = get_system_uptime()
-
-    # Get service status
     service_status = get_service_status()
-
-    # Get collector status (Zeek, DNS, conntrack)
     collector_status = get_collector_status()
 
-    # Calculate total rules
     total_rules = allow_domains + deny_ips + deny_asns + deny_domains
 
     return templates.TemplateResponse(
@@ -126,10 +136,6 @@ def dashboard_controller(request: Request):
 
 
 def get_dashboard_stats():
-    """
-    Helper function to get dashboard statistics
-    Can be called from API endpoints
-    """
     allow_domains = len(get_allow_domains())
     deny_ips = len(get_deny_ips())
     deny_asns = len(get_deny_asns())
