@@ -34,8 +34,8 @@
   --mf-radius-xl:      24px;
 
   --mf-ease:           cubic-bezier(0.4, 0, 0.2, 1);
-  --mf-transition:     0.2s var(--mf-ease);
-  --mf-transition-lg:  0.35s var(--mf-ease);
+  --mf-transition:     3s var(--mf-ease);
+  --mf-transition-lg:  1s var(--mf-ease);
 
   --mf-sidebar-width:  260px;
   --mf-navbar-h:       56px;
@@ -235,6 +235,7 @@ body {
   background: var(--mf-surface) !important;
   border-right: 1px solid var(--mf-border) !important;
   box-shadow: var(--mf-shadow) !important;
+  color: var(--mf-text) !important;
   position: fixed !important;
   top: var(--mf-navbar-h) !important;
   left: 0 !important;
@@ -243,7 +244,7 @@ body {
   z-index: 1020 !important;
   display: none;
   transform: translateX(-100%);
-  transition: transform 0.3s ease;
+  transition: transform 0.3s ease, background-color var(--mf-transition), border-color var(--mf-transition), color var(--mf-transition);
 }
 
 /* Sidebar visible saat hamburger diklik di mobile */
@@ -266,9 +267,11 @@ body.sidebar-expand-lg .app-sidebar {
   }
 }
 
+/* Dark mode - sidebar berubah menjadi gelap */
 [data-bs-theme="dark"] .app-sidebar {
-  background: #0f1624 !important;
-  border-right-color: #1e2d45 !important;
+  background: var(--mf-surface) !important;
+  border-right-color: var(--mf-border) !important;
+  color: var(--mf-text) !important;
 }
 
 .sidebar-brand {
@@ -276,6 +279,7 @@ body.sidebar-expand-lg .app-sidebar {
   border-bottom: 1px solid var(--mf-border);
   display: flex;
   align-items: center;
+  transition: border-color var(--mf-transition), background-color var(--mf-transition);
 }
 .brand-link {
   display: flex !important;
@@ -302,6 +306,7 @@ body.sidebar-expand-lg .app-sidebar {
   letter-spacing: 1.2px;
   color: var(--mf-text-muted) !important;
   padding: 16px 16px 4px !important;
+  transition: color var(--mf-transition);
 }
 
 .sidebar-menu .nav-item {
@@ -330,6 +335,7 @@ body.sidebar-expand-lg .app-sidebar {
   font-weight: 500;
   position: relative;
   overflow: hidden;
+  transition: color var(--mf-transition), background-color var(--mf-transition), transform var(--mf-transition);
 }
 .sidebar-menu .nav-link::before {
   content: '';
@@ -1086,6 +1092,7 @@ body.sidebar-expand-lg .app-sidebar {
   font-weight:    600;
   letter-spacing: 0.4px;
   text-transform: uppercase;
+  transition: background-color var(--mf-transition), color var(--mf-transition), border-color var(--mf-transition);
 }
 
 /* ── 33. Sector badge (existing — extend with product_mode) ── */
