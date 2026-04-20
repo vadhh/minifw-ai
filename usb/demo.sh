@@ -50,4 +50,4 @@ trap 'echo ""; echo "  Demo stopped. To clean up: docker compose -f \"${COMPOSE_
 
 docker compose -f "$COMPOSE_FILE" \
     --project-directory "$USB_DIR" \
-    up --remove-orphans
+    up

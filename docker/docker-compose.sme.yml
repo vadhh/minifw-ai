@@ -12,6 +12,7 @@ services:
     build:
       context: ..
       dockerfile: docker/Dockerfile
+    image: minifw-establishment-engine
     container_name: minifw_sme_engine
     cap_add:
       - NET_ADMIN
@@ -46,6 +47,7 @@ services:
     build:
       context: ..
       dockerfile: docker/Dockerfile
+    image: minifw-establishment-web
     container_name: minifw_sme_web
     depends_on:
       engine:
@@ -71,6 +73,7 @@ services:
   injector:
     build:
       context: demo-injector-sme/
+    image: minifw-establishment-injector
     container_name: minifw_sme_injector
     depends_on:
       engine:

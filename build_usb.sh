@@ -106,12 +106,11 @@ for feed in \
     fi
 done
 
-# YARA rules — sme only
-mkdir -p "${STAGE_DIR}/yara_rules"
-if [[ -f yara_rules/sme_rules.yar ]]; then
-    cp yara_rules/sme_rules.yar "${STAGE_DIR}/yara_rules/sme_rules.yar"
+# YARA rules — copy entire directory
+if [[ -d yara_rules ]]; then
+    cp -r yara_rules/ "${STAGE_DIR}/yara_rules/"
 else
-    log "WARNING: yara_rules/sme_rules.yar not found — skipping"
+    log "WARNING: yara_rules/ not found — skipping"
 fi
 
 # Images tar

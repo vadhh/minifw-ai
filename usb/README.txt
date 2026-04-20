@@ -22,13 +22,15 @@ Run the Demo
 
 Stop
 ----
-  Ctrl+C in the terminal, then:
+  Ctrl+C in the terminal. The demo script will print the cleanup command.
+  To force-stop manually (run from the USB root directory):
 
   docker compose -f docker/docker-compose.usb-sme.yml down
 
 Troubleshooting
 ---------------
   Port 8444 in use?
+    (from the USB root directory)
     docker compose -f docker/docker-compose.usb-sme.yml down
     then re-run demo.sh
 
