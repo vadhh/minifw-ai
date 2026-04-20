@@ -14,12 +14,18 @@ COMPOSE_FILE="${USB_DIR}/docker/docker-compose.usb-sme.yml"
 log()  { echo "[minifw-demo] $*"; }
 die()  { echo "[minifw-demo] ERROR: $*" >&2; exit 1; }
 
+# ── Guard checks ──────────────────────────────────────────────────────────────
+
+[[ -f "$COMPOSE_FILE" ]] || die "Compose file not found: ${COMPOSE_FILE} — is the USB copy complete?"
+
 command -v docker >/dev/null 2>&1 || die "Docker is not installed or not in PATH"
 docker compose version >/dev/null 2>&1  || die "Docker Compose v2 is required (docker compose)"
+docker info >/dev/null 2>&1 || die "Docker daemon is not running. On Windows: open Docker Desktop. On Linux: sudo systemctl start docker"
 
 # ── Load images if not already present ───────────────────────────────────────
 
-if ! docker image inspect "$IMAGE_TAG" >/dev/null 2>&1; then
+if ! docker image inspect "$IMAGE_TAG" >/dev/null 2>&1 || \
+   ! docker image inspect "$INJECTOR_TAG" >/dev/null 2>&1; then
     log "Images not found on this machine — loading from USB (this takes ~2-3 minutes)..."
     [[ -f "$IMAGE_TAR" ]] || die "Image archive not found: ${IMAGE_TAR}"
     docker load -i "$IMAGE_TAR"
@@ -40,6 +46,8 @@ echo ""
 echo "  Ctrl+C to stop."
 echo ""
 
+trap 'echo ""; echo "  Demo stopped. To clean up: docker compose -f \"${COMPOSE_FILE}\" down"' EXIT
+
 docker compose -f "$COMPOSE_FILE" \
     --project-directory "$USB_DIR" \
-    up
+    up --remove-orphans
