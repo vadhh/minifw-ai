@@ -4,7 +4,7 @@
 #
 # Usage:
 #   bash build_usb.sh              # → dist/minifw-usb-establishment-v2.2.0/
-#   bash build_usb.sh 2.3.0        # → minifw-usb-establishment-v2.3.0/
+#   bash build_usb.sh 2.3.0        # → dist/minifw-usb-establishment-v2.3.0/
 #
 # After this script completes, copy dist/minifw-usb-establishment-vX.Y.Z/
 # to the root of a formatted USB drive (FAT32 or exFAT, 8GB+).
@@ -14,9 +14,8 @@ set -euo pipefail
 VERSION="${1:-2.2.0}"
 SECTOR="establishment"
 PACKAGE_NAME="minifw-usb-${SECTOR}-v${VERSION}"
-OUT_DIR="$(pwd)/dist"
-STAGE_DIR="${OUT_DIR}/${PACKAGE_NAME}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+STAGE_DIR="${SCRIPT_DIR}/dist/${PACKAGE_NAME}"
 
 IMAGE_TAG="minifw-ai-demo/establishment:latest"
 INJECTOR_TAG="minifw-ai-demo/establishment-injector:latest"

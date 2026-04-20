@@ -1,7 +1,7 @@
 name: minifw-establishment
 # USB variant — uses pre-loaded images, no source build required.
 # Images must be loaded first: docker load -i images/minifw-establishment.tar
-# Feeds are baked into the image at build time — no bind-mount needed.
+# Feeds and YARA rules are bind-mounted from USB — update them without rebuilding the image.
 # Start via: demo.sh (USB root) — do not run directly.
 
 volumes:
@@ -19,6 +19,8 @@ services:
     volumes:
       - minifw_sme_logs:/opt/minifw_ai/logs
       - ../config/modes:/opt/minifw_ai/config/modes:ro
+      - ../config/feeds:/opt/minifw_ai/config/feeds:ro
+      - ../yara_rules:/opt/minifw_ai/yara_rules:ro
     entrypoint: ["/bin/bash", "/opt/minifw_ai/docker/entrypoint-engine.sh"]
     environment:
       PRODUCT_MODE: minifw_establishment
