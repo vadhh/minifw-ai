@@ -1,5 +1,7 @@
 name: minifw-establishment
 # USB variant — uses pre-loaded images, no source build required.
+# Images must be loaded first: docker load -i images/minifw-establishment.tar
+# Feeds are baked into the image at build time — no bind-mount needed.
 # Start via: demo.sh (USB root) — do not run directly.
 
 volumes:
@@ -7,6 +9,7 @@ volumes:
 
 services:
 
+  # ── Firewall Engine ─────────────────────────────────────────────────────────
   engine:
     image: minifw-ai-demo/establishment:latest
     container_name: minifw_sme_engine
@@ -38,6 +41,7 @@ services:
       retries: 20
     restart: unless-stopped
 
+  # ── Web Dashboard ────────────────────────────────────────────────────────────
   web:
     image: minifw-ai-demo/establishment:latest
     container_name: minifw_sme_web
@@ -61,6 +65,7 @@ services:
       - "8444:8443"
     restart: unless-stopped
 
+  # ── Demo Traffic Injector ────────────────────────────────────────────────────
   injector:
     image: minifw-ai-demo/establishment-injector:latest
     container_name: minifw_sme_injector
