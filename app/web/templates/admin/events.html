@@ -334,34 +334,54 @@ $(document).ready(function() {
       title: '<strong><i class="bi bi-download"></i> Download Events Report</strong>',
       html: `
         <div class="text-start">
-          <p class="mb-3">Select which events to download:</p>
-          <div class="form-check mb-2">
+          <p class="mb-2 fw-semibold">Events to include:</p>
+          <div class="form-check mb-1">
             <input class="form-check-input" type="radio" name="downloadFilter" id="filterAll" value="all" checked>
             <label class="form-check-label" for="filterAll">
-              <strong>All Events</strong> - Download all security events
+              <strong>All Events</strong> — all security events
             </label>
           </div>
-          <div class="form-check mb-2">
+          <div class="form-check mb-1">
             <input class="form-check-input" type="radio" name="downloadFilter" id="filterAllow" value="allow">
             <label class="form-check-label" for="filterAllow">
-              <strong>Allowed Events</strong> - Only allowed traffic
+              <strong>Allowed</strong> — only allowed traffic
             </label>
           </div>
-          <div class="form-check mb-2">
+          <div class="form-check mb-1">
             <input class="form-check-input" type="radio" name="downloadFilter" id="filterDeny" value="deny">
             <label class="form-check-label" for="filterDeny">
-              <strong>Denied Events</strong> - Only denied traffic
+              <strong>Denied</strong> — only denied traffic
             </label>
           </div>
           <div class="form-check mb-2">
             <input class="form-check-input" type="radio" name="downloadFilter" id="filterBlock" value="block">
             <label class="form-check-label" for="filterBlock">
-              <strong>Blocked Events</strong> - Only blocked traffic
+              <strong>Blocked</strong> — only blocked traffic
             </label>
           </div>
-          <hr>
+          <hr class="my-2">
+          <p class="mb-2 fw-semibold">Format:</p>
+          <div class="form-check mb-1">
+            <input class="form-check-input" type="radio" name="downloadFmt" id="fmtPdf" value="pdf" checked>
+            <label class="form-check-label" for="fmtPdf">
+              <strong>PDF</strong> — evidence report with kernel status <span class="badge bg-success" style="font-size:10px;">Recommended</span>
+            </label>
+          </div>
+          <div class="form-check mb-1">
+            <input class="form-check-input" type="radio" name="downloadFmt" id="fmtCsv" value="csv">
+            <label class="form-check-label" for="fmtCsv">
+              <strong>CSV</strong> — for SIEM / spreadsheet import
+            </label>
+          </div>
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="radio" name="downloadFmt" id="fmtXlsx" value="xlsx">
+            <label class="form-check-label" for="fmtXlsx">
+              <strong>Excel (.xlsx)</strong> — with statistics sheet
+            </label>
+          </div>
+          <hr class="my-2">
           <small class="text-muted">
-            <i class="bi bi-info-circle"></i> The report will be downloaded as an Excel (.xlsx) file with statistics and detailed event information.
+            <i class="bi bi-info-circle"></i> PDF and CSV include kernel enforcement status (nftables proof).
           </small>
         </div>
       `,
@@ -373,13 +393,14 @@ $(document).ready(function() {
       cancelButtonColor: '#6c757d',
       width: '500px',
       preConfirm: () => {
-        const selectedFilter = document.querySelector('input[name="downloadFilter"]:checked').value;
-        return selectedFilter;
+        const filter = document.querySelector('input[name="downloadFilter"]:checked').value;
+        const fmt = document.querySelector('input[name="downloadFmt"]:checked').value;
+        return { filter, fmt };
       }
     }).then((result) => {
       if (result.isConfirmed) {
-        const filter = result.value;
-        downloadEvents(filter);
+        const { filter, fmt } = result.value;
+        downloadEvents(filter, fmt);
       }
     });
   });
@@ -631,37 +652,32 @@ function viewEventDetails(event) {
   });
 }
 
-// Download events as Excel
-function downloadEvents(filter) {
-  console.log('Downloading events with filter:', filter);
-  
-  // Show loading toast
+// Download evidence report
+function downloadEvents(filter, fmt) {
+  fmt = fmt || 'xlsx';
+  const fmtLabels = { pdf: 'PDF', csv: 'CSV', xlsx: 'Excel' };
+  const label = fmtLabels[fmt] || fmt.toUpperCase();
+
   Swal.fire({
     title: 'Generating Report...',
-    html: 'Please wait while we prepare your download.',
+    html: `Please wait while we prepare your ${label} download.`,
     allowOutsideClick: false,
     allowEscapeKey: false,
-    didOpen: () => {
-      Swal.showLoading();
-    }
+    didOpen: () => { Swal.showLoading(); }
   });
-  
-  // Trigger download
-  const downloadUrl = `/admin/api/events/download?action_filter=${filter}`;
-  
-  // Create temporary link and trigger download
+
+  const downloadUrl = `/admin/api/events/download?action_filter=${filter}&fmt=${fmt}`;
   const link = document.createElement('a');
   link.href = downloadUrl;
-  link.download = '';  // Filename will be set by server
+  link.download = '';
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
-  
-  // Close loading and show success
+
   setTimeout(() => {
     Swal.fire({
       title: 'Download Started!',
-      text: 'Your Excel report is being downloaded.',
+      text: `Your ${label} evidence report is being downloaded.`,
       icon: 'success',
       timer: 2000,
       showConfirmButton: false

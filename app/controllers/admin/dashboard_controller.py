@@ -6,6 +6,8 @@ import os
 import threading
 import time
 
+DEMO_MODE = os.environ.get("DEMO_MODE", "")
+
 from app.services.allow_domain.get_allow_domains_service import get_allow_domains
 from app.services.deny_ip.get_deny_ips_service import get_deny_ips
 from app.services.deny_asn.get_deny_asns_service import get_deny_asns
@@ -131,6 +133,7 @@ def dashboard_controller(request: Request):
             "service_status": service_status,
             "events": events,
             "last_update": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "demo_mode": DEMO_MODE,
         },
     )
 

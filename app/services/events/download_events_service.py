@@ -1,9 +1,11 @@
+import csv
 import json
 import pandas as pd
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from datetime import datetime
-from io import BytesIO
+from io import BytesIO, StringIO
+from fpdf import FPDF
 
 
 def generate_events_excel_report(action_filter: str = None):
@@ -282,4 +284,195 @@ def generate_events_excel_report(action_filter: str = None):
     wb.save(output)
     output.seek(0)
 
+    return output
+
+
+def _load_events(action_filter: str = None):
+    events = []
+    with open("logs/events.jsonl", "r") as f:
+        for line in f:
+            try:
+                events.append(json.loads(line.strip()))
+            except Exception:
+                continue
+    df = pd.DataFrame(events)
+    if len(df) == 0:
+        return df
+    df["ts"] = pd.to_datetime(df["ts"])
+    if action_filter and action_filter.lower() != "all":
+        df = df[df["action"].str.lower() == action_filter.lower()].copy()
+    return df
+
+
+def generate_evidence_csv_report(action_filter: str = None, kernel_status: dict = None) -> BytesIO:
+    kernel_status = kernel_status or {}
+    df = _load_events(action_filter)
+
+    buf = StringIO()
+    label = kernel_status.get("label", "Unknown")
+    detail = kernel_status.get("detail", "")
+    buf.write(f"# MiniFW-AI Evidence Report\n")
+    buf.write(f"# Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+    buf.write(f"# Kernel: {label} — {detail}\n")
+    if action_filter and action_filter.lower() != "all":
+        buf.write(f"# Filter: {action_filter.upper()} events only\n")
+
+    writer = csv.writer(buf)
+    writer.writerow(["timestamp", "client_ip", "domain", "action", "ai_score", "reasons", "kernel_status"])
+
+    if len(df) > 0:
+        for _, row in df.iterrows():
+            reasons = ", ".join(row["reasons"]) if isinstance(row.get("reasons"), list) else str(row.get("reasons", ""))
+            writer.writerow([
+                str(row["ts"]),
+                row.get("client_ip", ""),
+                row.get("domain", ""),
+                row.get("action", ""),
+                row.get("score", ""),
+                reasons,
+                label,
+            ])
+
+    output = BytesIO(buf.getvalue().encode("utf-8"))
+    output.seek(0)
+    return output
+
+
+class _EvidencePDF(FPDF):
+    def __init__(self, kernel_status: dict):
+        super().__init__()
+        self._kernel = kernel_status
+
+    def header(self):
+        self.set_font("Helvetica", "B", 14)
+        self.set_text_color(30, 58, 92)
+        self.cell(0, 8, "MiniFW-AI  |  Evidence Report", align="L")
+        self.ln(5)
+        self.set_draw_color(30, 58, 92)
+        self.set_line_width(0.5)
+        self.line(self.l_margin, self.get_y(), self.w - self.r_margin, self.get_y())
+        self.ln(3)
+
+    def footer(self):
+        self.set_y(-12)
+        self.set_font("Helvetica", "I", 8)
+        self.set_text_color(130, 130, 130)
+        self.cell(0, 5, f"MiniFW-AI - Confidential  |  Page {self.page_no()}", align="C")
+
+
+def generate_evidence_pdf_report(action_filter: str = None, kernel_status: dict = None) -> BytesIO:
+    kernel_status = kernel_status or {}
+    df = _load_events(action_filter)
+
+    pdf = _EvidencePDF(kernel_status)
+    pdf.set_auto_page_break(auto=True, margin=15)
+    pdf.add_page()
+    pdf.set_font("Helvetica", size=9)
+
+    # ── Metadata block ──────────────────────────────────────────
+    pdf.set_font("Helvetica", size=9)
+    pdf.set_text_color(60, 60, 60)
+    pdf.cell(35, 5, "Generated:", ln=False)
+    pdf.set_font("Helvetica", "B", 9)
+    pdf.cell(0, 5, datetime.now().strftime("%Y-%m-%d %H:%M:%S"), ln=True)
+
+    if len(df) > 0:
+        pdf.set_font("Helvetica", size=9)
+        pdf.cell(35, 5, "Period:", ln=False)
+        pdf.set_font("Helvetica", "B", 9)
+        pdf.cell(0, 5, f"{df['ts'].min().strftime('%Y-%m-%d %H:%M')}  to  {df['ts'].max().strftime('%Y-%m-%d %H:%M')}", ln=True)
+
+    pdf.set_font("Helvetica", size=9)
+    pdf.cell(35, 5, "Total Events:", ln=False)
+    pdf.set_font("Helvetica", "B", 9)
+    pdf.cell(0, 5, str(len(df)), ln=True)
+
+    if action_filter and action_filter.lower() != "all":
+        pdf.set_font("Helvetica", size=9)
+        pdf.cell(35, 5, "Filter:", ln=False)
+        pdf.set_font("Helvetica", "B", 9)
+        pdf.set_text_color(180, 50, 50)
+        pdf.cell(0, 5, action_filter.upper() + " events only", ln=True)
+        pdf.set_text_color(60, 60, 60)
+
+    # ── Kernel status badge ──────────────────────────────────────
+    pdf.ln(2)
+    active = kernel_status.get("active", False)
+    label = kernel_status.get("label", "Unknown")
+    detail = kernel_status.get("detail", "")
+    if active:
+        pdf.set_fill_color(220, 252, 231)
+        pdf.set_text_color(21, 128, 61)
+    else:
+        pdf.set_fill_color(254, 243, 199)
+        pdf.set_text_color(146, 64, 14)
+    pdf.set_font("Helvetica", "B", 9)
+    status_icon = "[OK]" if active else "[!]"
+    pdf.cell(0, 7, f"  {status_icon}  Kernel Enforcement: {label}  -  {detail}", ln=True, fill=True)
+    pdf.set_text_color(0, 0, 0)
+    pdf.ln(4)
+
+    # ── Table ────────────────────────────────────────────────────
+    col_widths = [38, 28, 52, 16, 16, 0]  # last column takes remaining
+    headers = ["Timestamp", "Client IP", "Domain", "Action", "AI Score", "Reasons"]
+    usable = pdf.w - pdf.l_margin - pdf.r_margin
+    col_widths[-1] = usable - sum(col_widths[:-1])
+
+    # Header row
+    pdf.set_fill_color(30, 58, 92)
+    pdf.set_text_color(255, 255, 255)
+    pdf.set_font("Helvetica", "B", 8)
+    for i, h in enumerate(headers):
+        pdf.cell(col_widths[i], 6, h, border=0, fill=True, align="C")
+    pdf.ln()
+
+    pdf.set_font("Helvetica", size=7.5)
+    action_colors = {
+        "allow": (198, 239, 206),
+        "deny": (255, 199, 206),
+        "block": (255, 235, 156),
+    }
+    row_bg = [(255, 255, 255), (245, 247, 250)]
+
+    if len(df) == 0:
+        pdf.set_text_color(100, 100, 100)
+        pdf.set_fill_color(255, 255, 255)
+        pdf.cell(0, 6, "  No events found.", ln=True, fill=True)
+    else:
+        for idx, (_, ev) in enumerate(df.iterrows()):
+            bg = row_bg[idx % 2]
+            pdf.set_fill_color(*bg)
+            pdf.set_text_color(30, 30, 30)
+
+            ts = str(ev["ts"])[:19]
+            ip = str(ev.get("client_ip", ""))
+            domain = str(ev.get("domain", ""))
+            action = str(ev.get("action", ""))
+            score = str(ev.get("score", ""))
+            reasons = ", ".join(ev["reasons"]) if isinstance(ev.get("reasons"), list) else str(ev.get("reasons", ""))
+
+            # Truncate domain/reasons for cell fit
+            if len(domain) > 30:
+                domain = domain[:28] + ".."
+            if len(reasons) > 45:
+                reasons = reasons[:43] + ".."
+
+            pdf.cell(col_widths[0], 5, ts, border=0, fill=True)
+            pdf.cell(col_widths[1], 5, ip, border=0, fill=True)
+            pdf.cell(col_widths[2], 5, domain, border=0, fill=True)
+
+            # Colour-coded action cell
+            ac = action_colors.get(action.lower(), bg)
+            pdf.set_fill_color(*ac)
+            pdf.set_font("Helvetica", "B", 7.5)
+            pdf.cell(col_widths[3], 5, action.upper(), border=0, fill=True, align="C")
+            pdf.set_font("Helvetica", size=7.5)
+            pdf.set_fill_color(*bg)
+
+            pdf.cell(col_widths[4], 5, score, border=0, fill=True, align="C")
+            pdf.cell(col_widths[5], 5, reasons, border=0, fill=True)
+            pdf.ln()
+
+    output = BytesIO(bytes(pdf.output()))
+    output.seek(0)
     return output

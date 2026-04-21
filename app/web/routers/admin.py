@@ -637,15 +637,68 @@ def api_get_events(
     )
 
 
+# Block Rate API (spike chart data)
+@router.get("/api/block-rate")
+def api_block_rate(current_user: User = Depends(get_current_user)):
+    """
+    Return blocks-per-5s buckets over the last 60 seconds.
+    Used by the demo spike chart on the dashboard.
+    """
+    from app.services.events.get_events_service import get_recent_events
+    from datetime import datetime, timezone, timedelta
+
+    now = datetime.now(timezone.utc)
+    cutoff = now - timedelta(seconds=60)
+    bucket_size = 5  # seconds
+    num_buckets = 12  # 12 × 5 s = 60 s
+
+    buckets_blocks = [0] * num_buckets
+    buckets_total = [0] * num_buckets
+
+    all_events = get_recent_events(limit=500)
+    for ev in all_events:
+        try:
+            ts_str = ev.get("time", "")
+            if not ts_str:
+                continue
+            normalized = ts_str.replace(" ", "T").replace("Z", "+00:00")
+            if not normalized.endswith("+00:00") and "+" not in normalized[10:]:
+                normalized += "+00:00"
+            dt = datetime.fromisoformat(normalized)
+        except Exception:
+            continue
+        if dt < cutoff:
+            continue
+        age = (now - dt).total_seconds()
+        if age < 0:
+            continue
+        idx = min(int(age // bucket_size), num_buckets - 1)
+        bucket_idx = num_buckets - 1 - idx  # newest → rightmost
+        buckets_total[bucket_idx] += 1
+        if ev.get("status") == "blocked":
+            buckets_blocks[bucket_idx] += 1
+
+    labels = []
+    for i in range(num_buckets):
+        t = now - timedelta(seconds=(num_buckets - 1 - i) * bucket_size)
+        labels.append(t.strftime("%H:%M:%S"))
+
+    return {"labels": labels, "blocks": buckets_blocks, "total": buckets_total}
+
+
 # Events Download API
 @router.get("/api/events/download")
 def api_download_events(
-    action_filter: str = "all", current_user: User = Depends(get_current_user)
+    action_filter: str = "all",
+    fmt: str = "xlsx",
+    current_user: User = Depends(get_current_user),
 ):
-    """API endpoint for downloading events as Excel report"""
+    """API endpoint for downloading events as Excel, CSV, or PDF report"""
     if action_filter not in ("all", "block", "monitor", "allow"):
         action_filter = "all"
-    return download_events_controller(action_filter)
+    if fmt not in ("xlsx", "csv", "pdf"):
+        fmt = "xlsx"
+    return download_events_controller(action_filter, fmt)
 
 
 # IoMT Alerts (Hospital sector)

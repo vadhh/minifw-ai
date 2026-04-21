@@ -1,31 +1,40 @@
 from fastapi.responses import StreamingResponse
-from app.services.events.download_events_service import generate_events_excel_report
 from datetime import datetime
 
+from app.services.events.download_events_service import (
+    generate_events_excel_report,
+    generate_evidence_csv_report,
+    generate_evidence_pdf_report,
+)
+from app.services.system.kernel_proof_service import compute_kernel_proof
 
-def download_events_controller(action_filter: str = None):
-    """
-    Controller for downloading events as Excel report
 
-    Args:
-        action_filter: Filter by action type (allow, deny, block, all)
-
-    Returns:
-        StreamingResponse with Excel file
-    """
-    # Generate Excel report
-    excel_file = generate_events_excel_report(action_filter)
-
-    # Generate filename
+def download_events_controller(action_filter: str = None, fmt: str = "xlsx"):
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    if action_filter and action_filter.lower() != "all":
-        filename = f"events_{action_filter.lower()}_{timestamp}.xlsx"
-    else:
-        filename = f"events_all_{timestamp}.xlsx"
+    suffix = f"{action_filter.lower()}_{timestamp}" if action_filter and action_filter.lower() != "all" else f"all_{timestamp}"
 
-    # Return as streaming response
+    if fmt == "csv":
+        kernel = compute_kernel_proof()
+        data = generate_evidence_csv_report(action_filter, kernel)
+        return StreamingResponse(
+            data,
+            media_type="text/csv",
+            headers={"Content-Disposition": f"attachment; filename=evidence_{suffix}.csv"},
+        )
+
+    if fmt == "pdf":
+        kernel = compute_kernel_proof()
+        data = generate_evidence_pdf_report(action_filter, kernel)
+        return StreamingResponse(
+            data,
+            media_type="application/pdf",
+            headers={"Content-Disposition": f"attachment; filename=evidence_{suffix}.pdf"},
+        )
+
+    # Default: xlsx
+    data = generate_events_excel_report(action_filter)
     return StreamingResponse(
-        excel_file,
+        data,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        headers={"Content-Disposition": f"attachment; filename={filename}"},
+        headers={"Content-Disposition": f"attachment; filename=events_{suffix}.xlsx"},
     )

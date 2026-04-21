@@ -1,3 +1,5 @@
+import os
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends, Request
 from fastapi.responses import RedirectResponse
 from fastapi.exceptions import HTTPException
@@ -8,10 +10,20 @@ from fastapi.staticfiles import StaticFiles
 from app.database import init_db
 from app.middleware.auth_middleware import require_auth
 
-app = FastAPI(title="RITAPI Sentinel MiniFW AI", version="1.0.0")
 
-# Initialize database
-init_db()
+@asynccontextmanager
+async def _lifespan(app: FastAPI):
+    init_db()
+    if os.environ.get("DEMO_MODE") == "attack_simulation":
+        from app.services.demo import attack_simulator
+        attack_simulator.start()
+    yield
+    if os.environ.get("DEMO_MODE") == "attack_simulation":
+        from app.services.demo import attack_simulator
+        attack_simulator.stop()
+
+
+app = FastAPI(title="RITAPI Sentinel MiniFW AI", version="1.0.0", lifespan=_lifespan)
 
 
 # Custom exception handler untuk redirect ke login jika 401
