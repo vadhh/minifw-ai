@@ -55,7 +55,7 @@ case "$SECTOR" in
     CONFIG_MODE="minifw_financial"
     COMPOSE_PROJECT="minifw-financial"
     DASHBOARD_PORT="8445"
-    ADMIN_PASS="Finance_Demo1!"
+    ADMIN_PASS="Finance1!"
     ;;
   *)
     echo "Usage: bash build_usb.sh <sector> [version]"
