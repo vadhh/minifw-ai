@@ -1,4 +1,5 @@
 from __future__ import annotations
+import copy
 from typing import Any, Dict, List, Optional
 
 
@@ -115,6 +116,8 @@ def detect_unknown_external_asn(flow: Dict, cfg: Dict, detections: List) -> None
 
 
 def detect_suspicious_port(flow: Dict, cfg: Dict, detections: List) -> None:
+    if flow.get("dst_port") is None:
+        return
     dst_port = _safe_int(flow.get("dst_port"))
     if dst_port in cfg["suspicious_ports"]:
         _add_detection(
@@ -275,7 +278,7 @@ def evaluate_financial_sector(
     flow: Dict[str, Any],
     custom_cfg: Optional[Dict[str, Any]] = None,
 ) -> List[Dict[str, Any]]:
-    cfg = dict(FINANCIAL_DEFAULTS)
+    cfg = copy.deepcopy(FINANCIAL_DEFAULTS)
     if custom_cfg:
         cfg.update(custom_cfg)
     detections: List[Dict[str, Any]] = []
