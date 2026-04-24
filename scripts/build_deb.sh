@@ -63,6 +63,20 @@ echo "[2/7] Copying configuration..."
 cp "${REPO_DIR}/config/policy.json" "${BUILD_DIR}/opt/minifw_ai/config/"
 cp "${REPO_DIR}"/config/feeds/*.txt "${BUILD_DIR}/opt/minifw_ai/config/feeds/"
 
+# Sector-specific: copy modes/minifw_<product_mode>/ policy.
+# Resolve product mode name early (finance → minifw_financial, others → minifw_<sector>).
+case "${SECTOR}" in
+    finance) _PMODE="minifw_financial" ;;
+    *)       _PMODE="minifw_${SECTOR}" ;;
+esac
+SECTOR_MODE_DIR="${REPO_DIR}/config/modes/${_PMODE}"
+if [ -d "${SECTOR_MODE_DIR}" ]; then
+    mkdir -p "${BUILD_DIR}/opt/minifw_ai/config/modes/${_PMODE}"
+    cp "${SECTOR_MODE_DIR}/policy.json" \
+       "${BUILD_DIR}/opt/minifw_ai/config/modes/${_PMODE}/policy.json"
+    echo "  Sector policy: config/modes/${_PMODE}/policy.json"
+fi
+
 # --- Copy models ---
 echo "[3/7] Copying ML models..."
 cp "${REPO_DIR}/models/mlp_model.pkl" "${BUILD_DIR}/opt/minifw_ai/models/"
@@ -86,9 +100,27 @@ chmod +x "${BUILD_DIR}/opt/minifw_ai/scripts/"*.sh
 echo "[6/7] Installing systemd units..."
 cp "${REPO_DIR}/systemd/minifw-ai.service" "${BUILD_DIR}/etc/systemd/system/"
 cp "${REPO_DIR}/systemd/minifw-ai-web.service" "${BUILD_DIR}/etc/systemd/system/"
-# Bake the target sector into the service unit
+# Bake the target sector and product mode into the service unit
 sed -i "s/^Environment=MINIFW_SECTOR=.*/Environment=MINIFW_SECTOR=${SECTOR}/" \
     "${BUILD_DIR}/etc/systemd/system/minifw-ai.service"
+# Bake PRODUCT_MODE and point MINIFW_POLICY at the sector-specific file.
+# Sector "finance" maps to PRODUCT_MODE "minifw_financial" (not minifw_finance).
+case "${SECTOR}" in
+    finance) PRODUCT_MODE="minifw_financial" ;;
+    *)       PRODUCT_MODE="minifw_${SECTOR}" ;;
+esac
+SECTOR_POLICY_PATH="/opt/minifw_ai/config/modes/${PRODUCT_MODE}/policy.json"
+if [ -f "${REPO_DIR}/config/modes/${PRODUCT_MODE}/policy.json" ]; then
+    sed -i "s|^Environment=MINIFW_POLICY=.*|Environment=MINIFW_POLICY=${SECTOR_POLICY_PATH}|" \
+        "${BUILD_DIR}/etc/systemd/system/minifw-ai.service"
+    # Insert PRODUCT_MODE after MINIFW_SECTOR line if not already present
+    if ! grep -q "^Environment=PRODUCT_MODE=" "${BUILD_DIR}/etc/systemd/system/minifw-ai.service"; then
+        sed -i "/^Environment=MINIFW_SECTOR=/a Environment=PRODUCT_MODE=${PRODUCT_MODE}" \
+            "${BUILD_DIR}/etc/systemd/system/minifw-ai.service"
+    fi
+    echo "  PRODUCT_MODE=${PRODUCT_MODE} baked into minifw-ai.service"
+    echo "  MINIFW_POLICY → ${SECTOR_POLICY_PATH}"
+fi
 echo "  Sector '${SECTOR}' baked into minifw-ai.service"
 
 # --- DEBIAN control files ---
@@ -342,11 +374,17 @@ CONFFILES_BASE="/opt/minifw_ai/config/policy.json
 /opt/minifw_ai/config/feeds/asn_prefixes.txt"
 
 CONFFILES_HOSPITAL="/opt/minifw_ai/config/feeds/healthcare_threats.txt"
+CONFFILES_FINANCE="/opt/minifw_ai/config/feeds/financial_fraud.txt
+/opt/minifw_ai/config/feeds/crypto_scams.txt
+/opt/minifw_ai/config/modes/minifw_financial/policy.json"
 
 {
     echo "${CONFFILES_BASE}"
     if [ "${SECTOR}" = "hospital" ]; then
         echo "${CONFFILES_HOSPITAL}"
+    fi
+    if [ "${SECTOR}" = "finance" ]; then
+        echo "${CONFFILES_FINANCE}"
     fi
 } > "${BUILD_DIR}/DEBIAN/conffiles"
 
