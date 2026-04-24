@@ -232,3 +232,67 @@ def test_low_score_returns_monitor():
                    "reason": "after hours", "recommended_action": "alert", "source": "financial_sector_rules", "metadata": {}}]
     result = decide_financial_action(detections)
     assert result["final_action"] == "monitor"
+
+
+# ── detect_unknown_external_asn ────────────────────────────────────────────
+
+def test_unknown_external_asn_triggers():
+    flow = {"dst_asn": "AS9999", "is_internal": False, "known_vendor": False}
+    detections = evaluate_financial_sector(flow, custom_cfg={"trusted_asns": {"AS1111"}})
+    assert any(d["type"] == "unknown_external_asn" for d in detections)
+
+
+def test_known_vendor_suppresses_unknown_asn():
+    flow = {"dst_asn": "AS9999", "is_internal": False, "known_vendor": True}
+    detections = evaluate_financial_sector(flow, custom_cfg={"trusted_asns": {"AS1111"}})
+    assert all(d["type"] != "unknown_external_asn" for d in detections)
+
+
+def test_unknown_external_asn_no_trigger_when_trusted_asns_empty():
+    # Default FINANCIAL_DEFAULTS has trusted_asns=set(), so rule never fires without custom_cfg
+    flow = {"dst_asn": "AS9999", "is_internal": False, "known_vendor": False}
+    detections = evaluate_financial_sector(flow)
+    assert all(d["type"] != "unknown_external_asn" for d in detections)
+
+
+# ── detect_sensitive_asset_exfil ───────────────────────────────────────────
+
+def test_sensitive_asset_exfil_triggers():
+    flow = {"asset_tag": "core-banking", "bytes_out": 20 * 1024 * 1024, "is_internal": False}
+    detections = evaluate_financial_sector(flow)
+    assert any(d["type"] == "sensitive_asset_exfiltration_risk" for d in detections)
+    d = next(d for d in detections if d["type"] == "sensitive_asset_exfiltration_risk")
+    assert d["recommended_action"] == "block"
+
+
+def test_sensitive_asset_small_transfer_no_trigger():
+    flow = {"asset_tag": "core-banking", "bytes_out": 1024, "is_internal": False}
+    detections = evaluate_financial_sector(flow)
+    assert all(d["type"] != "sensitive_asset_exfiltration_risk" for d in detections)
+
+
+def test_internal_sensitive_asset_no_trigger():
+    flow = {"asset_tag": "payment", "bytes_out": 50 * 1024 * 1024, "is_internal": True}
+    detections = evaluate_financial_sector(flow)
+    assert all(d["type"] != "sensitive_asset_exfiltration_risk" for d in detections)
+
+
+# ── boundary and quality fixes ─────────────────────────────────────────────
+
+def test_connection_burst_at_threshold():
+    # Exactly at threshold (80) must trigger
+    flow = {"burst_conn_count": 80, "src_ip": "10.0.0.5"}
+    detections = evaluate_financial_sector(flow)
+    assert any(d["type"] == "burst_connection_pattern" for d in detections)
+
+
+def test_two_high_severity_detections_triggers_combined_high_risk_branch():
+    detections = [
+        {"type": "suspicious_port", "score": 0.68, "severity": "high",
+         "reason": "port 4444", "recommended_action": "alert", "source": "financial_sector_rules", "metadata": {}},
+        {"type": "burst_connection_pattern", "score": 0.79, "severity": "high",
+         "reason": "burst", "recommended_action": "alert", "source": "financial_sector_rules", "metadata": {}},
+    ]
+    result = decide_financial_action(detections)
+    assert result["final_action"] == "block"
+    assert result["trigger_type"] == "combined_high_risk"
