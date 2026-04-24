@@ -520,6 +520,8 @@ def run():
                     alpn_h2=evt.alpn_h2,
                     cert_self_signed=evt.cert_self_signed,
                 )
+            except StopIteration:
+                break
             except Exception:
                 logging.warning("Error pumping zeek event", exc_info=True)
                 break
