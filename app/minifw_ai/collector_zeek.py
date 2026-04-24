@@ -82,12 +82,13 @@ def parse_zeek_ssl_tsv(line: str) -> Optional[ZeekSSLEvent]:
 def stream_zeek_sni_events(log_path: str) -> Iterator[ZeekSSLEvent]:
     """
     Tail Zeek ssl.log and yield ZeekSSLEvent for each parsed TLS connection.
-
-    Raises FileNotFoundError if the log path does not exist at startup.
+    Returns an empty iterator if the log path does not exist (Zeek not installed).
     """
+    import logging as _logging
     p = Path(log_path)
     if not p.exists():
-        raise FileNotFoundError(f"Missing Zeek ssl.log: {p}")
+        _logging.info("[ZEEK] ssl.log not found at %s — SNI enrichment disabled", p)
+        return
     for ln in tail_lines(p):
         evt = parse_zeek_ssl_tsv(ln)
         if evt:
