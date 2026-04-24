@@ -72,11 +72,14 @@ except ImportError:
 try:
     from minifw_ai.sector_lock import get_sector_lock, get_sector_config
     from minifw_ai.sector_config import get_threshold_adjustment, is_iomt_priority
+    from minifw_ai.sector_rules import evaluate_sector, decide_sector_action
 
     SECTOR_LOCK_AVAILABLE = True
 except ImportError:
     SECTOR_LOCK_AVAILABLE = False
     get_sector_lock = None
+    evaluate_sector = None
+    decide_sector_action = None
 
 
 def segment_for_ip(ip: str, mapping: dict[str, list[str]]) -> str:
@@ -172,6 +175,40 @@ def score_and_decide(
     if score >= monitor_thr:
         return score, reasons, "monitor"
     return score, reasons, "allow"
+
+
+def _build_sector_flow(
+    client_ip: str,
+    domain: str,
+    flows: list,
+    burst_hit: int,
+) -> dict:
+    import datetime
+    flow_for_sector: dict = {
+        "src_ip": client_ip,
+        "dst_host": domain,
+        "hour": datetime.datetime.now().hour,
+        "burst_conn_count": burst_hit * 60,
+    }
+    if flows:
+        latest = flows[-1]
+        flow_for_sector.update({
+            "dst_ip": getattr(latest, "dst_ip", None),
+            "dst_port": getattr(latest, "dst_port", None),
+            "bytes_out": getattr(latest, "bytes_sent", 0),
+            "bytes_in": getattr(latest, "bytes_recv", 0),
+            "tls_used": getattr(latest, "tls_seen", False),
+            "sni_present": bool(getattr(latest, "sni", "")),
+            "pkt_count": getattr(latest, "pkt_count", 0),
+        })
+        iat = getattr(latest, "interarrival_times", [])
+        if len(iat) >= 10:
+            import statistics
+            try:
+                flow_for_sector["interarrival_std_ms"] = statistics.stdev(iat)
+            except statistics.StatisticsError:
+                pass
+    return flow_for_sector
 
 
 def evaluate_hard_threat(
@@ -740,6 +777,20 @@ def run():
                 pre_reasons=reasons,
                 tunnel_score=tunnel_score,
             )
+
+            # Sector rules layer — runs after base scoring, can upgrade action
+            if evaluate_sector and sector_name == "finance":
+                _flow_s = _build_sector_flow(client_ip, domain, flows_for_client, burst_hit)
+                _s_detections = evaluate_sector(sector_name, _flow_s)
+                _s_decision = decide_sector_action(sector_name, _s_detections)
+                if _s_decision and _s_decision["final_action"] == "block" and action != "block":
+                    action = "block"
+                    score = max(score, int(_s_decision["confidence"] * 100))
+                    reasons.append(f"sector_rule:{_s_decision.get('trigger_type', 'sector_override')}")
+                    reasons.append(_s_decision["reason"][:120])
+                elif _s_decision and _s_decision["final_action"] in {"alert", "monitor"} and action == "allow":
+                    action = "monitor"
+                    reasons.append(f"sector_rule:{_s_decision.get('trigger_type', 'sector_alert')}")
 
             if action == "block":
                 ipset_add(set_name, client_ip, timeout, family=table, table_name=table_name)
