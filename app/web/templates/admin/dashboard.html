@@ -349,18 +349,37 @@
           <div class="card-body p-3">
             <!-- Hero area -->
             <div id="synthHero" class="synth-hero">
-              <div class="d-flex justify-content-between align-items-center mb-2">
-                <span class="synth-hero-title">THREAT BLOCKED</span>
-                <span id="synthTimestamp" style="font-size:10px;color:var(--mf-text-muted);"></span>
+              <!-- Header row: title + risk badge + action badge -->
+              <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+                <div class="d-flex align-items-center gap-2">
+                  <span class="synth-hero-title">THREAT BLOCKED</span>
+                  <span id="synthActionBadge"
+                        style="display:none;background:#dc2626;color:#fff;font-size:10px;
+                               font-weight:800;padding:2px 8px;border-radius:4px;letter-spacing:1px;">
+                    BLOCKED
+                  </span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                  <div id="synthRiskBadge"
+                       style="display:none;background:#fef2f2;border:2px solid #dc2626;
+                              border-radius:8px;padding:4px 12px;text-align:center;min-width:64px;">
+                    <div id="synthRiskPct"
+                         style="font-size:26px;font-weight:900;color:#dc2626;line-height:1;">&#x2014;</div>
+                    <div style="font-size:9px;color:#9f1239;font-weight:700;letter-spacing:1px;">RISK</div>
+                  </div>
+                  <span id="synthTimestamp" style="font-size:10px;color:var(--mf-text-muted);"></span>
+                </div>
               </div>
-              <div id="synthSource" class="synth-hero-source">
-                Waiting for a block event&hellip;
-              </div>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+
+              <!-- Source line -->
+              <div id="synthSource" class="synth-hero-source">Waiting for a block event&hellip;</div>
+
+              <!-- 3-column grid: AI REASON · KERNEL BLOCKED · TIME TO BLOCK -->
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px;">
                 <div class="synth-cell">
                   <div style="font-size:9px;color:#7c3aed;font-weight:700;letter-spacing:1px;margin-bottom:4px;">AI REASON</div>
-                  <div id="synthAiCategory" style="font-size:13px;font-weight:700;color:#7c3aed;">&mdash;</div>
-                  <div id="synthAiScore"    style="font-size:11px;color:var(--mf-text-muted);">&mdash;</div>
+                  <div id="synthAiCategory" style="font-size:13px;font-weight:700;color:#7c3aed;">&#x2014;</div>
+                  <div id="synthAiScore"    style="font-size:11px;color:var(--mf-text-muted);">&#x2014;</div>
                 </div>
                 <div class="synth-cell">
                   <div style="font-size:9px;color:#10b981;font-weight:700;letter-spacing:1px;margin-bottom:4px;">KERNEL BLOCKED</div>
@@ -369,12 +388,21 @@
                 </div>
                 <div class="synth-cell">
                   <div style="font-size:9px;color:#06b6d4;font-weight:700;letter-spacing:1px;margin-bottom:4px;">TIME TO BLOCK</div>
-                  <div id="synthTime" style="font-size:22px;font-weight:900;color:#06b6d4;">&mdash; ms</div>
+                  <div id="synthTime" style="font-size:22px;font-weight:900;color:#06b6d4;">&#x2014; ms</div>
+                </div>
+              </div>
+
+              <!-- 2-column grid: DECISION OWNER · TRACE ID -->
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                <div class="synth-cell">
+                  <div style="font-size:9px;color:#64748b;font-weight:700;letter-spacing:1px;margin-bottom:4px;">DECISION OWNER</div>
+                  <div id="synthDecisionOwner" style="font-size:12px;font-weight:700;color:var(--mf-text);">&#x2014;</div>
                 </div>
                 <div class="synth-cell">
-                  <div style="font-size:9px;color:#ef4444;font-weight:700;letter-spacing:1px;margin-bottom:4px;">THREAT TYPE</div>
-                  <div id="synthThreatType" style="font-size:13px;font-weight:700;color:#ef4444;">&mdash;</div>
-                  <div id="synthSignals"    style="font-size:11px;color:var(--mf-text-muted);"></div>
+                  <div style="font-size:9px;color:#64748b;font-weight:700;letter-spacing:1px;margin-bottom:4px;">TRACE ID</div>
+                  <div id="synthTraceId"
+                       style="font-size:12px;font-weight:700;color:var(--mf-text);
+                              font-family:monospace;letter-spacing:2px;">&#x2014;</div>
                 </div>
               </div>
             </div>
@@ -557,16 +585,35 @@
     var dom     = ev.domain ? ' \u2192 ' + ev.domain : '';
     var signals = [].concat(x.asn || [], x.tls || [], x.behavior || []);
 
-    srcEl.textContent     = src + dom;
+    srcEl.textContent = src + dom;
     document.getElementById('synthTimestamp').textContent  = ev.time || '';
     document.getElementById('synthAiCategory').textContent = cat;
     document.getElementById('synthAiScore').textContent    =
       'Score ' + score + (signals.length ? ' \u00b7 ' + signals.slice(0, 2).join(' + ') : '');
-    document.getElementById('synthThreatType').textContent = cat;
-    document.getElementById('synthSignals').textContent    =
-      signals.slice(0, 3).join(' \u00b7 ') || ev.reason || '';
-    document.getElementById('synthTime').textContent       =
+    document.getElementById('synthTime').textContent =
       (Math.floor(Math.random() * 18) + 8) + ' ms';
+
+    var riskBadge = document.getElementById('synthRiskBadge');
+    var riskPct   = document.getElementById('synthRiskPct');
+    if (riskBadge && riskPct) {
+      riskPct.textContent  = score + '%';
+      riskBadge.style.display = '';
+      var c = score >= 85 ? '#dc2626' : score >= 65 ? '#f59e0b' : '#6366f1';
+      riskPct.style.color  = c;
+      riskBadge.style.borderColor = c;
+      riskBadge.style.background  = score >= 85 ? '#fef2f2' : '#fffbeb';
+    }
+
+    var actionBadge = document.getElementById('synthActionBadge');
+    if (actionBadge) {
+      actionBadge.style.display = '';
+      actionBadge.textContent   = 'BLOCKED';
+    }
+
+    var ownerEl = document.getElementById('synthDecisionOwner');
+    var traceEl = document.getElementById('synthTraceId');
+    if (ownerEl) ownerEl.textContent = ev.decision_owner || 'Policy Engine';
+    if (traceEl) traceEl.textContent = ev.trace_id || '\u2014';
 
     var liveBadge = document.getElementById('synthLiveBadge');
     if (liveBadge) {
