@@ -107,6 +107,7 @@ log "  Saved: ${TMP_TAR} (${TAR_SIZE})"
 # ── Stage USB layout ──────────────────────────────────────────────────────────
 
 log "Staging USB layout to ${STAGE_DIR}"
+chmod -R u+w "$STAGE_DIR" 2>/dev/null || true
 rm -rf "$STAGE_DIR"
 mkdir -p "$STAGE_DIR"
 

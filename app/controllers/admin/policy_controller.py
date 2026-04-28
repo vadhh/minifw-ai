@@ -67,7 +67,7 @@ def add_segment_controller(
     )
     try:
         update_segment(segment_name, block_threshold, monitor_threshold)
-    except ValueError as e:
+    except (ValueError, OSError) as e:
         raise HTTPException(status_code=400, detail=str(e))
 
 
@@ -78,7 +78,7 @@ def delete_segment_controller(current_user: User, db: Session, segment_name: str
     )
     try:
         delete_segment(segment_name)
-    except ValueError as e:
+    except (ValueError, OSError) as e:
         raise HTTPException(status_code=400, detail=str(e))
 
 
@@ -91,7 +91,7 @@ def update_segment_subnets_controller(
     )
     try:
         update_segment_subnets(segment_name, subnets)
-    except ValueError as e:
+    except (ValueError, OSError) as e:
         raise HTTPException(status_code=400, detail=str(e))
 
 
@@ -109,7 +109,7 @@ def update_features_controller(
     )
     try:
         update_features(dns_weight, sni_weight, asn_weight, burst_weight)
-    except ValueError as e:
+    except (ValueError, OSError) as e:
         raise HTTPException(status_code=400, detail=str(e))
 
 
@@ -127,7 +127,7 @@ def update_enforcement_controller(
     )
     try:
         update_enforcement(ipset_name_v4, ip_timeout_seconds, nft_table, nft_chain)
-    except ValueError as e:
+    except (ValueError, OSError) as e:
         raise HTTPException(status_code=400, detail=str(e))
 
 
@@ -144,7 +144,7 @@ def update_collectors_controller(
     )
     try:
         update_collectors(dnsmasq_log_path, zeek_ssl_log_path, use_zeek_sni)
-    except ValueError as e:
+    except (ValueError, OSError) as e:
         raise HTTPException(status_code=400, detail=str(e))
 
 
@@ -160,5 +160,5 @@ def update_burst_controller(
     )
     try:
         update_burst(dns_queries_per_minute_monitor, dns_queries_per_minute_block)
-    except ValueError as e:
+    except (ValueError, OSError) as e:
         raise HTTPException(status_code=400, detail=str(e))

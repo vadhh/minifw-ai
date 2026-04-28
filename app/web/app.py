@@ -16,7 +16,7 @@ async def _lifespan(app: FastAPI):
     init_db()
     if os.environ.get("DEMO_MODE") == "attack_simulation":
         from app.services.demo import attack_simulator
-        attack_simulator.start()
+        attack_simulator.start(os.environ.get("MINIFW_LOG", "logs/events.jsonl"))
     yield
     if os.environ.get("DEMO_MODE") == "attack_simulation":
         from app.services.demo import attack_simulator

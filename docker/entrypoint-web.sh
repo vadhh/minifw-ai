@@ -24,6 +24,17 @@ if u:
 db.close()
 "
 
+# Copy policy to the writable logs volume so the Web UI can update it.
+# config/modes is a read-only bind-mount; logs/ (named volume) is writable.
+# MINIFW_POLICY points to the seed (read-only); we shadow it with a writable copy.
+POLICY_SEED="${MINIFW_POLICY:-/opt/minifw_ai/config/modes/minifw_hospital/policy.json}"
+POLICY_WRITABLE="/opt/minifw_ai/logs/policy.json"
+if [ ! -f "$POLICY_WRITABLE" ]; then
+    cp "$POLICY_SEED" "$POLICY_WRITABLE"
+    echo "[WEB] Policy seeded to writable volume: $POLICY_WRITABLE"
+fi
+export MINIFW_POLICY="$POLICY_WRITABLE"
+
 echo "[WEB] Generating self-signed TLS certificate..."
 if [ ! -f tls/server.crt ]; then
     openssl req -x509 -newkey rsa:2048 \
