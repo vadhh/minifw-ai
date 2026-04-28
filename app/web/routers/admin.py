@@ -1054,6 +1054,8 @@ def api_live_blocks(current_user: User = Depends(get_current_user)):
                 "score": ev.get("score", 0),
                 "reason": ev.get("reason", ""),
                 "type": ev.get("type", ""),
+                "trace_id": ev.get("trace_id", ""),
+                "decision_owner": ev.get("decision_owner", "Policy Engine"),
                 "ai_explanation": _build_ai_explanation(ev),
             })
     return {"count": len(live), "events": live}
