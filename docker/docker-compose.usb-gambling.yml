@@ -1,6 +1,8 @@
 name: minifw-gambling
-# PRODUCT_MODE: minifw_gambling — regulatory gambling enforcement (GAMBLING_ONLY=1)
-# Start: docker compose -f docker/docker-compose.gambling.yml up
+# USB variant — uses pre-loaded images, no source build required.
+# Images must be loaded first: docker load -i images/minifw-gambling.tar
+# Feeds and YARA rules are bind-mounted from USB — update them without rebuilding the image.
+# Start via: demo.sh (USB root) — do not run directly.
 
 volumes:
   minifw_gambling_logs:
@@ -9,9 +11,7 @@ services:
 
   # ── Firewall Engine ─────────────────────────────────────────────────────────
   engine:
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile
+    image: minifw-ai-demo/gambling:latest
     container_name: minifw_gambling_engine
     cap_add:
       - NET_ADMIN
@@ -19,6 +19,8 @@ services:
     volumes:
       - minifw_gambling_logs:/opt/minifw_ai/logs
       - ../config/modes:/opt/minifw_ai/config/modes:ro
+      - ../config/feeds:/opt/minifw_ai/config/feeds:ro
+      - ../yara_rules:/opt/minifw_ai/yara_rules:ro
     entrypoint: ["/bin/bash", "/opt/minifw_ai/docker/entrypoint-engine.sh"]
     environment:
       PRODUCT_MODE: minifw_gambling
@@ -45,9 +47,7 @@ services:
 
   # ── Web Dashboard ────────────────────────────────────────────────────────────
   web:
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile
+    image: minifw-ai-demo/gambling:latest
     container_name: minifw_gambling_web
     depends_on:
       engine:
@@ -74,8 +74,7 @@ services:
 
   # ── Demo Traffic Injector ────────────────────────────────────────────────────
   injector:
-    build:
-      context: demo-injector-gambling/
+    image: minifw-ai-demo/gambling-injector:latest
     container_name: minifw_gambling_injector
     depends_on:
       engine:
