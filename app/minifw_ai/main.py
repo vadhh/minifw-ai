@@ -2,6 +2,7 @@ from __future__ import annotations
 import os
 import signal
 import sys
+import uuid
 
 import json
 import logging
@@ -304,6 +305,16 @@ def init_yara_scanner(ai_enabled: bool) -> tuple[Any, bool]:
         )
 
     return None, False
+
+
+def _resolve_decision_owner(reasons: list[str]) -> str:
+    if "hard_threat_gate" in reasons:
+        return "Hard Gate"
+    if "mlp_threat_score" in reasons:
+        return "AI Engine (MLP)"
+    if "yara_match" in reasons:
+        return "YARA Scanner"
+    return "Policy Engine"
 
 
 def run():
@@ -822,6 +833,8 @@ def run():
                 reasons=reasons,
                 sector=sector_name,
                 severity=event_severity,
+                trace_id=uuid.uuid4().hex[:8].upper(),
+                decision_owner=_resolve_decision_owner(reasons),
             )
 
             # HIPAA: Redact domain/SNI from event logs when sector requires it

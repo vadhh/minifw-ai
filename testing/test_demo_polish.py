@@ -18,3 +18,23 @@ def test_event_trace_id_defaults_empty():
     )
     assert ev.trace_id == ""
     assert ev.decision_owner == "Policy Engine"
+
+
+def test_resolve_decision_owner_hard_gate():
+    from minifw_ai.main import _resolve_decision_owner
+    assert _resolve_decision_owner(["hard_threat_gate", "dns_denied_domain"]) == "Hard Gate"
+
+
+def test_resolve_decision_owner_mlp():
+    from minifw_ai.main import _resolve_decision_owner
+    assert _resolve_decision_owner(["mlp_threat_score"]) == "AI Engine (MLP)"
+
+
+def test_resolve_decision_owner_yara():
+    from minifw_ai.main import _resolve_decision_owner
+    assert _resolve_decision_owner(["yara_match"]) == "YARA Scanner"
+
+
+def test_resolve_decision_owner_default():
+    from minifw_ai.main import _resolve_decision_owner
+    assert _resolve_decision_owner(["tls_sni_denied_domain"]) == "Policy Engine"
