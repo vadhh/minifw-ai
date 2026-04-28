@@ -16,6 +16,8 @@ class Event:
     reasons: list[str]
     sector: str = "unknown"  # Factory-set sector (from sector lock)
     severity: str = "info"   # Elevated to "critical" for hospital IoMT alerts
+    trace_id: str = ""
+    decision_owner: str = "Policy Engine"
 
 
 def now_iso() -> str:
