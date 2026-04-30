@@ -25,3 +25,13 @@ c2-data-collect.net
 # [SME-DEMO] Guest network burst target
 # dns_denied(40) >= guest block_threshold(40) -> immediate BLOCK
 ads-malware-tracker.net
+
+# [LEGAL-DEMO] Legal sector threat domains
+# clio-encrypt.c2-server.ru   — YARA LegalRansomwareC2 (+35) + dns_denied(40) = 75 → BLOCK
+# tor-exit-relay.onion-gw.net — YARA LegalTorExitRelay (+35) + dns_denied(40) = 75 → BLOCK
+# opposing-counsel.harvest.io — YARA LegalPrivilegeViolation (+35) + dns_denied(40) = 75 → BLOCK
+# wetransfer-legal.io         — feed-only dns_denied(40) = 40 → MONITOR (no YARA match)
+clio-encrypt.c2-server.ru
+tor-exit-relay.onion-gw.net
+opposing-counsel.harvest.io
+wetransfer-legal.io

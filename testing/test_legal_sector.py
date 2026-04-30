@@ -40,3 +40,54 @@ def test_sector_to_mode_maps_legal(monkeypatch):
     ui = mode_context.get_mode_ui()
     assert ui.product_mode == "minifw_legal"
     assert ui.sector == "legal"
+
+
+import yara
+
+
+def _compile_legal_rules():
+    with open("yara_rules/legal_rules.yar", "r") as f:
+        src = f.read()
+    return yara.compile(sources={"legal": src})
+
+
+def test_legal_yara_compiles():
+    rules = _compile_legal_rules()
+    assert rules is not None
+
+
+def test_legal_ransomware_c2_rule_matches():
+    rules = _compile_legal_rules()
+    matches = rules.match(data=b"clio-encrypt.c2-server.ru")
+    assert any(m.rule == "LegalRansomwareC2" for m in matches)
+
+
+def test_legal_privilege_violation_rule_matches():
+    rules = _compile_legal_rules()
+    matches = rules.match(data=b"opposing-counsel.harvest.io")
+    assert any(m.rule == "LegalPrivilegeViolation" for m in matches)
+
+
+def test_legal_tor_exit_rule_matches():
+    rules = _compile_legal_rules()
+    matches = rules.match(data=b"tor-exit-relay.onion-gw.net")
+    assert any(m.rule == "LegalTorExitRelay" for m in matches)
+
+
+def test_legal_data_exfil_rule_matches():
+    rules = _compile_legal_rules()
+    matches = rules.match(data=b"gdrive-exfil.upload.io")
+    assert any(m.rule == "LegalDataExfiltration" for m in matches)
+
+
+def test_legal_benign_no_match():
+    rules = _compile_legal_rules()
+    matches = rules.match(data=b"westlaw.com")
+    assert len(matches) == 0
+
+
+def test_legal_wetransfer_not_in_yara():
+    # wetransfer-legal.io scores via feed-only (+40) to land in MONITOR (not BLOCK)
+    rules = _compile_legal_rules()
+    matches = rules.match(data=b"wetransfer-legal.io")
+    assert len(matches) == 0
