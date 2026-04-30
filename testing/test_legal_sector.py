@@ -43,12 +43,13 @@ def test_sector_to_mode_maps_legal(monkeypatch):
 
 
 import yara
+from pathlib import Path
+
+_RULES_PATH = Path(__file__).parent.parent / "yara_rules" / "legal_rules.yar"
 
 
 def _compile_legal_rules():
-    with open("yara_rules/legal_rules.yar", "r") as f:
-        src = f.read()
-    return yara.compile(sources={"legal": src})
+    return yara.compile(sources={"legal": _RULES_PATH.read_text()})
 
 
 def test_legal_yara_compiles():
