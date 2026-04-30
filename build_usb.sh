@@ -7,6 +7,7 @@
 #   bash build_usb.sh financial             # → dist/minifw-usb-financial-v2.2.0/
 #   bash build_usb.sh gambling              # → dist/minifw-usb-gambling-v2.2.0/
 #   bash build_usb.sh education             # → dist/minifw-usb-education-v2.2.0/
+#   bash build_usb.sh legal                 # → dist/minifw-usb-legal-v2.2.0/
 #   bash build_usb.sh hospital 2.3.0        # custom version
 #
 # After this script completes, copy dist/minifw-usb-<sector>-vX.Y.Z/
@@ -84,9 +85,21 @@ case "$SECTOR" in
     DASHBOARD_PORT="8446"
     ADMIN_PASS="Gambling1!"
     ;;
+  legal)
+    SOURCE_COMPOSE="docker/docker-compose.legal.yml"
+    USB_COMPOSE="docker/docker-compose.usb-legal.yml"
+    INJECTOR_DIR="docker/demo-injector-legal"
+    IMAGE_TAG="minifw-ai-demo/legal:latest"
+    INJECTOR_TAG="minifw-ai-demo/legal-injector:latest"
+    IMAGE_TAR_NAME="minifw-legal.tar"
+    CONFIG_MODE="minifw_legal"
+    COMPOSE_PROJECT="minifw-legal"
+    DASHBOARD_PORT="8448"
+    ADMIN_PASS="Legal1!"
+    ;;
   *)
     echo "Usage: bash build_usb.sh <sector> [version]"
-    echo "       sector: hospital | establishment | financial | gambling | education"
+    echo "       sector: hospital | establishment | financial | gambling | education | legal"
     exit 1
     ;;
 esac
