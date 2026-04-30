@@ -1,0 +1,70 @@
+{
+  "_mode": "minifw_legal",
+  "_sector": "legal",
+  "_note": "Attorney-client privilege protection, data exfiltration blocking, ransomware C2 detection. Associate block=72 ensures feed+YARA score of 75 fires cleanly.",
+  "segments": {
+    "default": {
+      "block_threshold": 80,
+      "monitor_threshold": 50
+    },
+    "partner": {
+      "block_threshold": 85,
+      "monitor_threshold": 55,
+      "_note": "Senior counsel — most trusted, relaxed thresholds."
+    },
+    "associate": {
+      "block_threshold": 72,
+      "monitor_threshold": 45,
+      "_note": "Junior lawyers — standard threshold. 72 ensures feed+YARA(75) triggers BLOCK."
+    },
+    "paralegal": {
+      "block_threshold": 70,
+      "monitor_threshold": 38,
+      "_note": "Support staff — stricter. feed-only score(40) lands in MONITOR band."
+    },
+    "client": {
+      "block_threshold": 62,
+      "monitor_threshold": 30,
+      "_note": "Client meeting rooms — tight thresholds, unknown devices."
+    },
+    "guest": {
+      "block_threshold": 60,
+      "monitor_threshold": 28,
+      "_note": "Visitor WiFi — tightest thresholds."
+    }
+  },
+  "segment_subnets": {
+    "partner":   ["10.20.0.0/24"],
+    "associate": ["10.20.1.0/24"],
+    "paralegal": ["10.20.2.0/24"],
+    "client":    ["192.168.200.0/24"],
+    "guest":     ["192.168.100.0/24"]
+  },
+  "features": {
+    "dns_weight":       40,
+    "sni_weight":       35,
+    "asn_weight":       15,
+    "ip_denied_weight": 15,
+    "burst_weight":     10,
+    "mlp_weight":       30,
+    "yara_weight":      35
+  },
+  "enforcement": {
+    "ipset_name_v4":      "minifw_block_v4",
+    "ip_timeout_seconds": 86400,
+    "nft_table":          "inet",
+    "nft_table_name":     "minifw",
+    "nft_chain":          "forward"
+  },
+  "collectors": {
+    "dnsmasq_log_path": "/opt/minifw_ai/logs/dnsmasq.log",
+    "zeek_ssl_log_path": "/var/log/zeek/ssl.log",
+    "use_zeek_sni": false
+  },
+  "burst": {
+    "dns_queries_per_minute_monitor": 30,
+    "dns_queries_per_minute_block":   50
+  },
+  "iomt_subnets": [],
+  "safesearch_domains": []
+}

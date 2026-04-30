@@ -76,6 +76,16 @@ _MODE_UI: dict[str, ModeUI] = {
         icon="bi-shield-exclamation",
         sector="establishment",
     ),
+    "minifw_legal": ModeUI(
+        product_mode="minifw_legal",
+        label="Legal",
+        sublabel="Attorney-Client Privilege · Data Exfiltration · Ransomware",
+        color="#b45309",
+        bg="rgba(180,83,9,0.10)",
+        css_class="mode-legal",
+        icon="bi-briefcase",
+        sector="legal",
+    ),
     "ritapi_advanced": ModeUI(
         product_mode="ritapi_advanced",
         label="API Protection",
@@ -117,7 +127,7 @@ _SECTOR_TO_MODE: dict[str, str] = {
     "finance":       "minifw_financial",
     "establishment": "minifw_establishment",
     "government":    "minifw_establishment",   # no dedicated government mode yet
-    "legal":         "minifw_establishment",   # no dedicated legal mode yet
+    "legal":         "minifw_legal",
 }
 
 
