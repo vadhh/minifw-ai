@@ -56,6 +56,18 @@ _DOMAINS: dict[str, dict[str, list[str]]] = {
             "office365.com", "slack.com", "cloudflare.com",
         ],
     },
+    "education": {
+        "malicious": [
+            "nordvpn-bypass.proxy.io", "vpn-tunnel-free.cc",
+            "safesearch-bypass.proxy.ru", "filter-bypass.student.io",
+            "bet365-unblock.casino.ml", "tiktok-proxy.bypass.cc",
+            "adult-content.proxy.xyz", "unblock-sites.school.ru",
+        ],
+        "benign": [
+            "khanacademy.org", "bbc.co.uk", "wikipedia.org",
+            "microsoft.com", "office365.com", "teams.microsoft.com",
+        ],
+    },
 }
 
 _REASONS: dict[str, list[list[str]]] = {
@@ -87,6 +99,13 @@ _REASONS: dict[str, list[list[str]]] = {
         ["ip_blocked", "asn_denied"],
         ["yara_match", "burst_behavior"],
     ],
+    "education": [
+        ["dns_denied_domain", "hard_threat_gate"],
+        ["mlp_threat_score", "burst_behavior"],
+        ["yara_match", "hard_threat_gate"],
+        ["tls_sni_denied_domain", "asn_denied"],
+        ["dns_tunnel", "burst_behavior"],
+    ],
 }
 
 _DEFAULT_SECTOR = "hospital"
@@ -97,7 +116,7 @@ _PRODUCT_MODE_TO_SECTOR = {
     "minifw_financial": "financial",
     "minifw_establishment": "establishment",
     "minifw_gambling": "gambling",
-    "minifw_school": "establishment",
+    "minifw_school": "education",
 }
 
 _PHASES = [

@@ -85,3 +85,26 @@ def test_simulator_event_has_decision_owner(monkeypatch):
     m = _reload_simulator()
     ev = m._make_event("block")
     assert ev["decision_owner"] in ("Hard Gate", "AI Engine (MLP)", "YARA Scanner", "Policy Engine")
+
+
+def test_simulator_resolves_education_sector(monkeypatch):
+    monkeypatch.setenv("MINIFW_SECTOR", "education")
+    monkeypatch.delenv("PRODUCT_MODE", raising=False)
+    m = _reload_simulator()
+    assert m._active_sector() == "education"
+
+
+def test_simulator_resolves_education_from_product_mode(monkeypatch):
+    monkeypatch.setenv("PRODUCT_MODE", "minifw_school")
+    monkeypatch.delenv("MINIFW_SECTOR", raising=False)
+    m = _reload_simulator()
+    assert m._active_sector() == "education"
+
+
+def test_simulator_education_event_uses_school_domain(monkeypatch):
+    monkeypatch.setenv("MINIFW_SECTOR", "education")
+    monkeypatch.delenv("PRODUCT_MODE", raising=False)
+    m = _reload_simulator()
+    ev = m._make_event("block")
+    assert "cryptolocked" not in ev["domain"]
+    assert ev["sector"] == "education"
