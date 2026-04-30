@@ -66,8 +66,9 @@ cp "${REPO_DIR}"/config/feeds/*.txt "${BUILD_DIR}/opt/minifw_ai/config/feeds/"
 # Sector-specific: copy modes/minifw_<product_mode>/ policy.
 # Resolve product mode name early (finance → minifw_financial, others → minifw_<sector>).
 case "${SECTOR}" in
-    finance) _PMODE="minifw_financial" ;;
-    *)       _PMODE="minifw_${SECTOR}" ;;
+    finance)    _PMODE="minifw_financial" ;;
+    education)  _PMODE="minifw_school" ;;
+    *)          _PMODE="minifw_${SECTOR}" ;;
 esac
 SECTOR_MODE_DIR="${REPO_DIR}/config/modes/${_PMODE}"
 if [ -d "${SECTOR_MODE_DIR}" ]; then
@@ -106,8 +107,9 @@ sed -i "s/^Environment=MINIFW_SECTOR=.*/Environment=MINIFW_SECTOR=${SECTOR}/" \
 # Bake PRODUCT_MODE and point MINIFW_POLICY at the sector-specific file.
 # Sector "finance" maps to PRODUCT_MODE "minifw_financial" (not minifw_finance).
 case "${SECTOR}" in
-    finance) PRODUCT_MODE="minifw_financial" ;;
-    *)       PRODUCT_MODE="minifw_${SECTOR}" ;;
+    finance)    PRODUCT_MODE="minifw_financial" ;;
+    education)  PRODUCT_MODE="minifw_school" ;;
+    *)          PRODUCT_MODE="minifw_${SECTOR}" ;;
 esac
 SECTOR_POLICY_PATH="/opt/minifw_ai/config/modes/${PRODUCT_MODE}/policy.json"
 if [ -f "${REPO_DIR}/config/modes/${PRODUCT_MODE}/policy.json" ]; then
