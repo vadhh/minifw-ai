@@ -68,6 +68,19 @@ _DOMAINS: dict[str, dict[str, list[str]]] = {
             "microsoft.com", "office365.com", "teams.microsoft.com",
         ],
     },
+    "legal": {
+        "malicious": [
+            "clio-encrypt.c2-server.ru", "opposing-counsel.harvest.io",
+            "case-data.darkweb.onion", "wetransfer-legal.io",
+            "privilege-breach.leak.cc", "client-data.dump.io",
+            "lexisnexis-ransom.cc", "tor-exit-relay.onion-gw.net",
+        ],
+        "benign": [
+            "westlaw.com", "lexisnexis.com", "courts.gov",
+            "microsoft.com", "office365.com", "teams.microsoft.com",
+            "practicepanther.com", "clio.com",
+        ],
+    },
 }
 
 _REASONS: dict[str, list[list[str]]] = {
@@ -106,6 +119,13 @@ _REASONS: dict[str, list[list[str]]] = {
         ["tls_sni_denied_domain", "asn_denied"],
         ["dns_tunnel", "burst_behavior"],
     ],
+    "legal": [
+        ["dns_denied_domain", "hard_threat_gate"],
+        ["yara_match", "hard_threat_gate"],
+        ["mlp_threat_score", "asn_denied"],
+        ["tls_sni_denied_domain", "hard_threat_gate"],
+        ["dns_tunnel", "burst_behavior"],
+    ],
 }
 
 _DEFAULT_SECTOR = "hospital"
@@ -117,6 +137,7 @@ _PRODUCT_MODE_TO_SECTOR = {
     "minifw_establishment": "establishment",
     "minifw_gambling": "gambling",
     "minifw_school": "education",
+    "minifw_legal": "legal",
 }
 
 _PHASES = [
