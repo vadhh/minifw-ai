@@ -1,5 +1,4 @@
 import importlib
-import pytest
 
 
 def test_mode_context_resolves_minifw_legal(monkeypatch):
@@ -20,3 +19,4 @@ def test_sector_to_mode_maps_legal(monkeypatch):
     importlib.reload(mode_context)
     ui = mode_context.get_mode_ui()
     assert ui.product_mode == "minifw_legal"
+    assert ui.sector == "legal"
