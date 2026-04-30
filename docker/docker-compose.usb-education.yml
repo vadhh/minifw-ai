@@ -1,0 +1,82 @@
+name: minifw-education
+# USB variant — uses pre-loaded images, no source build required.
+# Images must be loaded first: docker load -i images/minifw-education.tar
+# Start via: demo.sh (USB root) — do not run directly.
+
+volumes:
+  minifw_education_logs:
+
+services:
+
+  # -- Firewall Engine -----------------------------------------------------
+  engine:
+    image: minifw-ai-demo/education:latest
+    container_name: minifw_education_engine
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    volumes:
+      - minifw_education_logs:/opt/minifw_ai/logs
+      - ../config/modes:/opt/minifw_ai/config/modes:ro
+      - ../config/feeds:/opt/minifw_ai/config/feeds:ro
+      - ../yara_rules:/opt/minifw_ai/yara_rules:ro
+    entrypoint: ["/bin/bash", "/opt/minifw_ai/docker/entrypoint-engine.sh"]
+    environment:
+      PRODUCT_MODE: minifw_school
+      MINIFW_SECTOR: education
+      MINIFW_SECRET_KEY: "demo-education-key-change-in-prod!!"
+      MINIFW_POLICY: /opt/minifw_ai/config/modes/minifw_school/policy.json
+      MINIFW_FEEDS: /opt/minifw_ai/config/feeds
+      MINIFW_LOG: /opt/minifw_ai/logs/events.jsonl
+      MINIFW_FLOW_RECORDS: /opt/minifw_ai/logs/flow_records.jsonl
+      MINIFW_AUDIT_LOG: /opt/minifw_ai/logs/audit.jsonl
+      MINIFW_MLP_MODEL: /opt/minifw_ai/models/mlp_model.pkl
+      MINIFW_YARA_RULES: /opt/minifw_ai/yara_rules
+      MINIFW_DNS_SOURCE: file
+      AI_ENABLED: "1"
+      MINIFW_DISABLE_FLOWS: "1"
+    healthcheck:
+      test: ["CMD", "test", "-f", "/opt/minifw_ai/logs/audit.jsonl"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  # -- Web Dashboard -------------------------------------------------------
+  web:
+    image: minifw-ai-demo/education:latest
+    container_name: minifw_education_web
+    depends_on:
+      engine:
+        condition: service_healthy
+    volumes:
+      - minifw_education_logs:/opt/minifw_ai/logs
+      - ../config/modes:/opt/minifw_ai/config/modes:ro
+    entrypoint: ["/bin/bash", "/opt/minifw_ai/docker/entrypoint-web.sh"]
+    environment:
+      PRODUCT_MODE: minifw_school
+      MINIFW_SECRET_KEY: "demo-education-key-change-in-prod!!"
+      MINIFW_ADMIN_PASSWORD: "Education1!"
+      MINIFW_AUDIT_LOG: /opt/minifw_ai/logs/audit.jsonl
+      MINIFW_LOG: /opt/minifw_ai/logs/events.jsonl
+      MINIFW_SECTOR: education
+      MINIFW_POLICY: /opt/minifw_ai/config/modes/minifw_school/policy.json
+      MINIFW_EXTERNAL_PORT: "8447"
+      PYTHONPATH: /opt/minifw_ai/app
+      DEMO_MODE: attack_simulation
+    ports:
+      - "8447:8443"
+    restart: unless-stopped
+
+  # -- Demo Traffic Injector -----------------------------------------------
+  injector:
+    image: minifw-ai-demo/education-injector:latest
+    container_name: minifw_education_injector
+    depends_on:
+      engine:
+        condition: service_healthy
+    volumes:
+      - minifw_education_logs:/logs
+    environment:
+      DNS_LOG_PATH: /logs/dnsmasq.log
+    restart: unless-stopped
