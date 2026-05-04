@@ -792,7 +792,7 @@ def run():
             )
 
             # Sector rules layer — runs after base scoring, can upgrade action
-            if evaluate_sector and sector_name == "finance":
+            if evaluate_sector and sector_name in {"finance", "government"}:
                 _flow_s = _build_sector_flow(client_ip, domain, flows_for_client, burst_hit)
                 _s_detections = evaluate_sector(sector_name, _flow_s)
                 _s_decision = decide_sector_action(sector_name, _s_detections)
