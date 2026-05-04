@@ -35,3 +35,13 @@ clio-encrypt.c2-server.ru
 tor-exit-relay.onion-gw.net
 opposing-counsel.harvest.io
 wetransfer-legal.io
+
+# [GOV-DEMO] Government sector threat domains
+# apt28-c2.sovereign-exfil.ru  — feed(+40) + YARA GovAptC2(+35) = 75 → BLOCK (classified block=70)
+# gov-login-verify.com         — feed-only(+40) → MONITOR (internal monitor=45)
+# tor-state-relay.onion-gw.net — feed(+40) + YARA GovTorRelay(+35) = 75 → BLOCK (guest block=65)
+# govdocs-leak.onion.to        — feed-only(+40) → MONITOR / BLOCK depending on segment
+apt28-c2.sovereign-exfil.ru
+gov-login-verify.com
+tor-state-relay.onion-gw.net
+govdocs-leak.onion.to
