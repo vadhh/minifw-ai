@@ -86,6 +86,16 @@ _MODE_UI: dict[str, ModeUI] = {
         icon="bi-briefcase",
         sector="legal",
     ),
+    "minifw_government": ModeUI(
+        product_mode="minifw_government",
+        label="Government",
+        sublabel="Sovereign Infrastructure · APT Detection · Full Traceability",
+        color="#6366f1",
+        bg="rgba(99,102,241,0.10)",
+        css_class="mode-government",
+        icon="bi-shield-fill-check",
+        sector="government",
+    ),
     "ritapi_advanced": ModeUI(
         product_mode="ritapi_advanced",
         label="API Protection",
@@ -126,7 +136,7 @@ _SECTOR_TO_MODE: dict[str, str] = {
     "education":     "minifw_school",
     "finance":       "minifw_financial",
     "establishment": "minifw_establishment",
-    "government":    "minifw_establishment",   # no dedicated government mode yet
+    "government":    "minifw_government",
     "legal":         "minifw_legal",
 }
 

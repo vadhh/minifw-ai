@@ -11,6 +11,7 @@ Valid modes:
     minifw_financial     — MiniFW-AI: finance / PCI-DSS (sector: finance)
     minifw_establishment — MiniFW-AI: SME / balanced defaults (sector: establishment)
     minifw_legal         — MiniFW-AI: legal / attorney-client privilege (sector: legal)
+    minifw_government    — MiniFW-AI: government / sovereign infrastructure / APT detection (sector: government)
 
 Priority in sector_lock.py:
     0. PRODUCT_MODE (this module)     ← canonical
@@ -41,6 +42,7 @@ _MODE_TO_SECTOR: dict[str, Optional[str]] = {
     "minifw_establishment": "establishment",
     "minifw_gambling":      "establishment",   # establishment sector + GAMBLING_ONLY=1
     "minifw_legal":         "legal",
+    "minifw_government":    "government",
 }
 
 # All modes that drive MiniFW sector selection
@@ -120,6 +122,7 @@ def resolve_mode(product_mode: Optional[str] = None) -> Optional[ModeConfig]:
         "minifw_establishment": "MiniFW-AI Establishment — balanced defaults for SME/retail",
         "minifw_gambling":      "MiniFW-AI Gambling — regulatory domain enforcement (GAMBLING_ONLY=1)",
         "minifw_legal":         "MiniFW-AI Legal — attorney-client privilege, data exfiltration, ransomware C2",
+        "minifw_government":    "MiniFW-AI Government — sovereign infrastructure, APT/C2 detection, full audit trail",
     }
 
     cfg = ModeConfig(

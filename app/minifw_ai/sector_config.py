@@ -80,20 +80,15 @@ SECTOR_POLICIES: Dict[SectorType, Dict[str, Any]] = {
     # Focus: Geo-IP restrictions, strict audit logging, APT detection
     # -------------------------------------------------------------------------
     SectorType.GOVERNMENT: {
-        "description": "Government: Strict Geo-IP and long-term audit logging.",
-        # Geo-IP restrictions
+        "description": "Government: Sovereign infrastructure, zero-tolerance APT/C2 detection, full audit trail.",
         "geo_ip_strict": True,
-        "blocked_countries": ["KP", "IR", "RU", "CN"],  # Configurable via policy.json
-        # Extended audit logging
+        "blocked_countries": ["KP", "IR", "RU", "CN", "SY", "BY"],
         "strict_logging": True,
-        "log_retention_days": 365,  # 1 year minimum
+        "log_retention_days": 365,
         "audit_all_queries": True,
-        # APT detection focus
         "apt_detection_mode": True,
-        # Additional threat feeds
         "extra_feeds": ["government_sensitive.txt", "apt_indicators.txt"],
-        # Threshold adjustments
-        "block_threshold_adjustment": -5,
+        "block_threshold_adjustment": -10,
         "monitor_threshold_adjustment": -10,
     },
     # -------------------------------------------------------------------------
