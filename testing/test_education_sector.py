@@ -80,3 +80,30 @@ def test_event_has_audit_mode_field():
         reasons=[],
     )
     assert ev.audit_mode is False
+
+
+# ── Task 2: _ip_in_subnets helper ────────────────────────────────────────────
+
+def test_ip_in_subnets_returns_true_for_student_ip():
+    from minifw_ai.main import _ip_in_subnets
+    assert _ip_in_subnets("10.10.0.5", ["10.10.0.0/16"]) is True
+
+
+def test_ip_in_subnets_returns_false_for_staff_ip():
+    from minifw_ai.main import _ip_in_subnets
+    assert _ip_in_subnets("192.168.1.5", ["10.10.0.0/16"]) is False
+
+
+def test_ip_in_subnets_returns_false_for_invalid_ip():
+    from minifw_ai.main import _ip_in_subnets
+    assert _ip_in_subnets("not-an-ip", ["10.10.0.0/16"]) is False
+
+
+def test_ip_in_subnets_returns_false_for_empty_subnet_list():
+    from minifw_ai.main import _ip_in_subnets
+    assert _ip_in_subnets("10.10.0.5", []) is False
+
+
+def test_ip_in_subnets_returns_false_for_ipv6_against_ipv4_subnet():
+    from minifw_ai.main import _ip_in_subnets
+    assert _ip_in_subnets("::1", ["10.10.0.0/16"]) is False

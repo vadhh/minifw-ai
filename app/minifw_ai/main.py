@@ -7,6 +7,7 @@ import uuid
 import json
 import logging
 import subprocess
+import ipaddress
 from pathlib import Path
 from collections import OrderedDict
 from typing import Any
@@ -315,6 +316,15 @@ def _resolve_decision_owner(reasons: list[str]) -> str:
     if "yara_match" in reasons:
         return "YARA Scanner"
     return "Policy Engine"
+
+
+def _ip_in_subnets(ip: str, subnets: list[str]) -> bool:
+    """Return True if ip falls within any of the given CIDR subnets."""
+    try:
+        addr = ipaddress.ip_address(ip)
+        return any(addr in ipaddress.ip_network(s, strict=False) for s in subnets)
+    except (ValueError, TypeError):
+        return False
 
 
 def run():
