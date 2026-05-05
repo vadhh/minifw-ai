@@ -18,6 +18,9 @@ class Event:
     severity: str = "info"   # Elevated to "critical" for hospital IoMT alerts
     trace_id: str = ""
     decision_owner: str = "Policy Engine"
+    student_flagged: bool = False      # education sector: client IP matched student subnet
+    vpn_block_enforced: bool = False   # education sector: VPN/proxy YARA rule fired
+    audit_mode: bool = False           # education/strict-logging sectors: event is audit-tagged
 
 
 def now_iso() -> str:

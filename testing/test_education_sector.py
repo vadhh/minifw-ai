@@ -1,5 +1,6 @@
 import pytest
 import yara
+from minifw_ai.events import Event
 
 
 def _compile_education_rules():
@@ -35,3 +36,47 @@ def test_education_benign_no_match():
     rules = _compile_education_rules()
     matches = rules.match(data=b"khanacademy.org")
     assert len(matches) == 0
+
+
+# ── Task 1: Event dataclass fields ───────────────────────────────────────────
+
+def test_event_has_student_flagged_field():
+    """Event must have student_flagged=False by default."""
+    ev = Event(
+        ts="2026-01-01T00:00:00+00:00",
+        segment="student",
+        client_ip="10.10.0.1",
+        domain="example.com",
+        action="allow",
+        score=0,
+        reasons=[],
+    )
+    assert ev.student_flagged is False
+
+
+def test_event_has_vpn_block_enforced_field():
+    """Event must have vpn_block_enforced=False by default."""
+    ev = Event(
+        ts="2026-01-01T00:00:00+00:00",
+        segment="student",
+        client_ip="10.10.0.1",
+        domain="example.com",
+        action="block",
+        score=80,
+        reasons=["yara_EducationVpnProxy"],
+    )
+    assert ev.vpn_block_enforced is False
+
+
+def test_event_has_audit_mode_field():
+    """Event must have audit_mode=False by default."""
+    ev = Event(
+        ts="2026-01-01T00:00:00+00:00",
+        segment="staff",
+        client_ip="192.168.1.1",
+        domain="example.com",
+        action="allow",
+        score=0,
+        reasons=[],
+    )
+    assert ev.audit_mode is False
