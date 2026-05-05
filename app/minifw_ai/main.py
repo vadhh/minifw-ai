@@ -415,6 +415,26 @@ def run():
                     f"[SECTOR_LOCK] Tor/anonymizer blocking enabled: loaded {tor_count} exit IPs"
                 )
 
+            # Education sector: SafeSearch domain protection
+            if sector_config.get("force_safesearch"):
+                safesearch_domains = sector_config.get("safesearch_domains", [])
+                # Protect bare domain AND all subdomains (fnmatch: *.google.com covers www.google.com, etc.)
+                protected = []
+                for d in safesearch_domains:
+                    protected.append(d)
+                    if not d.startswith("*."):
+                        protected.append(f"*.{d}")
+                feeds.allow_domains.extend(protected)
+                logging.info(
+                    f"[SECTOR_LOCK] SafeSearch enforcement: protected {len(protected)} patterns from blocking"
+                )
+
+            # Education sector: VPN/proxy blocking confirmation
+            if sector_config.get("block_vpns") or sector_config.get("block_proxies"):
+                logging.info(
+                    "[SECTOR_LOCK] VPN/proxy blocking active — entries loaded via school_blacklist.txt"
+                )
+
             # Get IoMT subnets for hospital sector (from policy.json, not hardcoded)
             if sector_lock.is_hospital():
                 iomt_subnets = pol.cfg.get("iomt_subnets", [])
@@ -850,6 +870,21 @@ def run():
             # HIPAA: Redact domain/SNI from event logs when sector requires it
             if sector_config.get("redact_payloads"):
                 ev.domain = "[REDACTED]"
+
+            # Education: tag events from student subnet
+            if sector_config.get("log_student_activity"):
+                student_subnets = seg_map.get("student", [])
+                if _ip_in_subnets(client_ip, student_subnets):
+                    ev.student_flagged = True
+
+            # Education: tag events where VPN/proxy YARA rule fired
+            if sector_config.get("block_vpns") or sector_config.get("block_proxies"):
+                if any("VpnProxy" in r for r in ev.reasons):
+                    ev.vpn_block_enforced = True
+
+            # Strict-logging sectors: mark all events as audit-mode
+            if sector_config.get("strict_logging"):
+                ev.audit_mode = True
 
             writer.write(ev)
 
