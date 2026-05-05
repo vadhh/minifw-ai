@@ -107,3 +107,46 @@ def test_ip_in_subnets_returns_false_for_empty_subnet_list():
 def test_ip_in_subnets_returns_false_for_ipv6_against_ipv4_subnet():
     from minifw_ai.main import _ip_in_subnets
     assert _ip_in_subnets("::1", ["10.10.0.0/16"]) is False
+
+
+# ── Task 5: Event serialisation ───────────────────────────────────────────────
+
+def test_student_flagged_serialises_to_json():
+    """student_flagged must appear in asdict output (used by EventWriter)."""
+    import json
+    from dataclasses import asdict
+    ev = Event(
+        ts="2026-01-01T00:00:00+00:00",
+        segment="student",
+        client_ip="10.10.0.5",
+        domain="nordvpn-bypass.proxy.io",
+        action="block",
+        score=75,
+        reasons=["yara_EducationVpnProxy", "dns_denied_domain"],
+        student_flagged=True,
+        vpn_block_enforced=True,
+        audit_mode=True,
+    )
+    serialised = json.loads(json.dumps(asdict(ev)))
+    assert serialised["student_flagged"] is True
+    assert serialised["vpn_block_enforced"] is True
+    assert serialised["audit_mode"] is True
+
+
+def test_event_fields_default_false_in_json():
+    """New fields must default to False in serialised output."""
+    import json
+    from dataclasses import asdict
+    ev = Event(
+        ts="2026-01-01T00:00:00+00:00",
+        segment="staff",
+        client_ip="192.168.1.1",
+        domain="khanacademy.org",
+        action="allow",
+        score=0,
+        reasons=[],
+    )
+    serialised = json.loads(json.dumps(asdict(ev)))
+    assert serialised["student_flagged"] is False
+    assert serialised["vpn_block_enforced"] is False
+    assert serialised["audit_mode"] is False
