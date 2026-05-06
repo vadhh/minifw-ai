@@ -29,7 +29,8 @@ _check_os() {
 }
 
 _check_tools() {
-    for cmd in curl sha256sum gpg; do
+    command -v sha256sum &>/dev/null || _die "sha256sum is required but not found (install coreutils)"
+    for cmd in curl gpg; do
         command -v "$cmd" &>/dev/null || _warn "Tool not found: ${cmd} (some steps may be skipped)"
     done
 }
@@ -88,6 +89,7 @@ _resolve_tag() {
     local tag
     tag="$(echo "$resp" | grep '"tag_name"' | head -1 | sed 's/.*"tag_name": *"\([^"]*\)".*/\1/')"
     [[ -n "$tag" ]] || _die "Could not determine latest release tag from GitHub API"
+    [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || _die "Unexpected tag format from GitHub API: '${tag}'"
     echo "$tag"
 }
 
@@ -212,15 +214,16 @@ main() {
     sector="$(_select_sector)"
     _info "Sector selected: ${sector}"
 
-    local tag version base_url deb_name tmpdir
+    local tmpdir
+    tmpdir="$(mktemp -d)"
+    trap 'rm -rf "${tmpdir}"' EXIT
+
+    local tag version base_url deb_name
     tag="$(_resolve_tag)"
     version="$(_version_from_tag "$tag")"
     base_url="$(_base_url "$tag")"
     deb_name="$(_deb_name "$version" "$sector")"
     _info "Latest version: ${version} (${tag})"
-
-    tmpdir="$(mktemp -d)"
-    trap 'rm -rf "${tmpdir}"' EXIT
 
     _download_assets "$base_url" "$deb_name" "$tmpdir"
     _verify_sha256 "$tmpdir" "$deb_name"
