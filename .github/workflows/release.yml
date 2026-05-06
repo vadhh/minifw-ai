@@ -1,0 +1,84 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq dpkg-dev fakeroot gnupg
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Extract version from tag
+        id: version
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Build .deb packages for all sectors
+        run: |
+          for sector in hospital education government finance legal establishment; do
+            echo "Building sector: ${sector}"
+            bash scripts/build_deb.sh "${sector}"
+          done
+
+      - name: Generate SHA-256 checksums
+        run: |
+          cd build
+          for deb in *.deb; do
+            sha256sum "${deb}" > "${deb}.sha256"
+          done
+
+      - name: Import GPG signing key
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        run: |
+          echo "${GPG_PRIVATE_KEY}" | gpg --batch --import
+          echo "allow-loopback-pinentry" >> ~/.gnupg/gpg-agent.conf
+          gpgconf --kill gpg-agent
+
+      - name: GPG sign .deb packages
+        env:
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        run: |
+          cd build
+          for deb in *.deb; do
+            echo "${GPG_PASSPHRASE}" | gpg --batch --yes --passphrase-fd 0 \
+              --pinentry-mode loopback \
+              --detach-sign --armor \
+              --local-user BDB471E1FB46F58A \
+              "${deb}"
+          done
+
+      - name: Create GitHub Release and upload assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          TAG="${GITHUB_REF_NAME}"
+
+          # Create the release (draft=false, prerelease=false)
+          gh release create "${TAG}" \
+            --title "MiniFW-AI v${VERSION}" \
+            --notes "Release v${VERSION}. See [CHANGELOG.md](CHANGELOG.md) for details." \
+            install.sh \
+            minifw-ai-release.asc \
+            build/*.deb \
+            build/*.sha256 \
+            build/*.asc
