@@ -1,14 +1,18 @@
 # MiniFW-AI — AI Behavioral Firewall Engine
 
+**Repository:** [github.com/vadhh/minifw-ai](https://github.com/vadhh/minifw-ai)
+
 MiniFW-AI is an AI-powered behavioral firewall engine deployed on Linux gateway
 hardware. It detects unknown network threats by building behavioral models of
 normal traffic and flagging deviations using hard rule gates, threat intelligence
 scoring, ML inference (MLP), and YARA pattern matching. Enforcement is performed
-at the packet level via nftables/ipset across six vertically-locked sectors
-(hospital, education, government, finance, legal, establishment).
+at the packet level via nftables/ipset across six vertically-locked sectors:
+`hospital`, `education`, `government`, `finance`, `legal`, `establishment`.
 
 The same `.deb` package supports all six sectors. The active sector is set once
 at deployment and locked for the lifetime of that installation.
+
+---
 
 ## Requirements
 
@@ -16,32 +20,43 @@ at deployment and locked for the lifetime of that installation.
 - **Python**: 3.10+
 - **Root access**: Required for nftables enforcement and conntrack reading
 - **Hardware**: 4+ CPU cores, 8 GB RAM, 100 GB disk, 1 Gbps NIC
-- **System packages** (installed automatically by the `.deb`): `python3`, `python3-venv`, `nftables`, `openssl`
+- **System packages** (installed automatically by the `.deb`): `python3`, `python3-venv`, `nftables`, `openssl`, `curl`
 - **Recommended**: `dnsmasq` (for DNS log-based threat detection)
+
+---
 
 ## Installation
 
 ### One-line installer (recommended)
 
+> **Requires an interactive terminal.** The installer prompts you to select a sector.
+
 ```bash
-curl -fsSL https://github.com/vadhh/minifw-ai/releases/latest/download/install.sh | sudo bash
+sudo bash <(curl -fsSL https://github.com/vadhh/minifw-ai/releases/latest/download/install.sh)
 ```
 
-The script will prompt you to select a sector, download the correct `.deb` from GitHub Releases,
-verify the SHA-256 checksum and GPG signature, install the package, configure DNS logging, and
-start the `minifw-ai` and `minifw-ai-web` services automatically.
+The installer will:
+1. Prompt you to select a deployment sector (hospital, education, government, finance, legal, establishment)
+2. Download the correct `.deb` from GitHub Releases
+3. Verify the SHA-256 checksum (hard fail on mismatch)
+4. Verify the GPG signature (warn and continue if unavailable)
+5. Install the package via `dpkg`
+6. Configure DNS logging via dnsmasq
+7. Start the `minifw-ai` and `minifw-ai-web` services
+
+**Admin credentials** are generated at install time and stored in `/etc/minifw/minifw.env` (root-readable only). The password is also printed to the console — save it.
 
 To install a specific version:
 
 ```bash
-curl -fsSL https://github.com/vadhh/minifw-ai/releases/download/v2.2.0/install.sh | sudo bash
+sudo bash <(curl -fsSL https://github.com/vadhh/minifw-ai/releases/download/v2.2.0/install.sh)
 ```
 
 ---
 
 ### Manual installation
 
-For air-gapped or offline deployments, use the manual flow below.
+For air-gapped or offline deployments, use the steps below.
 
 ### Step 1 — Verify the package
 
@@ -75,7 +90,7 @@ decide now — see [Changing the Sector](#changing-the-sector) below.
 
 ```bash
 sudo apt update
-sudo apt install -y python3 python3-venv nftables openssl dnsmasq zeek
+sudo apt install -y python3 python3-venv nftables openssl dnsmasq curl zeek
 ```
 
 > **Zeek** provides TLS/SNI scoring (+35 points) and populates 3 MLP flow features
@@ -108,7 +123,14 @@ The installer automatically:
 
 ### Step 5 — Enable DNS logging
 
-DNS-based threat detection requires dnsmasq to write query logs:
+DNS-based threat detection requires dnsmasq to write query logs. Run the
+included helper script (already done automatically by the one-line installer):
+
+```bash
+sudo bash /opt/minifw_ai/scripts/enable_dnsmasq_logging.sh
+```
+
+Or manually:
 
 ```bash
 # If not already in /etc/dnsmasq.conf:
@@ -169,22 +191,11 @@ password change. Alternatively via the dashboard: **Users → admin → Change P
 ### Uninstall
 
 ```bash
+sudo bash /opt/minifw_ai/scripts/uninstall.sh  # recommended (removes services + data)
+
+# Or via dpkg:
 sudo dpkg -r minifw-ai      # remove (keeps /etc/minifw, feeds, and logs)
 sudo dpkg -P minifw-ai      # purge (removes everything including secrets)
-```
-
----
-
-### Building the Package
-
-```bash
-bash scripts/build_deb.sh [sector]
-# Default sector: establishment
-# Examples:
-#   bash scripts/build_deb.sh hospital
-#   bash scripts/build_deb.sh finance
-# Output: build/minifw-ai_2.2.0-<sector>_amd64.deb
-# Checksum: build/minifw-ai_2.2.0-<sector>_amd64.deb.sha256
 ```
 
 ---
@@ -199,33 +210,35 @@ service unit and locked at daemon startup — it cannot be changed at runtime.
 | Sector | Use case | Monitor / Block threshold | Special behaviour |
 |--------|----------|--------------------------|-------------------|
 | `establishment` | General commercial, SME, retail | 60 / 90 (default) | Balanced |
-| `hospital` | Hospitals, clinics | **40 / 85** (stricter) | HIPAA payload redaction, IoMT device alerts (severity=critical), `healthcare_threats.txt` feed, hospital YARA rules |
+| `hospital` | Hospitals, clinics | **40 / 85** (stricter) | HIPAA payload redaction, IoMT device alerts, `healthcare_threats.txt` feed, hospital YARA rules |
 | `finance` | Banks, financial institutions | 60 / **80** (stricter) | Tor/anonymizer blocking |
-| `education` | Schools, universities | 60 / 90 | SafeSearch enforcement |
+| `education` | Schools, universities | 60 / 90 | SafeSearch enforcement, VPN blocking, student activity logging |
 | `government` | Government networks | 60 / 90 | Geo-IP restrictions |
 | `legal` | Law firms | 60 / 90 | Exfiltration monitoring |
 
 ### How to set the sector
 
-**Option A — Build a sector-specific package (recommended)**
+**Option A — Use the one-line installer (recommended)**
+
+The installer prompts for sector selection and bakes it into the installed service unit automatically.
+
+**Option B — Build a sector-specific package**
 
 ```bash
 bash scripts/build_deb.sh hospital
-sudo dpkg -i build/minifw-ai_2.2.0-<sector>_amd64.deb
+sudo dpkg -i build/minifw-ai_<version>-hospital_amd64.deb
 # The sector is baked into the package — no post-install edits needed.
 ```
 
 Valid sectors: `hospital`, `education`, `government`, `finance`, `legal`, `establishment`
 
-**Option B — After install**
+**Option C — After install, edit the service unit**
 
 ```bash
-# Edit the live service unit
 sudo nano /etc/systemd/system/minifw-ai.service
 # Change: Environment=MINIFW_SECTOR=establishment
 # To:     Environment=MINIFW_SECTOR=hospital
 
-# Apply the change
 sudo systemctl daemon-reload
 sudo systemctl restart minifw-ai
 
@@ -245,15 +258,11 @@ journalctl -u minifw-ai | grep "SECTOR_LOCK"
 
 > **Important:** The sector lock is permanent for a running daemon instance.
 > A restart is always required after changing `MINIFW_SECTOR`. Attempting to
-> set an invalid sector (or the legacy `gambling` value) will cause the daemon
-> to refuse to start.
+> set an invalid sector will cause the daemon to refuse to start.
+
+---
 
 ## Configuration
-
-### Sector Lock
-
-See [Changing the Sector](#changing-the-sector) above for the full sector table,
-how to set the sector before or after install, and how to verify it is active.
 
 ### DNS Source
 
@@ -318,8 +327,10 @@ Edit `/opt/minifw_ai/config/policy.json` to tune scoring:
 
 Decision thresholds (configurable per segment):
 - Score < 60 → **allow**
-- Score >= 60 → **monitor**
-- Score >= 90 → **block** (IP added to nftables)
+- Score ≥ 60 → **monitor**
+- Score ≥ 90 → **block** (IP added to nftables)
+
+---
 
 ## Web Admin Panel
 
@@ -338,21 +349,60 @@ Features:
 - Audit log viewer
 - Event export (XLSX)
 
+---
+
 ## Development
 
 ### Run Tests
 
 ```bash
-pip install pytest
 python -m pytest testing/ -v                       # all tests
-python -m pytest testing/ -m "not integration" -v  # unit tests only
+python -m pytest testing/ -m "not integration" -v  # unit tests only (no root needed)
 ```
+
+Tests live in `testing/` (not `tests/`). No external model file is needed — `conftest.py` trains a minimal in-memory MLP.
 
 ### Retrain MLP Model
 
 ```bash
 python3 scripts/train_mlp.py --data /opt/minifw_ai/logs/flow_records.jsonl
 ```
+
+### Build a `.deb` Package
+
+```bash
+bash scripts/build_deb.sh [sector] [version]
+# Defaults: sector=establishment, version from scripts/build_deb.sh
+# Examples:
+#   bash scripts/build_deb.sh hospital 2.2.0
+#   bash scripts/build_deb.sh finance 2.3.0
+# Output: build/minifw-ai_<version>-<sector>_amd64.deb
+```
+
+### Release Process
+
+Releases are fully automated via GitHub Actions. Push a semver tag to trigger a build:
+
+```bash
+git tag v2.3.0
+git push origin v2.3.0
+```
+
+The release workflow (`.github/workflows/release.yml`) will:
+1. Build `.deb` packages for all six sectors
+2. Generate SHA-256 checksums
+3. GPG-sign each package (requires `GPG_PRIVATE_KEY` and `GPG_PASSPHRASE` GitHub Secrets)
+4. Create a GitHub Release and upload all assets including `install.sh`
+
+**One-time GitHub Secrets setup (repo owner only):**
+```bash
+# Export private key and add to GitHub Secrets as GPG_PRIVATE_KEY
+gpg --export-secret-keys --armor BDB471E1FB46F58A
+
+# Add the passphrase as GPG_PASSPHRASE (empty string if none)
+```
+
+---
 
 ## Architecture
 
@@ -378,6 +428,8 @@ Auto-transitions based on DNS telemetry health. System fails closed —
 if DNS telemetry is lost, it downgrades to BASELINE_PROTECTION (hard gates
 remain active, AI modules disabled).
 
+---
+
 ## File Layout
 
 ```
@@ -388,17 +440,18 @@ remain active, AI modules disabled).
 │   ├── models/             # SQLAlchemy models
 │   ├── services/           # Business logic
 │   ├── controllers/        # Route handlers
-│   └── middleware/          # Auth middleware
+│   └── middleware/         # Auth middleware
 ├── config/
 │   ├── policy.json         # Scoring thresholds and weights
-│   └── feeds/              # Threat intelligence feeds
+│   ├── feeds/              # Threat intelligence feeds
+│   └── modes/              # Per-sector policy overrides
 ├── models/
 │   └── mlp_model.pkl       # Pre-trained MLP model
 ├── yara_rules/             # YARA detection rules
 ├── prometheus/             # Metrics module
 ├── scheduler/              # Retraining scheduler
 ├── logs/                   # Runtime logs (events.jsonl, audit.jsonl)
-├── scripts/                # Backup, restore, training tools
+├── scripts/                # Install helpers, backup, restore, training
 ├── venv/                   # Python virtual environment (created at install)
 └── requirements.txt
 
@@ -413,18 +466,21 @@ remain active, AI modules disabled).
     └── server.crt          # TLS certificate
 ```
 
+---
+
 ## Documentation
 
 | Document | Description |
 |----------|-------------|
-| [DEVELOPER.md](DEVELOPER.md) | Architecture deep-dive, module reference, 11-stage development model |
+| [DEVELOPER.md](DEVELOPER.md) | Architecture deep-dive, module reference, 11-stage development lifecycle |
 | [CHANGELOG.md](CHANGELOG.md) | Version history |
-| [TODO.md](TODO.md) | Stage 4 readiness task list (all complete) |
-| [docs/monitoring-mode.md](docs/monitoring-mode.md) | Monitoring mode reference, scoring thresholds, analyst workflow |
 | [docs/release-verification.md](docs/release-verification.md) | GPG signing key, package verification steps |
+| [docs/monitoring-mode.md](docs/monitoring-mode.md) | Monitoring mode reference, scoring thresholds, analyst workflow |
 | [docs/rollback.md](docs/rollback.md) | Rollback and emergency removal procedure |
-| [docs/report-2026-03-16.md](docs/report-2026-03-16.md) | Establishment deployment readiness report (2026-03-16) |
-| [docs/report-2026-03-17-hospital.md](docs/report-2026-03-17-hospital.md) | Hospital sector deployment readiness report (2026-03-17) |
+| [docs/report-2026-03-16.md](docs/report-2026-03-16.md) | Establishment deployment readiness report |
+| [docs/report-2026-03-17-hospital.md](docs/report-2026-03-17-hospital.md) | Hospital sector deployment readiness report |
+
+---
 
 ## License
 
