@@ -21,6 +21,7 @@ _check_root() {
 _check_os() {
     command -v dpkg &>/dev/null || _die "This installer requires Debian/Ubuntu (dpkg not found)"
     local os_id
+    # shellcheck source=/dev/null
     os_id="$(. /etc/os-release 2>/dev/null && echo "${ID:-}")"
     case "${os_id}" in
         ubuntu|debian) ;;
