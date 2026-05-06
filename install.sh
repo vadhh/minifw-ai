@@ -31,9 +31,8 @@ _check_os() {
 
 _check_tools() {
     command -v sha256sum &>/dev/null || _die "sha256sum is required but not found (install coreutils)"
-    for cmd in curl gpg; do
-        command -v "$cmd" &>/dev/null || _warn "Tool not found: ${cmd} (some steps may be skipped)"
-    done
+    command -v curl &>/dev/null || _die "curl is required but not found (sudo apt-get install curl)"
+    command -v gpg &>/dev/null || _warn "Tool not found: gpg (GPG verification will be skipped)"
 }
 
 # ── Sector selection ──────────────────────────────────────────────────────────
@@ -147,8 +146,15 @@ _verify_gpg() {
     mkdir -p "${gpg_home}"
     chmod 700 "${gpg_home}"
 
-    if gpg --homedir "${gpg_home}" --import "${key_file}" 2>/dev/null \
-    && gpg --homedir "${gpg_home}" --verify "${asc_file}" "${deb_file}" 2>/dev/null; then
+    if ! gpg --homedir "${gpg_home}" --import "${key_file}" 2>/dev/null; then
+        _warn "GPG key import failed — skipping GPG verification"
+        return
+    fi
+    if ! gpg --homedir "${gpg_home}" --list-keys "${MINIFW_GPG_KEY_ID}" &>/dev/null; then
+        _warn "Expected GPG key ${MINIFW_GPG_KEY_ID} not found in downloaded key asset — skipping GPG verification"
+        return
+    fi
+    if gpg --homedir "${gpg_home}" --verify "${asc_file}" "${deb_file}" 2>/dev/null; then
         _info "GPG signature OK (key ${MINIFW_GPG_KEY_ID})"
     else
         _warn "GPG signature verification failed — proceeding (SHA-256 passed)"
