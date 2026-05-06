@@ -21,6 +21,28 @@ at deployment and locked for the lifetime of that installation.
 
 ## Installation
 
+### One-line installer (recommended)
+
+```bash
+curl -fsSL https://github.com/vadhh/minifw-ai/releases/latest/download/install.sh | sudo bash
+```
+
+The script will prompt you to select a sector, download the correct `.deb` from GitHub Releases,
+verify the SHA-256 checksum and GPG signature, install the package, configure DNS logging, and
+start the `minifw-ai` and `minifw-ai-web` services automatically.
+
+To install a specific version:
+
+```bash
+curl -fsSL https://github.com/vadhh/minifw-ai/releases/download/v2.2.0/install.sh | sudo bash
+```
+
+---
+
+### Manual installation
+
+For air-gapped or offline deployments, use the manual flow below.
+
 ### Step 1 — Verify the package
 
 Before installing, confirm the package has not been tampered with:
