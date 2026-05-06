@@ -26,3 +26,19 @@ jobs:
 
       - name: Run tests
         run: python -m pytest testing/ -m "not integration" -v
+
+  shellcheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install shellcheck
+        run: sudo apt-get install -y shellcheck
+      - name: Lint install.sh
+        run: shellcheck install.sh
+
+  test-installer-functions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run installer unit tests
+        run: bash testing/test_install_sh.sh
