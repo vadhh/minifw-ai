@@ -17,56 +17,58 @@
         </div>
       </div>
       <div class="card-body">
-        <table id="segmentsTable" class="table table-striped table-bordered align-middle w-100">
-          <thead>
-            <tr>
-              <th style="width: 60px" class="text-center">No</th>
-              <th>Segment Name</th>
-              <th>Block Threshold</th>
-              <th>Monitor Threshold</th>
-              <th>Subnets</th>
-              <th style="width: 180px">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for segment_name, segment_data in segments.items() %}
-            <tr>
-              <td class="text-center">{{ loop.index }}</td>
-              <td><strong>{{ segment_name }}</strong></td>
-              <td>{{ segment_data.block_threshold }}</td>
-              <td>{{ segment_data.monitor_threshold }}</td>
-              <td>
-                {% if segment_subnets.get(segment_name) %}
-                  {% for subnet in segment_subnets.get(segment_name) %}
-                    <span class="badge text-bg-info">{{ subnet }}</span>
-                  {% endfor %}
-                {% else %}
-                  <span class="text-muted">No subnets</span>
-                {% endif %}
-              </td>
-              <td>
-                <button class="btn btn-sm btn-warning btn-edit-segment" 
-                        data-name="{{ segment_name }}" 
-                        data-block="{{ segment_data.block_threshold }}" 
-                        data-monitor="{{ segment_data.monitor_threshold }}">
-                  <i class="bi bi-pencil"></i>
-                </button>
-                <button class="btn btn-sm btn-info btn-edit-subnets" 
-                        data-name="{{ segment_name }}" 
-                        data-subnets="{{ segment_subnets.get(segment_name, []) | tojson | escape }}">
-                  <i class="bi bi-hdd-network"></i>
-                </button>
-                {% if segment_name != 'default' %}
-                <button class="btn btn-sm btn-danger btn-delete-segment" 
-                        data-name="{{ segment_name }}">
-                  <i class="bi bi-trash"></i>
-                </button>
-                {% endif %}
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+        <div class="table-responsive">
+          <table id="segmentsTable" class="table table-striped table-bordered align-middle w-100">
+            <thead>
+              <tr>
+                <th style="width: 60px" class="text-center">No</th>
+                <th>Segment Name</th>
+                <th>Block Threshold</th>
+                <th>Monitor Threshold</th>
+                <th>Subnets</th>
+                <th style="width: 180px">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for segment_name, segment_data in segments.items() %}
+              <tr>
+                <td class="text-center">{{ loop.index }}</td>
+                <td><strong>{{ segment_name }}</strong></td>
+                <td>{{ segment_data.block_threshold }}</td>
+                <td>{{ segment_data.monitor_threshold }}</td>
+                <td>
+                  {% if segment_subnets.get(segment_name) %}
+                    {% for subnet in segment_subnets.get(segment_name) %}
+                      <span class="badge text-bg-info">{{ subnet }}</span>
+                    {% endfor %}
+                  {% else %}
+                    <span class="text-muted">No subnets</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <button class="btn btn-sm btn-warning btn-edit-segment" 
+                          data-name="{{ segment_name }}" 
+                          data-block="{{ segment_data.block_threshold }}" 
+                          data-monitor="{{ segment_data.monitor_threshold }}">
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                  <button class="btn btn-sm btn-info btn-edit-subnets" 
+                          data-name="{{ segment_name }}" 
+                          data-subnets="{{ segment_subnets.get(segment_name, []) | tojson | escape }}">
+                    <i class="bi bi-hdd-network"></i>
+                  </button>
+                  {% if segment_name != 'default' %}
+                  <button class="btn btn-sm btn-danger btn-delete-segment" 
+                          data-name="{{ segment_name }}">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
 
@@ -281,7 +283,7 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Initialize DataTable
   var segmentsTable = jQuery("#segmentsTable").DataTable({
-    responsive: true,
+    scrollX: true,
     pageLength: 10,
     lengthChange: false,
     ordering: true,

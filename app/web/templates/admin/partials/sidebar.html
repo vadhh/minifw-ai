@@ -1,15 +1,13 @@
 <aside class="app-sidebar shadow">
   <div class="sidebar-brand">
     <a href="/admin" class="brand-link">
-      <img
-        src="{{ url_for('static', path='adminLTE/dist/assets/img/AdminLTELogo.png') }}"
-        class="brand-image opacity-75 shadow"
-      />
-      <span class="brand-text fw-light">MINIFW-AI</span>
+      <img src="{{ url_for('static', path='adminLTE/dist/assets/img/AdminLTELogo.png') }}"
+        class="brand-image opacity-75 shadow" />
+      <span class="brand-text fw-light">MINIFW-AII</span>
     </a>
     <!-- Mode pill under brand name -->
     <div class="mf-sidebar-mode-pill"
-         style="background:{{ mode_ui.bg }};color:{{ mode_ui.color }};border-top:1px solid {{ mode_ui.color }}33;">
+      style="background:{{ mode_ui.bg }};color:{{ mode_ui.color }};border-top:1px solid {{ mode_ui.color }}33;">
       <i class="bi {{ mode_ui.icon }} me-1" style="font-size:11px;"></i>
       <span style="font-size:11px;font-weight:600;letter-spacing:.3px;">{{ mode_ui.label }}</span>
     </div>
@@ -19,20 +17,15 @@
     <nav>
       <ul class="nav sidebar-menu flex-column">
         <li class="nav-item">
-          <a
-            href="/admin/"
-            class="nav-link {% if request.url.path == '/admin/' or request.url.path == '/admin' %}active{% endif %}"
-          >
+          <a href="/admin/"
+            class="nav-link {% if request.url.path == '/admin/' or request.url.path == '/admin' %}active{% endif %}">
             <i class="nav-icon bi bi-speedometer2"></i>
             <p>Dashboard</p>
           </a>
         </li>
 
         <li class="nav-item">
-          <a
-            href="/admin/events"
-            class="nav-link {% if request.url.path == '/admin/events' %}active{% endif %}"
-          >
+          <a href="/admin/events" class="nav-link {% if request.url.path == '/admin/events' %}active{% endif %}">
             <i class="nav-icon bi bi-activity"></i>
             <p>
               Security Events
@@ -45,10 +38,8 @@
 
         {% if mode_ui.product_mode == "minifw_hospital" or mode_ui.sector == "hospital" %}
         <li class="nav-item">
-          <a
-            href="/admin/iomt-alerts"
-            class="nav-link {% if request.url.path == '/admin/iomt-alerts' %}active{% endif %}"
-          >
+          <a href="/admin/iomt-alerts"
+            class="nav-link {% if request.url.path == '/admin/iomt-alerts' %}active{% endif %}">
             <i class="nav-icon bi bi-heart-pulse"></i>
             <p>
               IoMT Alerts
@@ -65,10 +56,8 @@
 
         <!-- Allow Domains -->
         <li class="nav-item">
-          <a
-            href="/admin/allow-domain"
-            class="nav-link {% if request.url.path == '/admin/allow-domain' %}active{% endif %}"
-          >
+          <a href="/admin/allow-domain"
+            class="nav-link {% if request.url.path == '/admin/allow-domain' %}active{% endif %}">
             <i class="nav-icon bi bi-shield-check"></i>
             <p>Allow Domains</p>
           </a>
@@ -76,10 +65,7 @@
 
         <!-- Deny IPs -->
         <li class="nav-item">
-          <a
-            href="/admin/deny-ip"
-            class="nav-link {% if request.url.path == '/admin/deny-ip' %}active{% endif %}"
-          >
+          <a href="/admin/deny-ip" class="nav-link {% if request.url.path == '/admin/deny-ip' %}active{% endif %}">
             <i class="nav-icon bi bi-shield-x"></i>
             <p>Deny IPs</p>
           </a>
@@ -87,10 +73,7 @@
 
         <!-- Deny ASNs -->
         <li class="nav-item">
-          <a
-            href="/admin/deny-asn"
-            class="nav-link {% if request.url.path == '/admin/deny-asn' %}active{% endif %}"
-          >
+          <a href="/admin/deny-asn" class="nav-link {% if request.url.path == '/admin/deny-asn' %}active{% endif %}">
             <i class="nav-icon bi bi-diagram-3"></i>
             <p>Deny ASNs</p>
           </a>
@@ -98,10 +81,8 @@
 
         <!-- Deny Domains -->
         <li class="nav-item">
-          <a
-            href="/admin/deny-domain"
-            class="nav-link {% if request.url.path == '/admin/deny-domain' %}active{% endif %}"
-          >
+          <a href="/admin/deny-domain"
+            class="nav-link {% if request.url.path == '/admin/deny-domain' %}active{% endif %}">
             <i class="nav-icon bi bi-shield-x"></i>
             <p>Deny Domains</p>
           </a>
@@ -112,10 +93,7 @@
 
         <!-- Policy Configuration -->
         <li class="nav-item" data-rbac-min="operator">
-          <a
-            href="/admin/policy"
-            class="nav-link {% if request.url.path == '/admin/policy' %}active{% endif %}"
-          >
+          <a href="/admin/policy" class="nav-link {% if request.url.path == '/admin/policy' %}active{% endif %}">
             <i class="nav-icon bi bi-gear"></i>
             <p>Policy Configuration</p>
           </a>
@@ -126,10 +104,7 @@
 
         <!-- User Management (Super Admin Only) -->
         <li class="nav-item" data-rbac-min="super_admin">
-          <a
-            href="/admin/users"
-            class="nav-link {% if request.url.path == '/admin/users' %}active{% endif %}"
-          >
+          <a href="/admin/users" class="nav-link {% if request.url.path == '/admin/users' %}active{% endif %}">
             <i class="nav-icon bi bi-people"></i>
             <p>
               User Management
@@ -142,10 +117,8 @@
 
         <!-- Audit Logs -->
         <li class="nav-item">
-          <a
-            href="/admin/audit-logs"
-            class="nav-link {% if request.url.path == '/admin/audit-logs' %}active{% endif %}"
-          >
+          <a href="/admin/audit-logs"
+            class="nav-link {% if request.url.path == '/admin/audit-logs' %}active{% endif %}">
             <i class="nav-icon bi bi-file-text"></i>
             <p>
               Audit Logs

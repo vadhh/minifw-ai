@@ -26,27 +26,32 @@
   const btn     = document.getElementById('darkModeToggle');
   const icon    = document.getElementById('darkModeIcon');
 
-  function applyTheme(theme) {
-    // Disable transitions for the duration of the theme switch so the
-    // browser doesn't repaint every element simultaneously (laggy flash).
-    document.documentElement.classList.add('mf-no-transition');
+  function applyTheme(theme, isInit) {
+    if (root.getAttribute('data-bs-theme') === theme && !isInit) return;
+    
+    if (!isInit) {
+      document.documentElement.classList.add('theme-transition');
+    }
+    
     root.setAttribute('data-bs-theme', theme);
     localStorage.setItem('mf-theme', theme);
     if (icon) {
       icon.className = theme === 'dark' ? 'bi bi-sun-fill' : 'bi bi-moon-stars-fill';
     }
-    // Re-enable transitions after the browser has committed the new colours.
-    window.requestAnimationFrame(function() {
-      document.documentElement.classList.remove('mf-no-transition');
-    });
+    
+    if (!isInit) {
+      setTimeout(function() {
+        document.documentElement.classList.remove('theme-transition');
+      }, 850); // Matches the 0.8s CSS transition + a tiny buffer
+    }
   }
 
-  // Init from storage (head.html already set attribute, just sync icon)
-  applyTheme(localStorage.getItem('mf-theme') || 'light');
+  // Init from storage
+  applyTheme(localStorage.getItem('mf-theme') || 'light', true);
 
   if (btn) {
     btn.addEventListener('click', function () {
-      applyTheme(root.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark');
+      applyTheme(root.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark', false);
     });
   }
 
@@ -187,5 +192,20 @@
       subtree: false
     });
   }
+
+  // ── Force sidebar links to navigate on mobile (bypassing AdminLTE bug) ──
+  var sidebarLinks = document.querySelectorAll('.app-sidebar .nav-link');
+  sidebarLinks.forEach(function(link) {
+    link.addEventListener('click', function(e) {
+      if (window.innerWidth < 992 && this.href && this.href !== '#' && !this.href.includes('javascript:')) {
+        // Stop AdminLTE from preventing default navigation
+        e.stopPropagation();
+        
+        // Show loading state or instantly navigate
+        window.location.href = this.href;
+      }
+    }, true); // Use capture phase to intercept before AdminLTE
+  });
+
 })();
 </script>

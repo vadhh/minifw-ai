@@ -34,8 +34,8 @@
   --mf-radius-xl:      24px;
 
   --mf-ease:           cubic-bezier(0.4, 0, 0.2, 1);
-  --mf-transition:     3s var(--mf-ease);
-  --mf-transition-lg:  1s var(--mf-ease);
+  --mf-transition:     1.5s var(--mf-ease);
+  --mf-transition-lg:  2s var(--mf-ease);
 
   --mf-sidebar-width:  260px;
   --mf-navbar-h:       56px;
@@ -63,12 +63,12 @@
               box-shadow       var(--mf-transition);
 }
 
-/* Suppress all transitions during dark-mode toggle to avoid laggy repaint
-   of hundreds of elements at once. Class is added/removed by applyTheme(). */
-.mf-no-transition *,
-.mf-no-transition *::before,
-.mf-no-transition *::after {
-  transition: none !important;
+/* Unified, soft whole-page transition during theme toggle */
+.theme-transition,
+.theme-transition *,
+.theme-transition *::before,
+.theme-transition *::after {
+  transition: background-color 0.8s ease, color 0.8s ease, border-color 0.8s ease, box-shadow 0.8s ease !important;
 }
 
 body {
@@ -1109,3 +1109,69 @@ body.sidebar-expand-lg .app-sidebar {
 .mf-sector-government    { background: rgba(245,158,11,0.12); color: #f59e0b; }
 .mf-sector-legal         { background: rgba(100,116,139,0.12);color: #64748b; }
 .mf-sector-gambling      { background: rgba(139,92,246,0.12); color: #8b5cf6; }
+
+/* ── 34. Table Action Buttons Fix ───────────────────────────── */
+.table tbody td .btn {
+  margin-right: 4px;
+  margin-bottom: 4px;
+}
+.table tbody td .btn:last-child {
+  margin-right: 0;
+}
+
+/* ── 35. Mobile Responsive Fixes ────────────────────────────── */
+@media (max-width: 768px) {
+  /* Prevent horizontal overflow on mobile screens */
+  .dataTables_wrapper {
+    overflow-x: hidden;
+  }
+
+  /* Override DataTables Bootstrap 5 text-center on mobile */
+  .dataTables_wrapper .dataTables_length,
+  .dataTables_wrapper .dataTables_filter {
+    text-align: right !important;
+    display: flex !important;
+    justify-content: flex-end !important;
+    width: 100% !important;
+  }
+  
+  /* Make sure labels also align right and act as inline-flex containers */
+  .dataTables_wrapper .dataTables_length label,
+  .dataTables_wrapper .dataTables_filter label {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    text-align: right !important;
+    white-space: nowrap;
+    width: auto !important; /* Ensure it doesn't stretch beyond needed space */
+    margin-left: auto !important; /* Pushes the element to the far right inside any flex parent */
+    float: right !important; /* Fallback for block contexts */
+  }
+  
+  /* Ensure the input takes up natural space and doesn't get squished */
+  .dataTables_wrapper .dataTables_filter input {
+    margin-left: 8px !important;
+    max-width: 180px; /* Prevent long inputs from breaking layout on very small screens (400px) */
+    width: 100% !important;
+  }
+
+  .dataTables_wrapper .dataTables_length select {
+    margin: 0 8px !important;
+  }
+
+  /* When stacked (events.html), add margin to the search box */
+  .dataTables_wrapper .dataTables_filter {
+    margin-top: 12px !important;
+    clear: both !important; /* Ensure it clears floats */
+  }
+
+  /* Safely target columns that contain the filter/length without breaking pagination */
+  .dataTables_wrapper .row > div:has(> .dataTables_filter),
+  .dataTables_wrapper .row > div:has(> .dataTables_length) {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-end !important;
+    text-align: right !important;
+    width: 100% !important;
+  }
+}
