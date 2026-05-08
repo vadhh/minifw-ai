@@ -1,24 +1,21 @@
 #!/usr/bin/env python3
 """
-MiniFW-AI Hospital Demo Injector
+MiniFW-AI Hospital Sector Demo Injector
 
-Writes dnsmasq-format log lines to a shared volume file that the engine
-tails (MINIFW_DNS_SOURCE=file). Runs a continuous scenario loop so the
-dashboard stays populated.
+Writes dnsmasq-format log lines to a shared volume so the firewall engine
+processes them and generates visible block/monitor/allow events on the dashboard.
 
-Parser (collector_dnsmasq.py:parse_dnsmasq) only requires:
-  ' query[' in line  AND  ' from ' in line
-No syslog timestamp prefix is needed.
+Scenario outcomes (with hospital policy + healthcare_threats.txt feed):
+  1. epic.com             / 192.168.1.1   → ALLOW   score=0   (benign EHR vendor)
+  2. cerner.com           / 192.168.1.2   → ALLOW   score=0   (benign EHR vendor)
+  3. microsoft.com        / 192.168.1.3   → ALLOW   score=0   (benign OS update)
+  4. lockbit-blog.com     / 10.20.0.5     → MONITOR score=40  severity=critical (IoMT)
+  5. my-chart-login.com   / 192.168.1.50  → MONITOR score=40  severity=info (phishing)
+  6. RyukReadMe.example.com / 10.20.1.10  → MONITOR score=75  severity=critical (YARA+DNS+IoMT)
+  7. ehr-software-update.com / 10.20.0.5  → MONITOR score=40  severity=critical (IoMT)
+  8. medrecords-transfer.io burst / 172.16.0.99 → BLOCK cascade (mednet, score=50)
 
-Scenario outcomes (with demo-policy.json + hospital sector):
-  1. windows.update.com   / 192.168.1.1  → ALLOW   score=0   severity=info
-  2. lockbit-blog.com     / 10.20.0.5    → MONITOR score=40  severity=critical (IoMT)
-  3. my-chart-login.com   / 192.168.1.50 → MONITOR score=40  severity=info
-  4. RyukReadMe.example.com / 10.20.1.10 → MONITOR score=75  severity=critical (YARA+DNS+IoMT)
-  5. ehr-software-update.com / 10.20.0.5 → MONITOR score=40  severity=critical (IoMT)
-  6. medrecords-transfer.io / 172.16.0.99 → BLOCK  score=40  (mednet, 250 events)
-
-All hospital events: domain=[REDACTED] (HIPAA redaction).
+All hospital events: domain=[REDACTED] (HIPAA redaction active).
 """
 import os
 import time
@@ -26,72 +23,73 @@ import time
 DNS_LOG_PATH = os.environ.get("DNS_LOG_PATH", "/logs/dnsmasq.log")
 
 
-def make_line(domain: str, ip: str) -> str:
+def line(domain: str, ip: str) -> str:
     return f"dnsmasq[1]: query[A] {domain} from {ip}\n"
 
 
 def emit(f, domain: str, ip: str, label: str) -> None:
-    f.write(make_line(domain, ip))
+    f.write(line(domain, ip))
     f.flush()
-    print(f"[INJECTOR]  {label:45s}  {ip}")
+    print(f"[HOSP-INJECTOR]  {label:55s}  {ip}", flush=True)
 
 
 def main() -> None:
-    print(f"[INJECTOR] Starting. Target log: {DNS_LOG_PATH}")
-    # The engine opens dnsmasq.log during startup and seeks to EOF.
-    # Wait for the engine health check to pass (depends_on handles this),
-    # then add a small buffer so the seek happens before we write.
+    print(f"[HOSP-INJECTOR] Starting. Target log: {DNS_LOG_PATH}", flush=True)
     time.sleep(8)
 
     loop = 0
     with open(DNS_LOG_PATH, "a") as f:
         while True:
             loop += 1
-            print(f"\n[INJECTOR] ── Loop {loop} ─────────────────────────────────────")
+            print(f"\n[HOSP-INJECTOR] -- Loop {loop} --", flush=True)
 
-            # 1. Benign workstation query → ALLOW (score=0)
-            emit(f, "windows.update.com",     "192.168.1.1",  "ALLOW  | benign update check")
+            # 1. Legitimate EHR / clinical system traffic -> ALLOW
+            emit(f, "epic.com",               "192.168.1.1",  "ALLOW   | Epic EHR (clinical workstation)")
+            time.sleep(1)
+            emit(f, "cerner.com",             "192.168.1.2",  "ALLOW   | Cerner EHR (clinical workstation)")
+            time.sleep(1)
+            emit(f, "microsoft.com",          "192.168.1.3",  "ALLOW   | Microsoft update (workstation)")
+            time.sleep(2)
+
+            # 2. LockBit C2 from IoMT device -> MONITOR, severity=critical
+            #    lockbit-blog.com in healthcare_threats.txt -> dns_denied (+40)
+            #    10.20.0.5 in iomt_subnets -> iomt_device_alert fires
+            emit(f, "lockbit-blog.com",        "10.20.0.5",   "MONITOR | LockBit C2 from IoMT device (critical)")
+            time.sleep(2)
+
+            # 3. Fake MyChart login from workstation -> MONITOR, severity=info
+            #    my-chart-login.com in healthcare_threats.txt -> dns_denied (+40)
+            emit(f, "my-chart-login.com",      "192.168.1.50","MONITOR | Fake MyChart phishing (workstation)")
             time.sleep(1)
 
-            # 2. LockBit C2 from IoMT device → MONITOR, severity=critical, [REDACTED]
-            #    lockbit-blog.com is in healthcare_threats.txt
-            #    10.20.0.5 is in iomt_subnets → iomt_device_alert fires
-            emit(f, "lockbit-blog.com",        "10.20.0.5",   "MONITOR critical | LockBit C2 from IoMT")
+            # 4. YARA + DNS combo from IoMT -> score=75, MONITOR, severity=critical
+            #    RyukReadMe in healthcare_threats.txt -> dns_denied (+40)
+            #    YARA MedicalRansomware rule fires (+35) -> total 75
+            #    10.20.1.10 in iomt_subnets -> iomt_device_alert + severity=critical
+            emit(f, "RyukReadMe.example.com",  "10.20.1.10",  "MONITOR | YARA MedicalRansomware + IoMT alert (critical)")
+            time.sleep(2)
+
+            # 5. EHR ransomware C2 from IoMT -> MONITOR, severity=critical
+            #    ehr-software-update.com in healthcare_threats.txt -> dns_denied (+40)
+            emit(f, "ehr-software-update.com", "10.20.0.5",   "MONITOR | EHR ransomware C2 from IoMT (critical)")
             time.sleep(1)
 
-            # 3. Fake MyChart login from workstation → MONITOR, severity=info, [REDACTED]
-            #    my-chart-login.com is in healthcare_threats.txt [PHISHING]
-            #    192.168.1.50 is NOT in iomt_subnets → no severity boost
-            emit(f, "my-chart-login.com",      "192.168.1.50", "MONITOR info   | phishing from workstation")
-            time.sleep(1)
+            # 6. Medical data broker burst from mednet -> BLOCK cascade
+            #    medrecords-transfer.io in healthcare_threats.txt -> dns_denied (+40)
+            #    172.16.0.99 in mednet (172.16.0.0/16), block_threshold=45
+            #    dns_denied(40) + burst(10) = 50 > 45 -> BLOCK
+            print(f"\n[HOSP-INJECTOR] -- Mednet data broker burst (200 x medrecords-transfer.io) --", flush=True)
+            for i in range(200):
+                f.write(line("medrecords-transfer.io", "172.16.0.99"))
+                if i % 50 == 0:
+                    f.flush()
+                    print(f"[HOSP-INJECTOR]  burst {i+1}/200", flush=True)
+            f.flush()
+            print(f"[HOSP-INJECTOR]  burst complete -> BLOCK cascade", flush=True)
+            time.sleep(5)
 
-            # 4. YARA + DNS combo from IoMT → score=75, MONITOR, severity=critical
-            #    RyukReadMe.example.com is in healthcare_threats.txt → dns_denied (+40)
-            #    YARA scans f"{domain} {sni}".encode() → "RyukReadMe" triggers
-            #    MedicalRansomware rule (nocase) → yara_score=100 → +35
-            #    10.20.1.10 is in iomt_subnets → iomt_device_alert + severity=critical
-            emit(f, "RyukReadMe.example.com",  "10.20.1.10",  "MONITOR critical | YARA MedicalRansomware + DNS")
-            time.sleep(1)
-
-            # 5. EHR ransomware C2 from IoMT → MONITOR, severity=critical, [REDACTED]
-            #    ehr-software-update.com is in healthcare_threats.txt [RANSOMWARE-C2]
-            emit(f, "ehr-software-update.com", "10.20.0.5",   "MONITOR critical | EHR C2 from IoMT")
-            time.sleep(1)
-
-            # 6. Data broker burst from mednet → BLOCK
-            #    medrecords-transfer.io is in healthcare_threats.txt [DATABROKER]
-            #    172.16.0.99 is in mednet (172.16.0.0/16)
-            #    mednet block_threshold=45; after hospital adj (-5) effective=40
-            #    dns_denied=40 >= 40 → BLOCK on query #1
-            #    250 queries sent to make the event count dramatic in the dashboard
-            print(f"[INJECTOR]  {'BLOCK   | mednet data broker burst (250 queries)':45s}  172.16.0.99")
-            for i in range(250):
-                f.write(make_line("medrecords-transfer.io", "172.16.0.99"))
-                f.flush()
-                time.sleep(0.05)   # 250 queries over ~12 seconds
-
-            print(f"[INJECTOR] Loop {loop} complete. Sleeping 15s before next loop...")
-            time.sleep(15)
+            print(f"[HOSP-INJECTOR] Loop {loop} complete -- sleeping 10s", flush=True)
+            time.sleep(10)
 
 
 if __name__ == "__main__":
