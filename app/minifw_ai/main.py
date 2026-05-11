@@ -479,16 +479,20 @@ def run():
     table_name = enf.get("nft_table_name", "minifw")
     chain = enf.get("nft_chain", "forward")
 
-    try:
-        ipset_create(set_name, timeout, family=table, table_name=table_name)
-        nft_apply_forward_drop(set_name, table=table, table_name=table_name, chain=chain)
-        audit_firewall_init(set_name, f"{table} {table_name}")
-    except (ValueError, subprocess.CalledProcessError) as e:
-        logging.critical(
-            f"FATAL: Could not initialize firewall rules. Exiting. Error: {e}"
-        )
-        audit_firewall_init_failed(str(e))
-        return  # Exit if firewall can't be set up
+    if os.environ.get("DEMO_MODE", "0") == "1":
+        logging.info("[DEMO_MODE] Skipping nftables/ipset init (no root required in demo)")
+        audit_firewall_init(set_name, f"{table} {table_name} [DEMO_MODE - skipped]")
+    else:
+        try:
+            ipset_create(set_name, timeout, family=table, table_name=table_name)
+            nft_apply_forward_drop(set_name, table=table, table_name=table_name, chain=chain)
+            audit_firewall_init(set_name, f"{table} {table_name}")
+        except (ValueError, subprocess.CalledProcessError) as e:
+            logging.critical(
+                f"FATAL: Could not initialize firewall rules. Exiting. Error: {e}"
+            )
+            audit_firewall_init_failed(str(e))
+            return  # Exit if firewall can't be set up
 
     burst_cfg = pol.burst()
     monitor_qpm = _safe_int_cast(burst_cfg.get("dns_queries_per_minute_monitor"), 120)
