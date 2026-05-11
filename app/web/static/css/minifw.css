@@ -39,6 +39,7 @@
 
   --mf-sidebar-width:  260px;
   --mf-navbar-h:       56px;
+  --mf-footer-h:       46px;
 }
 
 [data-bs-theme="dark"] {
@@ -107,6 +108,7 @@ body {
   margin-top: var(--mf-navbar-h) !important;
   margin-left: 0 !important;
   width: 100% !important;
+  padding-bottom: var(--mf-footer-h) !important;
 }
 
 /* Sidebar dan content layout di desktop (lg breakpoint 992px+) */
@@ -239,7 +241,7 @@ body {
   position: fixed !important;
   top: var(--mf-navbar-h) !important;
   left: 0 !important;
-  height: calc(100vh - var(--mf-navbar-h)) !important;
+  height: calc(100vh - var(--mf-navbar-h) - var(--mf-footer-h)) !important;
   overflow-y: auto !important;
   z-index: 1020 !important;
   display: none;
@@ -633,6 +635,12 @@ body.sidebar-expand-lg .app-sidebar {
   font-size: 12px;
   color: var(--mf-text-muted) !important;
   padding: 12px 20px !important;
+  position: fixed !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  z-index: 1030 !important;
+  margin-left: 0 !important;
 }
 
 /* ── 15. Scrollbar ─────────────────────────────────────────── */
