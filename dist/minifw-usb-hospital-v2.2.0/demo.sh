@@ -34,11 +34,15 @@ if ! docker image inspect "$IMAGE_TAG" >/dev/null 2>&1 || \
     [[ -f "$IMAGE_TAR" ]] || die "Image archive not found: ${IMAGE_TAR}"
     docker load -i "$IMAGE_TAR"
     log "Images loaded."
+    docker image inspect "$IMAGE_TAG" >/dev/null 2>&1 || \
+        die "Image load incomplete — $IMAGE_TAG not found after docker load"
+    docker image inspect "$INJECTOR_TAG" >/dev/null 2>&1 || \
+        die "Image load incomplete — $INJECTOR_TAG not found after docker load"
 else
     log "Images ready."
 fi
 
-trap 'echo ""; log "Demo stopped. To clean up: docker compose -f \"${COMPOSE_FILE}\" down"' EXIT
+trap 'echo ""; log "Stopping demo..."; docker compose -f "$COMPOSE_FILE" down 2>/dev/null || true; log "Demo stopped."' EXIT INT TERM
 
 log "Starting Hospital Demo..."
 docker compose -f "$COMPOSE_FILE" up -d --quiet-pull
@@ -50,8 +54,10 @@ for i in $(seq 1 30); do
     if curl -sk "${DASHBOARD_URL}/health" >/dev/null 2>&1; then
         READY=true; break
     fi
+    printf "." >&2
     sleep 1
 done
+printf "\n" >&2
 
 if [[ "$READY" == "false" ]]; then
     log "Dashboard did not respond in 30s — check: docker compose -f ${COMPOSE_FILE} logs web"
@@ -69,4 +75,4 @@ elif command -v open >/dev/null 2>&1; then
 fi
 
 # Stream logs in foreground (Ctrl+C stops here and triggers trap)
-docker compose -f "$COMPOSE_FILE" logs -f --no-log-prefix 2>/dev/null || true
+docker compose -f "$COMPOSE_FILE" logs -f --no-log-prefix 2>/dev/null
