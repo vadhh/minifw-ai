@@ -21,6 +21,12 @@ command -v docker        >/dev/null 2>&1 || die "Docker is not installed or not 
 docker compose version   >/dev/null 2>&1 || die "Docker Compose v2 is required (try: docker compose version)"
 docker info              >/dev/null 2>&1 || die "Docker daemon is not running. On Windows: open Docker Desktop. On Linux: sudo systemctl start docker"
 
+# Suggest TLS setup if certs haven't been provisioned
+if [[ ! -f "${USB_DIR}/docker/certs/server.crt" ]]; then
+    log "TIP: For a green padlock in Chrome/Firefox, run 'bash setup_tls.sh' before starting the demo."
+    log "     (Self-signed cert will be used if you proceed — browser will show a security warning)"
+fi
+
 # Load images if needed
 if ! docker image inspect "$IMAGE_TAG" >/dev/null 2>&1 || \
    ! docker image inspect "$INJECTOR_TAG" >/dev/null 2>&1; then

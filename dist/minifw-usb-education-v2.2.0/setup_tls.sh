@@ -22,6 +22,8 @@ EXT_FILE="$CERTS_DIR/san.ext"
 log() { echo "[tls-setup] $*"; }
 die() { echo "[tls-setup] ERROR: $*" >&2; exit 1; }
 
+trap 'rm -f "${SERVER_CSR:-}" "${EXT_FILE:-}"' EXIT
+
 command -v openssl >/dev/null 2>&1 || die "openssl not found — install openssl and retry"
 
 mkdir -p "$CERTS_DIR"
@@ -32,6 +34,7 @@ if [[ -f "$CA_KEY" && -f "$CA_CRT" ]]; then
 else
     log "Generating local CA..."
     openssl genrsa -out "$CA_KEY" 4096 2>/dev/null
+    chmod 600 "$CA_KEY"
     openssl req -x509 -new -nodes \
         -key "$CA_KEY" \
         -sha256 -days 3650 \
@@ -44,6 +47,7 @@ fi
 log "Generating server certificate for localhost..."
 
 openssl genrsa -out "$SERVER_KEY" 2048 2>/dev/null
+chmod 600 "$SERVER_KEY"
 
 openssl req -new \
     -key "$SERVER_KEY" \
@@ -77,19 +81,29 @@ log "Installing CA in OS trust store (requires sudo)..."
 
 if [[ "$(uname)" == "Linux" ]]; then
     if command -v update-ca-certificates >/dev/null 2>&1; then
-        sudo cp "$CA_CRT" /usr/local/share/ca-certificates/minifw-demo-ca.crt
-        sudo update-ca-certificates
-        log "CA installed (Linux — update-ca-certificates)."
+        if sudo cp "$CA_CRT" /usr/local/share/ca-certificates/minifw-demo-ca.crt 2>/dev/null && \
+           sudo update-ca-certificates 2>/dev/null; then
+            log "CA installed (Linux — update-ca-certificates)."
+        else
+            log "WARNING: sudo not available. Manual step:"
+            log "  sudo cp $(pwd)/$CA_CRT /usr/local/share/ca-certificates/minifw-demo-ca.crt"
+            log "  sudo update-ca-certificates"
+        fi
     else
         log "WARNING: update-ca-certificates not found."
         log "Manual step: copy $CA_CRT to your system CA store and update it."
     fi
 elif [[ "$(uname)" == "Darwin" ]]; then
-    sudo security add-trusted-cert \
+    if sudo security add-trusted-cert \
         -d -r trustRoot \
         -k /Library/Keychains/System.keychain \
-        "$CA_CRT"
-    log "CA installed (macOS — Keychain)."
+        "$CA_CRT" 2>/dev/null; then
+        log "CA installed (macOS — Keychain)."
+    else
+        log "WARNING: sudo not available. Manual step:"
+        log "  Open Keychain Access → System → File → Import Items"
+        log "  Import: $(pwd)/$CA_CRT  then mark as 'Always Trust'"
+    fi
 else
     log "Unsupported OS. Manual step:"
     log "  Install $CA_CRT as a trusted root CA in your browser/OS."
