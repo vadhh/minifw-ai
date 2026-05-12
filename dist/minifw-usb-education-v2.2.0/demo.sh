@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# MiniFW-AI — education Sector Demo Launcher
+# MiniFW-AI — Education Sector Demo Launcher
 # Run: bash demo.sh
-# Requires: Docker + Docker Compose v2 installed on host
+# Requires: Docker + Docker Compose v2
 
 set -euo pipefail
 
@@ -10,14 +10,16 @@ IMAGE_TAG="minifw-ai-demo/education:latest"
 INJECTOR_TAG="minifw-ai-demo/education-injector:latest"
 IMAGE_TAR="${USB_DIR}/images/minifw-education.tar"
 COMPOSE_FILE="${USB_DIR}/docker/docker-compose.usb-education.yml"
+DASHBOARD_URL="https://localhost:8447"
 
-log()  { echo "[minifw-demo] $*"; }
-die()  { echo "[minifw-demo] ERROR: $*" >&2; exit 1; }
+log() { echo "[minifw] $*"; }
+die() { echo "[minifw] ERROR: $*" >&2; exit 1; }
 
+# Pre-flight checks
 [[ -f "$COMPOSE_FILE" ]] || die "Compose file not found: ${COMPOSE_FILE} — is the USB copy complete?"
-command -v docker >/dev/null 2>&1 || die "Docker is not installed or not in PATH"
-docker compose version >/dev/null 2>&1 || die "Docker Compose v2 is required (docker compose)"
-docker info >/dev/null 2>&1 || die "Docker daemon is not running. On Windows: open Docker Desktop. On Linux: sudo systemctl start docker"
+command -v docker        >/dev/null 2>&1 || die "Docker is not installed or not in PATH"
+docker compose version   >/dev/null 2>&1 || die "Docker Compose v2 is required (try: docker compose version)"
+docker info              >/dev/null 2>&1 || die "Docker daemon is not running. On Windows: open Docker Desktop. On Linux: sudo systemctl start docker"
 
 # Suggest TLS setup if certs haven't been provisioned
 if [[ ! -f "${USB_DIR}/docker/certs/server.crt" ]]; then
@@ -25,26 +27,46 @@ if [[ ! -f "${USB_DIR}/docker/certs/server.crt" ]]; then
     log "     (Self-signed cert will be used if you proceed — browser will show a security warning)"
 fi
 
+# Load images if needed
 if ! docker image inspect "$IMAGE_TAG" >/dev/null 2>&1 || \
    ! docker image inspect "$INJECTOR_TAG" >/dev/null 2>&1; then
-    log "Images not found on this machine — loading from USB (this takes ~2-3 minutes)..."
+    log "Loading images from USB (this takes ~2-3 minutes on first run)..."
     [[ -f "$IMAGE_TAR" ]] || die "Image archive not found: ${IMAGE_TAR}"
     docker load -i "$IMAGE_TAR"
     log "Images loaded."
 else
-    log "Images already loaded — skipping docker load."
+    log "Images ready."
 fi
 
-echo ""
-echo "  ● MiniFW-AI Demo — education"
-echo "  ─────────────────────────────────────────────────────"
-echo "  Dashboard : https://localhost:8447"
-echo "  Login     : admin / Education1!"
-echo "  Sector    : education"
-echo ""
-echo "  Ctrl+C to stop."
-echo ""
+trap 'echo ""; log "Demo stopped. To clean up: docker compose -f \"${COMPOSE_FILE}\" down"' EXIT
 
-trap 'echo ""; echo "  Demo stopped. To clean up: docker compose -f \"${COMPOSE_FILE}\" down"' EXIT
+log "Starting Education Demo..."
+docker compose -f "$COMPOSE_FILE" up -d --quiet-pull
 
-docker compose -f "$COMPOSE_FILE" up
+# Poll for dashboard ready (30s)
+log "Waiting for dashboard..."
+READY=false
+for i in $(seq 1 30); do
+    if curl -sk "${DASHBOARD_URL}/health" >/dev/null 2>&1; then
+        READY=true; break
+    fi
+    sleep 1
+done
+
+if [[ "$READY" == "false" ]]; then
+    log "Dashboard did not respond in 30s — check: docker compose -f ${COMPOSE_FILE} logs web"
+    exit 1
+fi
+
+log "Dashboard ready → ${DASHBOARD_URL}  (admin / Education1!)"
+log "Press Ctrl+C to stop."
+
+# Best-effort browser open
+if command -v xdg-open >/dev/null 2>&1; then
+    xdg-open "$DASHBOARD_URL" >/dev/null 2>&1 || true
+elif command -v open >/dev/null 2>&1; then
+    open "$DASHBOARD_URL" >/dev/null 2>&1 || true
+fi
+
+# Stream logs in foreground (Ctrl+C stops here and triggers trap)
+docker compose -f "$COMPOSE_FILE" logs -f --no-log-prefix 2>/dev/null || true
