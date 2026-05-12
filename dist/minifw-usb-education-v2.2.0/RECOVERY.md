@@ -22,7 +22,7 @@ docker compose -f docker/docker-compose.usb-education.yml down --remove-orphans
 ### Step 2 — Kill port conflict
 
 ```bash
-lsof -ti:8447 | xargs kill -9
+lsof -ti:8447 | xargs -r kill -9
 ```
 
 ### Step 3 — Restart from scratch

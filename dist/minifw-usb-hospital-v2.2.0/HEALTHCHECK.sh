@@ -42,13 +42,17 @@ else
 fi
 
 # ── Check 4: Port free or in use by demo ──────────────────────────────────────
-PORT_PID=$(lsof -ti:$PORT 2>/dev/null || true)
-if [[ -z "$PORT_PID" ]]; then
-    pass "Port $PORT is free"
-elif docker ps --format '{{.Names}}' 2>/dev/null | grep -q "$WEB_CONTAINER"; then
-    pass "Port $PORT is in use by demo container (expected)"
+if ! command -v lsof >/dev/null 2>&1; then
+    fail "lsof not installed — cannot check port $PORT (install: sudo apt install lsof)"
 else
-    fail "Port $PORT is in use by non-demo process (PID $PORT_PID) — run: lsof -ti:$PORT | xargs kill -9"
+    PORT_PID=$(lsof -ti:$PORT 2>/dev/null || true)
+    if [[ -z "$PORT_PID" ]]; then
+        pass "Port $PORT is free"
+    elif docker ps --format '{{.Names}}' 2>/dev/null | grep -q "$WEB_CONTAINER"; then
+        pass "Port $PORT is in use by demo container (expected)"
+    else
+        fail "Port $PORT is in use by non-demo process (PID $PORT_PID) — run: lsof -ti:$PORT | xargs kill -9"
+    fi
 fi
 
 # ── Check 5: Docker images present ────────────────────────────────────────────
@@ -94,11 +98,11 @@ if [[ "$DEMO_RUNNING" == "false" ]]; then
     if [[ "$DASHBOARD_UP" == "false" ]]; then
         fail "Dashboard did not start in 30s"
         docker compose -f "$COMPOSE_FILE" logs web 2>/dev/null | tail -20 | tee -a "$LOG_FILE"
-        fail "Skipping checks 9, 10, 11"
+        info "Skipping checks 9, 10, 11 — dashboard not available"
         docker compose -f "$COMPOSE_FILE" down >/dev/null 2>&1 || true
         TOTAL=$((PASS + FAIL))
         echo "─────────────────────────────────────────────────────────" | tee -a "$LOG_FILE"
-        echo "HEALTHCHECK FAILED ($PASS/$TOTAL passed) — see $LOG_FILE" | tee -a "$LOG_FILE"
+        echo "HEALTHCHECK FAILED ($PASS/$TOTAL passed, $FAIL/$TOTAL failed) — see $LOG_FILE" | tee -a "$LOG_FILE"
         exit 1
     fi
 fi

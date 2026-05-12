@@ -22,7 +22,9 @@ docker compose -f "$COMPOSE_FILE" down --remove-orphans 2>/dev/null || true
 
 # Step 2 — Free the port if still occupied
 log "Step 2: Freeing port $PORT..."
-if lsof -ti:$PORT >/dev/null 2>&1; then
+if ! command -v lsof >/dev/null 2>&1; then
+    log "WARNING: lsof not installed — skipping port check (install: sudo apt install lsof)"
+elif lsof -ti:$PORT >/dev/null 2>&1; then
     lsof -ti:$PORT | xargs kill -9 2>/dev/null || true
     sleep 1
     log "Port $PORT freed."
@@ -32,7 +34,10 @@ fi
 
 # Step 3 — Relaunch
 log "Step 3: Relaunching demo..."
-docker compose -f "$COMPOSE_FILE" up -d --quiet-pull
+docker compose -f "$COMPOSE_FILE" up -d --quiet-pull || {
+    log "ERROR: docker compose up failed — check: docker compose -f ${COMPOSE_FILE} logs"
+    exit 1
+}
 
 # Step 4 — Wait for dashboard (30s)
 log "Step 4: Waiting for dashboard..."
