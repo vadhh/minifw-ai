@@ -62,7 +62,7 @@ if [[ "$HC_EXIT" -eq 0 ]]; then
     log "Recovery successful — demo ready at ${DASHBOARD_URL}  (admin / Education1!)"
 else
     echo ""
-    log "Recovery completed but HEALTHCHECK reported failures."
+    log "Recovery completed but HEALTHCHECK reported failures"
     log "See RECOVERY.md for manual steps."
 fi
 
