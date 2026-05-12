@@ -75,4 +75,4 @@ elif command -v open >/dev/null 2>&1; then
 fi
 
 # Stream logs in foreground (Ctrl+C stops here and triggers trap)
-docker compose -f "$COMPOSE_FILE" logs -f --no-log-prefix 2>/dev/null
+docker compose -f "$COMPOSE_FILE" logs -f --no-log-prefix
