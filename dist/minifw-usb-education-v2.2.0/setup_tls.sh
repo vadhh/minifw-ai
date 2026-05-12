@@ -1,5 +1,5 @@
 #!/bin/bash
-# MiniFW-AI Hospital Demo — TLS Setup
+# MiniFW-AI Education Demo — TLS Setup
 # Generates a local CA + signed certificate for localhost.
 # Installs CA in the OS trust store (requires sudo once).
 # Run once per demo machine. Re-running is safe (idempotent).
