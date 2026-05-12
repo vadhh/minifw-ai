@@ -60,8 +60,7 @@ else
 fi
 
 # ── Check 6: MLP model (inside image — verify image exists, checked above) ────
-info "Check 6 (MLP model) — covered by image presence check above"
-((PASS++))
+pass "Check 6 (MLP model) — covered by image presence (Check 5)"
 
 # ── Check 7: YARA rules ────────────────────────────────────────────────────────
 YARA_COUNT=$(find yara_rules -name "*.yar" 2>/dev/null | wc -l)
