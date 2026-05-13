@@ -240,6 +240,16 @@
   color: var(--bs-secondary-color, #6c757d) !important;
 }
 
+/* Ensure DataTable wrapper fills container fully */
+#eventsTable_wrapper {
+  width: 100% !important;
+}
+/* scrollX scroll container must not have fixed pixel width */
+#eventsTable_wrapper .dataTables_scrollHead,
+#eventsTable_wrapper .dataTables_scrollBody {
+  width: 100% !important;
+}
+
 /* SweetAlert2 */
 .swal-wide { max-width: 650px !important; }
 
@@ -285,6 +295,7 @@ $(document).ready(function() {
   try {
     table = $('#eventsTable').DataTable({
       scrollX: true,
+      autoWidth: false,
       order: [[0, 'desc']],
       pageLength: 25,
       lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
@@ -691,5 +702,31 @@ function downloadEvents(filter, fmt) {
 window.addEventListener('beforeunload', function() {
   stopAutoRefresh();
 });
+
+// ── Recalculate column widths on layout change (sidebar toggle / resize / fullscreen) ──
+// Delay 500ms to allow AdminLTE sidebar CSS transition (~300ms) to fully complete
+// before DataTables recalculates scroll container widths.
+function adjustTableColumns() {
+  if (!table) return;
+  setTimeout(function() { table.columns.adjust(); }, 500);
+}
+
+window.addEventListener('resize', adjustTableColumns);
+document.addEventListener('fullscreenchange', adjustTableColumns);
+
+// Watch <body> class changes — AdminLTE adds/removes 'sidebar-collapse'
+new MutationObserver(adjustTableColumns).observe(document.body, {
+  attributes: true,
+  attributeFilter: ['class']
+});
+
+// Watch sidebar element directly
+var _dtSidebar = document.querySelector('.app-sidebar');
+if (_dtSidebar) {
+  new MutationObserver(adjustTableColumns).observe(_dtSidebar, {
+    attributes: true,
+    attributeFilter: ['style', 'class']
+  });
+}
 </script>
 {% endblock %}
