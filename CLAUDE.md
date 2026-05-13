@@ -29,8 +29,8 @@ MINIFW_SECTOR=establishment python -m app.minifw_ai
 # Web admin panel
 uvicorn app.web.app:app --host 127.0.0.1 --port 8443 --reload
 
-# Standalone Demo (Hospital v3 Framework - Preferred)
-cd dist/minifw-ai-usb-v2.2.0v3 && bash run_demo.sh
+# Standalone Demo (Hospital - Preferred)
+cd dist/minifw-usb-hospital-standalone-v2.2.0 && bash run_demo.sh
 
 # Docker demo (Legacy)
 docker compose -f docker/docker-compose.yml up
@@ -51,7 +51,7 @@ pytest testing/ -m "not integration"
 
 Tests live in `testing/` (not `tests/`). `conftest.py` adds `sys.path.insert` for `app/` and provides the `synthetic_mlp_model_path` session fixture that trains a minimal in-memory MLP — no external model file needed.
 
-Current test suite: 246 passed, 1 skipped, 0 failed.
+Current test suite: 492 passed, 0 failed.
 
 ## Build & Package
 
