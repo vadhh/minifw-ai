@@ -174,49 +174,66 @@
     <!-- Main content row -->
     <div class="row g-3 mb-4">
 
-      <!-- Recent events -->
+      <!-- Recent events (Live) -->
       <div class="col-lg-8">
         <div class="card h-100">
           <div class="card-header d-flex align-items-center gap-3">
             <span>Recent Security Events</span>
-            <a href="/admin/events" class="btn btn-sm btn-outline-primary" style="font-size:12px;padding:4px 10px;">
+            <span class="badge bg-success" id="dashLiveIndicator" style="font-size:10px;animation:dash-blink 2s infinite;">
+              <i class="bi bi-circle-fill" style="font-size:7px;"></i> LIVE
+            </span>
+            <a href="/admin/events" class="btn btn-sm btn-outline-primary ms-auto" style="font-size:12px;padding:4px 10px;">
               View all <i class="bi bi-arrow-right ms-1"></i>
             </a>
           </div>
-          <div class="card-body p-0">
-            <div class="table-responsive">
-              <table class="table table-sm table-hover mb-0">
+          <div class="card-body p-0" style="overflow:hidden;">
+            <div class="dash-events-scroll">
+              <table class="table table-sm table-hover mb-0 dash-events-table">
                 <thead>
                   <tr>
-                    <th>Time</th>
-                    <th>Type</th>
-                    <th>Source</th>
-                    <th>Status</th>
+                    <th style="width:130px;min-width:130px;">Time</th>
+                    <th style="min-width:110px;">Type</th>
+                    <th style="min-width:170px;">Source</th>
+                    <th style="width:100px;min-width:100px;">Status</th>
+                    <th style="width:60px;min-width:60px;" class="text-center">Action</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody id="dashEventsBody">
                   {% if events %}
                     {% for event in events %}
                     <tr>
-                      <td><small style="color:var(--mf-text-muted);">{{ event.time }}</small></td>
-                      <td>
-                        <span class="badge bg-{{ event.type_color }}">{{ event.type }}</span>
+                      <td><small style="color:var(--mf-text-muted);white-space:nowrap;">{{ event.time }}</small></td>
+                      <td><span class="badge bg-{{ event.type_color }}">{{ event.type }}</span></td>
+                      <td style="max-width:170px;">
+                        <small class="d-block text-truncate" title="{{ event.source }}">{{ event.source }}</small>
                       </td>
-                      <td><small>{{ event.source }}</small></td>
                       <td>
-                        {% if event.status == 'blocked' %}
-                          <span class="badge" style="background:#fef2f2;color:#ef4444;">Blocked</span>
+                        {% if event.score is not none and event.score >= 65 %}
+                          <span class="badge bg-danger"><i class="bi bi-x-circle"></i> Blocked</span>
+                        {% elif event.score is not none and event.score >= 40 %}
+                          <span class="badge" style="background:#ffc107;color:#000;"><i class="bi bi-eye"></i> Monitor</span>
+                        {% elif event.score is not none %}
+                          <span class="badge bg-success"><i class="bi bi-check-circle"></i> Allowed</span>
+                        {% elif event.status == 'blocked' %}
+                          <span class="badge bg-danger"><i class="bi bi-x-circle"></i> Blocked</span>
                         {% elif event.status == 'monitor' %}
-                          <span class="badge" style="background:#fffbeb;color:#f59e0b;">Monitor</span>
+                          <span class="badge" style="background:#ffc107;color:#000;"><i class="bi bi-eye"></i> Monitor</span>
                         {% else %}
-                          <span class="badge" style="background:#f0fdf4;color:#10b981;">Allowed</span>
+                          <span class="badge bg-success"><i class="bi bi-check-circle"></i> Allowed</span>
                         {% endif %}
+                      </td>
+                      <td class="text-center">
+                        <button class="btn btn-sm btn-outline-primary dash-view-btn"
+                                data-event='{{ event | tojson }}'
+                                title="View details" style="padding:2px 7px;font-size:11px;">
+                          <i class="bi bi-eye"></i>
+                        </button>
                       </td>
                     </tr>
                     {% endfor %}
                   {% else %}
-                    <tr>
-                      <td colspan="4" class="text-center py-4" style="color:var(--mf-text-muted);">
+                    <tr id="dashEmptyRow">
+                      <td colspan="5" class="text-center py-4" style="color:var(--mf-text-muted);">
                         <i class="bi bi-inbox fs-4 d-block mb-2 opacity-25"></i>
                         No recent events
                       </td>
@@ -226,8 +243,9 @@
               </table>
             </div>
           </div>
-          <div class="card-footer" style="font-size:12px;color:var(--mf-text-muted);">
-            <i class="bi bi-clock me-1"></i>Last updated: {{ last_update }}
+          <div class="card-footer d-flex align-items-center gap-2" style="font-size:12px;color:var(--mf-text-muted);">
+            <i class="bi bi-clock me-1"></i>Last updated: <span id="dashLastUpdate">{{ last_update }}</span>
+            <span class="ms-auto" style="font-size:11px;"><i class="bi bi-arrow-clockwise"></i> Auto-refresh every 5s</span>
           </div>
         </div>
       </div>
@@ -483,6 +501,35 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
+/* Dashboard live events table */
+.dash-events-scroll {
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: 340px;
+  -webkit-overflow-scrolling: touch;
+}
+.dash-events-scroll::-webkit-scrollbar { height: 5px; width: 5px; }
+.dash-events-scroll::-webkit-scrollbar-track { background: transparent; }
+.dash-events-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+.dash-events-table { min-width: 570px; table-layout: fixed; }
+.dash-events-table th, .dash-events-table td { white-space: nowrap; vertical-align: middle; }
+.dash-events-table th { position: sticky; top: 0; z-index: 2;
+  background: var(--bs-tertiary-bg, #f8f9fa);
+  border-bottom: 2px solid var(--bs-border-color, #dee2e6);
+  font-size: 11px; font-weight: 700; letter-spacing: 0.05em;
+  text-transform: uppercase; padding: 8px 12px;
+}
+.dash-events-table td { padding: 7px 12px; font-size: 12.5px; }
+@keyframes dash-row-in {
+  from { opacity: 0; background: rgba(16,185,129,0.08); }
+  to   { opacity: 1; background: transparent; }
+}
+.dash-row-new { animation: dash-row-in 0.5s ease; }
+@keyframes dash-blink {
+  0%, 50%, 100% { opacity: 1; }
+  25%, 75%      { opacity: 0.35; }
+}
+
 /* Synthesis hero — light mode */
 .synth-hero {
   background: linear-gradient(135deg, #fee2e2, #fff1f2);
@@ -506,6 +553,138 @@
 [data-bs-theme="dark"] .synth-hero-source { color: #fca5a5; }
 [data-bs-theme="dark"] .synth-cell        { background: #0f172a88; border: none; }
 </style>
+
+<!-- ── Dashboard Live Events Table ──────────────────────────── -->
+<script>
+(function() {
+  var DASH_REFRESH = 5000; // 5s
+  var dashLastKey  = '';   // fingerprint to detect new data
+
+  // Score → status info
+  function scoreStatus(score) {
+    if (score === null || score === undefined) return null;
+    if (score >= 65) return { label: '<i class="bi bi-x-circle"></i> Blocked', cls: 'badge bg-danger' };
+    if (score >= 40) return { label: '<i class="bi bi-eye"></i> Monitor',  cls: 'badge', style: 'background:#ffc107;color:#000;' };
+    return { label: '<i class="bi bi-check-circle"></i> Allowed', cls: 'badge bg-success' };
+  }
+
+  function statusFromEvent(ev) {
+    var s = scoreStatus(ev.score);
+    if (s) return s;
+    if (ev.status === 'blocked') return { label: '<i class="bi bi-x-circle"></i> Blocked', cls: 'badge bg-danger' };
+    if (ev.status === 'monitor') return { label: '<i class="bi bi-eye"></i> Monitor', cls: 'badge', style: 'background:#ffc107;color:#000;' };
+    return { label: '<i class="bi bi-check-circle"></i> Allowed', cls: 'badge bg-success' };
+  }
+
+  function buildRow(ev, isNew) {
+    var st = statusFromEvent(ev);
+    var badgeHtml = '<span class="' + st.cls + '"' + (st.style ? ' style="' + st.style + '"' : '') + '>' + st.label + '</span>';
+    var typeColor = ev.type_color || 'secondary';
+    var src = (ev.source || ev.client_ip || '—');
+    var evJson = JSON.stringify(ev).replace(/'/g, '&#39;');
+    var tr = document.createElement('tr');
+    if (isNew) tr.className = 'dash-row-new';
+    tr.innerHTML =
+      '<td><small style="color:var(--mf-text-muted);white-space:nowrap;">' + (ev.time || '—') + '</small></td>' +
+      '<td><span class="badge bg-' + typeColor + '">' + (ev.type || '—') + '</span></td>' +
+      '<td style="max-width:170px;"><small class="d-block text-truncate" title="' + src + '">' + src + '</small></td>' +
+      '<td>' + badgeHtml + '</td>' +
+      '<td class="text-center"><button class="btn btn-sm btn-outline-primary dash-view-btn" ' +
+        'data-event=\'' + evJson + '\' title="View details" style="padding:2px 7px;font-size:11px;">' +
+        '<i class="bi bi-eye"></i></button></td>';
+    return tr;
+  }
+
+  function pollDashEvents() {
+    fetch('/admin/api/events?draw=1&start=0&length=20&order_column=0&order_dir=desc', {
+      credentials: 'same-origin'
+    })
+    .then(function(r) { return r.ok ? r.json() : null; })
+    .then(function(d) {
+      if (!d) return;
+      // Support both DataTables format (d.data) and direct array
+      var rows = Array.isArray(d) ? d : (d.data || d.events || []);
+      if (!rows.length) return;
+
+      // Fingerprint: time + source of first row
+      var key = (rows[0].time || '') + '|' + (rows[0].source || rows[0].client_ip || '');
+      var isNew = (key !== dashLastKey);
+      dashLastKey = key;
+
+      var tbody = document.getElementById('dashEventsBody');
+      if (!tbody) return;
+
+      // Clear and rebuild
+      tbody.innerHTML = '';
+      rows.forEach(function(ev, i) {
+        tbody.appendChild(buildRow(ev, isNew && i === 0));
+      });
+
+      // Update timestamp
+      var upEl = document.getElementById('dashLastUpdate');
+      if (upEl) upEl.textContent = new Date().toLocaleTimeString();
+    })
+    .catch(function() {});
+  }
+
+  // Delegate click on view buttons
+  document.addEventListener('click', function(e) {
+    var btn = e.target.closest('.dash-view-btn');
+    if (!btn) return;
+    var ev = {};
+    try { ev = JSON.parse(btn.getAttribute('data-event')); } catch(ex) {}
+    if (!ev || typeof Swal === 'undefined') return;
+
+    var st = statusFromEvent(ev);
+    var score = (ev.score !== null && ev.score !== undefined) ? ev.score : 0;
+    var pct   = Math.min(score, 100);
+    var zoneName = score >= 65 ? 'Block' : score >= 40 ? 'Monitor' : 'Allow';
+    var zoneClass = score >= 65 ? 'zone-block' : score >= 40 ? 'zone-monitor' : 'zone-allow';
+    var statusName = score >= 65 ? 'BLOCKED' : score >= 40 ? 'MONITOR' : 'ALLOWED';
+    var statusColor = score >= 65 ? '#dc3545' : score >= 40 ? '#ffc107' : '#198754';
+    var iconType = score >= 65 ? 'error' : score >= 40 ? 'warning' : 'success';
+    var titleColor = score >= 65 ? 'danger' : score >= 40 ? 'warning' : 'success';
+
+    var statusBadge = '<span class="' + st.cls + '"' + (st.style ? ' style="' + st.style + '"' : '') + '>' + st.label + '</span>';
+    var src = ev.source || ev.client_ip || '—';
+    var statusLabelHtml = '<div style="font-size:1.1rem;font-weight:700;color:' + statusColor + ';letter-spacing:0.08em;margin-bottom:4px;margin-top:-4px;">' + statusName + '</div>';
+
+    Swal.fire({
+      title: statusLabelHtml + '<strong class="text-' + titleColor + '"><i class="bi bi-info-circle"></i> Event Details</strong>',
+      icon: iconType,
+      width: '600px',
+      html: '<div class="text-start">' +
+        '<div class="card mb-3"><div class="card-header"><strong><i class="bi bi-clock"></i> Timestamp</strong></div>' +
+        '<div class="card-body"><p class="mb-0"><strong>' + (ev.time || 'N/A') + '</strong></p></div></div>' +
+        '<div class="card"><div class="card-header"><strong><i class="bi bi-tag"></i> Event Information</strong></div>' +
+        '<div class="card-body"><table class="table table-sm">' +
+        '<tr><td style="width:40%;"><strong>Event Type:</strong></td><td><span class="badge bg-' + (ev.type_color || 'secondary') + '">' + (ev.type || 'Unknown') + '</span></td></tr>' +
+        '<tr><td><strong>Status:</strong></td><td>' + statusBadge + '</td></tr>' +
+        '<tr><td><strong>Source:</strong></td><td><small class="text-muted">' + src + '</small></td></tr>' +
+        '<tr><td><strong>Domain:</strong></td><td><code>' + (ev.domain || 'N/A') + '</code></td></tr>' +
+        '<tr><td><strong>Threat Detected:</strong></td><td>' + (ev.threat_detected ? '<span class="badge bg-danger"><i class="bi bi-exclamation-triangle"></i> Yes</span>' : '<span class="badge bg-success"><i class="bi bi-shield-check"></i> No</span>') + '</td></tr>' +
+        '<tr><td><strong>Risk Score:</strong></td><td>' +
+          '<div class="mf-score-bar" style="max-width:180px;">' +
+          '<div class="mf-score-track"><div class="mf-score-pointer" style="left:' + pct + '%"></div></div>' +
+          '<div class="mf-score-label ' + zoneClass + '">' + score + ' &middot; ' + zoneName + ' Zone</div>' +
+          '</div></td></tr>' +
+        '</table></div></div>' +
+        (ev.threat_detected ? '<div class="alert alert-warning mt-3 mb-0"><strong><i class="bi bi-exclamation-triangle"></i> Security Notice:</strong> This event has been flagged as a potential security threat.</div>' : '') +
+        '</div>',
+      showCloseButton: true,
+      showCancelButton: false,
+      confirmButtonText: '<i class="bi bi-x-circle"></i> Close',
+      confirmButtonColor: '#6c757d',
+      customClass: { confirmButton: 'btn btn-secondary', popup: 'swal-wide' }
+    });
+  });
+
+  // Initial load + interval
+  pollDashEvents();
+  setInterval(pollDashEvents, DASH_REFRESH);
+})();
+</script>
+
 <script>
 (function() {
   /* ── Sector-lock badge ─────────────────────────────────────── */
