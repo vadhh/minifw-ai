@@ -99,8 +99,13 @@
           <div class="card-header d-flex align-items-center gap-2">
             <span><i class="bi bi-cpu me-1"></i> System Intelligence</span>
             <span class="badge" id="protectionStateBadge" style="background:#eff6ff;color:#3b82f6;">Loading...</span>
+            <button class="btn btn-sm ms-auto si-toggle-btn" id="siToggleBtn" title="Show / hide details"
+              style="border:none;background:transparent;padding:4px 8px;color:var(--mf-text-muted);transition:color .2s;">
+              <i class="bi bi-chevron-down" id="siToggleIcon" style="transition:transform .3s;"></i>
+            </button>
           </div>
-          <div class="card-body p-0">
+          <!-- collapsible body -->
+          <div class="card-body p-0 collapse" id="siBody">
             <div class="row g-0">
               <div class="col-lg-2 col-md-4 col-6">
                 <div class="mf-detect-card">
@@ -109,6 +114,7 @@
                   </div>
                   <div class="mf-detect-value" style="color:#ef4444;">{{ detection_counters.hard_gate }}</div>
                   <div class="mf-detect-label">Hard Gates</div>
+                  <div class="mf-detect-sub">Removed</div>
                 </div>
               </div>
               <div class="col-lg-2 col-md-4 col-6">
@@ -117,7 +123,8 @@
                     <i class="bi bi-cpu"></i>
                   </div>
                   <div class="mf-detect-value" style="color:#7c3aed;">{{ detection_counters.ai_scored }}</div>
-                  <div class="mf-detect-label">AI Blocks</div>
+                  <div class="mf-detect-label">AI BLOCKS</div>
+                  <div class="mf-detect-sub">Blocked by AI</div>
                 </div>
               </div>
               <div class="col-lg-2 col-md-4 col-6">
@@ -126,7 +133,8 @@
                     <i class="bi bi-code-slash"></i>
                   </div>
                   <div class="mf-detect-value" style="color:#f59e0b;">{{ detection_counters.yara }}</div>
-                  <div class="mf-detect-label">YARA Hits</div>
+                  <div class="mf-detect-label">YARA HITS</div>
+                  <div class="mf-detect-sub">Malware Patterns Detected</div>
                 </div>
               </div>
               <div class="col-lg-2 col-md-4 col-6">
@@ -135,7 +143,8 @@
                     <i class="bi bi-diagram-2"></i>
                   </div>
                   <div class="mf-detect-value" style="color:#06b6d4;">{{ detection_counters.dns_tunnel }}</div>
-                  <div class="mf-detect-label">DNS Tunnels</div>
+                  <div class="mf-detect-label">DNS TUNNELS</div>
+                  <div class="mf-detect-sub">Data Hiding Detected</div>
                 </div>
               </div>
               <div class="col-lg-2 col-md-4 col-6">
@@ -144,7 +153,8 @@
                     <i class="bi bi-speedometer2"></i>
                   </div>
                   <div class="mf-detect-value" style="color:#ec4899;">{{ detection_counters.port_scan }}</div>
-                  <div class="mf-detect-label">Port Scans</div>
+                  <div class="mf-detect-label">PORT SCANS</div>
+                  <div class="mf-detect-sub">Vulnerability Scanning</div>
                 </div>
               </div>
               <div class="col-lg-2 col-md-4 col-6">
@@ -153,7 +163,8 @@
                     <i class="bi bi-incognito"></i>
                   </div>
                   <div class="mf-detect-value" style="color:#64748b;">{{ detection_counters.tor_anon }}</div>
-                  <div class="mf-detect-label">Tor / Anon</div>
+                  <div class="mf-detect-label">TOR / ANON</div>
+                  <div class="mf-detect-sub">Anonymous Traffic Blocked</div>
                 </div>
               </div>
               <div class="col-lg-2 col-md-4 col-6">
@@ -162,7 +173,8 @@
                     <i class="bi bi-shield-lock"></i>
                   </div>
                   <div class="mf-detect-value" style="color:#0891b2;">{{ detection_counters.sni_hits }}</div>
-                  <div class="mf-detect-label">SNI Blocks</div>
+                  <div class="mf-detect-label">SNI BLOCKS</div>
+                  <div class="mf-detect-sub">Fake Sites Blocked</div>
                 </div>
               </div>
             </div>
@@ -174,60 +186,82 @@
     <!-- Main content row -->
     <div class="row g-3 mb-4">
 
-      <!-- Recent events -->
-      <div class="col-lg-8">
-        <div class="card h-100">
+      <!-- Recent events (Live) -->
+      <div class="col-lg-8 d-flex flex-column">
+        <div class="card d-flex flex-column" style="flex:1;min-height:0;">
           <div class="card-header d-flex align-items-center gap-3">
             <span>Recent Security Events</span>
-            <a href="/admin/events" class="btn btn-sm btn-outline-primary" style="font-size:12px;padding:4px 10px;">
+            <span class="badge bg-success" id="dashLiveIndicator"
+              style="font-size:10px;animation:dash-blink 2s infinite;">
+              <i class="bi bi-circle-fill" style="font-size:7px;"></i> LIVE
+            </span>
+            <a href="/admin/events" class="btn btn-sm btn-outline-primary ms-auto"
+              style="font-size:12px;padding:4px 10px;">
               View all <i class="bi bi-arrow-right ms-1"></i>
             </a>
           </div>
-          <div class="card-body p-0">
-            <div class="table-responsive">
-              <table class="table table-sm table-hover mb-0">
+          <div class="card-body p-0 d-flex flex-column" style="overflow:hidden;flex:1;min-height:0;">
+            <div class="dash-events-scroll">
+              <table class="table table-sm table-hover mb-0 dash-events-table">
                 <thead>
                   <tr>
-                    <th>Time</th>
-                    <th>Type</th>
-                    <th>Source</th>
-                    <th>Status</th>
+                    <th style="width:130px;min-width:130px;">Time</th>
+                    <th style="min-width:110px;">Type</th>
+                    <th style="min-width:170px;">Source</th>
+                    <th style="width:100px;min-width:100px;">Status</th>
+                    <th style="width:60px;min-width:60px;" class="text-center">Action</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody id="dashEventsBody">
                   {% if events %}
-                    {% for event in events %}
-                    <tr>
-                      <td><small style="color:var(--mf-text-muted);">{{ event.time }}</small></td>
-                      <td>
-                        <span class="badge bg-{{ event.type_color }}">{{ event.type }}</span>
-                      </td>
-                      <td><small>{{ event.source }}</small></td>
-                      <td>
-                        {% if event.status == 'blocked' %}
-                          <span class="badge" style="background:#fef2f2;color:#ef4444;">Blocked</span>
-                        {% elif event.status == 'monitor' %}
-                          <span class="badge" style="background:#fffbeb;color:#f59e0b;">Monitor</span>
-                        {% else %}
-                          <span class="badge" style="background:#f0fdf4;color:#10b981;">Allowed</span>
-                        {% endif %}
-                      </td>
-                    </tr>
-                    {% endfor %}
+                  {% for event in events %}
+                  <tr>
+                    <td><small style="color:var(--mf-text-muted);white-space:nowrap;">{{ event.time }}</small></td>
+                    <td><span class="badge bg-{{ event.type_color }}">{{ event.type }}</span></td>
+                    <td style="max-width:170px;">
+                      <small class="d-block text-truncate" title="{{ event.source }}">{{ event.source }}</small>
+                    </td>
+                    <td>
+                      {% if event.score is not none and event.score >= 65 %}
+                      <span class="badge bg-danger"><i class="bi bi-x-circle"></i> Blocked</span>
+                      {% elif event.score is not none and event.score >= 40 %}
+                      <span class="badge" style="background:#ffc107;color:#000;"><i class="bi bi-eye"></i>
+                        Monitor</span>
+                      {% elif event.score is not none %}
+                      <span class="badge bg-success"><i class="bi bi-check-circle"></i> Allowed</span>
+                      {% elif event.status == 'blocked' %}
+                      <span class="badge bg-danger"><i class="bi bi-x-circle"></i> Blocked</span>
+                      {% elif event.status == 'monitor' %}
+                      <span class="badge" style="background:#ffc107;color:#000;"><i class="bi bi-eye"></i>
+                        Monitor</span>
+                      {% else %}
+                      <span class="badge bg-success"><i class="bi bi-check-circle"></i> Allowed</span>
+                      {% endif %}
+                    </td>
+                    <td class="text-center">
+                      <button class="btn btn-sm btn-outline-primary dash-view-btn" data-event='{{ event | tojson }}'
+                        title="View details" style="padding:2px 7px;font-size:11px;">
+                        <i class="bi bi-eye"></i>
+                      </button>
+                    </td>
+                  </tr>
+                  {% endfor %}
                   {% else %}
-                    <tr>
-                      <td colspan="4" class="text-center py-4" style="color:var(--mf-text-muted);">
-                        <i class="bi bi-inbox fs-4 d-block mb-2 opacity-25"></i>
-                        No recent events
-                      </td>
-                    </tr>
+                  <tr id="dashEmptyRow">
+                    <td colspan="5" class="text-center py-4" style="color:var(--mf-text-muted);">
+                      <i class="bi bi-inbox fs-4 d-block mb-2 opacity-25"></i>
+                      No recent events
+                    </td>
+                  </tr>
                   {% endif %}
                 </tbody>
               </table>
             </div>
           </div>
-          <div class="card-footer" style="font-size:12px;color:var(--mf-text-muted);">
-            <i class="bi bi-clock me-1"></i>Last updated: {{ last_update }}
+          <div class="card-footer d-flex align-items-center gap-2" style="font-size:12px;color:var(--mf-text-muted);">
+            <i class="bi bi-clock me-1"></i>Last updated: <span id="dashLastUpdate">{{ last_update }}</span>
+            <span class="ms-auto" style="font-size:11px;"><i class="bi bi-arrow-clockwise"></i> Auto-refresh every
+              5s</span>
           </div>
         </div>
       </div>
@@ -241,34 +275,38 @@
           <div class="card-body p-0">
             <ul class="list-group list-group-flush">
               <li class="list-group-item d-flex justify-content-between align-items-center"
-                  style="background:transparent;border-color:var(--mf-border);padding:12px 20px;">
+                style="background:transparent;border-color:var(--mf-border);padding:12px 20px;">
                 <span style="font-size:13.5px;">Firewall Engine</span>
                 <span class="badge bg-{{ service_status.color }}">{{ service_status.label }}</span>
               </li>
               <li class="list-group-item d-flex justify-content-between align-items-center"
-                  style="background:transparent;border-color:var(--mf-border);padding:12px 20px;">
+                style="background:transparent;border-color:var(--mf-border);padding:12px 20px;">
                 <span style="font-size:13.5px;">Detection Mode</span>
                 <span class="badge" style="background:#eff6ff;color:#3b82f6;">{{ service_status.mode }}</span>
               </li>
               <li class="list-group-item d-flex justify-content-between align-items-center"
-                  style="background:transparent;border-color:var(--mf-border);padding:12px 20px;">
+                style="background:transparent;border-color:var(--mf-border);padding:12px 20px;">
                 <span style="font-size:13.5px;">Burst Protection</span>
                 <span class="badge" style="background:#f0fdf4;color:#10b981;">Active</span>
               </li>
               <li class="list-group-item d-flex justify-content-between align-items-center"
-                  style="background:transparent;border-color:var(--mf-border);padding:12px 20px;">
-                <span style="font-size:13.5px;"><i class="bi bi-shield-lock me-1" style="color:#0891b2;"></i>Zeek TLS/SNI</span>
+                style="background:transparent;border-color:var(--mf-border);padding:12px 20px;">
+                <span style="font-size:13.5px;"><i class="bi bi-shield-lock me-1" style="color:#0891b2;"></i>Zeek
+                  TLS/SNI</span>
                 <span class="badge bg-{{ collector_status.zeek.color }}">{{ collector_status.zeek.label }}</span>
               </li>
               <li class="list-group-item d-flex justify-content-between align-items-center"
-                  style="background:transparent;border-color:var(--mf-border);padding:12px 20px;">
-                <span style="font-size:13.5px;"><i class="bi bi-globe2 me-1" style="color:#06b6d4;"></i>DNS Collector</span>
+                style="background:transparent;border-color:var(--mf-border);padding:12px 20px;">
+                <span style="font-size:13.5px;"><i class="bi bi-globe2 me-1" style="color:#06b6d4;"></i>DNS
+                  Collector</span>
                 <span class="badge bg-{{ collector_status.dns.color }}">{{ collector_status.dns.label }}</span>
               </li>
               <li class="list-group-item d-flex justify-content-between align-items-center"
-                  style="background:transparent;border-color:var(--mf-border);padding:12px 20px;">
-                <span style="font-size:13.5px;"><i class="bi bi-diagram-3 me-1" style="color:#6366f1;"></i>Flow Tracking</span>
-                <span class="badge bg-{{ collector_status.conntrack.color }}">{{ collector_status.conntrack.label }}</span>
+                style="background:transparent;border-color:var(--mf-border);padding:12px 20px;">
+                <span style="font-size:13.5px;"><i class="bi bi-diagram-3 me-1" style="color:#6366f1;"></i>Flow
+                  Tracking</span>
+                <span class="badge bg-{{ collector_status.conntrack.color }}">{{ collector_status.conntrack.label
+                  }}</span>
               </li>
             </ul>
           </div>
@@ -278,16 +316,20 @@
         <div class="card">
           <div class="card-header">Quick Actions</div>
           <div class="card-body d-grid gap-2">
-            <a href="/admin/allow-domain" class="btn btn-sm" style="background:#f0fdf4;color:#10b981;border:1px solid #bbf7d0;text-align:left;">
+            <a href="/admin/allow-domain" class="btn btn-sm"
+              style="background:#f0fdf4;color:#10b981;border:1px solid #bbf7d0;text-align:left;">
               <i class="bi bi-plus-circle me-2"></i>Add Allow Domain
             </a>
-            <a href="/admin/deny-ip" class="btn btn-sm" style="background:#fef2f2;color:#ef4444;border:1px solid #fecaca;text-align:left;">
+            <a href="/admin/deny-ip" class="btn btn-sm"
+              style="background:#fef2f2;color:#ef4444;border:1px solid #fecaca;text-align:left;">
               <i class="bi bi-plus-circle me-2"></i>Block IP Address
             </a>
-            <a href="/admin/deny-asn" class="btn btn-sm" style="background:#fffbeb;color:#f59e0b;border:1px solid #fde68a;text-align:left;">
+            <a href="/admin/deny-asn" class="btn btn-sm"
+              style="background:#fffbeb;color:#f59e0b;border:1px solid #fde68a;text-align:left;">
               <i class="bi bi-plus-circle me-2"></i>Block ASN
             </a>
-            <a href="/admin/deny-domain" class="btn btn-sm" style="background:#f5f3ff;color:#6366f1;border:1px solid #ddd6fe;text-align:left;">
+            <a href="/admin/deny-domain" class="btn btn-sm"
+              style="background:#f5f3ff;color:#6366f1;border:1px solid #ddd6fe;text-align:left;">
               <i class="bi bi-plus-circle me-2"></i>Block Domain
             </a>
           </div>
@@ -301,10 +343,11 @@
     <div class="row mb-3">
       <div class="col-12">
         <div class="alert mb-0 d-flex align-items-center gap-2"
-             style="background:#fef2f2;border:1px solid #fca5a5;color:#991b1b;border-radius:8px;padding:10px 16px;">
+          style="background:#fef2f2;border:1px solid #fca5a5;color:#991b1b;border-radius:8px;padding:10px 16px;">
           <span style="font-size:18px;">&#9888;</span>
           <strong>DEMO MODE — Attack Simulation Active</strong>
-          <span style="font-size:12px;opacity:0.8;margin-left:4px;">Continuous synthetic attacks are being injected into the detection engine.</span>
+          <span style="font-size:12px;opacity:0.8;margin-left:4px;">Continuous synthetic attacks are being injected into
+            the detection engine.</span>
         </div>
       </div>
     </div>
@@ -316,8 +359,8 @@
         <div class="card">
           <div class="card-header d-flex align-items-center gap-3">
             <span><i class="bi bi-activity me-1" style="color:#ef4444;"></i> Block Rate — Live Spike Monitor</span>
-            <span class="badge" id="spikeRateBadge"
-                  style="background:#fef2f2;color:#ef4444;font-size:11px;">0 blocks/5s</span>
+            <span class="badge" id="spikeRateBadge" style="background:#fef2f2;color:#ef4444;font-size:11px;">0
+              blocks/5s</span>
           </div>
           <div class="card-body" style="padding:12px 16px;">
             <canvas id="spikeChart" height="70"></canvas>
@@ -337,13 +380,14 @@
           <div class="card-header d-flex align-items-center gap-3">
             <span>
               <span class="pulse-dot" id="synthDot" style="display:inline-block;"></span>
-              <span style="margin-left:6px;"><i class="bi bi-cpu me-1" style="color:#ef4444;"></i> AI Threat Synthesis</span>
+              <span style="margin-left:6px;"><i class="bi bi-cpu me-1" style="color:#ef4444;"></i> AI Threat
+                Synthesis</span>
             </span>
             <div class="d-flex gap-2 align-items-center">
-              <span class="badge" id="synthCountBadge"
-                    style="background:#fef2f2;color:#ef4444;font-size:11px;">0 in last 5s</span>
+              <span class="badge" id="synthCountBadge" style="background:#fef2f2;color:#ef4444;font-size:11px;">0 in
+                last 5s</span>
               <span class="badge" id="synthLiveBadge"
-                    style="background:#ef4444;color:#fff;font-size:11px;display:none;">LIVE</span>
+                style="background:#ef4444;color:#fff;font-size:11px;display:none;">LIVE</span>
             </div>
           </div>
           <div class="card-body p-3">
@@ -353,18 +397,16 @@
               <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
                 <div class="d-flex align-items-center gap-2">
                   <span class="synth-hero-title">THREAT BLOCKED</span>
-                  <span id="synthActionBadge"
-                        style="display:none;background:#dc2626;color:#fff;font-size:10px;
+                  <span id="synthActionBadge" style="display:none;background:#dc2626;color:#fff;font-size:10px;
                                font-weight:800;padding:2px 8px;border-radius:4px;letter-spacing:1px;">
                     BLOCKED
                   </span>
                 </div>
                 <div class="d-flex align-items-center gap-2">
-                  <div id="synthRiskBadge"
-                       style="display:none;background:#fef2f2;border:2px solid #dc2626;
+                  <div id="synthRiskBadge" style="display:none;background:#fef2f2;border:2px solid #dc2626;
                               border-radius:8px;padding:4px 12px;text-align:center;min-width:64px;">
-                    <div id="synthRiskPct"
-                         style="font-size:26px;font-weight:900;color:#dc2626;line-height:1;">&#x2014;</div>
+                    <div id="synthRiskPct" style="font-size:26px;font-weight:900;color:#dc2626;line-height:1;">&#x2014;
+                    </div>
                     <div style="font-size:9px;color:#9f1239;font-weight:700;letter-spacing:1px;">RISK</div>
                   </div>
                   <span id="synthTimestamp" style="font-size:10px;color:var(--mf-text-muted);"></span>
@@ -377,17 +419,21 @@
               <!-- 3-column grid: AI REASON · KERNEL BLOCKED · TIME TO BLOCK -->
               <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px;">
                 <div class="synth-cell">
-                  <div style="font-size:9px;color:#7c3aed;font-weight:700;letter-spacing:1px;margin-bottom:4px;">AI REASON</div>
+                  <div style="font-size:9px;color:#7c3aed;font-weight:700;letter-spacing:1px;margin-bottom:4px;">AI
+                    REASON</div>
                   <div id="synthAiCategory" style="font-size:13px;font-weight:700;color:#7c3aed;">&#x2014;</div>
-                  <div id="synthAiScore"    style="font-size:11px;color:var(--mf-text-muted);">&#x2014;</div>
+                  <div id="synthAiScore" style="font-size:11px;color:var(--mf-text-muted);">&#x2014;</div>
                 </div>
                 <div class="synth-cell">
-                  <div style="font-size:9px;color:#10b981;font-weight:700;letter-spacing:1px;margin-bottom:4px;">KERNEL BLOCKED</div>
-                  <div id="synthKernelLabel"  style="font-size:13px;font-weight:700;color:#10b981;">Checking&hellip;</div>
+                  <div style="font-size:9px;color:#10b981;font-weight:700;letter-spacing:1px;margin-bottom:4px;">KERNEL
+                    BLOCKED</div>
+                  <div id="synthKernelLabel" style="font-size:13px;font-weight:700;color:#10b981;">Checking&hellip;
+                  </div>
                   <div id="synthKernelDetail" style="font-size:11px;color:var(--mf-text-muted);"></div>
                 </div>
                 <div class="synth-cell">
-                  <div style="font-size:9px;color:#06b6d4;font-weight:700;letter-spacing:1px;margin-bottom:4px;">TIME TO BLOCK</div>
+                  <div style="font-size:9px;color:#06b6d4;font-weight:700;letter-spacing:1px;margin-bottom:4px;">TIME TO
+                    BLOCK</div>
                   <div id="synthTime" style="font-size:22px;font-weight:900;color:#06b6d4;">&#x2014; ms</div>
                 </div>
               </div>
@@ -395,13 +441,15 @@
               <!-- 2-column grid: DECISION OWNER · TRACE ID -->
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
                 <div class="synth-cell">
-                  <div style="font-size:9px;color:#64748b;font-weight:700;letter-spacing:1px;margin-bottom:4px;">DECISION OWNER</div>
-                  <div id="synthDecisionOwner" style="font-size:12px;font-weight:700;color:var(--mf-text);">&#x2014;</div>
+                  <div style="font-size:9px;color:#64748b;font-weight:700;letter-spacing:1px;margin-bottom:4px;">
+                    DECISION OWNER</div>
+                  <div id="synthDecisionOwner" style="font-size:12px;font-weight:700;color:var(--mf-text);">&#x2014;
+                  </div>
                 </div>
                 <div class="synth-cell">
-                  <div style="font-size:9px;color:#64748b;font-weight:700;letter-spacing:1px;margin-bottom:4px;">TRACE ID</div>
-                  <div id="synthTraceId"
-                       style="font-size:12px;font-weight:700;color:var(--mf-text);
+                  <div style="font-size:9px;color:#64748b;font-weight:700;letter-spacing:1px;margin-bottom:4px;">TRACE
+                    ID</div>
+                  <div id="synthTraceId" style="font-size:12px;font-weight:700;color:var(--mf-text);
                               font-family:monospace;letter-spacing:2px;">&#x2014;</div>
                 </div>
               </div>
@@ -416,8 +464,7 @@
               </ul>
             </div>
           </div>
-          <div class="card-footer d-flex align-items-center gap-2"
-               style="font-size:11px;color:var(--mf-text-muted);">
+          <div class="card-footer d-flex align-items-center gap-2" style="font-size:11px;color:var(--mf-text-muted);">
             <span class="pulse-dot" id="synthDotFooter"></span>
             <span id="synthStatus">Connecting&hellip;</span>
           </div>
@@ -468,316 +515,606 @@
 
 {% block extra_js %}
 <style>
-.pulse-dot {
-  width: 8px; height: 8px; border-radius: 50%;
-  background: #10b981; display: inline-block; flex-shrink: 0;
-  animation: pulse-green 2s infinite;
-}
-.pulse-dot.inactive { background: #94a3b8; animation: none; }
-@keyframes pulse-green {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50%       { opacity: .5; transform: scale(1.3); }
-}
-@keyframes lbf-fade-in {
-  from { opacity: 0; transform: translateY(-4px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
+  .pulse-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #10b981;
+    display: inline-block;
+    flex-shrink: 0;
+    animation: pulse-green 2s infinite;
+  }
 
-/* Synthesis hero — light mode */
-.synth-hero {
-  background: linear-gradient(135deg, #fee2e2, #fff1f2);
-  border: 1px solid #fca5a5;
-  border-radius: 8px; padding: 16px; margin-bottom: 12px;
-}
-.synth-hero-title  { font-size:16px; font-weight:900; color:#dc2626; letter-spacing:1px; }
-.synth-hero-source { font-size:14px; font-weight:700; color:#9f1239; margin-bottom:12px; }
-.synth-cell {
-  background: var(--mf-surface-2);
-  border: 1px solid var(--mf-border);
-  border-radius: 6px; padding: 10px;
-}
+  .pulse-dot.inactive {
+    background: #94a3b8;
+    animation: none;
+  }
 
-/* Synthesis hero — dark mode */
-[data-bs-theme="dark"] .synth-hero {
-  background: linear-gradient(135deg, #7f1d1d, #1e293b);
-  border-color: #ef444466;
-}
-[data-bs-theme="dark"] .synth-hero-title  { color: #f87171; }
-[data-bs-theme="dark"] .synth-hero-source { color: #fca5a5; }
-[data-bs-theme="dark"] .synth-cell        { background: #0f172a88; border: none; }
+  @keyframes pulse-green {
+
+    0%,
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    50% {
+      opacity: .5;
+      transform: scale(1.3);
+    }
+  }
+
+  @keyframes lbf-fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Dashboard live events table */
+  .dash-events-scroll {
+    overflow-x: auto;
+    overflow-y: auto;
+    flex: 1 1 0;
+    min-height: 0;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .dash-events-scroll::-webkit-scrollbar {
+    height: 5px;
+    width: 5px;
+  }
+
+  .dash-events-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .dash-events-scroll::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+  }
+
+  .dash-events-table {
+    min-width: 570px;
+    table-layout: fixed;
+  }
+
+  .dash-events-table th,
+  .dash-events-table td {
+    white-space: nowrap;
+    vertical-align: middle;
+  }
+
+  .dash-events-table th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: var(--bs-tertiary-bg, #f8f9fa);
+    border-bottom: 2px solid var(--bs-border-color, #dee2e6);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 8px 12px;
+  }
+
+  .dash-events-table td {
+    padding: 7px 12px;
+    font-size: 12.5px;
+  }
+
+  @keyframes dash-row-in {
+    from {
+      opacity: 0;
+      background: rgba(16, 185, 129, 0.08);
+    }
+
+    to {
+      opacity: 1;
+      background: transparent;
+    }
+  }
+
+  .dash-row-new {
+    animation: dash-row-in 0.5s ease;
+  }
+
+  @keyframes dash-blink {
+
+    0%,
+    50%,
+    100% {
+      opacity: 1;
+    }
+
+    25%,
+    75% {
+      opacity: 0.35;
+    }
+  }
+
+  /* Synthesis hero — light mode */
+  .synth-hero {
+    background: linear-gradient(135deg, #fee2e2, #fff1f2);
+    border: 1px solid #fca5a5;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+
+  .synth-hero-title {
+    font-size: 16px;
+    font-weight: 900;
+    color: #dc2626;
+    letter-spacing: 1px;
+  }
+
+  .synth-hero-source {
+    font-size: 14px;
+    font-weight: 700;
+    color: #9f1239;
+    margin-bottom: 12px;
+  }
+
+  .synth-cell {
+    background: var(--mf-surface-2);
+    border: 1px solid var(--mf-border);
+    border-radius: 6px;
+    padding: 10px;
+  }
+
+  /* Synthesis hero — dark mode */
+  [data-bs-theme="dark"] .synth-hero {
+    background: linear-gradient(135deg, #7f1d1d, #1e293b);
+    border-color: #ef444466;
+  }
+
+  [data-bs-theme="dark"] .synth-hero-title {
+    color: #f87171;
+  }
+
+  [data-bs-theme="dark"] .synth-hero-source {
+    color: #fca5a5;
+  }
+
+  [data-bs-theme="dark"] .synth-cell {
+    background: #0f172a88;
+    border: none;
+  }
 </style>
+
+<!-- ── System Intelligence Toggle ───────────────────────────── -->
 <script>
-(function() {
-  /* ── Sector-lock badge ─────────────────────────────────────── */
-  fetch('/admin/api/sector-lock', { credentials: 'same-origin' })
-    .then(function(r) { return r.ok ? r.json() : null; })
-    .then(function(data) {
-      var el = document.getElementById('protectionStateBadge');
-      if (!el || !data) return;
-      var label = data.mode_label || (data.sector
-        ? data.sector.charAt(0).toUpperCase() + data.sector.slice(1) + ' Sector'
-        : 'Default');
-      el.textContent = label;
-      el.className   = 'mf-sector-badge';
-      if (data.sector)     el.classList.add('mf-sector-' + data.sector);
-      if (data.mode_color) {
-        el.style.setProperty('color',      data.mode_color);
-        el.style.setProperty('background', data.mode_color + '18');
-        el.style.setProperty('border',     '1px solid ' + data.mode_color + '44');
+  (function () {
+    var btn = document.getElementById('siToggleBtn');
+    var body = document.getElementById('siBody');
+    var icon = document.getElementById('siToggleIcon');
+    if (!btn || !body || !icon) return;
+
+    btn.addEventListener('click', function () {
+      var isOpen = body.classList.contains('show');
+      if (isOpen) {
+        body.classList.remove('show');
+        icon.style.transform = 'rotate(0deg)';
+        btn.title = 'Show details';
+      } else {
+        body.classList.add('show');
+        icon.style.transform = 'rotate(180deg)';
+        btn.title = 'Hide details';
       }
-    })
-    .catch(function() {
-      var el = document.getElementById('protectionStateBadge');
-      if (el) el.textContent = 'N/A';
+    });
+  })();
+</script>
+
+<!-- ── Dashboard Live Events Table ──────────────────────────── -->
+<script>
+  (function () {
+    var DASH_REFRESH = 5000; // 5 seconds
+    var dashLastKey = '';
+
+    function scoreStatus(score) {
+      if (score === null || score === undefined) return null;
+      if (score >= 65) return { label: '<i class="bi bi-x-circle"></i> Blocked', cls: 'badge bg-danger' };
+      if (score >= 40) return { label: '<i class="bi bi-eye"></i> Monitor', cls: 'badge', style: 'background:#ffc107;color:#000;' };
+      return { label: '<i class="bi bi-check-circle"></i> Allowed', cls: 'badge bg-success' };
+    }
+
+    function statusFromEvent(ev) {
+      var s = scoreStatus(ev.score);
+      if (s) return s;
+      if (ev.status === 'blocked') return { label: '<i class="bi bi-x-circle"></i> Blocked', cls: 'badge bg-danger' };
+      if (ev.status === 'monitor') return { label: '<i class="bi bi-eye"></i> Monitor', cls: 'badge', style: 'background:#ffc107;color:#000;' };
+      return { label: '<i class="bi bi-check-circle"></i> Allowed', cls: 'badge bg-success' };
+    }
+
+    function buildRow(ev, isNew) {
+      var st = statusFromEvent(ev);
+      var badgeHtml = '<span class="' + st.cls + '"' + (st.style ? ' style="' + st.style + '"' : '') + '>' + st.label + '</span>';
+      var typeColor = ev.type_color || 'secondary';
+      var src = (ev.source || ev.client_ip || '\u2014');
+      var evJson = JSON.stringify(ev).replace(/'/g, '&#39;');
+      var tr = document.createElement('tr');
+      if (isNew) tr.className = 'dash-row-new';
+      tr.innerHTML =
+        '<td><small style="color:var(--mf-text-muted);white-space:nowrap;">' + (ev.time || '\u2014') + '</small></td>' +
+        '<td><span class="badge bg-' + typeColor + '">' + (ev.type || '\u2014') + '</span></td>' +
+        '<td style="max-width:170px;"><small class="d-block text-truncate" title="' + src + '">' + src + '</small></td>' +
+        '<td>' + badgeHtml + '</td>' +
+        '<td class="text-center"><button class="btn btn-sm btn-outline-primary dash-view-btn" ' +
+        'data-event=\'' + evJson + '\' title="View details" style="padding:2px 7px;font-size:11px;">' +
+        '<i class="bi bi-eye"></i></button></td>';
+      return tr;
+    }
+
+    function pollDashEvents() {
+      fetch('/admin/api/events?draw=1&start=0&length=20&order_column=0&order_dir=desc', {
+        credentials: 'same-origin'
+      })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (d) {
+          if (!d) return;
+          var rows = Array.isArray(d) ? d : (d.data || d.events || []);
+          if (!rows.length) return;
+
+          var key = (rows[0].time || '') + '|' + (rows[0].source || rows[0].client_ip || '');
+          var isNew = (key !== dashLastKey);
+          dashLastKey = key;
+
+          var tbody = document.getElementById('dashEventsBody');
+          if (!tbody) return;
+
+          tbody.innerHTML = '';
+          rows.forEach(function (ev, i) {
+            tbody.appendChild(buildRow(ev, isNew && i === 0));
+          });
+
+          var upEl = document.getElementById('dashLastUpdate');
+          if (upEl) upEl.textContent = new Date().toLocaleTimeString();
+        })
+        .catch(function () { });
+    }
+
+    // Event Details modal on Action button click
+    document.addEventListener('click', function (e) {
+      var btn = e.target.closest('.dash-view-btn');
+      if (!btn) return;
+      var ev = {};
+      try { ev = JSON.parse(btn.getAttribute('data-event')); } catch (ex) { }
+      if (!ev || typeof Swal === 'undefined') return;
+
+      var score = (ev.score !== null && ev.score !== undefined) ? ev.score : 0;
+      var pct = Math.min(score, 100);
+      var scoreBasedStatus = score >= 65 ? 'blocked' : score >= 40 ? 'monitor' : 'allowed';
+      var zoneName = score >= 65 ? 'Block' : score >= 40 ? 'Monitor' : 'Allow';
+      var zoneClass = score >= 65 ? 'zone-block' : score >= 40 ? 'zone-monitor' : 'zone-allow';
+      var statusName = score >= 65 ? 'BLOCKED' : score >= 40 ? 'MONITOR' : 'ALLOWED';
+      var statusColor = score >= 65 ? '#dc3545' : score >= 40 ? '#ffc107' : '#198754';
+      var iconType = score >= 65 ? 'error' : score >= 40 ? 'warning' : 'success';
+      var titleColor = score >= 65 ? 'danger' : score >= 40 ? 'warning' : 'success';
+
+      var st = statusFromEvent(ev);
+      var statusBadge = '<span class="' + st.cls + '"' + (st.style ? ' style="' + st.style + '"' : '') + '>' + st.label + '</span>';
+      var src = ev.source || ev.client_ip || '\u2014';
+      var statusLabelHtml = '<div style="font-size:1.1rem;font-weight:700;color:' + statusColor + ';letter-spacing:0.08em;margin-bottom:4px;margin-top:-4px;">' + statusName + '</div>';
+
+      Swal.fire({
+        title: statusLabelHtml + '<strong class="text-' + titleColor + '"><i class="bi bi-info-circle"></i> Event Details</strong>',
+        icon: iconType,
+        width: '600px',
+        html: '<div class="text-start">' +
+          '<div class="card mb-3"><div class="card-header"><strong><i class="bi bi-clock"></i> Timestamp</strong></div>' +
+          '<div class="card-body"><p class="mb-0"><strong>' + (ev.time || 'N/A') + '</strong></p></div></div>' +
+          '<div class="card"><div class="card-header"><strong><i class="bi bi-tag"></i> Event Information</strong></div>' +
+          '<div class="card-body"><table class="table table-sm">' +
+          '<tr><td style="width:40%;"><strong>Event Type:</strong></td><td><span class="badge bg-' + (ev.type_color || 'secondary') + '">' + (ev.type || 'Unknown') + '</span></td></tr>' +
+          '<tr><td><strong>Status:</strong></td><td>' + statusBadge + '</td></tr>' +
+          '<tr><td><strong>Source:</strong></td><td><small class="text-muted">' + src + '</small></td></tr>' +
+          '<tr><td><strong>Domain:</strong></td><td><code>' + (ev.domain || 'N/A') + '</code></td></tr>' +
+          '<tr><td><strong>Threat Detected:</strong></td><td>' +
+          (ev.threat_detected
+            ? '<span class="badge bg-danger"><i class="bi bi-exclamation-triangle"></i> Yes</span>'
+            : '<span class="badge bg-success"><i class="bi bi-shield-check"></i> No</span>') +
+          '</td></tr>' +
+          '<tr><td><strong>Risk Score:</strong></td><td>' +
+          '<div class="mf-score-bar" style="max-width:180px;">' +
+          '<div class="mf-score-track"><div class="mf-score-pointer" style="left:' + pct + '%"></div></div>' +
+          '<div class="mf-score-label ' + zoneClass + '">' + score + ' &middot; ' + zoneName + ' Zone</div>' +
+          '</div></td></tr>' +
+          '</table></div></div>' +
+          (ev.threat_detected
+            ? '<div class="alert alert-warning mt-3 mb-0"><strong><i class="bi bi-exclamation-triangle"></i> Security Notice:</strong> This event has been flagged as a potential security threat.</div>'
+            : '') +
+          '</div>',
+        showCloseButton: true,
+        showCancelButton: false,
+        confirmButtonText: '<i class="bi bi-x-circle"></i> Close',
+        confirmButtonColor: '#6c757d',
+        customClass: { confirmButton: 'btn btn-secondary', popup: 'swal-wide' }
+      });
     });
 
-  /* ── Kernel state cache ────────────────────────────────────── */
-  var kernelState = { active: false, detail: '' };
+    pollDashEvents();
+    setInterval(pollDashEvents, DASH_REFRESH);
+  })();
+</script>
 
-  function updateKernelInSynthesis() {
-    var lbl = document.getElementById('synthKernelLabel');
-    var det = document.getElementById('synthKernelDetail');
-    if (!lbl) return;
-    if (kernelState.active) {
-      lbl.textContent = '\u2714 nftables DROP';
-      lbl.style.color = '#10b981';
-    } else {
-      lbl.textContent = 'Not enforced';
-      lbl.style.color = '#f59e0b';
-    }
-    det.textContent = kernelState.active ? 'inet/minifw \u00b7 active' : (kernelState.detail || '');
-    det.style.color = '';
-  }
-
-  function pollKernel() {
-    fetch('/admin/api/kernel-proof', { credentials: 'same-origin' })
-      .then(function(r) { return r.ok ? r.json() : null; })
-      .then(function(d) {
-        if (!d) return;
-        kernelState.active = !!d.active;
-        kernelState.detail = d.detail || '';
-        updateKernelInSynthesis();
-      })
-      .catch(function() {});
-  }
-
-  pollKernel();
-  setInterval(pollKernel, 15000);
-
-  /* ── Synthesis helpers ─────────────────────────────────────── */
-  var lastEventKey = '';
-  var liveBadgeTimer = null;
-
-  function scoreColor(score) {
-    if (score >= 80) return '#ef4444';
-    if (score >= 50) return '#f59e0b';
-    if (score >= 20) return '#6366f1';
-    return '#64748b';
-  }
-
-  function renderSynthesis(ev) {
-    var srcEl = document.getElementById('synthSource');
-    if (!srcEl) return;
-    var x       = ev.ai_explanation || {};
-    var score   = x.score || ev.score || 0;
-    var cat     = x.category || ev.type || 'Unknown';
-    var src     = ev.source || ev.client_ip || '\u2014';
-    var dom     = ev.domain ? ' \u2192 ' + ev.domain : '';
-    var signals = [].concat(x.asn || [], x.tls || [], x.behavior || []);
-
-    srcEl.textContent = src + dom;
-    document.getElementById('synthTimestamp').textContent  = ev.time || '';
-    document.getElementById('synthAiCategory').textContent = cat;
-    document.getElementById('synthAiScore').textContent    =
-      'Score ' + score + (signals.length ? ' \u00b7 ' + signals.slice(0, 2).join(' + ') : '');
-    document.getElementById('synthTime').textContent =
-      (Math.floor(Math.random() * 18) + 8) + ' ms';
-
-    var riskBadge = document.getElementById('synthRiskBadge');
-    var riskPct   = document.getElementById('synthRiskPct');
-    if (riskBadge && riskPct) {
-      riskPct.textContent  = score + '%';
-      riskBadge.style.display = '';
-      var c = score >= 85 ? '#dc2626' : score >= 65 ? '#f59e0b' : '#6366f1';
-      riskPct.style.color  = c;
-      riskBadge.style.borderColor = c;
-      riskBadge.style.background  = score >= 85 ? '#fef2f2' : '#fffbeb';
-    }
-
-    var actionBadge = document.getElementById('synthActionBadge');
-    if (actionBadge) {
-      actionBadge.style.display = '';
-      actionBadge.textContent   = 'BLOCKED';
-    }
-
-    var ownerEl = document.getElementById('synthDecisionOwner');
-    var traceEl = document.getElementById('synthTraceId');
-    if (ownerEl) ownerEl.textContent = ev.decision_owner || 'Policy Engine';
-    if (traceEl) traceEl.textContent = ev.trace_id || '\u2014';
-
-    var liveBadge = document.getElementById('synthLiveBadge');
-    if (liveBadge) {
-      if (liveBadgeTimer) { clearTimeout(liveBadgeTimer); }
-      liveBadge.style.display = '';
-      liveBadgeTimer = setTimeout(function() { liveBadge.style.display = 'none'; }, 3000);
-    }
-    updateKernelInSynthesis();
-  }
-
-  function buildSynthFeedRow(ev) {
-    var li = document.createElement('li');
-    li.style.cssText =
-      'display:flex;justify-content:space-between;align-items:center;' +
-      'padding:4px 0;border-bottom:1px solid var(--mf-border,#e2e8f0);' +
-      'font-size:11px;animation:lbf-fade-in .3s ease;';
-    var left = document.createElement('span');
-    left.style.cssText =
-      'color:var(--mf-text);overflow:hidden;text-overflow:ellipsis;' +
-      'white-space:nowrap;max-width:75%;';
-    left.textContent = (ev.source || ev.client_ip || '\u2014') +
-                       (ev.domain ? ' \u2192 ' + ev.domain : '');
-    var right = document.createElement('span');
-    right.style.cssText =
-      'font-weight:700;color:' + scoreColor(ev.score || 0) +
-      ';flex-shrink:0;margin-left:8px;';
-    right.textContent = 'score ' + (ev.score || 0);
-    li.appendChild(left);
-    li.appendChild(right);
-    return li;
-  }
-
-  function clearFeed(feed) {
-    while (feed.firstChild) { feed.removeChild(feed.firstChild); }
-  }
-
-  function pollLiveBlocks() {
-    fetch('/admin/api/live-blocks', { credentials: 'same-origin' })
-      .then(function(r) { return r.ok ? r.json() : null; })
-      .then(function(d) {
-        if (!d) return;
-        var dot    = document.getElementById('synthDotFooter');
-        var status = document.getElementById('synthStatus');
-        var badge  = document.getElementById('synthCountBadge');
-        var feed   = document.getElementById('synthFeed');
-        if (!badge || !feed) return;
-        badge.textContent  = d.count + ' in last 5s';
-        status.textContent = 'Live \u00b7 polling every 2s';
-        if (dot) dot.classList.remove('inactive');
-        var headerDot = document.getElementById('synthDot');
-        if (headerDot) headerDot.classList.remove('inactive');
-
-        clearFeed(feed);
-
-        if (!d.events || d.events.length === 0) {
-          var empty = document.createElement('li');
-          empty.style.cssText =
-            'color:var(--mf-text-muted);font-size:12px;text-align:center;padding:8px;';
-          empty.textContent = 'No blocks in the last 5 seconds';
-          feed.appendChild(empty);
-          return;
+<script>
+  (function () {
+    /* ── Sector-lock badge ─────────────────────────────────────── */
+    fetch('/admin/api/sector-lock', { credentials: 'same-origin' })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (data) {
+        var el = document.getElementById('protectionStateBadge');
+        if (!el || !data) return;
+        var label = data.mode_label || (data.sector
+          ? data.sector.charAt(0).toUpperCase() + data.sector.slice(1) + ' Sector'
+          : 'Default');
+        el.textContent = label;
+        el.className = 'mf-sector-badge';
+        if (data.sector) el.classList.add('mf-sector-' + data.sector);
+        if (data.mode_color) {
+          el.style.setProperty('color', data.mode_color);
+          el.style.setProperty('background', data.mode_color + '18');
+          el.style.setProperty('border', '1px solid ' + data.mode_color + '44');
         }
-
-        var topKey = (d.events[0].time || '') + (d.events[0].source || d.events[0].client_ip || '');
-        if (topKey !== lastEventKey) {
-          lastEventKey = topKey;
-          renderSynthesis(d.events[0]);
-        }
-        d.events.slice(0, 3).forEach(function(ev) {
-          feed.appendChild(buildSynthFeedRow(ev));
-        });
       })
-      .catch(function() {
-        var dot    = document.getElementById('synthDotFooter');
-        var status = document.getElementById('synthStatus');
-        if (dot)    dot.classList.add('inactive');
-        var headerDot = document.getElementById('synthDot');
-        if (headerDot) headerDot.classList.add('inactive');
-        if (status) status.textContent = 'Connection error';
+      .catch(function () {
+        var el = document.getElementById('protectionStateBadge');
+        if (el) el.textContent = 'N/A';
       });
-  }
 
-  pollLiveBlocks();
-  setInterval(pollLiveBlocks, 2000);
+    /* ── Kernel state cache ────────────────────────────────────── */
+    var kernelState = { active: false, detail: '' };
 
-})();
+    function updateKernelInSynthesis() {
+      var lbl = document.getElementById('synthKernelLabel');
+      var det = document.getElementById('synthKernelDetail');
+      if (!lbl) return;
+      if (kernelState.active) {
+        lbl.textContent = '\u2714 nftables DROP';
+        lbl.style.color = '#10b981';
+      } else {
+        lbl.textContent = 'Not enforced';
+        lbl.style.color = '#f59e0b';
+      }
+      det.textContent = kernelState.active ? 'inet/minifw \u00b7 active' : (kernelState.detail || '');
+      det.style.color = '';
+    }
+
+    function pollKernel() {
+      fetch('/admin/api/kernel-proof', { credentials: 'same-origin' })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (d) {
+          if (!d) return;
+          kernelState.active = !!d.active;
+          kernelState.detail = d.detail || '';
+          updateKernelInSynthesis();
+        })
+        .catch(function () { });
+    }
+
+    pollKernel();
+    setInterval(pollKernel, 15000);
+
+    /* ── Synthesis helpers ─────────────────────────────────────── */
+    var lastEventKey = '';
+    var liveBadgeTimer = null;
+
+    function scoreColor(score) {
+      if (score >= 80) return '#ef4444';
+      if (score >= 50) return '#f59e0b';
+      if (score >= 20) return '#6366f1';
+      return '#64748b';
+    }
+
+    function renderSynthesis(ev) {
+      var srcEl = document.getElementById('synthSource');
+      if (!srcEl) return;
+      var x = ev.ai_explanation || {};
+      var score = x.score || ev.score || 0;
+      var cat = x.category || ev.type || 'Unknown';
+      var src = ev.source || ev.client_ip || '\u2014';
+      var dom = ev.domain ? ' \u2192 ' + ev.domain : '';
+      var signals = [].concat(x.asn || [], x.tls || [], x.behavior || []);
+
+      srcEl.textContent = src + dom;
+      document.getElementById('synthTimestamp').textContent = ev.time || '';
+      document.getElementById('synthAiCategory').textContent = cat;
+      document.getElementById('synthAiScore').textContent =
+        'Score ' + score + (signals.length ? ' \u00b7 ' + signals.slice(0, 2).join(' + ') : '');
+      document.getElementById('synthTime').textContent =
+        (Math.floor(Math.random() * 18) + 8) + ' ms';
+
+      var riskBadge = document.getElementById('synthRiskBadge');
+      var riskPct = document.getElementById('synthRiskPct');
+      if (riskBadge && riskPct) {
+        riskPct.textContent = score + '%';
+        riskBadge.style.display = '';
+        var c = score >= 85 ? '#dc2626' : score >= 65 ? '#f59e0b' : '#6366f1';
+        riskPct.style.color = c;
+        riskBadge.style.borderColor = c;
+        riskBadge.style.background = score >= 85 ? '#fef2f2' : '#fffbeb';
+      }
+
+      var actionBadge = document.getElementById('synthActionBadge');
+      if (actionBadge) {
+        actionBadge.style.display = '';
+        actionBadge.textContent = 'BLOCKED';
+      }
+
+      var ownerEl = document.getElementById('synthDecisionOwner');
+      var traceEl = document.getElementById('synthTraceId');
+      if (ownerEl) ownerEl.textContent = ev.decision_owner || 'Policy Engine';
+      if (traceEl) traceEl.textContent = ev.trace_id || '\u2014';
+
+      var liveBadge = document.getElementById('synthLiveBadge');
+      if (liveBadge) {
+        if (liveBadgeTimer) { clearTimeout(liveBadgeTimer); }
+        liveBadge.style.display = '';
+        liveBadgeTimer = setTimeout(function () { liveBadge.style.display = 'none'; }, 3000);
+      }
+      updateKernelInSynthesis();
+    }
+
+    function buildSynthFeedRow(ev) {
+      var li = document.createElement('li');
+      li.style.cssText =
+        'display:flex;justify-content:space-between;align-items:center;' +
+        'padding:4px 0;border-bottom:1px solid var(--mf-border,#e2e8f0);' +
+        'font-size:11px;animation:lbf-fade-in .3s ease;';
+      var left = document.createElement('span');
+      left.style.cssText =
+        'color:var(--mf-text);overflow:hidden;text-overflow:ellipsis;' +
+        'white-space:nowrap;max-width:75%;';
+      left.textContent = (ev.source || ev.client_ip || '\u2014') +
+        (ev.domain ? ' \u2192 ' + ev.domain : '');
+      var right = document.createElement('span');
+      right.style.cssText =
+        'font-weight:700;color:' + scoreColor(ev.score || 0) +
+        ';flex-shrink:0;margin-left:8px;';
+      right.textContent = 'score ' + (ev.score || 0);
+      li.appendChild(left);
+      li.appendChild(right);
+      return li;
+    }
+
+    function clearFeed(feed) {
+      while (feed.firstChild) { feed.removeChild(feed.firstChild); }
+    }
+
+    function pollLiveBlocks() {
+      fetch('/admin/api/live-blocks', { credentials: 'same-origin' })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (d) {
+          if (!d) return;
+          var dot = document.getElementById('synthDotFooter');
+          var status = document.getElementById('synthStatus');
+          var badge = document.getElementById('synthCountBadge');
+          var feed = document.getElementById('synthFeed');
+          if (!badge || !feed) return;
+          badge.textContent = d.count + ' in last 5s';
+          status.textContent = 'Live \u00b7 polling every 2s';
+          if (dot) dot.classList.remove('inactive');
+          var headerDot = document.getElementById('synthDot');
+          if (headerDot) headerDot.classList.remove('inactive');
+
+          clearFeed(feed);
+
+          if (!d.events || d.events.length === 0) {
+            var empty = document.createElement('li');
+            empty.style.cssText =
+              'color:var(--mf-text-muted);font-size:12px;text-align:center;padding:8px;';
+            empty.textContent = 'No blocks in the last 5 seconds';
+            feed.appendChild(empty);
+            return;
+          }
+
+          var topKey = (d.events[0].time || '') + (d.events[0].source || d.events[0].client_ip || '');
+          if (topKey !== lastEventKey) {
+            lastEventKey = topKey;
+            renderSynthesis(d.events[0]);
+          }
+          d.events.slice(0, 3).forEach(function (ev) {
+            feed.appendChild(buildSynthFeedRow(ev));
+          });
+        })
+        .catch(function () {
+          var dot = document.getElementById('synthDotFooter');
+          var status = document.getElementById('synthStatus');
+          if (dot) dot.classList.add('inactive');
+          var headerDot = document.getElementById('synthDot');
+          if (headerDot) headerDot.classList.add('inactive');
+          if (status) status.textContent = 'Connection error';
+        });
+    }
+
+    pollLiveBlocks();
+    setInterval(pollLiveBlocks, 2000);
+
+  })();
 </script>
 
 <!-- Block Rate Spike Chart -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <script>
-(function() {
-  var ctx = document.getElementById('spikeChart');
-  if (!ctx) return;
+  (function () {
+    var ctx = document.getElementById('spikeChart');
+    if (!ctx) return;
 
-  var spikeChart = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: Array(12).fill(''),
-      datasets: [
-        {
-          label: 'Blocks',
-          data: Array(12).fill(0),
-          backgroundColor: 'rgba(239,68,68,0.75)',
-          borderColor: '#ef4444',
-          borderWidth: 1,
-          borderRadius: 3,
-        },
-        {
-          label: 'Total Events',
-          data: Array(12).fill(0),
-          backgroundColor: 'rgba(148,163,184,0.25)',
-          borderColor: 'rgba(148,163,184,0.5)',
-          borderWidth: 1,
-          borderRadius: 3,
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: true,
-      animation: { duration: 300 },
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            title: function(items) { return items[0].label; },
-            label: function(item) {
-              return item.datasetIndex === 0
-                ? 'Blocks: ' + item.raw
-                : 'Total: ' + item.raw;
+    var spikeChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: Array(12).fill(''),
+        datasets: [
+          {
+            label: 'Blocks',
+            data: Array(12).fill(0),
+            backgroundColor: 'rgba(239,68,68,0.75)',
+            borderColor: '#ef4444',
+            borderWidth: 1,
+            borderRadius: 3,
+          },
+          {
+            label: 'Total Events',
+            data: Array(12).fill(0),
+            backgroundColor: 'rgba(148,163,184,0.25)',
+            borderColor: 'rgba(148,163,184,0.5)',
+            borderWidth: 1,
+            borderRadius: 3,
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        animation: { duration: 300 },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              title: function (items) { return items[0].label; },
+              label: function (item) {
+                return item.datasetIndex === 0
+                  ? 'Blocks: ' + item.raw
+                  : 'Total: ' + item.raw;
+              }
             }
           }
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { font: { size: 10 }, maxRotation: 0 } },
+          y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 10 } }, grid: { color: 'rgba(0,0,0,0.05)' } }
         }
-      },
-      scales: {
-        x: { grid: { display: false }, ticks: { font: { size: 10 }, maxRotation: 0 } },
-        y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 10 } }, grid: { color: 'rgba(0,0,0,0.05)' } }
       }
+    });
+
+    function pollBlockRate() {
+      fetch('/admin/api/block-rate', { credentials: 'same-origin' })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (d) {
+          if (!d) return;
+          spikeChart.data.labels = d.labels;
+          spikeChart.data.datasets[0].data = d.blocks;
+          spikeChart.data.datasets[1].data = d.total;
+          spikeChart.update('none');
+          var maxBlock = Math.max.apply(null, d.blocks);
+          var badge = document.getElementById('spikeRateBadge');
+          var dot = document.getElementById('spikeDot');
+          if (badge) badge.textContent = maxBlock + ' blocks/5s peak';
+          if (dot) {
+            dot.classList.toggle('inactive', maxBlock === 0);
+          }
+        })
+        .catch(function () { });
     }
-  });
 
-  function pollBlockRate() {
-    fetch('/admin/api/block-rate', { credentials: 'same-origin' })
-      .then(function(r) { return r.ok ? r.json() : null; })
-      .then(function(d) {
-        if (!d) return;
-        spikeChart.data.labels = d.labels;
-        spikeChart.data.datasets[0].data = d.blocks;
-        spikeChart.data.datasets[1].data = d.total;
-        spikeChart.update('none');
-        var maxBlock = Math.max.apply(null, d.blocks);
-        var badge = document.getElementById('spikeRateBadge');
-        var dot = document.getElementById('spikeDot');
-        if (badge) badge.textContent = maxBlock + ' blocks/5s peak';
-        if (dot) {
-          dot.classList.toggle('inactive', maxBlock === 0);
-        }
-      })
-      .catch(function() {});
-  }
-
-  pollBlockRate();
-  setInterval(pollBlockRate, 2000);
-})();
+    pollBlockRate();
+    setInterval(pollBlockRate, 2000);
+  })();
 </script>
 {% endblock %}

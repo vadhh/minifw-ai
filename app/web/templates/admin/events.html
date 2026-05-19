@@ -135,14 +135,20 @@
                     {% endif %}
                   </td>
                   <td>
-                    {% if e.status == "blocked" %}
+                    {% if e.score is not none and e.score >= 65 %}
+                    <span class="badge bg-danger"><i class="bi bi-x-circle"></i> Blocked</span>
+                    {% elif e.score is not none and e.score >= 40 %}
+                    <span class="badge mf-badge-monitor"><i class="bi bi-eye"></i> Monitor</span>
+                    {% elif e.score is not none %}
+                    <span class="badge bg-success"><i class="bi bi-check-circle"></i> Allowed</span>
+                    {% elif e.status == "blocked" %}
                     <span class="badge bg-danger"><i class="bi bi-x-circle"></i> Blocked</span>
                     {% elif e.status == "monitor" %}
                     <span class="badge mf-badge-monitor"><i class="bi bi-eye"></i> Monitor</span>
                     {% else %}
                     <span class="badge bg-success"><i class="bi bi-check-circle"></i> Allowed</span>
                     {% endif %}
-                    {% if e.score %}
+                    {% if e.score is not none %}
                     <br><small class="{% if e.score >= 65 %}text-danger{% elif e.score >= 40 %}text-warning{% else %}text-success{% endif %} fw-semibold">score {{ e.score }}</small>
                     {% endif %}
                   </td>
@@ -493,24 +499,51 @@ function parseReasons(reasonStr) {
 // View event details in modal
 function viewEventDetails(event) {
   if (!event) return;
-  
-  // Determine icon and title color based on status
-  let iconType = 'info';
-  let titleColor = 'primary';
-  
-  if (event.status === 'blocked') {
+
+  // Score determines the real action taken
+  var score = (event.score !== undefined && event.score !== null) ? event.score : null;
+  var pct = score !== null ? Math.min(score, 100) : 0;
+  var zoneName, zoneClass;
+  var scoreBasedStatus; // 'allowed', 'monitor', 'blocked'
+
+  if (score !== null) {
+    if (score >= 65) {
+      scoreBasedStatus = 'blocked';
+      zoneName = 'Block'; zoneClass = 'zone-block';
+    } else if (score >= 40) {
+      scoreBasedStatus = 'monitor';
+      zoneName = 'Monitor'; zoneClass = 'zone-monitor';
+    } else {
+      scoreBasedStatus = 'allowed';
+      zoneName = 'Allow'; zoneClass = 'zone-allow';
+    }
+  } else {
+    // Fall back to status field when no score available
+    scoreBasedStatus = event.status || 'allowed';
+    if (scoreBasedStatus === 'blocked') { zoneName = 'Block'; zoneClass = 'zone-block'; }
+    else if (scoreBasedStatus === 'monitor') { zoneName = 'Monitor'; zoneClass = 'zone-monitor'; }
+    else { zoneName = 'Allow'; zoneClass = 'zone-allow'; }
+  }
+
+  // Determine icon, title color, and status label based on score-derived status
+  var iconType, titleColor, statusLabel, statusLabelColor;
+  if (scoreBasedStatus === 'blocked') {
     iconType = 'error';
     titleColor = 'danger';
-  } else if (event.status === 'allowed') {
-    iconType = 'success';
-    titleColor = 'success';
-  }
-  
-  if (event.threat_detected) {
+    statusLabel = 'BLOCKED';
+    statusLabelColor = '#dc3545';
+  } else if (scoreBasedStatus === 'monitor') {
     iconType = 'warning';
     titleColor = 'warning';
+    statusLabel = 'MONITOR';
+    statusLabelColor = '#ffc107';
+  } else {
+    iconType = 'success';
+    titleColor = 'success';
+    statusLabel = 'ALLOWED';
+    statusLabelColor = '#198754';
   }
-  
+
   // Determine detection method
   var reason = (event.reason || '').toLowerCase();
   var detectionMethod, detectionBadge, detectionExplain;
@@ -518,7 +551,7 @@ function viewEventDetails(event) {
     detectionMethod = 'Hard Gate';
     detectionBadge = '<span class="badge mf-badge-hardgate"><i class="bi bi-lightning-fill"></i> HARD GATE</span>';
     detectionExplain = 'Deterministic block — matched a deny list or hard-coded rule. No AI scoring involved.';
-  } else if (event.status === 'blocked' && event.score > 0) {
+  } else if (scoreBasedStatus === 'blocked' && score > 0) {
     detectionMethod = 'AI Scored';
     detectionBadge = '<span class="badge mf-badge-ai-block"><i class="bi bi-cpu"></i> AI SCORED</span>';
     detectionExplain = 'Probabilistic detection — blocked by MLP threat model and/or YARA rules.';
@@ -528,23 +561,15 @@ function viewEventDetails(event) {
     detectionExplain = 'Normal traffic processing with no threat indicators.';
   }
 
-  // Format status badge
+  // Format status badge based on score-derived status
   var statusBadge;
-  if (event.status === 'blocked') {
+  if (scoreBasedStatus === 'blocked') {
     statusBadge = '<span class="badge bg-danger"><i class="bi bi-x-circle"></i> Blocked</span>';
-  } else if (event.status === 'monitor') {
+  } else if (scoreBasedStatus === 'monitor') {
     statusBadge = '<span class="badge mf-badge-monitor"><i class="bi bi-eye"></i> Monitor</span>';
   } else {
     statusBadge = '<span class="badge bg-success"><i class="bi bi-check-circle"></i> Allowed</span>';
   }
-
-  // Score zone
-  var score = event.score || 0;
-  var pct = Math.min(score, 100);
-  var zoneName, zoneClass;
-  if (score < 40) { zoneName = 'Allow'; zoneClass = 'zone-allow'; }
-  else if (score < 65) { zoneName = 'Monitor'; zoneClass = 'zone-monitor'; }
-  else { zoneName = 'Block'; zoneClass = 'zone-block'; }
 
   // Sector badge
   var segment = event.segment || 'default';
@@ -558,8 +583,11 @@ function viewEventDetails(event) {
     piiHtml = ' <span class="badge mf-badge-hipaa">HIPAA</span>';
   }
 
+  // Status label shown between icon and title
+  var statusLabelHtml = '<div style="font-size:1.1rem;font-weight:700;color:' + statusLabelColor + ';letter-spacing:0.08em;margin-bottom:4px;margin-top:-4px;">' + statusLabel + '</div>';
+
   Swal.fire({
-    title: '<strong class="text-' + titleColor + '"><i class="bi bi-info-circle"></i> Event Details</strong>',
+    title: statusLabelHtml + '<strong class="text-' + titleColor + '"><i class="bi bi-info-circle"></i> Event Details</strong>',
     icon: iconType,
     width: '650px',
     html: `
