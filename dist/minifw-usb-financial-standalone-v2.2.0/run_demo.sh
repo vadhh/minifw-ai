@@ -38,6 +38,28 @@ export PYTHONWARNINGS="ignore::UserWarning"
 
 mkdir -p logs
 
+# ── Provision admin user ─────────────────────────────────────────────────────────
+python3 - <<'PYEOF'
+import sys, os
+sys.path.insert(0, os.getcwd())
+sys.path.insert(0, os.path.join(os.getcwd(), "app"))
+from app.database import SessionLocal, init_db
+from app.services.auth.user_service import get_user_by_username, create_user
+init_db()
+db = SessionLocal()
+try:
+    if get_user_by_username(db, "admin"):
+        print("[minifw] Admin user already exists — skipping creation.")
+    else:
+        create_user(db, username="admin", email="admin@minifw.local",
+                    password=os.environ["MINIFW_ADMIN_PASSWORD"])
+        print("[minifw] Admin user created.")
+except Exception as e:
+    print(f"[minifw] WARNING: Could not create admin user: {e}", file=sys.stderr)
+finally:
+    db.close()
+PYEOF
+
 # ── Start engine ────────────────────────────────────────────────────────────────
 log "Starting Financial Demo..."
 python3 app/minifw_ai/main.py > logs/engine.log 2>&1 &
