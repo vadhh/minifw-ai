@@ -14,6 +14,7 @@ This document describes the layout and purpose of each demo package in `dist/`. 
 | `minifw-usb-hospital-v2.2.0/` | Hospital | Docker USB Kit | 8443 (HTTPS) | `admin / Hospital1!` | `bash demo.sh` |
 | `minifw-usb-education-v2.2.0/` | Education | Docker USB Kit | 8447 (HTTPS) | `admin / Education1!` | `bash demo.sh` |
 | `minifw-usb-gambling-v2.2.0/` | Gambling | Docker USB Kit | 8446 (HTTPS) | `admin / Gambling1!` | `bash demo.sh` |
+| `minifw-usb-financial-standalone-v2.2.0/` | Finance | Standalone (Python, no Docker) | 8443 (HTTPS) | `admin / Finance1!` | `bash setup_tls.sh && bash run_demo.sh` |
 
 ---
 
@@ -66,6 +67,24 @@ minifw-usb-hospital-standalone-v2.2.0/
 ├── requirements.txt                 # Pinned dependencies (for venv rebuild if needed)
 └── logs/                            # Runtime-generated (empty on clean package; created by demo)
 ```
+
+---
+
+## minifw-usb-financial-standalone-v2.2.0
+
+Standalone Python demo for the finance sector. Executive presentation mode:
+trusted HTTPS (port 8443), deterministic BLOCK at ~T+75s from `10.50.0.1`
+on the trading floor subnet, 4-line terminal output, graceful shutdown.
+
+**Key files:**
+- `setup_tls.sh` — openssl CA generation + system/NSS trust store install (one-time)
+- `teardown_demo.sh` — CA removal post-meeting
+- `run_demo.sh` — main entry point
+- `scheduler/demo_scheduler.py` — writes timed Event records to events.jsonl
+- `demo_data/` — financial normal (Bloomberg/Reuters/SWIFT) + attack (Tor/C2/exfil)
+- `config/policy.json` — PCI-DSS policy, trading block threshold 80
+
+**Build provenance:** Created 2026-05-21 from hospital standalone template.
 
 ---
 

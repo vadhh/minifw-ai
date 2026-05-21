@@ -40,6 +40,17 @@
 
 ---
 
+### Finance Sector
+
+| Package | Type | Dashboard | Notes |
+|---------|------|-----------|-------|
+| `minifw-usb-financial-standalone-v2.2.0/` | Standalone (Python) | https://localhost:8443 | No Docker. PCI-DSS compliance demo for executive buyers. |
+
+**Credentials:** `admin / Finance1!`  
+**Quick start:** `bash setup_tls.sh && bash run_demo.sh`
+
+---
+
 ## Legacy / Archived
 
 Older packages have been removed. See git history for `dist/minifw-ai-usb-v2.2.0v3` (now `minifw-usb-hospital-standalone-v2.2.0`) and `dist/minifw-usb-hospital-v2.2.0v1/v2` if needed.
@@ -54,6 +65,7 @@ Older packages have been removed. See git history for `dist/minifw-ai-usb-v2.2.0
 | Hospital (Standalone) | 8000 | minifw-usb-hospital-standalone-v2.2.0 |
 | Education (Docker) | 8447 | minifw-usb-education-v2.2.0 |
 | Gambling (Docker) | 8446 | minifw-usb-gambling-v2.2.0 |
+| Finance (Standalone) | 8443 | minifw-usb-financial-standalone-v2.2.0 |
 
 ---
 
