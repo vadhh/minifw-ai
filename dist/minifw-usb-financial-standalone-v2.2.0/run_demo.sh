@@ -46,7 +46,10 @@ ENGINE_PID=$!
 WEB_PID=0
 SCHEDULER_PID=0
 
+_CLEANED=0
 cleanup() {
+    [[ "$_CLEANED" -eq 1 ]] && return
+    _CLEANED=1
     kill "$ENGINE_PID"    2>/dev/null || true
     kill "$WEB_PID"       2>/dev/null || true
     kill "$SCHEDULER_PID" 2>/dev/null || true
