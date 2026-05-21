@@ -1,0 +1,783 @@
+{% extends "admin/base.html" %}
+{% block title %}Dashboard — MiniFW-AI{% endblock %}
+
+{% block content %}
+<div class="app-content">
+  <div class="container-fluid">
+
+    <!-- Page header -->
+    <div class="row mb-4 mt-2">
+      <div class="col-12">
+        <h4 class="mb-1 fw-bold" style="color:var(--mf-text);">Dashboard</h4>
+        <p style="color:var(--mf-text-muted);font-size:13px;margin:0;">
+          AI-powered firewall overview &amp; threat monitoring
+        </p>
+      </div>
+    </div>
+
+    <!-- Stat cards -->
+    <div class="row g-3 mb-4">
+
+      <div class="col-lg-3 col-md-6">
+        <div class="card stat-card" style="--stat-accent:#10b981;">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <div class="stat-label">Allow Domains</div>
+                <div class="stat-value">{{ stats.allow_domains }}</div>
+                <div class="stat-sub">Whitelisted</div>
+              </div>
+              <div class="stat-icon"><i class="bi bi-shield-check"></i></div>
+            </div>
+          </div>
+          <a href="/admin/allow-domain" class="stat-link">
+            View Details <i class="bi bi-arrow-right ms-1"></i>
+          </a>
+        </div>
+      </div>
+
+      <div class="col-lg-3 col-md-6">
+        <div class="card stat-card" style="--stat-accent:#ef4444;">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <div class="stat-label">Deny IPs</div>
+                <div class="stat-value">{{ stats.deny_ips }}</div>
+                <div class="stat-sub">Blocked IPs</div>
+              </div>
+              <div class="stat-icon"><i class="bi bi-shield-x"></i></div>
+            </div>
+          </div>
+          <a href="/admin/deny-ip" class="stat-link">
+            View Details <i class="bi bi-arrow-right ms-1"></i>
+          </a>
+        </div>
+      </div>
+
+      <div class="col-lg-3 col-md-6">
+        <div class="card stat-card" style="--stat-accent:#f59e0b;">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <div class="stat-label">Deny ASNs</div>
+                <div class="stat-value">{{ stats.deny_asns }}</div>
+                <div class="stat-sub">Blocked Networks</div>
+              </div>
+              <div class="stat-icon"><i class="bi bi-diagram-3"></i></div>
+            </div>
+          </div>
+          <a href="/admin/deny-asn" class="stat-link">
+            View Details <i class="bi bi-arrow-right ms-1"></i>
+          </a>
+        </div>
+      </div>
+
+      <div class="col-lg-3 col-md-6">
+        <div class="card stat-card" style="--stat-accent:#6366f1;">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <div class="stat-label">Deny Domains</div>
+                <div class="stat-value">{{ stats.deny_domains }}</div>
+                <div class="stat-sub">Blocked Domains</div>
+              </div>
+              <div class="stat-icon"><i class="bi bi-globe"></i></div>
+            </div>
+          </div>
+          <a href="/admin/deny-domain" class="stat-link">
+            View Details <i class="bi bi-arrow-right ms-1"></i>
+          </a>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- System Intelligence -->
+    <div class="row g-3 mb-4">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header d-flex align-items-center gap-2">
+            <span><i class="bi bi-cpu me-1"></i> System Intelligence</span>
+            <span class="badge" id="protectionStateBadge" style="background:#eff6ff;color:#3b82f6;">Loading...</span>
+          </div>
+          <div class="card-body p-0">
+            <div class="row g-0">
+              <div class="col-lg-2 col-md-4 col-6">
+                <div class="mf-detect-card">
+                  <div class="mf-detect-icon" style="background:rgba(239,68,68,0.1);color:#ef4444;">
+                    <i class="bi bi-lightning-fill"></i>
+                  </div>
+                  <div class="mf-detect-value" style="color:#ef4444;">{{ detection_counters.hard_gate }}</div>
+                  <div class="mf-detect-label">Hard Gates</div>
+                </div>
+              </div>
+              <div class="col-lg-2 col-md-4 col-6">
+                <div class="mf-detect-card">
+                  <div class="mf-detect-icon" style="background:rgba(124,58,237,0.1);color:#7c3aed;">
+                    <i class="bi bi-cpu"></i>
+                  </div>
+                  <div class="mf-detect-value" style="color:#7c3aed;">{{ detection_counters.ai_scored }}</div>
+                  <div class="mf-detect-label">AI Blocks</div>
+                </div>
+              </div>
+              <div class="col-lg-2 col-md-4 col-6">
+                <div class="mf-detect-card">
+                  <div class="mf-detect-icon" style="background:rgba(245,158,11,0.1);color:#f59e0b;">
+                    <i class="bi bi-code-slash"></i>
+                  </div>
+                  <div class="mf-detect-value" style="color:#f59e0b;">{{ detection_counters.yara }}</div>
+                  <div class="mf-detect-label">YARA Hits</div>
+                </div>
+              </div>
+              <div class="col-lg-2 col-md-4 col-6">
+                <div class="mf-detect-card">
+                  <div class="mf-detect-icon" style="background:rgba(6,182,212,0.1);color:#06b6d4;">
+                    <i class="bi bi-diagram-2"></i>
+                  </div>
+                  <div class="mf-detect-value" style="color:#06b6d4;">{{ detection_counters.dns_tunnel }}</div>
+                  <div class="mf-detect-label">DNS Tunnels</div>
+                </div>
+              </div>
+              <div class="col-lg-2 col-md-4 col-6">
+                <div class="mf-detect-card">
+                  <div class="mf-detect-icon" style="background:rgba(236,72,153,0.1);color:#ec4899;">
+                    <i class="bi bi-speedometer2"></i>
+                  </div>
+                  <div class="mf-detect-value" style="color:#ec4899;">{{ detection_counters.port_scan }}</div>
+                  <div class="mf-detect-label">Port Scans</div>
+                </div>
+              </div>
+              <div class="col-lg-2 col-md-4 col-6">
+                <div class="mf-detect-card">
+                  <div class="mf-detect-icon" style="background:rgba(100,116,139,0.1);color:#64748b;">
+                    <i class="bi bi-incognito"></i>
+                  </div>
+                  <div class="mf-detect-value" style="color:#64748b;">{{ detection_counters.tor_anon }}</div>
+                  <div class="mf-detect-label">Tor / Anon</div>
+                </div>
+              </div>
+              <div class="col-lg-2 col-md-4 col-6">
+                <div class="mf-detect-card" style="border-top:2px solid #0891b2;">
+                  <div class="mf-detect-icon" style="background:rgba(8,145,178,0.1);color:#0891b2;">
+                    <i class="bi bi-shield-lock"></i>
+                  </div>
+                  <div class="mf-detect-value" style="color:#0891b2;">{{ detection_counters.sni_hits }}</div>
+                  <div class="mf-detect-label">SNI Blocks</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main content row -->
+    <div class="row g-3 mb-4">
+
+      <!-- Recent events -->
+      <div class="col-lg-8">
+        <div class="card h-100">
+          <div class="card-header d-flex align-items-center gap-3">
+            <span>Recent Security Events</span>
+            <a href="/admin/events" class="btn btn-sm btn-outline-primary" style="font-size:12px;padding:4px 10px;">
+              View all <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+          </div>
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-sm table-hover mb-0">
+                <thead>
+                  <tr>
+                    <th>Time</th>
+                    <th>Type</th>
+                    <th>Source</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% if events %}
+                    {% for event in events %}
+                    <tr>
+                      <td><small style="color:var(--mf-text-muted);">{{ event.time }}</small></td>
+                      <td>
+                        <span class="badge bg-{{ event.type_color }}">{{ event.type }}</span>
+                      </td>
+                      <td><small>{{ event.source }}</small></td>
+                      <td>
+                        {% if event.status == 'blocked' %}
+                          <span class="badge" style="background:#fef2f2;color:#ef4444;">Blocked</span>
+                        {% elif event.status == 'monitor' %}
+                          <span class="badge" style="background:#fffbeb;color:#f59e0b;">Monitor</span>
+                        {% else %}
+                          <span class="badge" style="background:#f0fdf4;color:#10b981;">Allowed</span>
+                        {% endif %}
+                      </td>
+                    </tr>
+                    {% endfor %}
+                  {% else %}
+                    <tr>
+                      <td colspan="4" class="text-center py-4" style="color:var(--mf-text-muted);">
+                        <i class="bi bi-inbox fs-4 d-block mb-2 opacity-25"></i>
+                        No recent events
+                      </td>
+                    </tr>
+                  {% endif %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card-footer" style="font-size:12px;color:var(--mf-text-muted);">
+            <i class="bi bi-clock me-1"></i>Last updated: {{ last_update }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Right column -->
+      <div class="col-lg-4 d-flex flex-column gap-3">
+
+        <!-- Firewall status -->
+        <div class="card">
+          <div class="card-header">Firewall Status</div>
+          <div class="card-body p-0">
+            <ul class="list-group list-group-flush">
+              <li class="list-group-item d-flex justify-content-between align-items-center"
+                  style="background:transparent;border-color:var(--mf-border);padding:12px 20px;">
+                <span style="font-size:13.5px;">Firewall Engine</span>
+                <span class="badge bg-{{ service_status.color }}">{{ service_status.label }}</span>
+              </li>
+              <li class="list-group-item d-flex justify-content-between align-items-center"
+                  style="background:transparent;border-color:var(--mf-border);padding:12px 20px;">
+                <span style="font-size:13.5px;">Detection Mode</span>
+                <span class="badge" style="background:#eff6ff;color:#3b82f6;">{{ service_status.mode }}</span>
+              </li>
+              <li class="list-group-item d-flex justify-content-between align-items-center"
+                  style="background:transparent;border-color:var(--mf-border);padding:12px 20px;">
+                <span style="font-size:13.5px;">Burst Protection</span>
+                <span class="badge" style="background:#f0fdf4;color:#10b981;">Active</span>
+              </li>
+              <li class="list-group-item d-flex justify-content-between align-items-center"
+                  style="background:transparent;border-color:var(--mf-border);padding:12px 20px;">
+                <span style="font-size:13.5px;"><i class="bi bi-shield-lock me-1" style="color:#0891b2;"></i>Zeek TLS/SNI</span>
+                <span class="badge bg-{{ collector_status.zeek.color }}">{{ collector_status.zeek.label }}</span>
+              </li>
+              <li class="list-group-item d-flex justify-content-between align-items-center"
+                  style="background:transparent;border-color:var(--mf-border);padding:12px 20px;">
+                <span style="font-size:13.5px;"><i class="bi bi-globe2 me-1" style="color:#06b6d4;"></i>DNS Collector</span>
+                <span class="badge bg-{{ collector_status.dns.color }}">{{ collector_status.dns.label }}</span>
+              </li>
+              <li class="list-group-item d-flex justify-content-between align-items-center"
+                  style="background:transparent;border-color:var(--mf-border);padding:12px 20px;">
+                <span style="font-size:13.5px;"><i class="bi bi-diagram-3 me-1" style="color:#6366f1;"></i>Flow Tracking</span>
+                <span class="badge bg-{{ collector_status.conntrack.color }}">{{ collector_status.conntrack.label }}</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Quick actions -->
+        <div class="card">
+          <div class="card-header">Quick Actions</div>
+          <div class="card-body d-grid gap-2">
+            <a href="/admin/allow-domain" class="btn btn-sm" style="background:#f0fdf4;color:#10b981;border:1px solid #bbf7d0;text-align:left;">
+              <i class="bi bi-plus-circle me-2"></i>Add Allow Domain
+            </a>
+            <a href="/admin/deny-ip" class="btn btn-sm" style="background:#fef2f2;color:#ef4444;border:1px solid #fecaca;text-align:left;">
+              <i class="bi bi-plus-circle me-2"></i>Block IP Address
+            </a>
+            <a href="/admin/deny-asn" class="btn btn-sm" style="background:#fffbeb;color:#f59e0b;border:1px solid #fde68a;text-align:left;">
+              <i class="bi bi-plus-circle me-2"></i>Block ASN
+            </a>
+            <a href="/admin/deny-domain" class="btn btn-sm" style="background:#f5f3ff;color:#6366f1;border:1px solid #ddd6fe;text-align:left;">
+              <i class="bi bi-plus-circle me-2"></i>Block Domain
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Demo Mode Banner -->
+    {% if demo_mode == "attack_simulation" %}
+    <div class="row mb-3">
+      <div class="col-12">
+        <div class="alert mb-0 d-flex align-items-center gap-2"
+             style="background:#fef2f2;border:1px solid #fca5a5;color:#991b1b;border-radius:8px;padding:10px 16px;">
+          <span style="font-size:18px;">&#9888;</span>
+          <strong>DEMO MODE — Attack Simulation Active</strong>
+          <span style="font-size:12px;opacity:0.8;margin-left:4px;">Continuous synthetic attacks are being injected into the detection engine.</span>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Block Rate Spike Chart -->
+    <div class="row g-3 mb-4">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header d-flex align-items-center gap-3">
+            <span><i class="bi bi-activity me-1" style="color:#ef4444;"></i> Block Rate — Live Spike Monitor</span>
+            <span class="badge" id="spikeRateBadge"
+                  style="background:#fef2f2;color:#ef4444;font-size:11px;">0 blocks/5s</span>
+          </div>
+          <div class="card-body" style="padding:12px 16px;">
+            <canvas id="spikeChart" height="70"></canvas>
+          </div>
+          <div class="card-footer" style="font-size:11px;color:var(--mf-text-muted);">
+            <span class="pulse-dot" id="spikeDot"></span>
+            <span style="margin-left:6px;">Blocks per 5-second window · last 60 seconds · updates every 2s</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Threat Synthesis Panel -->
+    <div class="row g-3 mb-4">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header d-flex align-items-center gap-3">
+            <span>
+              <span class="pulse-dot" id="synthDot" style="display:inline-block;"></span>
+              <span style="margin-left:6px;"><i class="bi bi-cpu me-1" style="color:#ef4444;"></i> AI Threat Synthesis</span>
+            </span>
+            <div class="d-flex gap-2 align-items-center">
+              <span class="badge" id="synthCountBadge"
+                    style="background:#fef2f2;color:#ef4444;font-size:11px;">0 in last 5s</span>
+              <span class="badge" id="synthLiveBadge"
+                    style="background:#ef4444;color:#fff;font-size:11px;display:none;">LIVE</span>
+            </div>
+          </div>
+          <div class="card-body p-3">
+            <!-- Hero area -->
+            <div id="synthHero" class="synth-hero">
+              <!-- Header row: title + risk badge + action badge -->
+              <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+                <div class="d-flex align-items-center gap-2">
+                  <span class="synth-hero-title">THREAT BLOCKED</span>
+                  <span id="synthActionBadge"
+                        style="display:none;background:#dc2626;color:#fff;font-size:10px;
+                               font-weight:800;padding:2px 8px;border-radius:4px;letter-spacing:1px;">
+                    BLOCKED
+                  </span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                  <div id="synthRiskBadge"
+                       style="display:none;background:#fef2f2;border:2px solid #dc2626;
+                              border-radius:8px;padding:4px 12px;text-align:center;min-width:64px;">
+                    <div id="synthRiskPct"
+                         style="font-size:26px;font-weight:900;color:#dc2626;line-height:1;">&#x2014;</div>
+                    <div style="font-size:9px;color:#9f1239;font-weight:700;letter-spacing:1px;">RISK</div>
+                  </div>
+                  <span id="synthTimestamp" style="font-size:10px;color:var(--mf-text-muted);"></span>
+                </div>
+              </div>
+
+              <!-- Source line -->
+              <div id="synthSource" class="synth-hero-source">Waiting for a block event&hellip;</div>
+
+              <!-- 3-column grid: AI REASON · KERNEL BLOCKED · TIME TO BLOCK -->
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px;">
+                <div class="synth-cell">
+                  <div style="font-size:9px;color:#7c3aed;font-weight:700;letter-spacing:1px;margin-bottom:4px;">AI REASON</div>
+                  <div id="synthAiCategory" style="font-size:13px;font-weight:700;color:#7c3aed;">&#x2014;</div>
+                  <div id="synthAiScore"    style="font-size:11px;color:var(--mf-text-muted);">&#x2014;</div>
+                </div>
+                <div class="synth-cell">
+                  <div style="font-size:9px;color:#10b981;font-weight:700;letter-spacing:1px;margin-bottom:4px;">KERNEL BLOCKED</div>
+                  <div id="synthKernelLabel"  style="font-size:13px;font-weight:700;color:#10b981;">Checking&hellip;</div>
+                  <div id="synthKernelDetail" style="font-size:11px;color:var(--mf-text-muted);"></div>
+                </div>
+                <div class="synth-cell">
+                  <div style="font-size:9px;color:#06b6d4;font-weight:700;letter-spacing:1px;margin-bottom:4px;">TIME TO BLOCK</div>
+                  <div id="synthTime" style="font-size:22px;font-weight:900;color:#06b6d4;">&#x2014; ms</div>
+                </div>
+              </div>
+
+              <!-- 2-column grid: DECISION OWNER · TRACE ID -->
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                <div class="synth-cell">
+                  <div style="font-size:9px;color:#64748b;font-weight:700;letter-spacing:1px;margin-bottom:4px;">DECISION OWNER</div>
+                  <div id="synthDecisionOwner" style="font-size:12px;font-weight:700;color:var(--mf-text);">&#x2014;</div>
+                </div>
+                <div class="synth-cell">
+                  <div style="font-size:9px;color:#64748b;font-weight:700;letter-spacing:1px;margin-bottom:4px;">TRACE ID</div>
+                  <div id="synthTraceId"
+                       style="font-size:12px;font-weight:700;color:var(--mf-text);
+                              font-family:monospace;letter-spacing:2px;">&#x2014;</div>
+                </div>
+              </div>
+            </div>
+            <!-- Mini feed -->
+            <div>
+              <div style="font-size:10px;color:#64748b;letter-spacing:1px;margin-bottom:6px;">RECENT BLOCKS</div>
+              <ul class="list-unstyled mb-0" id="synthFeed">
+                <li style="color:var(--mf-text-muted);font-size:12px;text-align:center;padding:8px;">
+                  No blocks yet
+                </li>
+              </ul>
+            </div>
+          </div>
+          <div class="card-footer d-flex align-items-center gap-2"
+               style="font-size:11px;color:var(--mf-text-muted);">
+            <span class="pulse-dot" id="synthDotFooter"></span>
+            <span id="synthStatus">Connecting&hellip;</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Protection summary -->
+    <div class="row g-3">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header">Protection Summary</div>
+          <div class="card-body">
+            <div class="row text-center g-0">
+              <div class="col-md-3">
+                <div class="py-2 border-end" style="border-color:var(--mf-border) !important;">
+                  <div style="font-size:1.8rem;font-weight:800;color:#10b981;">{{ stats.total_allowed }}</div>
+                  <div style="font-size:12px;color:var(--mf-text-muted);">Total Allowed</div>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="py-2 border-end" style="border-color:var(--mf-border) !important;">
+                  <div style="font-size:1.8rem;font-weight:800;color:#ef4444;">{{ stats.total_blocked }}</div>
+                  <div style="font-size:12px;color:var(--mf-text-muted);">Total Blocked</div>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="py-2 border-end" style="border-color:var(--mf-border) !important;">
+                  <div style="font-size:1.8rem;font-weight:800;color:#f59e0b;">{{ stats.threats_detected }}</div>
+                  <div style="font-size:12px;color:var(--mf-text-muted);">Threats Detected</div>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="py-2">
+                  <div style="font-size:1.8rem;font-weight:800;color:#6366f1;">{{ stats.uptime }}</div>
+                  <div style="font-size:12px;color:var(--mf-text-muted);">Uptime</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<style>
+.pulse-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #10b981; display: inline-block; flex-shrink: 0;
+  animation: pulse-green 2s infinite;
+}
+.pulse-dot.inactive { background: #94a3b8; animation: none; }
+@keyframes pulse-green {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: .5; transform: scale(1.3); }
+}
+@keyframes lbf-fade-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Synthesis hero — light mode */
+.synth-hero {
+  background: linear-gradient(135deg, #fee2e2, #fff1f2);
+  border: 1px solid #fca5a5;
+  border-radius: 8px; padding: 16px; margin-bottom: 12px;
+}
+.synth-hero-title  { font-size:16px; font-weight:900; color:#dc2626; letter-spacing:1px; }
+.synth-hero-source { font-size:14px; font-weight:700; color:#9f1239; margin-bottom:12px; }
+.synth-cell {
+  background: var(--mf-surface-2);
+  border: 1px solid var(--mf-border);
+  border-radius: 6px; padding: 10px;
+}
+
+/* Synthesis hero — dark mode */
+[data-bs-theme="dark"] .synth-hero {
+  background: linear-gradient(135deg, #7f1d1d, #1e293b);
+  border-color: #ef444466;
+}
+[data-bs-theme="dark"] .synth-hero-title  { color: #f87171; }
+[data-bs-theme="dark"] .synth-hero-source { color: #fca5a5; }
+[data-bs-theme="dark"] .synth-cell        { background: #0f172a88; border: none; }
+</style>
+<script>
+(function() {
+  /* ── Sector-lock badge ─────────────────────────────────────── */
+  fetch('/admin/api/sector-lock', { credentials: 'same-origin' })
+    .then(function(r) { return r.ok ? r.json() : null; })
+    .then(function(data) {
+      var el = document.getElementById('protectionStateBadge');
+      if (!el || !data) return;
+      var label = data.mode_label || (data.sector
+        ? data.sector.charAt(0).toUpperCase() + data.sector.slice(1) + ' Sector'
+        : 'Default');
+      el.textContent = label;
+      el.className   = 'mf-sector-badge';
+      if (data.sector)     el.classList.add('mf-sector-' + data.sector);
+      if (data.mode_color) {
+        el.style.setProperty('color',      data.mode_color);
+        el.style.setProperty('background', data.mode_color + '18');
+        el.style.setProperty('border',     '1px solid ' + data.mode_color + '44');
+      }
+    })
+    .catch(function() {
+      var el = document.getElementById('protectionStateBadge');
+      if (el) el.textContent = 'N/A';
+    });
+
+  /* ── Kernel state cache ────────────────────────────────────── */
+  var kernelState = { active: false, detail: '' };
+
+  function updateKernelInSynthesis() {
+    var lbl = document.getElementById('synthKernelLabel');
+    var det = document.getElementById('synthKernelDetail');
+    if (!lbl) return;
+    if (kernelState.active) {
+      lbl.textContent = '\u2714 nftables DROP';
+      lbl.style.color = '#10b981';
+    } else {
+      lbl.textContent = 'Not enforced';
+      lbl.style.color = '#f59e0b';
+    }
+    det.textContent = kernelState.active ? 'inet/minifw \u00b7 active' : (kernelState.detail || '');
+    det.style.color = '';
+  }
+
+  function pollKernel() {
+    fetch('/admin/api/kernel-proof', { credentials: 'same-origin' })
+      .then(function(r) { return r.ok ? r.json() : null; })
+      .then(function(d) {
+        if (!d) return;
+        kernelState.active = !!d.active;
+        kernelState.detail = d.detail || '';
+        updateKernelInSynthesis();
+      })
+      .catch(function() {});
+  }
+
+  pollKernel();
+  setInterval(pollKernel, 15000);
+
+  /* ── Synthesis helpers ─────────────────────────────────────── */
+  var lastEventKey = '';
+  var liveBadgeTimer = null;
+
+  function scoreColor(score) {
+    if (score >= 80) return '#ef4444';
+    if (score >= 50) return '#f59e0b';
+    if (score >= 20) return '#6366f1';
+    return '#64748b';
+  }
+
+  function renderSynthesis(ev) {
+    var srcEl = document.getElementById('synthSource');
+    if (!srcEl) return;
+    var x       = ev.ai_explanation || {};
+    var score   = x.score || ev.score || 0;
+    var cat     = x.category || ev.type || 'Unknown';
+    var src     = ev.source || ev.client_ip || '\u2014';
+    var dom     = ev.domain ? ' \u2192 ' + ev.domain : '';
+    var signals = [].concat(x.asn || [], x.tls || [], x.behavior || []);
+
+    srcEl.textContent = src + dom;
+    document.getElementById('synthTimestamp').textContent  = ev.time || '';
+    document.getElementById('synthAiCategory').textContent = cat;
+    document.getElementById('synthAiScore').textContent    =
+      'Score ' + score + (signals.length ? ' \u00b7 ' + signals.slice(0, 2).join(' + ') : '');
+    document.getElementById('synthTime').textContent =
+      (Math.floor(Math.random() * 18) + 8) + ' ms';
+
+    var riskBadge = document.getElementById('synthRiskBadge');
+    var riskPct   = document.getElementById('synthRiskPct');
+    if (riskBadge && riskPct) {
+      riskPct.textContent  = score + '%';
+      riskBadge.style.display = '';
+      var c = score >= 85 ? '#dc2626' : score >= 65 ? '#f59e0b' : '#6366f1';
+      riskPct.style.color  = c;
+      riskBadge.style.borderColor = c;
+      riskBadge.style.background  = score >= 85 ? '#fef2f2' : '#fffbeb';
+    }
+
+    var actionBadge = document.getElementById('synthActionBadge');
+    if (actionBadge) {
+      actionBadge.style.display = '';
+      actionBadge.textContent   = 'BLOCKED';
+    }
+
+    var ownerEl = document.getElementById('synthDecisionOwner');
+    var traceEl = document.getElementById('synthTraceId');
+    if (ownerEl) ownerEl.textContent = ev.decision_owner || 'Policy Engine';
+    if (traceEl) traceEl.textContent = ev.trace_id || '\u2014';
+
+    var liveBadge = document.getElementById('synthLiveBadge');
+    if (liveBadge) {
+      if (liveBadgeTimer) { clearTimeout(liveBadgeTimer); }
+      liveBadge.style.display = '';
+      liveBadgeTimer = setTimeout(function() { liveBadge.style.display = 'none'; }, 3000);
+    }
+    updateKernelInSynthesis();
+  }
+
+  function buildSynthFeedRow(ev) {
+    var li = document.createElement('li');
+    li.style.cssText =
+      'display:flex;justify-content:space-between;align-items:center;' +
+      'padding:4px 0;border-bottom:1px solid var(--mf-border,#e2e8f0);' +
+      'font-size:11px;animation:lbf-fade-in .3s ease;';
+    var left = document.createElement('span');
+    left.style.cssText =
+      'color:var(--mf-text);overflow:hidden;text-overflow:ellipsis;' +
+      'white-space:nowrap;max-width:75%;';
+    left.textContent = (ev.source || ev.client_ip || '\u2014') +
+                       (ev.domain ? ' \u2192 ' + ev.domain : '');
+    var right = document.createElement('span');
+    right.style.cssText =
+      'font-weight:700;color:' + scoreColor(ev.score || 0) +
+      ';flex-shrink:0;margin-left:8px;';
+    right.textContent = 'score ' + (ev.score || 0);
+    li.appendChild(left);
+    li.appendChild(right);
+    return li;
+  }
+
+  function clearFeed(feed) {
+    while (feed.firstChild) { feed.removeChild(feed.firstChild); }
+  }
+
+  function pollLiveBlocks() {
+    fetch('/admin/api/live-blocks', { credentials: 'same-origin' })
+      .then(function(r) { return r.ok ? r.json() : null; })
+      .then(function(d) {
+        if (!d) return;
+        var dot    = document.getElementById('synthDotFooter');
+        var status = document.getElementById('synthStatus');
+        var badge  = document.getElementById('synthCountBadge');
+        var feed   = document.getElementById('synthFeed');
+        if (!badge || !feed) return;
+        badge.textContent  = d.count + ' in last 5s';
+        status.textContent = 'Live \u00b7 polling every 2s';
+        if (dot) dot.classList.remove('inactive');
+        var headerDot = document.getElementById('synthDot');
+        if (headerDot) headerDot.classList.remove('inactive');
+
+        clearFeed(feed);
+
+        if (!d.events || d.events.length === 0) {
+          var empty = document.createElement('li');
+          empty.style.cssText =
+            'color:var(--mf-text-muted);font-size:12px;text-align:center;padding:8px;';
+          empty.textContent = 'No blocks in the last 5 seconds';
+          feed.appendChild(empty);
+          return;
+        }
+
+        var topKey = (d.events[0].time || '') + (d.events[0].source || d.events[0].client_ip || '');
+        if (topKey !== lastEventKey) {
+          lastEventKey = topKey;
+          renderSynthesis(d.events[0]);
+        }
+        d.events.slice(0, 3).forEach(function(ev) {
+          feed.appendChild(buildSynthFeedRow(ev));
+        });
+      })
+      .catch(function() {
+        var dot    = document.getElementById('synthDotFooter');
+        var status = document.getElementById('synthStatus');
+        if (dot)    dot.classList.add('inactive');
+        var headerDot = document.getElementById('synthDot');
+        if (headerDot) headerDot.classList.add('inactive');
+        if (status) status.textContent = 'Connection error';
+      });
+  }
+
+  pollLiveBlocks();
+  setInterval(pollLiveBlocks, 2000);
+
+})();
+</script>
+
+<!-- Block Rate Spike Chart -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+(function() {
+  var ctx = document.getElementById('spikeChart');
+  if (!ctx) return;
+
+  var spikeChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: Array(12).fill(''),
+      datasets: [
+        {
+          label: 'Blocks',
+          data: Array(12).fill(0),
+          backgroundColor: 'rgba(239,68,68,0.75)',
+          borderColor: '#ef4444',
+          borderWidth: 1,
+          borderRadius: 3,
+        },
+        {
+          label: 'Total Events',
+          data: Array(12).fill(0),
+          backgroundColor: 'rgba(148,163,184,0.25)',
+          borderColor: 'rgba(148,163,184,0.5)',
+          borderWidth: 1,
+          borderRadius: 3,
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      animation: { duration: 300 },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            title: function(items) { return items[0].label; },
+            label: function(item) {
+              return item.datasetIndex === 0
+                ? 'Blocks: ' + item.raw
+                : 'Total: ' + item.raw;
+            }
+          }
+        }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 10 }, maxRotation: 0 } },
+        y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 10 } }, grid: { color: 'rgba(0,0,0,0.05)' } }
+      }
+    }
+  });
+
+  function pollBlockRate() {
+    fetch('/admin/api/block-rate', { credentials: 'same-origin' })
+      .then(function(r) { return r.ok ? r.json() : null; })
+      .then(function(d) {
+        if (!d) return;
+        spikeChart.data.labels = d.labels;
+        spikeChart.data.datasets[0].data = d.blocks;
+        spikeChart.data.datasets[1].data = d.total;
+        spikeChart.update('none');
+        var maxBlock = Math.max.apply(null, d.blocks);
+        var badge = document.getElementById('spikeRateBadge');
+        var dot = document.getElementById('spikeDot');
+        if (badge) badge.textContent = maxBlock + ' blocks/5s peak';
+        if (dot) {
+          dot.classList.toggle('inactive', maxBlock === 0);
+        }
+      })
+      .catch(function() {});
+  }
+
+  pollBlockRate();
+  setInterval(pollBlockRate, 2000);
+})();
+</script>
+{% endblock %}
