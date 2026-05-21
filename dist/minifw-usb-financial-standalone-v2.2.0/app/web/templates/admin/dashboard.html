@@ -176,33 +176,31 @@
 
       <!-- Recent events -->
       <div class="col-lg-8">
-        <div class="card h-100">
+        <div class="card h-100" style="display:flex;flex-direction:column;">
           <div class="card-header d-flex align-items-center gap-3">
             <span>Recent Security Events</span>
             <a href="/admin/events" class="btn btn-sm btn-outline-primary" style="font-size:12px;padding:4px 10px;">
               View all <i class="bi bi-arrow-right ms-1"></i>
             </a>
           </div>
-          <div class="card-body p-0">
-            <div class="table-responsive">
-              <table class="table table-sm table-hover mb-0">
-                <thead>
+          <div class="card-body p-0" style="overflow:hidden;flex:1 1 0;">
+            <div style="overflow-y:auto;max-height:320px;">
+              <table class="table table-sm table-hover mb-0" style="font-size:12px;">
+                <thead style="position:sticky;top:0;z-index:1;background:var(--mf-card-bg,#fff);">
                   <tr>
-                    <th>Time</th>
-                    <th>Type</th>
+                    <th style="white-space:nowrap;width:140px;">Time</th>
+                    <th style="white-space:nowrap;width:110px;">Type</th>
                     <th>Source</th>
-                    <th>Status</th>
+                    <th style="white-space:nowrap;width:80px;">Status</th>
                   </tr>
                 </thead>
                 <tbody id="recentEventsBody">
                   {% if events %}
                     {% for event in events %}
                     <tr>
-                      <td><small style="color:var(--mf-text-muted);">{{ event.time }}</small></td>
-                      <td>
-                        <span class="badge bg-{{ event.type_color }}">{{ event.type }}</span>
-                      </td>
-                      <td><small>{{ event.source }}</small></td>
+                      <td style="white-space:nowrap;"><small style="color:var(--mf-text-muted);">{{ event.time }}</small></td>
+                      <td><span class="badge bg-{{ event.type_color }}">{{ event.type }}</span></td>
+                      <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><small>{{ event.source }}</small></td>
                       <td>
                         {% if event.status == 'blocked' %}
                           <span class="badge" style="background:#fef2f2;color:#ef4444;">Blocked</span>
@@ -216,8 +214,7 @@
                     {% endfor %}
                   {% else %}
                     <tr>
-                      <td colspan="4" class="text-center py-4" style="color:var(--mf-text-muted);">
-                        <i class="bi bi-inbox fs-4 d-block mb-2 opacity-25"></i>
+                      <td colspan="4" class="text-center py-3" style="color:var(--mf-text-muted);font-size:12px;">
                         No recent events
                       </td>
                     </tr>
@@ -731,6 +728,7 @@
     var tr = document.createElement('tr');
 
     var tdTime = document.createElement('td');
+    tdTime.style.whiteSpace = 'nowrap';
     var small = document.createElement('small');
     small.style.color = 'var(--mf-text-muted)';
     small.textContent = ev.time || '';
@@ -743,6 +741,7 @@
     tdType.appendChild(badge);
 
     var tdSrc = document.createElement('td');
+    tdSrc.style.cssText = 'max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
     var smallSrc = document.createElement('small');
     smallSrc.textContent = ev.source || '';
     tdSrc.appendChild(smallSrc);
@@ -763,14 +762,14 @@
       var tr = document.createElement('tr');
       var td = document.createElement('td');
       td.colSpan = 4;
-      td.className = 'text-center py-4';
-      td.style.color = 'var(--mf-text-muted)';
+      td.className = 'text-center py-3';
+      td.style.cssText = 'color:var(--mf-text-muted);font-size:12px;';
       td.textContent = 'No recent events';
       tr.appendChild(td);
       tbody.appendChild(tr);
       return;
     }
-    events.slice(0, 20).forEach(function(ev) { tbody.appendChild(makeRow(ev)); });
+    events.slice(0, 10).forEach(function(ev) { tbody.appendChild(makeRow(ev)); });
   }
 
   function nowTimestamp() {
@@ -784,7 +783,7 @@
   }
 
   function pollRecentEvents() {
-    fetch('/admin/api/events?draw=1&start=0&length=20&order_dir=desc', { credentials: 'same-origin' })
+    fetch('/admin/api/events?draw=1&start=0&length=10&order_dir=desc', { credentials: 'same-origin' })
       .then(function(r) { return r.ok ? r.json() : null; })
       .then(function(d) {
         if (!d || !d.data) return;
