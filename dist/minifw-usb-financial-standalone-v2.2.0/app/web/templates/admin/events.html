@@ -165,7 +165,7 @@
             <small class="text-muted">
               <i class="bi bi-clock"></i> Last updated: <span id="lastUpdate">-</span>
               <span class="ms-3">
-                <i class="bi bi-arrow-clockwise"></i> Auto-refresh every 30 seconds
+                <i class="bi bi-arrow-clockwise"></i> Auto-refresh every 5 seconds
               </span>
               {% if total_events > 500 %}
               <span class="ms-3 text-warning">
@@ -276,7 +276,7 @@ var EVENTS_DATA = {{ events | tojson }};
 let table;
 let autoRefresh = true;
 let refreshTimer = null;
-const REFRESH_INTERVAL = 30000; // 30 seconds — full page reload
+const REFRESH_INTERVAL = 5000; // 5 seconds — keeps live events in sync with scheduler
 
 $(document).ready(function() {
 

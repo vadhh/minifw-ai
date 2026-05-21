@@ -194,7 +194,7 @@
                     <th>Status</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody id="recentEventsBody">
                   {% if events %}
                     {% for event in events %}
                     <tr>
@@ -227,7 +227,7 @@
             </div>
           </div>
           <div class="card-footer" style="font-size:12px;color:var(--mf-text-muted);">
-            <i class="bi bi-clock me-1"></i>Last updated: {{ last_update }}
+            <i class="bi bi-clock me-1"></i>Last updated: <span id="recentEventsLastUpdate">{{ last_update }}</span>
           </div>
         </div>
       </div>
@@ -434,19 +434,19 @@
             <div class="row text-center g-0">
               <div class="col-md-3">
                 <div class="py-2 border-end" style="border-color:var(--mf-border) !important;">
-                  <div style="font-size:1.8rem;font-weight:800;color:#10b981;">{{ stats.total_allowed }}</div>
+                  <div id="statTotalAllowed" style="font-size:1.8rem;font-weight:800;color:#10b981;">{{ stats.total_allowed }}</div>
                   <div style="font-size:12px;color:var(--mf-text-muted);">Total Allowed</div>
                 </div>
               </div>
               <div class="col-md-3">
                 <div class="py-2 border-end" style="border-color:var(--mf-border) !important;">
-                  <div style="font-size:1.8rem;font-weight:800;color:#ef4444;">{{ stats.total_blocked }}</div>
+                  <div id="statTotalBlocked" style="font-size:1.8rem;font-weight:800;color:#ef4444;">{{ stats.total_blocked }}</div>
                   <div style="font-size:12px;color:var(--mf-text-muted);">Total Blocked</div>
                 </div>
               </div>
               <div class="col-md-3">
                 <div class="py-2 border-end" style="border-color:var(--mf-border) !important;">
-                  <div style="font-size:1.8rem;font-weight:800;color:#f59e0b;">{{ stats.threats_detected }}</div>
+                  <div id="statThreatsDetected" style="font-size:1.8rem;font-weight:800;color:#f59e0b;">{{ stats.threats_detected }}</div>
                   <div style="font-size:12px;color:var(--mf-text-muted);">Threats Detected</div>
                 </div>
               </div>
@@ -699,6 +699,112 @@
   pollLiveBlocks();
   setInterval(pollLiveBlocks, 2000);
 
+})();
+</script>
+
+<!-- Recent Events Live Polling -->
+<script>
+(function() {
+  var tbody        = document.getElementById('recentEventsBody');
+  var lastUpdateEl = document.getElementById('recentEventsLastUpdate');
+  var statAllowed  = document.getElementById('statTotalAllowed');
+  var statBlocked  = document.getElementById('statTotalBlocked');
+  var statThreats  = document.getElementById('statThreatsDetected');
+
+  var STATUS_STYLES = {
+    blocked: { bg: '#fef2f2', color: '#ef4444', label: 'Blocked' },
+    monitor: { bg: '#fffbeb', color: '#f59e0b', label: 'Monitor' },
+  };
+  var STATUS_DEFAULT = { bg: '#f0fdf4', color: '#10b981', label: 'Allowed' };
+
+  function makeStatusBadge(status) {
+    var s = STATUS_STYLES[status] || STATUS_DEFAULT;
+    var span = document.createElement('span');
+    span.className = 'badge';
+    span.style.background = s.bg;
+    span.style.color = s.color;
+    span.textContent = s.label;
+    return span;
+  }
+
+  function makeRow(ev) {
+    var tr = document.createElement('tr');
+
+    var tdTime = document.createElement('td');
+    var small = document.createElement('small');
+    small.style.color = 'var(--mf-text-muted)';
+    small.textContent = ev.time || '';
+    tdTime.appendChild(small);
+
+    var tdType = document.createElement('td');
+    var badge = document.createElement('span');
+    badge.className = 'badge bg-' + (ev.type_color || 'secondary');
+    badge.textContent = ev.type || '';
+    tdType.appendChild(badge);
+
+    var tdSrc = document.createElement('td');
+    var smallSrc = document.createElement('small');
+    smallSrc.textContent = ev.source || '';
+    tdSrc.appendChild(smallSrc);
+
+    var tdStatus = document.createElement('td');
+    tdStatus.appendChild(makeStatusBadge(ev.status));
+
+    tr.appendChild(tdTime);
+    tr.appendChild(tdType);
+    tr.appendChild(tdSrc);
+    tr.appendChild(tdStatus);
+    return tr;
+  }
+
+  function renderRows(events) {
+    while (tbody.firstChild) { tbody.removeChild(tbody.firstChild); }
+    if (!events || events.length === 0) {
+      var tr = document.createElement('tr');
+      var td = document.createElement('td');
+      td.colSpan = 4;
+      td.className = 'text-center py-4';
+      td.style.color = 'var(--mf-text-muted)';
+      td.textContent = 'No recent events';
+      tr.appendChild(td);
+      tbody.appendChild(tr);
+      return;
+    }
+    events.slice(0, 20).forEach(function(ev) { tbody.appendChild(makeRow(ev)); });
+  }
+
+  function nowTimestamp() {
+    var d = new Date();
+    return d.getFullYear() + '-' +
+      String(d.getMonth()+1).padStart(2,'0') + '-' +
+      String(d.getDate()).padStart(2,'0') + ' ' +
+      String(d.getHours()).padStart(2,'0') + ':' +
+      String(d.getMinutes()).padStart(2,'0') + ':' +
+      String(d.getSeconds()).padStart(2,'0');
+  }
+
+  function pollRecentEvents() {
+    fetch('/admin/api/events?draw=1&start=0&length=20&order_dir=desc', { credentials: 'same-origin' })
+      .then(function(r) { return r.ok ? r.json() : null; })
+      .then(function(d) {
+        if (!d || !d.data) return;
+        renderRows(d.data);
+        if (lastUpdateEl) { lastUpdateEl.textContent = nowTimestamp(); }
+        var allowed = 0, blocked = 0, threats = 0;
+        d.data.forEach(function(ev) {
+          if (ev.status === 'blocked') { blocked++; }
+          else if (ev.status === 'allowed') { allowed++; }
+          if (ev.threat_detected) { threats++; }
+        });
+        if (statAllowed) { statAllowed.textContent = allowed; }
+        if (statBlocked) { statBlocked.textContent = blocked; }
+        if (statThreats) { statThreats.textContent = threats; }
+      })
+      .catch(function() {});
+  }
+
+  pollRecentEvents();
+  setInterval(pollRecentEvents, 5000);
 })();
 </script>
 
