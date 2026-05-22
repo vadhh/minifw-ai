@@ -157,13 +157,14 @@ On subsequent runs, the first line changes to:
 
 The dashboard shows live financial network traffic:
 
-- **T+0 to T+60s** — Normal traffic: Bloomberg, Reuters, SWIFT, Refinitiv, NASDAQ. All green (allow).
-- **T+60s to T+80s** — Attack sequence on `10.50.0.1` (trading floor):
+- **T+0 to T+90s** — Normal traffic: Bloomberg, Reuters, SWIFT, Oracle ERP, SAP, Refinitiv, NASDAQ. All green (allow), scores 18–22.
+- **T+90s to T+120s** — Attack sequence on `10.50.0.1` (trading floor → ERP pivot):
   - `tor-exit-4f2a.net` — monitor, score 55
-  - `c2.trickbot-gate.com` — monitor, score 70
-  - `exfil.payment-collect.io` — monitor, score 78
+  - `c2.trickbot-gate.com` — monitor, score 72
+  - `exfil.payment-collect.io` — monitor, score 82 (ERP subnet pivot)
+  - `exfil.payment-collect.io` — monitor, score 89
   - `exfil.payment-collect.io` — **BLOCK, score 95** ← this is the moment
-- **T+80s+** — Normal traffic resumes alongside the block alert
+- **T+120s+** — Normal traffic resumes; attacker IP remains blocked
 
 No presenter action needed. The BLOCK fires automatically.
 

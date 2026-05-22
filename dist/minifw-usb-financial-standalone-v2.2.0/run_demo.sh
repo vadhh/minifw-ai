@@ -11,6 +11,9 @@ cd "$SCRIPT_DIR"
 log() { echo "[minifw] $*"; }
 die() { echo "[minifw] ERROR: $*" >&2; exit 1; }
 
+# ── Venv auto-activation ────────────────────────────────────────────────────────
+[[ -f venv/bin/activate ]] && source venv/bin/activate
+
 # ── Pre-flight ──────────────────────────────────────────────────────────────────
 [[ -f certs/server.crt ]] || die "TLS cert not found. Run: bash setup_tls.sh"
 command -v python3 >/dev/null 2>&1 || die "python3 not found"

@@ -12,6 +12,9 @@ cd "$SCRIPT_DIR"
 log() { echo "[minifw-reset] $*"; }
 die() { echo "[minifw-reset] ERROR: $*" >&2; exit 1; }
 
+# ── Venv auto-activation ────────────────────────────────────────────────────────
+[[ -f venv/bin/activate ]] && source venv/bin/activate
+
 log "Fast reset starting..."
 
 # ── Step 1: Kill all three processes in parallel ─────────────────────────────
