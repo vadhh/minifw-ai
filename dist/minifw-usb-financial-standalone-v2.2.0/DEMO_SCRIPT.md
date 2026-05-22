@@ -165,27 +165,136 @@ client data left the building. Automatically.
 
 ---
 
-## PHASE 7 — Operations Continue Safely (T+120s+)
+## PHASE 7 — Operations Resume (T+120s – T+150s)
 
 ### What appears on screen
 - Bloomberg, Reuters, SWIFT, Oracle ERP all returning to ALLOW, scores 18–22
-- Attacker IP still blocked (not expired)
+- `10.50.0.1` still blocked
 - AI Threat Synthesis card: stable
 
 ### What to say
-> "Trading continues. The ERP is untouched. The rest of ArborCrest's floor
-> never noticed an incident occurred. The attacker's IP is blocked for 24 hours.
+> "Trading continues. The ERP is untouched. `10.50.0.1` is blocked for 24 hours.
+> But watch — the system doesn't relax. It keeps scoring every single connection."
+
+*(Let normal traffic run for 30 seconds. A second threat is about to appear.)*
+
+---
+
+## PHASE 8 — Second Attacker: Internal ERP Subnet (T+150s)
+
+### What appears on screen
+- New event row: `harvest.cred-stealer.net` — score **58** — action: **MONITOR** — amber
+- client_ip: `192.168.1.50` — segment: **internal**
+- reasons: `credential_harvesting_tool`, `internal_subnet_anomaly`
+
+### What to say
+> "Different machine. Different subnet. This one is already inside — it's on
+> the ERP network. It's running a credential harvesting tool, quietly pulling
+> usernames and passwords from the finance systems.
 >
-> PCI-DSS: compliant. No breach. No data loss. No disruption."
+> Score 58. Monitoring."
+
+### What it means
+A second, independent compromise is active — this time from inside the internal
+network, not the trading floor. The attacker has a different entry point and
+a different objective: SWIFT wire transfer credentials.
 
 ### Why it matters
-Surgical enforcement — one IP blocked, everything else running normally.
-This is the business case: a breach that costs $4.5M on average in financial
-services, stopped automatically, with zero operational impact.
+Two simultaneous threats from two different subnets. A perimeter firewall
+sees neither — both are internal. MiniFW-AI catches both independently.
+
+---
+
+## PHASE 9 — SWIFT Gateway Probe (T+156s)
+
+### What appears on screen
+- New event row: `api.swift-intercept.cc` — score **74** — action: **MONITOR**
+- reasons: `swift_gateway_probe`, `financial_fraud_feed`
+
+### What to say
+> "Now it's probing the SWIFT gateway. This is a wire transfer intercept attempt —
+> the attacker wants to redirect outbound payments.
+>
+> Score 74. The AI has seen this chain before."
+
+---
+
+## PHASE 10 — Wire Transfer Intercept Escalation (T+162s – T+168s)
+
+### What appears on screen
+- `drop.wire-redirect.io` — score **84** — MONITOR → score **91** — MONITOR
+- reasons escalating: `wire_transfer_intercept`, `settlement_data_exfil`, `pci_dss_violation`
+
+### What to say
+> "84. 91. The attacker is trying to redirect live settlement transactions.
+> SWIFT fraud. The AI has seen enough."
+
+*(Pause.)*
+
+---
+
+## PHASE 11 — SECOND BLOCK (T+174s)
+
+### What appears on screen
+- `drop.wire-redirect.io` — score **97** — action: **BLOCK** — CRITICAL
+- decision_owner: `PCI-DSS Policy Engine`
+- Two blocked IPs now visible: `10.50.0.1` and `192.168.1.50`
+
+### What to say
+> "BLOCK. Score 97. SWIFT fraud attempt stopped.
+>
+> Two attackers. Two different entry points. Two different objectives.
+> Both blocked automatically — no analyst, no ticket, no delay.
+>
+> This is what continuous behavioral monitoring looks like."
+
+### Why it matters
+The second block hits harder than the first with executives. The first block
+shows the system works. The second block shows it doesn't stop working.
+The message is: *threats don't come one at a time, and neither does MiniFW-AI.*
+
+---
+
+## PHASE 12 — Sustained Safe Operations (T+180s+)
+
+### What appears on screen
+- All normal traffic ALLOW, scores 18–22
+- Two blocked IPs in the table
+- AI Threat Synthesis card: stable
+
+### What to say
+> "ArborCrest is clean. Two breach attempts — zero data lost, zero disruption,
+> zero human intervention. Both IPs blocked for 24 hours.
+>
+> PCI-DSS: compliant. Trading floor: running. SWIFT gateway: protected."
+
+### Why it matters
+Surgical enforcement at scale. The system handled two simultaneous threats
+across two subnets while every legitimate connection continued uninterrupted.
 
 ---
 
 ## Anticipated Executive Questions
+
+**Q: Could this block legitimate traffic by mistake?**
+> "Yes — any AI system can produce false positives. That's why we have the
+> MONITOR phase: the engine watches and builds confidence before committing.
+> The 80-point block threshold is tuned for financial operations and is fully
+> configurable per network segment in policy.json."
+
+**Q: What if the attacker uses a different domain tomorrow?**
+> "The detection is behavioral, not signature-based. The anonymizer + C2 beacon
+> + lateral movement pattern would still be flagged even with a brand-new domain
+> — as long as the behavior is anomalous relative to the financial baseline."
+
+**Q: Does this require cloud connectivity?**
+> "No. MiniFW-AI runs entirely on-premises. Threat feeds update on your schedule.
+> No traffic data leaves your network."
+
+**Q: What compliance frameworks does this cover?**
+> "PCI-DSS (network segmentation, threat detection, audit logging), ISO 27001
+> (anomaly detection, incident response), and SOC 2 Type II (continuous monitoring).
+> Full audit trail is maintained in logs/audit.jsonl."
 
 **Q: Could this block legitimate traffic by mistake?**
 > "Yes — any AI system can produce false positives. That's why we have the

@@ -158,15 +158,22 @@ On subsequent runs, the first line changes to:
 The dashboard shows live financial network traffic:
 
 - **T+0 to T+90s** — Normal traffic: Bloomberg, Reuters, SWIFT, Oracle ERP, SAP, Refinitiv, NASDAQ. All green (allow), scores 18–22.
-- **T+90s to T+120s** — Attack sequence on `10.50.0.1` (trading floor → ERP pivot):
+- **T+90s to T+120s** — Attacker 1 on `10.50.0.1` (trading floor → ERP pivot):
   - `tor-exit-4f2a.net` — monitor, score 55
   - `c2.trickbot-gate.com` — monitor, score 72
   - `exfil.payment-collect.io` — monitor, score 82 (ERP subnet pivot)
   - `exfil.payment-collect.io` — monitor, score 89
-  - `exfil.payment-collect.io` — **BLOCK, score 95** ← this is the moment
-- **T+120s+** — Normal traffic resumes; attacker IP remains blocked
+  - `exfil.payment-collect.io` — **BLOCK, score 95** ← first block
+- **T+120s to T+150s** — Normal traffic resumes; `10.50.0.1` remains blocked.
+- **T+150s to T+180s** — Attacker 2 on `192.168.1.50` (internal ERP subnet → SWIFT fraud):
+  - `harvest.cred-stealer.net` — monitor, score 58
+  - `api.swift-intercept.cc` — monitor, score 74
+  - `drop.wire-redirect.io` — monitor, score 84 (wire transfer intercept)
+  - `drop.wire-redirect.io` — monitor, score 91
+  - `drop.wire-redirect.io` — **BLOCK, score 97** ← second block
+- **T+180s+** — Normal traffic resumes; both attacker IPs remain blocked.
 
-No presenter action needed. The BLOCK fires automatically.
+No presenter action needed. Both BLOCKs fire automatically.
 
 ---
 
