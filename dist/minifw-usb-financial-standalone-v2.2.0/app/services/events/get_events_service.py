@@ -121,6 +121,8 @@ def _format_event(event: dict) -> dict:
         "segment": event.get("segment", "default"),
         "client_ip": client_ip,
         "domain": domain,
+        "trace_id": event.get("trace_id", ""),
+        "decision_owner": event.get("decision_owner", "Policy Engine"),
     }
 
 
@@ -222,6 +224,11 @@ def get_collector_status():
 
 
 def _compute_collector_status() -> dict:
+    # In demo mode all collectors are simulated — show as active
+    if os.environ.get("DEMO_MODE"):
+        _demo = {"active": True, "label": "Active (Demo)", "color": "success"}
+        return {"zeek": _demo, "dns": _demo, "conntrack": _demo}
+
     _default_dns_log = "/var/log/dnsmasq.log"
     policy_path = os.environ.get("MINIFW_POLICY", "/opt/minifw_ai/config/policy.json")
     try:
@@ -239,8 +246,8 @@ def _compute_collector_status() -> dict:
                 "color": "success" if active else "secondary"}
 
     return {
-        "zeek":     _status(Path("/var/log/zeek/ssl.log").exists()),
-        "dns":      _status(Path(_default_dns_log).exists()),
+        "zeek":      _status(Path("/var/log/zeek/ssl.log").exists()),
+        "dns":       _status(Path(_default_dns_log).exists()),
         "conntrack": _status(Path("/proc/net/nf_conntrack").exists()),
     }
 

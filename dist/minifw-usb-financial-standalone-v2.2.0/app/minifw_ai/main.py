@@ -666,6 +666,7 @@ def run():
     for client_ip, domain in dns_events:
         pump_zeek()
         pump_flows()
+        feeds.reload_if_changed()
 
         # Dynamic state transition check (TODO 4.1/4.2)
         state_manager.record_dns_event(client_ip, domain)

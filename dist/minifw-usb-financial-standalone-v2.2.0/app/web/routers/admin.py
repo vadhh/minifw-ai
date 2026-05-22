@@ -1022,6 +1022,37 @@ def export_audit_logs(
 
 
 # ============================================================
+# CUMULATIVE STATS API
+# ============================================================
+
+
+@router.get("/api/stats")
+def api_stats(current_user: User = Depends(get_current_user)):
+    """
+    Return cumulative event totals from the full event log.
+    Used by the dashboard stat counters so they reflect all-time counts,
+    not just the rows visible in the recent events table.
+    """
+    from app.services.events.get_events_service import get_recent_events, get_event_statistics
+    from app.services.allow_domain.get_allow_domains_service import get_allow_domains
+    from app.services.deny_ip.get_deny_ips_service import get_deny_ips
+    from app.services.deny_asn.get_deny_asns_service import get_deny_asns
+    from app.services.deny_domain.get_deny_domains_service import get_deny_domains
+
+    all_events = get_recent_events(limit=10000)
+    stats = get_event_statistics(events=all_events)
+    return {
+        "total_allowed":    stats["total_allowed"],
+        "total_blocked":    stats["total_blocked"],
+        "threats_detected": stats["threats_detected"],
+        "allow_domains":    len(get_allow_domains()),
+        "deny_ips":         len(get_deny_ips()),
+        "deny_asns":        len(get_deny_asns()),
+        "deny_domains":     len(get_deny_domains()),
+    }
+
+
+# ============================================================
 # LIVE BLOCK FEED (last 5 seconds of blocked events)
 # ============================================================
 
@@ -1152,6 +1183,17 @@ def _compute_kernel_proof() -> dict:
     from pathlib import Path as _Path
 
     result = {"active": False, "label": "Not active", "detail": "", "table": "minifw"}
+
+    # Demo mode: nftables is skipped by design. Report active if events are flowing.
+    if os.environ.get("DEMO_MODE"):
+        events_log = os.environ.get("MINIFW_LOG", "logs/events.jsonl")
+        if _Path(events_log).exists() and _Path(events_log).stat().st_size > 0:
+            result.update(active=True,
+                          label="Active — Demo Mode (enforcement simulated)",
+                          detail="nftables enforcement simulated in DEMO_MODE=1")
+        else:
+            result.update(detail="Demo starting — waiting for first event")
+        return result
 
     # Stage 1 — direct nft probe (same network namespace)
     try:

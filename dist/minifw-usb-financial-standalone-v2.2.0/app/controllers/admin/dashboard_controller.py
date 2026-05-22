@@ -1,5 +1,6 @@
 from fastapi import Request
 from datetime import datetime
+from pathlib import Path
 import subprocess
 import json
 import os
@@ -76,8 +77,15 @@ def _compute_service_status() -> dict:
     status["label"] = "Active" if engine_running else "Stopped"
     status["color"] = "success" if engine_running else "danger"
 
-    state_file = "/opt/minifw_ai/logs/deployment_state.json"
-    if os.path.exists(state_file):
+    # Resolve state file: check MINIFW_LOG sibling dir first, then production fallback
+    _log_path = os.environ.get("MINIFW_LOG", "")
+    _state_candidates = []
+    if _log_path:
+        _state_candidates.append(str(Path(_log_path).parent / "deployment_state.json"))
+    _state_candidates.append("/opt/minifw_ai/logs/deployment_state.json")
+
+    state_file = next((p for p in _state_candidates if os.path.exists(p)), None)
+    if state_file:
         try:
             with open(state_file, "r") as f:
                 data = json.load(f)
@@ -85,6 +93,8 @@ def _compute_service_status() -> dict:
                 status["mode"] = dns_status.replace("_", " ").title()
         except Exception:
             status["mode"] = "Error reading state"
+    elif os.environ.get("DEMO_MODE"):
+        status["mode"] = "AI Enhanced (Demo)"
     else:
         status["mode"] = "AI Enhanced" if engine_running else "Unknown"
 

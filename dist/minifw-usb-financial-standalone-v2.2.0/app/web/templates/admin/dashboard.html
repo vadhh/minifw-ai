@@ -789,21 +789,26 @@
         if (!d || !d.data) return;
         renderRows(d.data);
         if (lastUpdateEl) { lastUpdateEl.textContent = nowTimestamp(); }
-        var allowed = 0, blocked = 0, threats = 0;
-        d.data.forEach(function(ev) {
-          if (ev.status === 'blocked') { blocked++; }
-          else if (ev.status === 'allowed') { allowed++; }
-          if (ev.threat_detected) { threats++; }
-        });
-        if (statAllowed) { statAllowed.textContent = allowed; }
-        if (statBlocked) { statBlocked.textContent = blocked; }
-        if (statThreats) { statThreats.textContent = threats; }
+      })
+      .catch(function() {});
+  }
+
+  function pollStats() {
+    fetch('/admin/api/stats', { credentials: 'same-origin' })
+      .then(function(r) { return r.ok ? r.json() : null; })
+      .then(function(d) {
+        if (!d) return;
+        if (statAllowed) { statAllowed.textContent = d.total_allowed; }
+        if (statBlocked) { statBlocked.textContent = d.total_blocked; }
+        if (statThreats) { statThreats.textContent = d.threats_detected; }
       })
       .catch(function() {});
   }
 
   pollRecentEvents();
+  pollStats();
   setInterval(pollRecentEvents, 5000);
+  setInterval(pollStats, 5000);
 })();
 </script>
 
