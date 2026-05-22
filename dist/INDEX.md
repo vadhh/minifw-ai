@@ -47,7 +47,9 @@
 | `minifw-usb-financial-standalone-v2.2.0/` | Standalone (Python) | https://localhost:8443 | No Docker. PCI-DSS compliance demo for executive buyers. |
 
 **Credentials:** `admin / Finance1!`  
-**Quick start:** `bash setup_tls.sh && bash run_demo.sh`
+**Quick start:** `bash setup_tls.sh && bash run_demo.sh`  
+**Fast reset:** `bash fast_reset.sh` (target: 45 seconds)  
+**Presenter docs:** `DEMO_SCRIPT.md` (full script) · `PRESENTER_CARD.md` (one-page cue card)
 
 ---
 
