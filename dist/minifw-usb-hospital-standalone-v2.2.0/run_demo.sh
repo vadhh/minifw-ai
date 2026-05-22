@@ -6,6 +6,9 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
+# ── Venv auto-activation ────────────────────────────────────────────────────────
+[[ -f venv/bin/activate ]] && source venv/bin/activate
+
 log() { echo "[minifw] $*"; }
 die() { echo "[minifw] ERROR: $*" >&2; exit 1; }
 
