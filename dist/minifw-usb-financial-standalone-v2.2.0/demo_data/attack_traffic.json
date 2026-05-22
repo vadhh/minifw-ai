@@ -1,26 +1,42 @@
 [
   {
     "client_ip": "10.50.0.1",
-    "domain":    "tor-exit-4f2a.net",
-    "label":     "anonymizer",
-    "note":      "Tor exit node — anonymizer traffic from trading floor"
+    "domain": "tor-exit-4f2a.net",
+    "label": "anonymizer",
+    "score": 55,
+    "action": "monitor",
+    "note": "Step 1 — Tor exit node from trading floor workstation"
   },
   {
     "client_ip": "10.50.0.1",
-    "domain":    "c2.trickbot-gate.com",
-    "label":     "banking_trojan_c2",
-    "note":      "Banking trojan C2 beacon — matches financial_fraud feed"
+    "domain": "c2.trickbot-gate.com",
+    "label": "banking_trojan_c2",
+    "score": 72,
+    "action": "monitor",
+    "note": "Step 2 — TrickBot C2 beacon, matches financial_fraud feed"
   },
   {
     "client_ip": "10.50.0.1",
-    "domain":    "exfil.payment-collect.io",
-    "label":     "card_exfil",
-    "note":      "Card data exfiltration probe — matches financial_fraud feed"
+    "domain": "exfil.payment-collect.io",
+    "label": "erp_pivot",
+    "score": 82,
+    "action": "monitor",
+    "note": "Step 3 — ERP subnet pivot, PCI boundary crossed"
   },
   {
     "client_ip": "10.50.0.1",
-    "domain":    "pastebin.com",
-    "label":     "pci_violation",
-    "note":      "PCI boundary violation — paste of card data from trading subnet"
+    "domain": "exfil.payment-collect.io",
+    "label": "card_exfil",
+    "score": 89,
+    "action": "monitor",
+    "note": "Step 4 — Active client portfolio exfiltration attempt"
+  },
+  {
+    "client_ip": "10.50.0.1",
+    "domain": "exfil.payment-collect.io",
+    "label": "pci_dss_violation",
+    "score": 95,
+    "action": "block",
+    "note": "Step 5 — BLOCK: confirmed PCI-DSS violation, behavioral chain complete"
   }
 ]
