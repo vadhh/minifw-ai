@@ -42,7 +42,7 @@ log "Waiting for dashboard (45s max)..."
 READY=false
 START=$(date +%s)
 while true; do
-    if curl -s --cacert certs/minifw-ca.crt https://localhost:8443/health >/dev/null 2>&1; then
+    if curl -s --max-time 2 --connect-timeout 1 --cacert certs/minifw-ca.crt https://localhost:8443/health >/dev/null 2>&1; then
         READY=true
         break
     fi
