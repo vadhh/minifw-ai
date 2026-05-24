@@ -1,0 +1,211 @@
+<!-- jQuery (must load first) — served locally for offline demo reliability -->
+<script src="{{ url_for('static', path='vendor/jquery-3.7.1.min.js') }}"></script>
+
+<!-- Bootstrap 5 -->
+<script src="{{ url_for('static', path='vendor/bootstrap.bundle.min.js') }}"></script>
+
+<!-- DataTables -->
+<link rel="stylesheet" href="{{ url_for('static', path='vendor/dataTables.bootstrap5.min.css') }}">
+<script src="{{ url_for('static', path='vendor/jquery.dataTables.min.js') }}"></script>
+<script src="{{ url_for('static', path='vendor/dataTables.bootstrap5.min.js') }}"></script>
+
+<!-- SweetAlert2 -->
+<script src="{{ url_for('static', path='vendor/sweetalert2.all.min.js') }}"></script>
+
+<!-- OverlayScrollbars -->
+<script src="{{ url_for('static', path='vendor/overlayscrollbars.browser.es6.min.js') }}"></script>
+
+<!-- AdminLTE 4 -->
+<script type="module" src="{{ url_for('static', path='adminLTE/dist/js/adminlte.js') }}"></script>
+
+<!-- Dark mode + user info -->
+<script>
+(function () {
+  // ── Dark mode toggle ──────────────────────────────────────
+  const root    = document.documentElement;
+  const btn     = document.getElementById('darkModeToggle');
+  const icon    = document.getElementById('darkModeIcon');
+
+  function applyTheme(theme, isInit) {
+    if (root.getAttribute('data-bs-theme') === theme && !isInit) return;
+    
+    if (!isInit) {
+      document.documentElement.classList.add('theme-transition');
+    }
+    
+    root.setAttribute('data-bs-theme', theme);
+    localStorage.setItem('mf-theme', theme);
+    if (icon) {
+      icon.className = theme === 'dark' ? 'bi bi-sun-fill' : 'bi bi-moon-stars-fill';
+    }
+    
+    if (!isInit) {
+      setTimeout(function() {
+        document.documentElement.classList.remove('theme-transition');
+      }, 850); // Matches the 0.8s CSS transition + a tiny buffer
+    }
+  }
+
+  // Init from storage
+  applyTheme(localStorage.getItem('mf-theme') || 'light', true);
+
+  if (btn) {
+    btn.addEventListener('click', function () {
+      applyTheme(root.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark', false);
+    });
+  }
+
+  // ── Local SVG avatar — no external requests ──────────────────
+  function makeAvatar(initials, bg, fg, size) {
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + size + '" height="' + size + '">'
+      + '<rect width="100%" height="100%" fill="' + bg + '"/>'
+      + '<text x="50%" y="50%" dominant-baseline="central" text-anchor="middle"'
+      + ' font-family="system-ui,sans-serif" font-size="' + Math.round(size * 0.4) + '"'
+      + ' font-weight="600" fill="' + fg + '">' + initials + '</text></svg>';
+    return 'data:image/svg+xml;base64,' + btoa(svg);
+  }
+
+  // ── Populate navbar user info from /admin/api/auth/current-user ──
+  fetch('/admin/api/auth/current-user', { credentials: 'same-origin' })
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (user) {
+      if (!user) return;
+      const name   = user.full_name || user.username || 'User';
+      const initials = name.split(' ').map(function (n) { return n[0]; }).join('').slice(0, 2).toUpperCase();
+      const role   = (user.role || '').replace(/_/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); });
+      const avatarUrl      = makeAvatar(initials, '#4f46e5', '#fff', 128);
+      const avatarUrlWhite = makeAvatar(initials, '#ffffff', '#4f46e5', 128);
+
+      var el;
+      el = document.getElementById('navUsername');       if (el) el.textContent = initials;
+      el = document.getElementById('navUserAvatar');     if (el) el.src = avatarUrl;
+      el = document.getElementById('dropdownUserAvatar');if (el) el.src = avatarUrlWhite;
+      el = document.getElementById('dropdownUsername');  if (el) el.childNodes[0].textContent = name + ' ';
+      el = document.getElementById('dropdownRole');      if (el) el.textContent = role;
+
+      // Sector badge in navbar dropdown
+      if (user.sector) {
+        var sectorEl = document.getElementById('dropdownRole');
+        if (sectorEl) {
+          var sectorIcons = {hospital:'bi-hospital',finance:'bi-bank',education:'bi-mortarboard',government:'bi-building',legal:'bi-briefcase',establishment:'bi-shop'};
+          var sIcon = sectorIcons[user.sector] || 'bi-globe';
+          var sName = user.sector.charAt(0).toUpperCase() + user.sector.slice(1);
+          var badge = document.createElement('span');
+          badge.className = 'mf-sector-badge mf-sector-' + user.sector;
+          badge.style.marginLeft = '6px';
+          badge.innerHTML = '<i class="bi ' + sIcon + '"></i> ' + sName;
+          sectorEl.parentNode.insertBefore(badge, sectorEl.nextSibling);
+        }
+      }
+
+      // RBAC sidebar enforcement
+      var roleHierarchy = { viewer: 0, auditor: 1, operator: 2, admin: 3, super_admin: 4 };
+      var userLevel = roleHierarchy[user.role] || 0;
+      var rbacItems = document.querySelectorAll('[data-rbac-min]');
+      rbacItems.forEach(function (item) {
+        var minLevel = roleHierarchy[item.getAttribute('data-rbac-min')] || 0;
+        if (userLevel < minLevel) {
+          item.style.display = 'none';
+        }
+      });
+    })
+    .catch(function () {});
+
+  // ── Session expiry warning (60-minute JWT, HttpOnly so use countdown) ──
+  var sessionStart = Date.now();
+  var SESSION_DURATION = 60 * 60 * 1000;
+  var WARNING_BEFORE  = 5 * 60 * 1000;
+  var bannerShown = false;
+
+  setInterval(function () {
+    var elapsed = Date.now() - sessionStart;
+    var remaining = SESSION_DURATION - elapsed;
+
+    if (remaining <= 0) {
+      window.location.href = '/auth/login?reason=session_expired';
+      return;
+    }
+
+    if (remaining <= WARNING_BEFORE && !bannerShown) {
+      bannerShown = true;
+      var mins = Math.ceil(remaining / 60000);
+      var banner = document.createElement('div');
+      banner.className = 'mf-session-banner';
+      banner.id = 'sessionBanner';
+      banner.innerHTML = '<i class="bi bi-clock-history"></i> Session expires in <strong id="sessionCountdown">' + mins + ' min</strong> ' +
+        '<button class="btn btn-sm" onclick="location.reload()">Extend Session</button>';
+      document.body.prepend(banner);
+    }
+
+    if (bannerShown) {
+      var cd = document.getElementById('sessionCountdown');
+      if (cd) {
+        var r = SESSION_DURATION - (Date.now() - sessionStart);
+        var m = Math.floor(r / 60000);
+        var s = Math.floor((r % 60000) / 1000);
+        cd.textContent = m + ':' + (s < 10 ? '0' : '') + s;
+      }
+    }
+  }, 10000);
+
+  // ── Sidebar state monitor (responsive content margin) ──
+  var sidebar = document.querySelector('.app-sidebar');
+  var appMain = document.querySelector('.app-main');
+  
+  if (sidebar && appMain) {
+    // Monitor sidebar visibility changes
+    var observer = new MutationObserver(function() {
+      var sidebarStyle = window.getComputedStyle(sidebar);
+      var sidebarDisplay = sidebarStyle.display;
+      var sidebarOpacity = sidebarStyle.opacity;
+      
+      // Check if sidebar is hidden
+      if (sidebarDisplay === 'none' || sidebarOpacity === '0') {
+        appMain.style.marginLeft = '0';
+        appMain.style.width = '100%';
+      }
+    });
+    
+    // Watch for style and class changes
+    observer.observe(sidebar, {
+      attributes: true,
+      attributeFilter: ['style', 'class'],
+      subtree: false
+    });
+    
+    // Also monitor body class changes
+    var bodyObserver = new MutationObserver(function() {
+      if (document.body.classList.contains('sidebar-collapse') || 
+          document.body.classList.contains('sidebar-collapsed') ||
+          document.body.classList.contains('sidebar-closed')) {
+        appMain.style.marginLeft = '0';
+        appMain.style.width = '100%';
+      } else if (window.innerWidth >= 992 && !document.body.classList.contains('sidebar-collapse')) {
+        appMain.style.marginLeft = 'var(--mf-sidebar-width)';
+        appMain.style.width = 'calc(100% - var(--mf-sidebar-width))';
+      }
+    });
+    
+    bodyObserver.observe(document.body, {
+      attributes: true,
+      attributeFilter: ['class'],
+      subtree: false
+    });
+  }
+
+  // ── Force sidebar links to navigate on mobile (bypassing AdminLTE bug) ──
+  var sidebarLinks = document.querySelectorAll('.app-sidebar .nav-link');
+  sidebarLinks.forEach(function(link) {
+    link.addEventListener('click', function(e) {
+      if (window.innerWidth < 992 && this.href && this.href !== '#' && !this.href.includes('javascript:')) {
+        // Stop AdminLTE from preventing default navigation
+        e.stopPropagation();
+        
+        // Show loading state or instantly navigate
+        window.location.href = this.href;
+      }
+    }, true); // Use capture phase to intercept before AdminLTE
+  });
+
+})();
+</script>
