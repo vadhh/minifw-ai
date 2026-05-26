@@ -1,0 +1,91 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="900" viewBox="0 0 1400 900">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" style="stop-color:#0d1117" />
+      <stop offset="100%" style="stop-color:#161b22" />
+    </linearGradient>
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="2" dy="3" stdDeviation="4" flood-color="#000000" flood-opacity="0.5" />
+    </filter>
+  </defs>
+  <rect x="0" y="0" width="1400" height="900" fill="url(#bg)" />
+  <text x="700" y="42" font-family="monospace, Courier New" font-size="22" font-weight="bold" fill="#e5e7eb" text-anchor="middle">MiniFW-AI — Sector Deployment Overview</text>
+  <text x="700" y="68" font-family="monospace, Courier New" font-size="13" font-weight="normal" fill="#6b7280" text-anchor="middle">v2.2.0  ·  6 Sectors  ·  Behavioral DNS Firewall Engine</text>
+  <rect x="490" y="95" width="420" height="130" rx="10" fill="#1e3a5f" stroke="#3b82f6" stroke-width="2" filter="url(#shadow)" />
+  <text x="700" y="121" font-family="monospace, Courier New" font-size="16" font-weight="bold" fill="#93c5fd" text-anchor="middle">MiniFW-AI Core Engine</text>
+  <text x="700" y="145" font-family="monospace, Courier New" font-size="11" font-weight="normal" fill="#9ca3af" text-anchor="middle">DNS event → Feed Matcher → Burst Tracker</text>
+  <text x="700" y="162" font-family="monospace, Courier New" font-size="11" font-weight="normal" fill="#9ca3af" text-anchor="middle">→ Hard Gates → MLP Detector → YARA Scanner</text>
+  <text x="700" y="179" font-family="monospace, Courier New" font-size="11" font-weight="normal" fill="#9ca3af" text-anchor="middle">→ score_and_decide() → nftables enforce</text>
+  <text x="700" y="199" font-family="monospace, Courier New" font-size="10" font-weight="normal" fill="#6b7280" text-anchor="middle">Score weights: feed+40  TLS+35  ASN+15  burst+10  MLP+30  YARA+35</text>
+  <rect x="490" y="255" width="420" height="36" rx="6" fill="#1a2e1a" stroke="#22c55e" stroke-width="1.5" />
+  <text x="700" y="278" font-family="monospace, Courier New" font-size="12" font-weight="bold" fill="#86efac" text-anchor="middle">policy.json  — per-segment block/monitor thresholds</text>
+  <line x1="700" y1="225" x2="700" y2="255" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="4 3" />
+  <rect x="85" y="325" width="390" height="145" rx="8" fill="#111827" stroke="#ef4444" stroke-width="2" filter="url(#shadow)" />
+  <rect x="85" y="325" width="390" height="6" rx="0" fill="#ef4444" stroke="#ef4444" stroke-width="0" />
+  <text x="280" y="353" font-family="monospace, Courier New" font-size="15" font-weight="bold" fill="#ef4444" text-anchor="middle">Hospital Sector</text>
+  <text x="280" y="373" font-family="monospace, Courier New" font-size="11" font-weight="normal" fill="#d1d5db" text-anchor="middle">Port 8000 / 8443  ·  Standalone + Docker</text>
+  <text x="280" y="393" font-family="monospace, Courier New" font-size="10" font-weight="normal" fill="#6b7280" text-anchor="middle">Block thresholds:</text>
+  <text x="280" y="409" font-family="monospace, Courier New" font-size="10" font-weight="normal" fill="#9ca3af" text-anchor="middle">mednet:45  internal:80  iomt:85</text>
+  <text x="280" y="429" font-family="monospace, Courier New" font-size="10" font-weight="normal" fill="#6b7280" text-anchor="middle">Trace: HIPAA-PHI-*</text>
+  <text x="280" y="448" font-family="monospace, Courier New" font-size="10" font-weight="normal" fill="#4b5563" text-anchor="middle">admin / Hospital1!</text>
+  <line x1="280" y1="291" x2="280" y2="325" stroke="#ef4444" stroke-width="1" stroke-dasharray="3 3" />
+  <rect x="505" y="325" width="390" height="145" rx="8" fill="#111827" stroke="#f59e0b" stroke-width="2" filter="url(#shadow)" />
+  <rect x="505" y="325" width="390" height="6" rx="0" fill="#f59e0b" stroke="#f59e0b" stroke-width="0" />
+  <text x="700" y="353" font-family="monospace, Courier New" font-size="15" font-weight="bold" fill="#f59e0b" text-anchor="middle">Education Sector</text>
+  <text x="700" y="373" font-family="monospace, Courier New" font-size="11" font-weight="normal" fill="#d1d5db" text-anchor="middle">Port 8447  ·  Docker</text>
+  <text x="700" y="393" font-family="monospace, Courier New" font-size="10" font-weight="normal" fill="#6b7280" text-anchor="middle">Block thresholds:</text>
+  <text x="700" y="409" font-family="monospace, Courier New" font-size="10" font-weight="normal" fill="#9ca3af" text-anchor="middle">student:70  guest:60  staff:80</text>
+  <text x="700" y="429" font-family="monospace, Courier New" font-size="10" font-weight="normal" fill="#6b7280" text-anchor="middle">Trace: EDU-SAFE-*</text>
+  <text x="700" y="448" font-family="monospace, Courier New" font-size="10" font-weight="normal" fill="#4b5563" text-anchor="middle">admin / Education1!</text>
+  <line x1="700" y1="291" x2="700" y2="325" stroke="#f59e0b" stroke-width="1" stroke-dasharray="3 3" />
+  <rect x="925" y="325" width="390" height="145" rx="8" fill="#111827" stroke="#8b5cf6" stroke-width="2" filter="url(#shadow)" />
+  <rect x="925" y="325" width="390" height="6" rx="0" fill="#8b5cf6" stroke="#8b5cf6" stroke-width="0" />
+  <text x="1120" y="353" font-family="monospace, Courier New" font-size="15" font-weight="bold" fill="#8b5cf6" text-anchor="middle">Government Sector</text>
+  <text x="1120" y="373" font-family="monospace, Courier New" font-size="11" font-weight="normal" fill="#d1d5db" text-anchor="middle">Port 8449  ·  Docker</text>
+  <text x="1120" y="393" font-family="monospace, Courier New" font-size="10" font-weight="normal" fill="#6b7280" text-anchor="middle">Block thresholds:</text>
+  <text x="1120" y="409" font-family="monospace, Courier New" font-size="10" font-weight="normal" fill="#9ca3af" text-anchor="middle">classified:70  internal:45  guest:35</text>
+  <text x="1120" y="429" font-family="monospace, Courier New" font-size="10" font-weight="normal" fill="#6b7280" text-anchor="middle">Trace: GOV-SOV-*</text>
+  <text x="1120" y="448" font-family="monospace, Courier New" font-size="10" font-weight="normal" fill="#4b5563" text-anchor="middle">admin / Government1!</text>
+  <line x1="1120" y1="291" x2="1120" y2="325" stroke="#8b5cf6" stroke-width="1" stroke-dasharray="3 3" />
+  <rect x="85" y="498" width="390" height="145" rx="8" fill="#111827" stroke="#0ea5e9" stroke-width="2" filter="url(#shadow)" />
+  <rect x="85" y="498" width="390" height="6" rx="0" fill="#0ea5e9" stroke="#0ea5e9" stroke-width="0" />
+  <text x="280" y="526" font-family="monospace, Courier New" font-size="15" font-weight="bold" fill="#0ea5e9" text-anchor="middle">Legal Sector</text>
+  <text x="280" y="546" font-family="monospace, Courier New" font-size="11" font-weight="normal" fill="#d1d5db" text-anchor="middle">Port 8448  ·  Docker</text>
+  <text x="280" y="566" font-family="monospace, Courier New" font-size="10" font-weight="normal" fill="#6b7280" text-anchor="middle">Block thresholds:</text>
+  <text x="280" y="582" font-family="monospace, Courier New" font-size="10" font-weight="normal" fill="#9ca3af" text-anchor="middle">partner:85  associate:72  client:62</text>
+  <text x="280" y="602" font-family="monospace, Courier New" font-size="10" font-weight="normal" fill="#6b7280" text-anchor="middle">Trace: LEGAL-ACP-*</text>
+  <text x="280" y="621" font-family="monospace, Courier New" font-size="10" font-weight="normal" fill="#4b5563" text-anchor="middle">admin / Legal1!</text>
+  <line x1="280" y1="484" x2="280" y2="498" stroke="#0ea5e9" stroke-width="1" stroke-dasharray="3 3" />
+  <rect x="505" y="498" width="390" height="145" rx="8" fill="#111827" stroke="#10b981" stroke-width="2" filter="url(#shadow)" />
+  <rect x="505" y="498" width="390" height="6" rx="0" fill="#10b981" stroke="#10b981" stroke-width="0" />
+  <text x="700" y="526" font-family="monospace, Courier New" font-size="15" font-weight="bold" fill="#10b981" text-anchor="middle">Establishment Sector</text>
+  <text x="700" y="546" font-family="monospace, Courier New" font-size="11" font-weight="normal" fill="#d1d5db" text-anchor="middle">Port 8444  ·  Docker</text>
+  <text x="700" y="566" font-family="monospace, Courier New" font-size="10" font-weight="normal" fill="#6b7280" text-anchor="middle">Block thresholds:</text>
+  <text x="700" y="582" font-family="monospace, Courier New" font-size="10" font-weight="normal" fill="#9ca3af" text-anchor="middle">office:80  DMZ:70  guest:40</text>
+  <text x="700" y="602" font-family="monospace, Courier New" font-size="10" font-weight="normal" fill="#6b7280" text-anchor="middle">Trace: SME-EST-*</text>
+  <text x="700" y="621" font-family="monospace, Courier New" font-size="10" font-weight="normal" fill="#4b5563" text-anchor="middle">admin / SME_Demo1!</text>
+  <line x1="700" y1="484" x2="700" y2="498" stroke="#10b981" stroke-width="1" stroke-dasharray="3 3" />
+  <rect x="925" y="498" width="390" height="145" rx="8" fill="#111827" stroke="#f97316" stroke-width="2" filter="url(#shadow)" />
+  <rect x="925" y="498" width="390" height="6" rx="0" fill="#f97316" stroke="#f97316" stroke-width="0" />
+  <text x="1120" y="526" font-family="monospace, Courier New" font-size="15" font-weight="bold" fill="#f97316" text-anchor="middle">Finance Sector</text>
+  <text x="1120" y="546" font-family="monospace, Courier New" font-size="11" font-weight="normal" fill="#d1d5db" text-anchor="middle">Port 8443 (HTTPS)  ·  Standalone</text>
+  <text x="1120" y="566" font-family="monospace, Courier New" font-size="10" font-weight="normal" fill="#6b7280" text-anchor="middle">Block thresholds:</text>
+  <text x="1120" y="582" font-family="monospace, Courier New" font-size="10" font-weight="normal" fill="#9ca3af" text-anchor="middle">trading:85  teller:70  ATM:60</text>
+  <text x="1120" y="602" font-family="monospace, Courier New" font-size="10" font-weight="normal" fill="#6b7280" text-anchor="middle">Trace: SWIFT-MT103-*</text>
+  <text x="1120" y="621" font-family="monospace, Courier New" font-size="10" font-weight="normal" fill="#4b5563" text-anchor="middle">admin / Finance1!</text>
+  <line x1="1120" y1="484" x2="1120" y2="498" stroke="#f97316" stroke-width="1" stroke-dasharray="3 3" />
+  <line x1="280" y1="484" x2="1120" y2="484" stroke="#374151" stroke-width="1" stroke-dasharray="3 3" />
+  <line x1="700" y1="291" x2="700" y2="484" stroke="#374151" stroke-width="1" stroke-dasharray="3 3" />
+  <rect x="30" y="805" width="310" height="80" rx="6" fill="#111827" stroke="#374151" stroke-width="1" />
+  <text x="40" y="823" font-family="monospace, Courier New" font-size="12" font-weight="bold" fill="#9ca3af" text-anchor="start">Legend</text>
+  <text x="40" y="841" font-family="monospace, Courier New" font-size="10" font-weight="normal" fill="#6b7280" text-anchor="start">Standalone = Python venv, no Docker required</text>
+  <text x="40" y="857" font-family="monospace, Courier New" font-size="10" font-weight="normal" fill="#6b7280" text-anchor="start">Docker = Docker Compose + prebuilt image tar</text>
+  <text x="40" y="873" font-family="monospace, Courier New" font-size="10" font-weight="normal" fill="#6b7280" text-anchor="start">Thresholds = per-segment block score (0–100)</text>
+  <rect x="1080" y="805" width="290" height="80" rx="6" fill="#111827" stroke="#374151" stroke-width="1" />
+  <text x="1090" y="823" font-family="monospace, Courier New" font-size="12" font-weight="bold" fill="#9ca3af" text-anchor="start">Enforcement</text>
+  <text x="1090" y="841" font-family="monospace, Courier New" font-size="10" font-weight="normal" fill="#6b7280" text-anchor="start">ALLOW  → pass, no log entry</text>
+  <text x="1090" y="857" font-family="monospace, Courier New" font-size="10" font-weight="normal" fill="#6b7280" text-anchor="start">MONITOR → log event, no block (below threshold)</text>
+  <text x="1090" y="873" font-family="monospace, Courier New" font-size="10" font-weight="normal" fill="#6b7280" text-anchor="start">BLOCK  → ipset + nftables DROP, JSONL audit log</text>
+  <text x="700" y="888" font-family="monospace, Courier New" font-size="10" font-weight="normal" fill="#374151" text-anchor="middle">MiniFW-AI  v2.2.0  |  2026-05-26  |  vadhh</text>
+</svg>
