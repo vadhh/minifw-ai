@@ -17,6 +17,7 @@ export PRODUCT_MODE=minifw_hospital
 export MINIFW_SECTOR=hospital
 export AI_ENABLED=1
 export MINIFW_DISABLE_FLOWS=1
+export MINIFW_DNS_SOURCE=none
 export MINIFW_LOG=logs/events.jsonl
 export MINIFW_AUDIT_LOG=logs/audit.jsonl
 export MINIFW_FLOW_RECORDS=logs/flow_records.jsonl
@@ -39,11 +40,15 @@ ENGINE_PID=$!
 log "Engine started (PID $ENGINE_PID)"
 
 WEB_PID=0
+SCHEDULER_PID=0
 
+_CLEANED=0
 cleanup() {
-    log "Stopping..."
-    kill "$ENGINE_PID" 2>/dev/null || true
-    kill "$WEB_PID"   2>/dev/null || true
+    [[ "$_CLEANED" -eq 1 ]] && return
+    _CLEANED=1
+    kill "$ENGINE_PID"    2>/dev/null || true
+    kill "$WEB_PID"       2>/dev/null || true
+    kill "$SCHEDULER_PID" 2>/dev/null || true
     log "Demo stopped."
 }
 trap cleanup EXIT INT TERM
@@ -69,14 +74,18 @@ if [[ "$READY" == "false" ]]; then
     exit 1
 fi
 
-log "Dashboard ready → http://localhost:8000  (admin / Hospital1!)"
-log "Press Ctrl+C to stop."
+# ── Start scheduler ─────────────────────────────────────────────────────────────
+python3 scheduler/demo_scheduler.py > logs/scheduler.log 2>&1 &
+SCHEDULER_PID=$!
 
-# Best-effort browser open
+# ── Browser launch ──────────────────────────────────────────────────────────────
 if command -v xdg-open >/dev/null 2>&1; then
     xdg-open "http://localhost:8000" >/dev/null 2>&1 || true
 elif command -v open >/dev/null 2>&1; then
     open "http://localhost:8000" >/dev/null 2>&1 || true
 fi
+
+log "Dashboard ready → http://localhost:8000  (admin / Hospital1!)"
+log "Press Ctrl+C to stop."
 
 wait "$WEB_PID" || true

@@ -32,7 +32,6 @@ Confirm the port is now free:
 
 If the web app is throwing a database error:
 
-    cd dist/minifw-ai-usb-v2.2.0v3
     rm -f minifw.db
 
 The database is auto-recreated with default credentials on next start.
@@ -41,7 +40,6 @@ The database is auto-recreated with default credentials on next start.
 
 If all else fails:
 
-    cd dist/minifw-ai-usb-v2.2.0v3
     lsof -ti:8000 | xargs kill -9 2>/dev/null || true
     pgrep -f minifw_ai | xargs kill 2>/dev/null || true
     rm -f minifw.db logs/events.jsonl

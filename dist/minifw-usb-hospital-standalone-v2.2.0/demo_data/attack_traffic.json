@@ -1,0 +1,84 @@
+[
+  {
+    "timestamp": "2026-05-26T09:01:30Z",
+    "client_ip": "172.16.2.50",
+    "domain": "c2.iomt-backdoor.net",
+    "type": "dns",
+    "label": "iomt_c2",
+    "segment": "mednet",
+    "score": 33,
+    "note": "Patient monitor (172.16.2.50) calling out to unknown external host — IoMT anomaly, mednet segment"
+  },
+  {
+    "timestamp": "2026-05-26T09:01:36Z",
+    "client_ip": "172.16.2.50",
+    "domain": "drop.medfware-c2.io",
+    "type": "dns",
+    "label": "iomt_exploit",
+    "segment": "mednet",
+    "score": 39,
+    "note": "Medical device firmware exploit C2 beacon — score 39, approaching mednet block threshold (45)"
+  },
+  {
+    "timestamp": "2026-05-26T09:01:42Z",
+    "client_ip": "172.16.2.50",
+    "domain": "exfil.ransom-hospital.net",
+    "type": "dns",
+    "label": "ransomware",
+    "segment": "mednet",
+    "score": 43,
+    "note": "Ransomware staging host contacted from mednet — one point from block"
+  },
+  {
+    "timestamp": "2026-05-26T09:01:48Z",
+    "client_ip": "172.16.2.50",
+    "domain": "exfil.ransom-hospital.net",
+    "type": "dns",
+    "label": "ransomware_block",
+    "segment": "mednet",
+    "score": 47,
+    "action": "block",
+    "note": "BLOCK: score 47 crosses mednet threshold 45 — ransomware staging blocked, EMR protected"
+  },
+  {
+    "timestamp": "2026-05-26T09:03:00Z",
+    "client_ip": "192.168.1.75",
+    "domain": "harvest.phi-stealer.net",
+    "type": "dns",
+    "label": "credential_harvesting",
+    "segment": "internal",
+    "score": 52,
+    "note": "Credential harvesting tool contacted from clinical workstation (192.168.1.75)"
+  },
+  {
+    "timestamp": "2026-05-26T09:03:06Z",
+    "client_ip": "192.168.1.75",
+    "domain": "api.phi-dump.io",
+    "type": "dns",
+    "label": "phi_exfil",
+    "segment": "internal",
+    "score": 64,
+    "note": "PHI bulk export endpoint — FHIR abuse pattern detected"
+  },
+  {
+    "timestamp": "2026-05-26T09:03:12Z",
+    "client_ip": "192.168.1.75",
+    "domain": "drop.patient-exfil.net",
+    "type": "dns",
+    "label": "phi_staging",
+    "segment": "internal",
+    "score": 75,
+    "note": "Patient data staging host — PHI exfiltration in progress"
+  },
+  {
+    "timestamp": "2026-05-26T09:03:18Z",
+    "client_ip": "192.168.1.75",
+    "domain": "drop.patient-exfil.net",
+    "type": "dns",
+    "label": "phi_exfil_block",
+    "segment": "internal",
+    "score": 82,
+    "action": "block",
+    "note": "BLOCK: score 82 crosses internal threshold 80 — PHI exfiltration stopped"
+  }
+]
