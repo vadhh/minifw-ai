@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MINIFW-AI_HEALTHCARE — Static Demo</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0f1117;
+      color: #e2e8f0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+    header {
+      background: #0d6b6b;
+      border-bottom: 3px solid #1a9a9a;
+      padding: 2rem 2.5rem;
+    }
+    header h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      color: #fff;
+    }
+    header .tagline {
+      color: rgba(255,255,255,0.75);
+      font-size: 0.95rem;
+      margin-top: 0.25rem;
+    }
+    header .badge {
+      display: inline-block;
+      background: #1a9a9a;
+      color: #fff;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.2rem 0.6rem;
+      border-radius: 4px;
+      margin-top: 0.5rem;
+      letter-spacing: 0.08em;
+    }
+    main { max-width: 1200px; margin: 0 auto; padding: 2rem 2.5rem; }
+    section { margin-bottom: 3rem; }
+    h2 {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      color: #1a9a9a;
+      text-transform: uppercase;
+      border-bottom: 1px solid #1e2535;
+      padding-bottom: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .arch-svg { width: 100%; max-width: 900px; display: block; margin: 0 auto; }
+    .screenshot-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(480px, 1fr));
+      gap: 1.5rem;
+    }
+    .screenshot-item img {
+      width: 100%;
+      border: 1px solid #1e2535;
+      border-radius: 6px;
+      display: block;
+    }
+    .caption {
+      font-size: 0.82rem;
+      color: #94a3b8;
+      margin-top: 0.5rem;
+      text-align: center;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+    th {
+      text-align: left;
+      padding: 0.5rem 0.75rem;
+      background: #1a1f2e;
+      color: #64748b;
+      font-size: 0.75rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      border-bottom: 1px solid #1e2535;
+    }
+    td {
+      padding: 0.5rem 0.75rem;
+      border-bottom: 1px solid #1a1f2e;
+      color: #cbd5e1;
+    }
+    tr:hover td { background: #131825; }
+    .mono { font-family: 'Courier New', monospace; font-size: 0.82rem; }
+    .score { font-weight: 700; color: #e2e8f0; text-align: right; }
+    .action-block { color: #f87171; font-weight: 700; }
+    .action-monitor { color: #fbbf24; font-weight: 600; }
+    .action-allow { color: #34d399; }
+    footer {
+      border-top: 1px solid #1e2535;
+      padding: 1.5rem 2.5rem;
+      font-size: 0.78rem;
+      color: #475569;
+      display: flex;
+      gap: 2rem;
+      flex-wrap: wrap;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>MINIFW-AI_HEALTHCARE</h1>
+    <div class="tagline">HIPAA / IoMT Protection</div>
+    <div class="badge">v2.2.0 · STATIC DEMO</div>
+  </header>
+  <main>
+    
+    <section>
+      <h2>ARCHITECTURE</h2>
+      <img src="architecture.svg" alt="System Architecture" class="arch-svg">
+    </section>
+    
+    
+    <section>
+      <h2>BLOCK EVENT LOG</h2>
+      <table>
+        <thead>
+          <tr><th>Timestamp</th><th>Segment</th><th>Domain</th><th>Score</th><th>Action</th></tr>
+        </thead>
+        <tbody>
+        <tr>
+          <td class="mono">2026-05-26 09:01:48</td>
+          <td>mednet</td>
+          <td class="mono">exfil.ransom-hospital.net</td>
+          <td class="score">47</td>
+          <td class="action-block">BLOCK</td>
+        </tr>
+        <tr>
+          <td class="mono">2026-05-26 09:03:18</td>
+          <td>internal</td>
+          <td class="mono">drop.patient-exfil.net</td>
+          <td class="score">82</td>
+          <td class="action-block">BLOCK</td>
+        </tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+  <footer>
+    <span>Sector lock: minifw_hospital</span>
+    <span>Version: v2.2.0</span>
+    <span>GPG: BDB471E1FB46F58A</span>
+  </footer>
+</body>
+</html>
