@@ -5,28 +5,29 @@
 
 /* ── 1. Design tokens ──────────────────────────────────────── */
 :root {
-  --mf-primary: #4f46e5;
-  --mf-primary-hover: #4338ca;
-  --mf-accent: #06b6d4;
+  /* Premium Fintech Palette */
+  --mf-primary: #1e3a8a; /* Deep Navy */
+  --mf-primary-hover: #1e40af;
+  --mf-accent: #d97706; /* Gold */
 
   /* Mode accent tokens — overridden per body class below */
-  --mf-mode-color: #4f46e5;
-  --mf-mode-bg: rgba(79, 70, 229, 0.10);
-  --mf-success: #10b981;
-  --mf-danger: #ef4444;
-  --mf-warning: #f59e0b;
+  --mf-mode-color: #1e3a8a;
+  --mf-mode-bg: rgba(30, 58, 138, 0.10);
+  --mf-success: #059669; /* Emerald */
+  --mf-danger: #dc2626;  /* Deep Red */
+  --mf-warning: #f59e0b; /* Amber */
 
-  --mf-bg: #f1f5f9;
+  --mf-bg: #f8fafc; /* Soft Slate */
   --mf-surface: #ffffff;
-  --mf-surface-2: #f8fafc;
+  --mf-surface-2: #f1f5f9;
   --mf-border: #e2e8f0;
   --mf-text: #0f172a;
   --mf-text-muted: #64748b;
 
-  --mf-shadow-sm: 0 1px 2px rgba(0, 0, 0, .06), 0 1px 3px rgba(0, 0, 0, .08);
-  --mf-shadow: 0 4px 6px -1px rgba(0, 0, 0, .08), 0 2px 4px -1px rgba(0, 0, 0, .05);
-  --mf-shadow-lg: 0 10px 25px -3px rgba(0, 0, 0, .10), 0 4px 6px -2px rgba(0, 0, 0, .05);
-  --mf-shadow-hover: 0 20px 40px -5px rgba(0, 0, 0, .15), 0 8px 16px -4px rgba(0, 0, 0, .08);
+  --mf-shadow-sm: 0 1px 2px rgba(0, 0, 0, .04), 0 1px 3px rgba(0, 0, 0, .06);
+  --mf-shadow: 0 4px 6px -1px rgba(0, 0, 0, .06), 0 2px 4px -1px rgba(0, 0, 0, .04);
+  --mf-shadow-lg: 0 10px 25px -3px rgba(0, 0, 0, .08), 0 4px 6px -2px rgba(0, 0, 0, .04);
+  --mf-shadow-hover: 0 20px 40px -5px rgba(0, 0, 0, .12), 0 8px 16px -4px rgba(0, 0, 0, .06);
 
   --mf-radius-sm: 8px;
   --mf-radius: 12px;
@@ -43,12 +44,15 @@
 }
 
 [data-bs-theme="dark"] {
-  --mf-bg: #0b0f1a;
-  --mf-surface: #131929;
-  --mf-surface-2: #1a2236;
-  --mf-border: #1e2d45;
-  --mf-text: #e2e8f0;
-  --mf-text-muted: #64748b;
+  --mf-primary: #38bdf8; /* Light Blue for dark mode visibility */
+  --mf-primary-hover: #7dd3fc;
+  
+  --mf-bg: #020617; /* Deep Navy Background */
+  --mf-surface: rgba(15, 23, 42, 0.75); /* Glassmorphism surface */
+  --mf-surface-2: rgba(30, 41, 59, 0.85);
+  --mf-border: rgba(51, 65, 85, 0.5);
+  --mf-text: #f8fafc;
+  --mf-text-muted: #94a3b8;
 
   --mf-shadow-sm: 0 1px 2px rgba(0, 0, 0, .4), 0 1px 3px rgba(0, 0, 0, .3);
   --mf-shadow: 0 4px 6px -1px rgba(0, 0, 0, .4), 0 2px 4px -1px rgba(0, 0, 0, .3);
@@ -75,7 +79,7 @@
 }
 
 body {
-  font-family: 'Source Sans 3', system-ui, -apple-system, sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
   background-color: var(--mf-bg) !important;
   color: var(--mf-text);
   -webkit-font-smoothing: antialiased;
@@ -474,6 +478,8 @@ body.sidebar-expand-lg .app-sidebar {
   border-radius: var(--mf-radius) !important;
   box-shadow: var(--mf-shadow) !important;
   transition: box-shadow var(--mf-transition), transform var(--mf-transition);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }
 
 .card:hover {

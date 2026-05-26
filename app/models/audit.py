@@ -147,7 +147,8 @@ class AuditLog(Base):
     retention_until = Column(DateTime, nullable=True)  # When this log can be purged
 
     def __repr__(self):
-        return f"<AuditLog {self.id}: {self.action.value} by {self.username} at {self.timestamp}>"
+        action_val = self.action.value if hasattr(self.action, "value") else self.action
+        return f"<AuditLog {self.id}: {action_val} by {self.username} at {self.timestamp}>"
 
     @classmethod
     def create_entry(

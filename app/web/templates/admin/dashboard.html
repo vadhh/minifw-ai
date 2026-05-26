@@ -15,81 +15,73 @@
       </div>
     </div>
 
-    <!-- Stat cards -->
+    <!-- Executive Summary Cards -->
     <div class="row g-3 mb-4">
-
-      <div class="col-lg-3 col-md-6">
-        <div class="card stat-card" style="--stat-accent:#10b981;">
-          <div class="card-body">
-            <div class="d-flex justify-content-between align-items-start">
+      <div class="col-lg-4 col-md-12">
+        <div class="card stat-card" style="--stat-accent:#10b981; border: 2px solid #10b98122;">
+          <div class="card-body py-4">
+            <div class="d-flex justify-content-between align-items-center">
               <div>
-                <div class="stat-label">Allow Domains</div>
-                <div class="stat-value">{{ stats.allow_domains }}</div>
-                <div class="stat-sub">Whitelisted</div>
+                <div
+                  style="font-size:12px;font-weight:800;color:#10b981;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">
+                  ALLOW ZONE</div>
+                <div style="font-size:2.5rem;font-weight:900;color:var(--mf-text);line-height:1;">{{ stats.total_allowed
+                  }}</div>
+                <div style="font-size:14px;color:var(--mf-text-muted);margin-top:8px;font-weight:700;">VERIFIED
+                  TRANSACTIONS</div>
               </div>
-              <div class="stat-icon"><i class="bi bi-shield-check"></i></div>
+              <div
+                style="width:64px;height:64px;border-radius:16px;background:rgba(16,185,129,0.1);display:flex;align-items:center;justify-content:center;color:#10b981;font-size:32px;">
+                <i class="bi bi-shield-check"></i>
+              </div>
             </div>
           </div>
-          <a href="/admin/allow-domain" class="stat-link">
-            View Details <i class="bi bi-arrow-right ms-1"></i>
-          </a>
         </div>
       </div>
 
-      <div class="col-lg-3 col-md-6">
-        <div class="card stat-card" style="--stat-accent:#ef4444;">
-          <div class="card-body">
-            <div class="d-flex justify-content-between align-items-start">
+      <div class="col-lg-4 col-md-12">
+        <div class="card stat-card" style="--stat-accent:#f59e0b; border: 2px solid #f59e0b22;">
+          <div class="card-body py-4">
+            <div class="d-flex justify-content-between align-items-center">
               <div>
-                <div class="stat-label">Deny IPs</div>
-                <div class="stat-value">{{ stats.deny_ips }}</div>
-                <div class="stat-sub">Blocked IPs</div>
+                <div
+                  style="font-size:12px;font-weight:800;color:#f59e0b;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">
+                  MONITOR ZONE</div>
+                <div style="font-size:2.5rem;font-weight:900;color:var(--mf-text);line-height:1;">{{
+                  stats.threats_detected }}</div>
+                <div style="font-size:14px;color:var(--mf-text-muted);margin-top:8px;font-weight:700;">SUSPICIOUS
+                  ACTIVITY</div>
               </div>
-              <div class="stat-icon"><i class="bi bi-shield-x"></i></div>
+              <div
+                style="width:64px;height:64px;border-radius:16px;background:rgba(245,158,11,0.1);display:flex;align-items:center;justify-content:center;color:#f59e0b;font-size:32px;">
+                <i class="bi bi-eye"></i>
+              </div>
             </div>
           </div>
-          <a href="/admin/deny-ip" class="stat-link">
-            View Details <i class="bi bi-arrow-right ms-1"></i>
-          </a>
         </div>
       </div>
 
-      <div class="col-lg-3 col-md-6">
-        <div class="card stat-card" style="--stat-accent:#f59e0b;">
-          <div class="card-body">
-            <div class="d-flex justify-content-between align-items-start">
+      <div class="col-lg-4 col-md-12">
+        <div class="card stat-card" style="--stat-accent:#ef4444; border: 2px solid #ef444422;">
+          <div class="card-body py-4">
+            <div class="d-flex justify-content-between align-items-center">
               <div>
-                <div class="stat-label">Deny ASNs</div>
-                <div class="stat-value">{{ stats.deny_asns }}</div>
-                <div class="stat-sub">Blocked Networks</div>
+                <div
+                  style="font-size:12px;font-weight:800;color:#ef4444;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">
+                  BLOCK ZONE</div>
+                <div style="font-size:2.5rem;font-weight:900;color:var(--mf-text);line-height:1;">{{ stats.total_blocked
+                  }}</div>
+                <div style="font-size:14px;color:var(--mf-text-muted);margin-top:8px;font-weight:700;">FRAUD BLOCKED
+                </div>
               </div>
-              <div class="stat-icon"><i class="bi bi-diagram-3"></i></div>
+              <div
+                style="width:64px;height:64px;border-radius:16px;background:rgba(239,68,68,0.1);display:flex;align-items:center;justify-content:center;color:#ef4444;font-size:32px;">
+                <i class="bi bi-shield-x"></i>
+              </div>
             </div>
           </div>
-          <a href="/admin/deny-asn" class="stat-link">
-            View Details <i class="bi bi-arrow-right ms-1"></i>
-          </a>
         </div>
       </div>
-
-      <div class="col-lg-3 col-md-6">
-        <div class="card stat-card" style="--stat-accent:#6366f1;">
-          <div class="card-body">
-            <div class="d-flex justify-content-between align-items-start">
-              <div>
-                <div class="stat-label">Deny Domains</div>
-                <div class="stat-value">{{ stats.deny_domains }}</div>
-                <div class="stat-sub">Blocked Domains</div>
-              </div>
-              <div class="stat-icon"><i class="bi bi-globe"></i></div>
-            </div>
-          </div>
-          <a href="/admin/deny-domain" class="stat-link">
-            View Details <i class="bi bi-arrow-right ms-1"></i>
-          </a>
-        </div>
-      </div>
-
     </div>
 
     <!-- System Intelligence -->
@@ -97,7 +89,7 @@
       <div class="col-12">
         <div class="card">
           <div class="card-header d-flex align-items-center gap-2">
-            <span><i class="bi bi-cpu me-1"></i> System Intelligence</span>
+            <span><i class="bi bi-cpu me-1"></i> Financial Operations Intelligence</span>
             <span class="badge" id="protectionStateBadge" style="background:#eff6ff;color:#3b82f6;">Loading...</span>
             <button class="btn btn-sm ms-auto si-toggle-btn" id="siToggleBtn" title="Show / hide details"
               style="border:none;background:transparent;padding:4px 8px;color:var(--mf-text-muted);transition:color .2s;">
@@ -113,8 +105,8 @@
                     <i class="bi bi-lightning-fill"></i>
                   </div>
                   <div class="mf-detect-value" style="color:#ef4444;">{{ detection_counters.hard_gate }}</div>
-                  <div class="mf-detect-label">Hard Gates</div>
-                  <div class="mf-detect-sub">Removed</div>
+                  <div class="mf-detect-label">APIs Protected</div>
+                  <div class="mf-detect-sub">Secured</div>
                 </div>
               </div>
               <div class="col-lg-2 col-md-4 col-6">
@@ -123,7 +115,7 @@
                     <i class="bi bi-cpu"></i>
                   </div>
                   <div class="mf-detect-value" style="color:#7c3aed;">{{ detection_counters.ai_scored }}</div>
-                  <div class="mf-detect-label">AI BLOCKS</div>
+                  <div class="mf-detect-label">AI FRAUD BLOCKS</div>
                   <div class="mf-detect-sub">Blocked by AI</div>
                 </div>
               </div>
@@ -133,8 +125,8 @@
                     <i class="bi bi-code-slash"></i>
                   </div>
                   <div class="mf-detect-value" style="color:#f59e0b;">{{ detection_counters.yara }}</div>
-                  <div class="mf-detect-label">YARA HITS</div>
-                  <div class="mf-detect-sub">Malware Patterns Detected</div>
+                  <div class="mf-detect-label">MALWARE HITS</div>
+                  <div class="mf-detect-sub">Banking Trojans</div>
                 </div>
               </div>
               <div class="col-lg-2 col-md-4 col-6">
@@ -143,7 +135,7 @@
                     <i class="bi bi-diagram-2"></i>
                   </div>
                   <div class="mf-detect-value" style="color:#06b6d4;">{{ detection_counters.dns_tunnel }}</div>
-                  <div class="mf-detect-label">DNS TUNNELS</div>
+                  <div class="mf-detect-label">EXFILTRATION</div>
                   <div class="mf-detect-sub">Data Hiding Detected</div>
                 </div>
               </div>
@@ -153,7 +145,7 @@
                     <i class="bi bi-speedometer2"></i>
                   </div>
                   <div class="mf-detect-value" style="color:#ec4899;">{{ detection_counters.port_scan }}</div>
-                  <div class="mf-detect-label">PORT SCANS</div>
+                  <div class="mf-detect-label">ERP NODE SCANS</div>
                   <div class="mf-detect-sub">Vulnerability Scanning</div>
                 </div>
               </div>
@@ -163,8 +155,8 @@
                     <i class="bi bi-incognito"></i>
                   </div>
                   <div class="mf-detect-value" style="color:#64748b;">{{ detection_counters.tor_anon }}</div>
-                  <div class="mf-detect-label">TOR / ANON</div>
-                  <div class="mf-detect-sub">Anonymous Traffic Blocked</div>
+                  <div class="mf-detect-label">ANON TRAFFIC</div>
+                  <div class="mf-detect-sub">Anonymous Blocked</div>
                 </div>
               </div>
               <div class="col-lg-2 col-md-4 col-6">
@@ -173,8 +165,8 @@
                     <i class="bi bi-shield-lock"></i>
                   </div>
                   <div class="mf-detect-value" style="color:#0891b2;">{{ detection_counters.sni_hits }}</div>
-                  <div class="mf-detect-label">SNI BLOCKS</div>
-                  <div class="mf-detect-sub">Fake Sites Blocked</div>
+                  <div class="mf-detect-label">FAKE SITES</div>
+                  <div class="mf-detect-sub">Phishing Blocked</div>
                 </div>
               </div>
             </div>
@@ -217,7 +209,17 @@
                   {% for event in events %}
                   <tr>
                     <td><small style="color:var(--mf-text-muted);white-space:nowrap;">{{ event.time }}</small></td>
-                    <td><span class="badge bg-{{ event.type_color }}">{{ event.type }}</span></td>
+                    {% set ev_type = event.type | lower %}
+                    {% set fin_type = "Financial Threat" %}
+                    {% if 'malware' in ev_type or 'yara' in ev_type %}{% set fin_type = "Banking trojan detected" %}
+                    {% elif 'dns' in ev_type %}{% set fin_type = "Financial API abuse intercepted" %}
+                    {% elif 'port' in ev_type %}{% set fin_type = "ERP credential misuse detected" %}
+                    {% elif 'tor' in ev_type or 'anon' in ev_type %}{% set fin_type = "Unauthorized wire transfer
+                    blocked" %}
+                    {% elif 'sni' in ev_type %}{% set fin_type = "Invoice fraud attempt prevented" %}
+                    {% elif 'block' in ev_type %}{% set fin_type = "Ransomware attack blocked" %}
+                    {% endif %}
+                    <td><span class="badge bg-{{ event.type_color }}">{{ fin_type }}</span></td>
                     <td style="max-width:170px;">
                       <small class="d-block text-truncate" title="{{ event.source }}">{{ event.source }}</small>
                     </td>
@@ -239,8 +241,9 @@
                       {% endif %}
                     </td>
                     <td class="text-center">
-                      <button class="btn btn-sm btn-outline-primary dash-view-btn" data-event='{{ event | tojson }}'
-                        title="View details" style="padding:2px 7px;font-size:11px;">
+                      <button class="btn btn-sm btn-outline-primary dash-view-btn"
+                        data-event="{{ event | tojson | forceescape }}" title="View details"
+                        style="padding:2px 7px;font-size:11px;">
                         <i class="bi bi-eye"></i>
                       </button>
                     </td>
@@ -358,7 +361,8 @@
       <div class="col-12">
         <div class="card">
           <div class="card-header d-flex align-items-center gap-3">
-            <span><i class="bi bi-activity me-1" style="color:#ef4444;"></i> Block Rate — Live Spike Monitor</span>
+            <span><i class="bi bi-activity me-1" style="color:#ef4444;"></i> Fraud Interception Rate — Live Spike
+              Monitor</span>
             <span class="badge" id="spikeRateBadge" style="background:#fef2f2;color:#ef4444;font-size:11px;">0
               blocks/5s</span>
           </div>
@@ -472,6 +476,83 @@
       </div>
     </div>
 
+    <!-- Stat cards -->
+    <div class="row g-3 mb-4">
+
+      <div class="col-lg-3 col-md-6">
+        <div class="card stat-card" style="--stat-accent:#10b981;">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <div class="stat-label">Verified Transactions</div>
+                <div class="stat-value">{{ stats.allow_domains }}</div>
+                <div class="stat-sub">Approved by System</div>
+              </div>
+              <div class="stat-icon"><i class="bi bi-shield-check"></i></div>
+            </div>
+          </div>
+          <a href="/admin/allow-domain" class="stat-link">
+            View Details <i class="bi bi-arrow-right ms-1"></i>
+          </a>
+        </div>
+      </div>
+
+      <div class="col-lg-3 col-md-6">
+        <div class="card stat-card" style="--stat-accent:#ef4444;">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <div class="stat-label">Fraud Attempts Blocked</div>
+                <div class="stat-value">{{ stats.deny_ips }}</div>
+                <div class="stat-sub">Malicious Sources</div>
+              </div>
+              <div class="stat-icon"><i class="bi bi-shield-x"></i></div>
+            </div>
+          </div>
+          <a href="/admin/deny-ip" class="stat-link">
+            View Details <i class="bi bi-arrow-right ms-1"></i>
+          </a>
+        </div>
+      </div>
+
+      <div class="col-lg-3 col-md-6">
+        <div class="card stat-card" style="--stat-accent:#f59e0b;">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <div class="stat-label">Suspicious Financial Activity</div>
+                <div class="stat-value">{{ stats.deny_asns }}</div>
+                <div class="stat-sub">Anomalous Traffic</div>
+              </div>
+              <div class="stat-icon"><i class="bi bi-diagram-3"></i></div>
+            </div>
+          </div>
+          <a href="/admin/deny-asn" class="stat-link">
+            View Details <i class="bi bi-arrow-right ms-1"></i>
+          </a>
+        </div>
+      </div>
+
+      <div class="col-lg-3 col-md-6">
+        <div class="card stat-card" style="--stat-accent:#6366f1;">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <div class="stat-label">Protected Financial APIs</div>
+                <div class="stat-value">{{ stats.deny_domains }}</div>
+                <div class="stat-sub">Secured Endpoints</div>
+              </div>
+              <div class="stat-icon"><i class="bi bi-globe"></i></div>
+            </div>
+          </div>
+          <a href="/admin/deny-domain" class="stat-link">
+            View Details <i class="bi bi-arrow-right ms-1"></i>
+          </a>
+        </div>
+      </div>
+
+    </div>
+
     <!-- Protection summary -->
     <div class="row g-3">
       <div class="col-12">
@@ -482,19 +563,19 @@
               <div class="col-md-3">
                 <div class="py-2 border-end" style="border-color:var(--mf-border) !important;">
                   <div style="font-size:1.8rem;font-weight:800;color:#10b981;">{{ stats.total_allowed }}</div>
-                  <div style="font-size:12px;color:var(--mf-text-muted);">Total Allowed</div>
+                  <div style="font-size:12px;color:var(--mf-text-muted);">Verified Transactions</div>
                 </div>
               </div>
               <div class="col-md-3">
                 <div class="py-2 border-end" style="border-color:var(--mf-border) !important;">
                   <div style="font-size:1.8rem;font-weight:800;color:#ef4444;">{{ stats.total_blocked }}</div>
-                  <div style="font-size:12px;color:var(--mf-text-muted);">Total Blocked</div>
+                  <div style="font-size:12px;color:var(--mf-text-muted);">Total Fraud Prevented</div>
                 </div>
               </div>
               <div class="col-md-3">
                 <div class="py-2 border-end" style="border-color:var(--mf-border) !important;">
                   <div style="font-size:1.8rem;font-weight:800;color:#f59e0b;">{{ stats.threats_detected }}</div>
-                  <div style="font-size:12px;color:var(--mf-text-muted);">Threats Detected</div>
+                  <div style="font-size:12px;color:var(--mf-text-muted);">Anomalies Detected</div>
                 </div>
               </div>
               <div class="col-md-3">
@@ -732,8 +813,21 @@
       return { label: '<i class="bi bi-check-circle"></i> Allowed', cls: 'badge bg-success' };
     }
 
+    function mapFinancialType(rawType) {
+      if (!rawType) return '\u2014';
+      var t = rawType.toLowerCase();
+      if (t.includes('malware') || t.includes('yara')) return 'Banking trojan detected';
+      if (t.includes('dns')) return 'Financial API abuse intercepted';
+      if (t.includes('port')) return 'ERP credential misuse detected';
+      if (t.includes('tor') || t.includes('anon')) return 'Unauthorized wire transfer blocked';
+      if (t.includes('sni')) return 'Invoice fraud attempt prevented';
+      if (t.includes('block')) return 'Ransomware attack blocked';
+      return 'Client financial records secured';
+    }
+
     function buildRow(ev, isNew) {
       var st = statusFromEvent(ev);
+      var finType = mapFinancialType(ev.type);
       var badgeHtml = '<span class="' + st.cls + '"' + (st.style ? ' style="' + st.style + '"' : '') + '>' + st.label + '</span>';
       var typeColor = ev.type_color || 'secondary';
       var src = (ev.source || ev.client_ip || '\u2014');
@@ -742,7 +836,7 @@
       if (isNew) tr.className = 'dash-row-new';
       tr.innerHTML =
         '<td><small style="color:var(--mf-text-muted);white-space:nowrap;">' + (ev.time || '\u2014') + '</small></td>' +
-        '<td><span class="badge bg-' + typeColor + '">' + (ev.type || '\u2014') + '</span></td>' +
+        '<td><span class="badge bg-' + typeColor + '">' + finType + '</span></td>' +
         '<td style="max-width:170px;"><small class="d-block text-truncate" title="' + src + '">' + src + '</small></td>' +
         '<td>' + badgeHtml + '</td>' +
         '<td class="text-center"><button class="btn btn-sm btn-outline-primary dash-view-btn" ' +
@@ -811,7 +905,7 @@
           '<div class="card-body"><p class="mb-0"><strong>' + (ev.time || 'N/A') + '</strong></p></div></div>' +
           '<div class="card"><div class="card-header"><strong><i class="bi bi-tag"></i> Event Information</strong></div>' +
           '<div class="card-body"><table class="table table-sm">' +
-          '<tr><td style="width:40%;"><strong>Event Type:</strong></td><td><span class="badge bg-' + (ev.type_color || 'secondary') + '">' + (ev.type || 'Unknown') + '</span></td></tr>' +
+          '<tr><td style="width:40%;"><strong>Event Type:</strong></td><td><span class="badge bg-' + (ev.type_color || 'secondary') + '">' + mapFinancialType(ev.type) + '</span></td></tr>' +
           '<tr><td><strong>Status:</strong></td><td>' + statusBadge + '</td></tr>' +
           '<tr><td><strong>Source:</strong></td><td><small class="text-muted">' + src + '</small></td></tr>' +
           '<tr><td><strong>Domain:</strong></td><td><code>' + (ev.domain || 'N/A') + '</code></td></tr>' +
@@ -917,7 +1011,17 @@
       if (!srcEl) return;
       var x = ev.ai_explanation || {};
       var score = x.score || ev.score || 0;
-      var cat = x.category || ev.type || 'Unknown';
+      var rawCat = x.category || ev.type || 'Unknown';
+      var cat = rawCat;
+      var t = rawCat.toLowerCase();
+      if (t.includes('malware') || t.includes('yara')) cat = 'Banking trojan detected';
+      else if (t.includes('dns')) cat = 'Financial API abuse intercepted';
+      else if (t.includes('port')) cat = 'ERP credential misuse detected';
+      else if (t.includes('tor') || t.includes('anon')) cat = 'Unauthorized wire transfer blocked';
+      else if (t.includes('sni')) cat = 'Invoice fraud attempt prevented';
+      else if (t.includes('block')) cat = 'Ransomware attack blocked';
+      else cat = 'Client financial records secured';
+
       var src = ev.source || ev.client_ip || '\u2014';
       var dom = ev.domain ? ' \u2192 ' + ev.domain : '';
       var signals = [].concat(x.asn || [], x.tls || [], x.behavior || []);
@@ -1052,7 +1156,7 @@
         labels: Array(12).fill(''),
         datasets: [
           {
-            label: 'Blocks',
+            label: 'Fraud Interceptions',
             data: Array(12).fill(0),
             backgroundColor: 'rgba(239,68,68,0.75)',
             borderColor: '#ef4444',
@@ -1060,7 +1164,7 @@
             borderRadius: 3,
           },
           {
-            label: 'Total Events',
+            label: 'Total Monitored API Calls',
             data: Array(12).fill(0),
             backgroundColor: 'rgba(148,163,184,0.25)',
             borderColor: 'rgba(148,163,184,0.5)',

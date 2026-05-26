@@ -71,7 +71,7 @@
     .then(function (user) {
       if (!user) return;
       const name   = user.full_name || user.username || 'User';
-      const initials = name.split(' ').map(function (n) { return n[0]; }).join('').slice(0, 2).toUpperCase();
+      const initials = name.trim().split(/\s+/).map(function (n) { return n[0]; }).filter(Boolean).join('').slice(0, 2).toUpperCase() || 'U';
       const role   = (user.role || '').replace(/_/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); });
       const avatarUrl      = makeAvatar(initials, '#4f46e5', '#fff', 128);
       const avatarUrlWhite = makeAvatar(initials, '#ffffff', '#4f46e5', 128);

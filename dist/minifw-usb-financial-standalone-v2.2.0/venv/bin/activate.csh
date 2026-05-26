@@ -9,7 +9,7 @@ alias deactivate 'test $?_OLD_VIRTUAL_PATH != 0 && setenv PATH "$_OLD_VIRTUAL_PA
 # Unset irrelevant variables.
 deactivate nondestructive
 
-setenv VIRTUAL_ENV /home/sydeco/minifw-ai/dist/minifw-usb-financial-standalone-v2.2.0/venv
+setenv VIRTUAL_ENV /home/advan/minifw-ai/dist/minifw-usb-financial-standalone-v2.2.0/venv
 
 set _OLD_VIRTUAL_PATH="$PATH"
 setenv PATH "$VIRTUAL_ENV/"bin":$PATH"

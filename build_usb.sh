@@ -138,7 +138,7 @@ cd "$SCRIPT_DIR"
 # ── Build images ──────────────────────────────────────────────────────────────
 
 log "Building ${SECTOR} images (this may take a few minutes on first run)..."
-docker compose -f "$SOURCE_COMPOSE" build
+docker compose -f "$SOURCE_COMPOSE" build --no-cache
 
 log "Tagging images..."
 docker tag "${COMPOSE_PROJECT}-engine"   "$IMAGE_TAG"

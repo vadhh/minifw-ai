@@ -23,7 +23,10 @@ from pathlib import Path
 from typing import Optional
 
 
+# Resolve default path relative to this file's parent if /opt is not writable
+BASE_DIR = Path(__file__).resolve().parents[2]
 _DEFAULT_AUDIT_PATH = "/opt/minifw_ai/logs/audit.jsonl"
+_FALLBACK_AUDIT_PATH = str(BASE_DIR / "logs" / "audit.jsonl")
 
 # Module-level writer instance (initialised on first use)
 _writer: Optional["AuditWriter"] = None
@@ -43,7 +46,12 @@ class AuditRecord:
 class AuditWriter:
     def __init__(self, path: str):
         self.path = Path(path)
-        self.path.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            self.path.parent.mkdir(parents=True, exist_ok=True)
+        except OSError:
+            # Fallback to local logs directory if /opt is not writable
+            self.path = Path(_FALLBACK_AUDIT_PATH)
+            self.path.parent.mkdir(parents=True, exist_ok=True)
 
     def write(self, record: AuditRecord) -> None:
         try:

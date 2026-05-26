@@ -4,7 +4,11 @@ import threading
 import time as _time
 
 from fastapi import APIRouter, Request, Depends, HTTPException
-from pydantic import BaseModel, field_validator
+try:
+    from pydantic import BaseModel, field_validator
+except ImportError:
+    from pydantic import BaseModel, validator as field_validator
+
 from app.middleware.auth_middleware import get_current_user
 from app.models.user import User
 from app.controllers.admin.dashboard_controller import dashboard_controller
