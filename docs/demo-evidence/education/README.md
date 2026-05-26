@@ -9,6 +9,7 @@
 
 | File | Purpose |
 |------|---------|
+| `report/architecture-education.svg` | **Architecture diagram.** 1200×820 visual — network segments, scoring pipeline, policy decision, dashboard mock. |
 | `report/evidence-report.md` | **Main document.** Sales/LinkedIn/PDF-ready. Three blocks with raw JSON and key numbers. |
 | `logs/score-timeline.md` | Human-readable event timeline with ASCII score bars. Good for IT managers and safeguarding leads. |
 | `logs/normal-traffic-sample.jsonl` | 7 raw JSON allow events from clean educational baseline. |

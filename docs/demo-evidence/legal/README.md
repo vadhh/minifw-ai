@@ -9,6 +9,7 @@
 
 | File | Purpose |
 |------|---------|
+| `report/architecture-legal.svg` | **Architecture diagram.** 1200×820 visual — network segments, scoring pipeline, policy decision, dashboard mock. |
 | `report/evidence-report.md` | **Main document.** Four blocks with raw JSON + key numbers. |
 | `logs/score-timeline.md` | Timeline + ASCII threshold architecture diagram. |
 | `logs/block-events.jsonl` | 4 raw block decisions with LEGAL-ACP trace IDs. |

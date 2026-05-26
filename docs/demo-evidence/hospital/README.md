@@ -9,6 +9,7 @@
 
 | File | Purpose |
 |------|---------|
+| `report/architecture-hospital.svg` | **Architecture diagram.** 1200×820 visual — network segments, scoring pipeline, policy decision, dashboard mock. |
 | `report/evidence-report.md` | **Main document.** Sales/LinkedIn/PDF-ready. Before → During → After with raw block JSON and key numbers. |
 | `logs/score-timeline.md` | Human-readable attack timeline with ASCII score bars. Good for technical buyers and HIPAA auditors. |
 | `logs/normal-traffic-sample.jsonl` | 10 raw JSON events from clean clinical baseline. Proves zero false positives. |

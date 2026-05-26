@@ -1,0 +1,205 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="820" viewBox="0 0 1200 820">
+<defs><marker id="arrowhead" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#555"/></marker><filter id="shadow" x="-5%" y="-5%" width="115%" height="115%"><feDropShadow dx="1" dy="1" stdDeviation="2" flood-opacity="0.12"/></filter></defs>
+<rect x="0" y="0" width="1200" height="820" rx="0" fill="#f4f6f9" stroke="#f4f6f9" stroke-width="0" />
+<rect x="0" y="0" width="1200" height="58" rx="0" fill="#1e1a3a" stroke="#1e1a3a" stroke-width="0" />
+<text x="600" y="26" font-size="18" fill="#fff" font-weight="bold" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">MiniFW-AI — Government Sector Architecture</text>
+<text x="600" y="46" font-size="12" fill="#a78bfa" font-weight="normal" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">Data Sovereignty  ·  APT Defence  ·  AI-Powered Behavioral Firewall  ·  v2.2.0</text>
+<rect x="20" y="70" width="790" height="90" rx="6" fill="#fff" stroke="#adb5bd" stroke-width="1.5" filter="url(#shadow)"/>
+<rect x="28" y="78" width="160" height="22" rx="4" fill="#1e3a5f" stroke="#1e3a5f" stroke-width="1.5" />
+<text x="108" y="93" font-size="10" fill="#fff" font-weight="bold" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">NETWORK LAYER</text>
+<rect x="36" y="102" width="234" height="48" rx="5" fill="#f8f9fa" stroke="#8b5cf6" stroke-width="1.5" />
+<text x="153" y="122" font-size="11" fill="#8b5cf6" font-weight="bold" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">Classified Net</text>
+<text x="153" y="137" font-size="9" fill="#555" font-weight="normal" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">172.16.10.x  block@70  (classified endpoints · SCIF)</text>
+<rect x="290" y="102" width="234" height="48" rx="5" fill="#f8f9fa" stroke="#3b82f6" stroke-width="1.5" />
+<text x="407" y="122" font-size="11" fill="#3b82f6" font-weight="bold" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">Internal LAN</text>
+<text x="407" y="137" font-size="9" fill="#555" font-weight="normal" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">192.168.1.x  block@45  (staff · services · printers)</text>
+<rect x="544" y="102" width="234" height="48" rx="5" fill="#f8f9fa" stroke="#6b7280" stroke-width="1.5" />
+<text x="661" y="122" font-size="11" fill="#6b7280" font-weight="bold" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">Guest / DMZ</text>
+<text x="661" y="137" font-size="9" fill="#555" font-weight="normal" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">10.0.0.x  block@35  (visitor · untrusted)</text>
+<line x1="153" y1="150" x2="153" y2="178" stroke="#555" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+<line x1="407" y1="150" x2="407" y2="178" stroke="#555" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+<line x1="661" y1="150" x2="661" y2="178" stroke="#555" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+<rect x="20" y="178" width="790" height="74" rx="6" fill="#fff" stroke="#adb5bd" stroke-width="1.5" filter="url(#shadow)"/>
+<rect x="28" y="186" width="170" height="22" rx="4" fill="#1e3a5f" stroke="#1e3a5f" stroke-width="1.5" />
+<text x="113" y="201" font-size="10" fill="#fff" font-weight="bold" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">COLLECTION LAYER</text>
+<rect x="36" y="208" width="234" height="36" rx="5" fill="#e7f3ff" stroke="#0d6efd" stroke-width="1.5" />
+<text x="153" y="224" font-size="10" fill="#0d6efd" font-weight="bold" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">DNS Backend</text>
+<text x="153" y="237" font-size="9" fill="#444" font-weight="normal" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">dnsmasq · journald · UDP · none</text>
+<rect x="290" y="208" width="234" height="36" rx="5" fill="#e7f3ff" stroke="#0d6efd" stroke-width="1.5" />
+<text x="407" y="224" font-size="10" fill="#0d6efd" font-weight="bold" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">Flow Collector</text>
+<text x="407" y="237" font-size="9" fill="#444" font-weight="normal" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">conntrack / nf_conntrack fallback</text>
+<rect x="544" y="208" width="234" height="36" rx="5" fill="#e7f3ff" stroke="#0d6efd" stroke-width="1.5" />
+<text x="661" y="224" font-size="10" fill="#0d6efd" font-weight="bold" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">Zeek / SNI</text>
+<text x="661" y="237" font-size="9" fill="#444" font-weight="normal" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">TLS SNI extraction</text>
+<line x1="415" y1="252" x2="415" y2="270" stroke="#555" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+<text x="505" y="266" font-size="9" fill="#777" font-weight="normal" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">DNS events + flows</text>
+<rect x="20" y="272" width="790" height="218" rx="6" fill="#fff" stroke="#adb5bd" stroke-width="1.5" filter="url(#shadow)"/>
+<rect x="28" y="280" width="220" height="22" rx="4" fill="#1e3a5f" stroke="#1e3a5f" stroke-width="1.5" />
+<text x="138" y="295" font-size="10" fill="#fff" font-weight="bold" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">DETECTION PIPELINE  (Scoring Engine)</text>
+<rect x="32" y="302" width="766" height="30" rx="4" fill="#d4edda" stroke="#28a745" stroke-width="1.5" />
+<rect x="36" y="307" width="20" height="20" rx="4" fill="#28a745" stroke="#28a745" stroke-width="1.5" />
+<text x="46" y="321" font-size="10" fill="#fff" font-weight="bold" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">1</text>
+<text x="70" y="321" font-size="11" fill="#155724" font-weight="bold" text-anchor="start" font-family="Arial,Helvetica,sans-serif">Feed Matcher</text>
+<text x="200" y="321" font-size="9" fill="#444" font-weight="normal" text-anchor="start" font-family="Arial,Helvetica,sans-serif">DNS/IP/ASN deny-feed lookup — threat intelligence</text>
+<rect x="730" y="307" width="60" height="20" rx="4" fill="#28a745" stroke="#28a745" stroke-width="1.5" />
+<text x="760" y="321" font-size="9" fill="#fff" font-weight="bold" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">+40 pts</text>
+<rect x="32" y="338" width="766" height="30" rx="4" fill="#d1ecf1" stroke="#17a2b8" stroke-width="1.5" />
+<rect x="36" y="343" width="20" height="20" rx="4" fill="#17a2b8" stroke="#17a2b8" stroke-width="1.5" />
+<text x="46" y="357" font-size="10" fill="#fff" font-weight="bold" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">2</text>
+<text x="70" y="357" font-size="11" fill="#0c5460" font-weight="bold" text-anchor="start" font-family="Arial,Helvetica,sans-serif">Burst Tracker</text>
+<text x="200" y="357" font-size="9" fill="#444" font-weight="normal" text-anchor="start" font-family="Arial,Helvetica,sans-serif">Query-per-minute spike detection — volumetric</text>
+<rect x="730" y="343" width="60" height="20" rx="4" fill="#17a2b8" stroke="#17a2b8" stroke-width="1.5" />
+<text x="760" y="357" font-size="9" fill="#fff" font-weight="bold" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">+10 pts</text>
+<rect x="32" y="374" width="766" height="30" rx="4" fill="#fff3cd" stroke="#fd7e14" stroke-width="1.5" />
+<rect x="36" y="379" width="20" height="20" rx="4" fill="#fd7e14" stroke="#fd7e14" stroke-width="1.5" />
+<text x="46" y="393" font-size="10" fill="#fff" font-weight="bold" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">3</text>
+<text x="70" y="393" font-size="11" fill="#856404" font-weight="bold" text-anchor="start" font-family="Arial,Helvetica,sans-serif">Hard Gates</text>
+<text x="200" y="393" font-size="9" fill="#444" font-weight="normal" text-anchor="start" font-family="Arial,Helvetica,sans-serif">PPS / bot / burst override — forces score to 100</text>
+<rect x="730" y="379" width="60" height="20" rx="4" fill="#fd7e14" stroke="#fd7e14" stroke-width="1.5" />
+<text x="760" y="393" font-size="9" fill="#fff" font-weight="bold" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">→ 100</text>
+<rect x="32" y="410" width="766" height="30" rx="4" fill="#ede7ff" stroke="#6f42c1" stroke-width="1.5" />
+<rect x="36" y="415" width="20" height="20" rx="4" fill="#6f42c1" stroke="#6f42c1" stroke-width="1.5" />
+<text x="46" y="429" font-size="10" fill="#fff" font-weight="bold" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">4</text>
+<text x="70" y="429" font-size="11" fill="#3d1d8a" font-weight="bold" text-anchor="start" font-family="Arial,Helvetica,sans-serif">MLP Detector</text>
+<text x="200" y="429" font-size="9" fill="#444" font-weight="normal" text-anchor="start" font-family="Arial,Helvetica,sans-serif">Neural network — behavioural threat probability</text>
+<rect x="730" y="415" width="60" height="20" rx="4" fill="#6f42c1" stroke="#6f42c1" stroke-width="1.5" />
+<text x="760" y="429" font-size="9" fill="#fff" font-weight="bold" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">+30 pts</text>
+<rect x="32" y="446" width="766" height="30" rx="4" fill="#fce4ec" stroke="#e83e8c" stroke-width="1.5" />
+<rect x="36" y="451" width="20" height="20" rx="4" fill="#e83e8c" stroke="#e83e8c" stroke-width="1.5" />
+<text x="46" y="465" font-size="10" fill="#fff" font-weight="bold" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">5</text>
+<text x="70" y="465" font-size="11" fill="#6d0a3a" font-weight="bold" text-anchor="start" font-family="Arial,Helvetica,sans-serif">YARA Scanner</text>
+<text x="200" y="465" font-size="9" fill="#444" font-weight="normal" text-anchor="start" font-family="Arial,Helvetica,sans-serif">Government rules: APT C2 · Tor relay · data leak · phishing portal</text>
+<rect x="730" y="451" width="60" height="20" rx="4" fill="#e83e8c" stroke="#e83e8c" stroke-width="1.5" />
+<text x="760" y="465" font-size="9" fill="#fff" font-weight="bold" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">+35 pts</text>
+<rect x="20" y="502" width="790" height="68" rx="6" fill="#fff" stroke="#adb5bd" stroke-width="1.5" filter="url(#shadow)"/>
+<rect x="28" y="510" width="150" height="22" rx="4" fill="#1e3a5f" stroke="#1e3a5f" stroke-width="1.5" />
+<text x="103" y="525" font-size="10" fill="#fff" font-weight="bold" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">POLICY DECISION</text>
+<rect x="40" y="530" width="230" height="32" rx="5" fill="#d4edda" stroke="#28a745" stroke-width="1.5" />
+<text x="155" y="544" font-size="13" fill="#155724" font-weight="bold" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">ALLOW</text>
+<text x="155" y="556" font-size="9" fill="#155724" font-weight="normal" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">score < 35</text>
+<rect x="295" y="530" width="230" height="32" rx="5" fill="#fff3cd" stroke="#ffc107" stroke-width="1.5" />
+<text x="410" y="544" font-size="13" fill="#856404" font-weight="bold" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">MONITOR</text>
+<text x="410" y="556" font-size="9" fill="#856404" font-weight="normal" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">score 35–44 (Internal) / 35–69 (Classified)</text>
+<rect x="550" y="530" width="230" height="32" rx="5" fill="#f8d7da" stroke="#dc3545" stroke-width="1.5" />
+<text x="665" y="544" font-size="13" fill="#721c24" font-weight="bold" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">BLOCK</text>
+<text x="665" y="556" font-size="9" fill="#721c24" font-weight="normal" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">score ≥ 70 (Classified)  ≥ 35 (Guest)</text>
+<line x1="665" y1="562" x2="665" y2="584" stroke="#dc3545" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+<rect x="20" y="582" width="790" height="62" rx="6" fill="#fff" stroke="#adb5bd" stroke-width="1.5" filter="url(#shadow)"/>
+<rect x="28" y="590" width="160" height="22" rx="4" fill="#1e3a5f" stroke="#1e3a5f" stroke-width="1.5" />
+<text x="108" y="605" font-size="10" fill="#fff" font-weight="bold" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">ENFORCEMENT  (kernel)</text>
+<rect x="36" y="612" width="180" height="26" rx="4" fill="#fff5f5" stroke="#dc3545" stroke-width="1.5" />
+<text x="126" y="623" font-size="10" fill="#dc3545" font-weight="bold" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">nftables</text>
+<text x="126" y="634" font-size="8" fill="#555" font-weight="normal" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">kernel-level packet drop</text>
+<rect x="228" y="612" width="180" height="26" rx="4" fill="#fff5f5" stroke="#dc3545" stroke-width="1.5" />
+<text x="318" y="623" font-size="10" fill="#dc3545" font-weight="bold" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">ipset</text>
+<text x="318" y="634" font-size="8" fill="#555" font-weight="normal" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">IP blocklist  (86400s TTL)</text>
+<rect x="420" y="612" width="180" height="26" rx="4" fill="#f8f9fa" stroke="#6c757d" stroke-width="1.5" />
+<text x="510" y="623" font-size="10" fill="#6c757d" font-weight="bold" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">Audit Log</text>
+<text x="510" y="634" font-size="8" fill="#555" font-weight="normal" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">JSONL audit trail</text>
+<rect x="612" y="612" width="180" height="26" rx="4" fill="#f8f9fa" stroke="#6c757d" stroke-width="1.5" />
+<text x="702" y="623" font-size="10" fill="#6c757d" font-weight="bold" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">Event Log</text>
+<text x="702" y="634" font-size="8" fill="#555" font-weight="normal" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">JSONL event stream</text>
+<rect x="20" y="658" width="790" height="56" rx="6" fill="#1e3a5f" stroke="#1e3a5f" stroke-width="1.5" />
+<text x="32" y="672" font-size="10" fill="#8eb8e5" font-weight="bold" text-anchor="start" font-family="Arial,Helvetica,sans-serif">SECTOR OVERLAY — GOVERNMENT</text>
+<text x="32" y="690" font-size="9" fill="#8eb8e5" font-weight="bold" text-anchor="start" font-family="Arial,Helvetica,sans-serif">PRODUCT_MODE</text>
+<text x="32" y="704" font-size="8" fill="#c8d8f0" font-weight="normal" text-anchor="start" font-family="Arial,Helvetica,sans-serif">minifw_government</text>
+<text x="224" y="690" font-size="9" fill="#8eb8e5" font-weight="bold" text-anchor="start" font-family="Arial,Helvetica,sans-serif">policy.json</text>
+<text x="224" y="704" font-size="8" fill="#c8d8f0" font-weight="normal" text-anchor="start" font-family="Arial,Helvetica,sans-serif">thresholds · weights · segments</text>
+<text x="416" y="690" font-size="9" fill="#8eb8e5" font-weight="bold" text-anchor="start" font-family="Arial,Helvetica,sans-serif">government_rules.yar</text>
+<text x="416" y="704" font-size="8" fill="#c8d8f0" font-weight="normal" text-anchor="start" font-family="Arial,Helvetica,sans-serif">4 YARA rules · Sovereignty tagged</text>
+<text x="608" y="690" font-size="9" fill="#8eb8e5" font-weight="bold" text-anchor="start" font-family="Arial,Helvetica,sans-serif">feeds/</text>
+<text x="608" y="704" font-size="8" fill="#c8d8f0" font-weight="normal" text-anchor="start" font-family="Arial,Helvetica,sans-serif">deny_domains · deny_ips · deny_asns</text>
+<rect x="832" y="70" width="348" height="648" rx="6" fill="#fff" stroke="#adb5bd" stroke-width="1.5" filter="url(#shadow)"/>
+<rect x="840" y="78" width="200" height="22" rx="4" fill="#1e3a5f" stroke="#1e3a5f" stroke-width="1.5" />
+<text x="940" y="93" font-size="10" fill="#fff" font-weight="bold" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">WEB ADMIN DASHBOARD</text>
+<text x="840" y="110" font-size="9" fill="#555" font-weight="normal" text-anchor="start" font-family="Arial,Helvetica,sans-serif">FastAPI  ·  AdminLTE 3  ·  SQLite  ·  JWT+TOTP</text>
+<text x="840" y="124" font-size="9" fill="#0d6efd" font-weight="normal" text-anchor="start" font-family="Arial,Helvetica,sans-serif">https://localhost:8449   admin / Government1!</text>
+<rect x="842" y="132" width="78" height="46" rx="4" fill="#fff" stroke="#28a745" stroke-width="1.5" />
+<text x="881" y="153" font-size="15" fill="#28a745" font-weight="bold" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">20</text>
+<text x="881" y="168" font-size="8" fill="#28a745" font-weight="normal" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">Allowed</text>
+<rect x="926" y="132" width="78" height="46" rx="4" fill="#fff" stroke="#dc3545" stroke-width="1.5" />
+<text x="965" y="153" font-size="15" fill="#dc3545" font-weight="bold" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">2</text>
+<text x="965" y="168" font-size="8" fill="#dc3545" font-weight="normal" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">Blocked</text>
+<rect x="1010" y="132" width="78" height="46" rx="4" fill="#fff" stroke="#ffc107" stroke-width="1.5" />
+<text x="1049" y="153" font-size="15" fill="#ffc107" font-weight="bold" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">5</text>
+<text x="1049" y="168" font-size="8" fill="#ffc107" font-weight="normal" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">Monitored</text>
+<rect x="1094" y="132" width="78" height="46" rx="4" fill="#fff" stroke="#17a2b8" stroke-width="1.5" />
+<text x="1133" y="153" font-size="15" fill="#17a2b8" font-weight="bold" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">27</text>
+<text x="1133" y="168" font-size="8" fill="#17a2b8" font-weight="normal" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">Total</text>
+<text x="840" y="196" font-size="10" fill="#333" font-weight="bold" text-anchor="start" font-family="Arial,Helvetica,sans-serif">Recent Events  ●LIVE</text>
+<rect x="840" y="202" width="332" height="24" rx="2" fill="#fff" stroke="#dee2e6" stroke-width="0.5" />
+<text x="848" y="217" font-size="8" fill="#888" font-weight="normal" text-anchor="start" font-family="Arial,Helvetica,sans-serif">10:14:30</text>
+<text x="904" y="217" font-size="8" fill="#333" font-weight="normal" text-anchor="start" font-family="Arial,Helvetica,sans-serif">apt28-c2.ru-beacon.net</text>
+<text x="1076" y="217" font-size="8" fill="#dc3545" font-weight="bold" text-anchor="start" font-family="Arial,Helvetica,sans-serif">▸100</text>
+<rect x="1124" y="206" width="50" height="16" rx="4" fill="#dc3545" stroke="#dc3545" stroke-width="1.5" />
+<text x="1149" y="217" font-size="7" fill="#fff" font-weight="bold" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">Blocked</text>
+<rect x="840" y="228" width="332" height="24" rx="2" fill="#f8f9fa" stroke="#dee2e6" stroke-width="0.5" />
+<text x="848" y="243" font-size="8" fill="#888" font-weight="normal" text-anchor="start" font-family="Arial,Helvetica,sans-serif">10:14:20</text>
+<text x="904" y="243" font-size="8" fill="#333" font-weight="normal" text-anchor="start" font-family="Arial,Helvetica,sans-serif">tor-relay-gov.exit.net</text>
+<text x="1076" y="243" font-size="8" fill="#dc3545" font-weight="bold" text-anchor="start" font-family="Arial,Helvetica,sans-serif">▸75</text>
+<rect x="1124" y="232" width="50" height="16" rx="4" fill="#dc3545" stroke="#dc3545" stroke-width="1.5" />
+<text x="1149" y="243" font-size="7" fill="#fff" font-weight="bold" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">Blocked</text>
+<rect x="840" y="254" width="332" height="24" rx="2" fill="#fff" stroke="#dee2e6" stroke-width="0.5" />
+<text x="848" y="269" font-size="8" fill="#888" font-weight="normal" text-anchor="start" font-family="Arial,Helvetica,sans-serif">10:14:10</text>
+<text x="904" y="269" font-size="8" fill="#333" font-weight="normal" text-anchor="start" font-family="Arial,Helvetica,sans-serif">classified-exfil.gov-drop.io</text>
+<text x="1076" y="269" font-size="8" fill="#ffc107" font-weight="bold" text-anchor="start" font-family="Arial,Helvetica,sans-serif">▸40</text>
+<rect x="1124" y="258" width="50" height="16" rx="4" fill="#ffc107" stroke="#ffc107" stroke-width="1.5" />
+<text x="1149" y="269" font-size="7" fill="#fff" font-weight="bold" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">Monitor</text>
+<rect x="840" y="280" width="332" height="24" rx="2" fill="#f8f9fa" stroke="#dee2e6" stroke-width="0.5" />
+<text x="848" y="295" font-size="8" fill="#888" font-weight="normal" text-anchor="start" font-family="Arial,Helvetica,sans-serif">10:13:55</text>
+<text x="904" y="295" font-size="8" fill="#333" font-weight="normal" text-anchor="start" font-family="Arial,Helvetica,sans-serif">phishing-portal.gov-verify.ru</text>
+<text x="1076" y="295" font-size="8" fill="#ffc107" font-weight="bold" text-anchor="start" font-family="Arial,Helvetica,sans-serif">▸40</text>
+<rect x="1124" y="284" width="50" height="16" rx="4" fill="#ffc107" stroke="#ffc107" stroke-width="1.5" />
+<text x="1149" y="295" font-size="7" fill="#fff" font-weight="bold" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">Monitor</text>
+<rect x="840" y="306" width="332" height="24" rx="2" fill="#fff" stroke="#dee2e6" stroke-width="0.5" />
+<text x="848" y="321" font-size="8" fill="#888" font-weight="normal" text-anchor="start" font-family="Arial,Helvetica,sans-serif">10:13:40</text>
+<text x="904" y="321" font-size="8" fill="#333" font-weight="normal" text-anchor="start" font-family="Arial,Helvetica,sans-serif">gov.uk</text>
+<text x="1076" y="321" font-size="8" fill="#28a745" font-weight="bold" text-anchor="start" font-family="Arial,Helvetica,sans-serif">▸0</text>
+<rect x="1124" y="310" width="50" height="16" rx="4" fill="#28a745" stroke="#28a745" stroke-width="1.5" />
+<text x="1149" y="321" font-size="7" fill="#fff" font-weight="bold" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">Allowed</text>
+<rect x="840" y="332" width="332" height="116" rx="4" fill="#f8f9fa" stroke="#dee2e6" stroke-width="1.5" />
+<text x="848" y="346" font-size="9" fill="#333" font-weight="bold" text-anchor="start" font-family="Arial,Helvetica,sans-serif">Score Breakdown — BLOCK event  score 100/100</text>
+<text x="848" y="358" font-size="9" fill="#28a745" font-weight="normal" text-anchor="start" font-family="Arial,Helvetica,sans-serif">Feed Matcher  +40</text>
+<rect x="1012" y="346" width="112" height="14" rx="2" fill="#28a745" stroke="#28a745" stroke-width="1.5" />
+<text x="848" y="380" font-size="9" fill="#e83e8c" font-weight="normal" text-anchor="start" font-family="Arial,Helvetica,sans-serif">YARA Scanner  +35</text>
+<rect x="1012" y="368" width="98" height="14" rx="2" fill="#e83e8c" stroke="#e83e8c" stroke-width="1.5" />
+<text x="848" y="402" font-size="9" fill="#6f42c1" font-weight="normal" text-anchor="start" font-family="Arial,Helvetica,sans-serif">MLP Detector  +25</text>
+<rect x="1012" y="390" width="70" height="14" rx="2" fill="#6f42c1" stroke="#6f42c1" stroke-width="1.5" />
+<text x="848" y="424" font-size="9" fill="#17a2b8" font-weight="normal" text-anchor="start" font-family="Arial,Helvetica,sans-serif">Burst Tracker  +0</text>
+<rect x="1012" y="412" width="2" height="14" rx="2" fill="#17a2b8" stroke="#17a2b8" stroke-width="1.5" />
+<rect x="840" y="460" width="332" height="102" rx="4" fill="#f8f9fa" stroke="#dee2e6" stroke-width="1.5" />
+<text x="848" y="474" font-size="10" fill="#333" font-weight="bold" text-anchor="start" font-family="Arial,Helvetica,sans-serif">Firewall Status</text>
+<text x="848" y="497" font-size="9" fill="#555" font-weight="normal" text-anchor="start" font-family="Arial,Helvetica,sans-serif">Firewall Engine</text>
+<rect x="1090" y="487" width="76" height="13" rx="4" fill="#28a745" stroke="#28a745" stroke-width="1.5" />
+<text x="1128" y="496" font-size="7" fill="#fff" font-weight="bold" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">Active</text>
+<text x="848" y="515" font-size="9" fill="#555" font-weight="normal" text-anchor="start" font-family="Arial,Helvetica,sans-serif">Detection Mode</text>
+<rect x="1090" y="505" width="76" height="13" rx="4" fill="#6f42c1" stroke="#6f42c1" stroke-width="1.5" />
+<text x="1128" y="514" font-size="7" fill="#fff" font-weight="bold" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">AI Enhanced</text>
+<text x="848" y="533" font-size="9" fill="#555" font-weight="normal" text-anchor="start" font-family="Arial,Helvetica,sans-serif">Sovereignty Mode</text>
+<rect x="1090" y="523" width="76" height="13" rx="4" fill="#dc3545" stroke="#dc3545" stroke-width="1.5" />
+<text x="1128" y="532" font-size="7" fill="#fff" font-weight="bold" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">Enforcing</text>
+<text x="848" y="551" font-size="9" fill="#555" font-weight="normal" text-anchor="start" font-family="Arial,Helvetica,sans-serif">Threat Intelligence</text>
+<rect x="1090" y="541" width="76" height="13" rx="4" fill="#0d6efd" stroke="#0d6efd" stroke-width="1.5" />
+<text x="1128" y="550" font-size="7" fill="#fff" font-weight="bold" text-anchor="middle" font-family="Arial,Helvetica,sans-serif">Active</text>
+<rect x="840" y="572" width="332" height="50" rx="4" fill="#ede7ff" stroke="#6f42c1" stroke-width="1.5" />
+<text x="848" y="586" font-size="10" fill="#3d1d8a" font-weight="bold" text-anchor="start" font-family="Arial,Helvetica,sans-serif">AI Threat Synthesis Panel</text>
+<text x="848" y="600" font-size="9" fill="#555" font-weight="normal" text-anchor="start" font-family="Arial,Helvetica,sans-serif">Detection · kernel enforcement · AI reasoning</text>
+<text x="848" y="612" font-size="8" fill="#888" font-weight="normal" text-anchor="start" font-family="Arial,Helvetica,sans-serif">Auth: JWT + TOTP + bcrypt  |  RBAC</text>
+<rect x="840" y="632" width="332" height="52" rx="4" fill="#fff3cd" stroke="#ffc107" stroke-width="1.5" />
+<text x="848" y="646" font-size="9" fill="#856404" font-weight="bold" text-anchor="start" font-family="Arial,Helvetica,sans-serif">State Manager</text>
+<text x="848" y="660" font-size="9" fill="#856404" font-weight="normal" text-anchor="start" font-family="Arial,Helvetica,sans-serif">BASELINE → AI_ENHANCED_PROTECTION</text>
+<text x="848" y="672" font-size="8" fill="#856404" font-weight="normal" text-anchor="start" font-family="Arial,Helvetica,sans-serif">Auto-transition on DNS telemetry health</text>
+<rect x="840" y="694" width="332" height="56" rx="4" fill="#fff" stroke="#dee2e6" stroke-width="1.5" />
+<text x="848" y="706" font-size="9" fill="#333" font-weight="bold" text-anchor="start" font-family="Arial,Helvetica,sans-serif">Legend</text>
+<rect x="848" y="716" width="10" height="10" rx="2" fill="#28a745" stroke="#28a745" stroke-width="1.5" />
+<text x="862" y="725" font-size="8" fill="#333" font-weight="normal" text-anchor="start" font-family="Arial,Helvetica,sans-serif">Allow/Safe</text>
+<rect x="960" y="716" width="10" height="10" rx="2" fill="#ffc107" stroke="#ffc107" stroke-width="1.5" />
+<text x="974" y="725" font-size="8" fill="#333" font-weight="normal" text-anchor="start" font-family="Arial,Helvetica,sans-serif">Monitor</text>
+<rect x="1072" y="716" width="10" height="10" rx="2" fill="#dc3545" stroke="#dc3545" stroke-width="1.5" />
+<text x="1086" y="725" font-size="8" fill="#333" font-weight="normal" text-anchor="start" font-family="Arial,Helvetica,sans-serif">Block/Critical</text>
+<rect x="848" y="736" width="10" height="10" rx="2" fill="#6f42c1" stroke="#6f42c1" stroke-width="1.5" />
+<text x="862" y="745" font-size="8" fill="#333" font-weight="normal" text-anchor="start" font-family="Arial,Helvetica,sans-serif">AI Component</text>
+<rect x="960" y="736" width="10" height="10" rx="2" fill="#e83e8c" stroke="#e83e8c" stroke-width="1.5" />
+<text x="974" y="745" font-size="8" fill="#333" font-weight="normal" text-anchor="start" font-family="Arial,Helvetica,sans-serif">YARA Scanner</text>
+<line x1="832" y1="380" x2="810" y2="614" stroke="#adb5bd" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrowhead)"/>
+</svg>

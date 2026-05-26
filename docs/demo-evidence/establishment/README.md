@@ -9,6 +9,7 @@
 
 | File | Purpose |
 |------|---------|
+| `report/architecture-establishment.svg` | **Architecture diagram.** 1200×820 visual — network segments, scoring pipeline, policy decision, dashboard mock. |
 | `report/evidence-report.md` | **Main document.** Dual-threshold architecture explained with raw block JSON. |
 | `logs/score-timeline.md` | Timeline showing score 40 = MONITOR on office, score 40 = BLOCK on guest. |
 | `logs/block-events.jsonl` | 2 guest WiFi block decisions with SME-EST trace IDs. |

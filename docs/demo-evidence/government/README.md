@@ -9,6 +9,7 @@
 
 | File | Purpose |
 |------|---------|
+| `report/architecture-government.svg` | **Architecture diagram.** 1200×820 visual — network segments, scoring pipeline, policy decision, dashboard mock. |
 | `report/evidence-report.md` | **Main document.** Before/during/after with raw block JSON. Includes near-miss analysis. |
 | `logs/score-timeline.md` | Timeline with ASCII score bars. Near miss vs monitor vs block clearly shown. |
 | `logs/normal-traffic-sample.jsonl` | 5 sovereign allow events from clean baseline. |
