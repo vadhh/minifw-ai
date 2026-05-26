@@ -183,7 +183,7 @@ Fill this in after each test run. Date format: YYYY-MM-DD.
 
 | Date | Sector | Package Type | Machine / VM | venv rebuilt? | Dashboard | Attacks | YARA | Recovery | Pass/Fail | Notes |
 |------|--------|-------------|--------------|--------------|-----------|---------|------|----------|-----------|-------|
-| | Hospital | Standalone | | | | | | | | |
+| 2026-05-26 | Hospital | Standalone | Ubuntu 22.04 Docker container (clean, no Python pre-installed) | Yes (requirements.txt) | ✅ up in 5s | ✅ 1 block at T+38s, HIPAA-PHI trace IDs | ✅ 1 rule compiled | n/a | **PASS 10/10** | Bugs fixed: requirements.txt added, sme_rules.yar/test_rules.yar removed |
 | | Education | Docker | | | | | | | | |
 | | Government | Docker | | | | | | | | |
 | | Legal | Docker | | | | | | | | |

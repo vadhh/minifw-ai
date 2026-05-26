@@ -90,6 +90,7 @@ REQUIRED_FILES=(
     "INSTALL.md"
     "DEMO_SCRIPT.md"
     "PRESENTER_CARD.md"
+    "requirements.txt"
     "scheduler/demo_scheduler.py"
     "app/minifw_ai/main.py"
     "app/web/app.py"
@@ -165,7 +166,7 @@ fi
 PRODUCT_MODE_IN_POLICY=$(python3 -c "
 import json
 p = json.load(open('config/policy.json'))
-print(p.get('product_mode', p.get('sector', 'NOT_FOUND')))
+print(p.get('product_mode', p.get('_mode', p.get('sector', p.get('_sector', 'NOT_FOUND')))))
 " 2>/dev/null || echo "error")
 if echo "$PRODUCT_MODE_IN_POLICY" | grep -qi "hospital"; then
     ok "policy.json sector: $PRODUCT_MODE_IN_POLICY"
