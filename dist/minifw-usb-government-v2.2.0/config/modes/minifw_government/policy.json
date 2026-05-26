@@ -1,0 +1,63 @@
+{
+  "_mode": "minifw_government",
+  "_sector": "government",
+  "_note": "Sovereign infrastructure protection. Strict geo-IP blocking, zero-tolerance C2/APT detection, full audit traceability. Thresholds tighter than financial.",
+  "segments": {
+    "default": {
+      "block_threshold": 80,
+      "monitor_threshold": 50
+    },
+    "classified": {
+      "block_threshold": 70,
+      "monitor_threshold": 40,
+      "_note": "Classified network segments — tightest enforcement."
+    },
+    "internal": {
+      "block_threshold": 75,
+      "monitor_threshold": 45
+    },
+    "guest": {
+      "block_threshold": 65,
+      "monitor_threshold": 35,
+      "_note": "Visitor / citizen-facing network."
+    },
+    "dmz": {
+      "block_threshold": 72,
+      "monitor_threshold": 48,
+      "_note": "Public-facing services — sovereign domain only."
+    }
+  },
+  "segment_subnets": {
+    "classified": ["10.1.0.0/24"],
+    "internal":   ["10.0.0.0/8", "192.168.0.0/16"],
+    "guest":      ["192.168.200.0/24"],
+    "dmz":        ["10.10.0.0/24"]
+  },
+  "features": {
+    "dns_weight":       40,
+    "sni_weight":       35,
+    "asn_weight":       20,
+    "ip_denied_weight": 20,
+    "burst_weight":     15,
+    "mlp_weight":       30,
+    "yara_weight":      35
+  },
+  "enforcement": {
+    "ipset_name_v4":      "minifw_block_v4",
+    "ip_timeout_seconds": 604800,
+    "nft_table":          "inet",
+    "nft_table_name":     "minifw",
+    "nft_chain":          "forward"
+  },
+  "collectors": {
+    "dnsmasq_log_path": "/opt/minifw_ai/logs/dnsmasq.log",
+    "zeek_ssl_log_path": "/var/log/zeek/ssl.log",
+    "use_zeek_sni": true
+  },
+  "burst": {
+    "dns_queries_per_minute_monitor": 20,
+    "dns_queries_per_minute_block":   40
+  },
+  "minimum_tls_version": "1.2",
+  "log_retention_days": 365
+}

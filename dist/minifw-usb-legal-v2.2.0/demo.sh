@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+# MiniFW-AI — Legal Sector Demo Launcher
+# Run: bash demo.sh
+# Requires: Docker + Docker Compose v2 installed on host
+
+set -euo pipefail
+
+USB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+IMAGE_TAG="minifw-ai-demo/legal:latest"
+INJECTOR_TAG="minifw-ai-demo/legal-injector:latest"
+IMAGE_TAR="${USB_DIR}/images/minifw-legal.tar"
+COMPOSE_FILE="${USB_DIR}/docker/docker-compose.usb-legal.yml"
+
+log()  { echo "[minifw-demo] $*"; }
+die()  { echo "[minifw-demo] ERROR: $*" >&2; exit 1; }
+
+[[ -f "$COMPOSE_FILE" ]] || die "Compose file not found: ${COMPOSE_FILE}"
+command -v docker >/dev/null 2>&1 || die "Docker is not installed or not in PATH"
+docker compose version >/dev/null 2>&1 || die "Docker Compose v2 is required (docker compose)"
+docker info >/dev/null 2>&1 || die "Docker daemon is not running"
+
+if ! docker image inspect "$IMAGE_TAG" >/dev/null 2>&1 || \
+   ! docker image inspect "$INJECTOR_TAG" >/dev/null 2>&1; then
+    log "Images not found — loading from USB (this takes ~2-3 minutes)..."
+    [[ -f "$IMAGE_TAR" ]] || die "Image archive not found: ${IMAGE_TAR}"
+    docker load -i "$IMAGE_TAR"
+    log "Images loaded."
+else
+    log "Images already loaded — skipping docker load."
+fi
+
+echo ""
+echo "  ● MiniFW-AI Demo — Legal"
+echo "  ─────────────────────────────────────────────────────"
+echo "  Dashboard : https://localhost:8448"
+echo "  Login     : admin / Legal1!"
+echo "  Sector    : Legal / Attorney-Client Privilege"
+echo ""
+echo "  Ctrl+C to stop."
+echo ""
+
+trap 'echo ""; echo "  Demo stopped. To clean up: docker compose -f \"${COMPOSE_FILE}\" down"' EXIT
+
+docker compose -f "$COMPOSE_FILE" up
