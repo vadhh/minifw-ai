@@ -14,7 +14,7 @@ MiniFW-AI Schools is an AI-powered behavioral firewall for K-12 and university g
 - **Social media on restricted segments** — Instagram, TikTok and similar flagged on student networks
 - **Burst/DDoS-style circumvention** — high-frequency DNS queries to a single bypass domain trigger burst detection
 
-The demo loops continuously — events replay every ~33 seconds, so every dashboard visit shows live activity.
+The demo loops continuously — events replay every ~27 seconds, so every dashboard visit shows live activity.
 
 **Access:** HTTPS on port 8447. Accept the browser's self-signed certificate warning.
 
@@ -58,7 +58,7 @@ Accept the self-signed certificate warning in your browser.
   Ctrl+C to stop.
 ```
 
-**Wait ~33 seconds** for the first injector loop to populate events in the dashboard. The injector starts after an 8-second warm-up delay and completes one full loop (6 scenario events + burst) before the 10-second inter-loop sleep.
+**Wait ~27 seconds** for the first injector loop to populate events in the dashboard. The injector starts after an 8-second warm-up delay and completes one full loop (8 scenario events + burst) before the 10-second inter-loop sleep.
 
 **Stop the demo:**
 ```bash
@@ -120,7 +120,7 @@ Shows:
 
 ## Threat Scenarios
 
-The demo injector (`docker/demo-injector-education/inject.py`) loops continuously. Each loop injects 7 events plus a burst sequence, repeating every ~33 seconds.
+The demo injector (`docker/demo-injector-education/inject.py`) loops continuously. Each loop injects 8 events plus a burst sequence, repeating every ~27 seconds.
 
 ### Per-Loop Scenario Summary
 
@@ -236,7 +236,7 @@ Upgrade to Docker Engine 20.10+ which includes Compose v2 built-in. Or install t
 sudo apt-get install docker-compose-plugin
 ```
 
-**No events appearing after 33 seconds:**
+**No events appearing after 30 seconds:**
 ```bash
 docker compose -f docker/docker-compose.usb-education.yml logs minifw-injector
 ```
