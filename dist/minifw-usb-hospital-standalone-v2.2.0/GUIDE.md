@@ -173,16 +173,23 @@ Key fields (excerpt — simplified for clarity):
 
 ```json
 {
-  "thresholds": {
-    "block": 70,
-    "monitor": 40,
-    "alert_only": 20
+  "segments": {
+    "default": {
+      "block_threshold": 85,
+      "monitor_threshold": 40
+    },
+    "mednet": {
+      "block_threshold": 45,
+      "monitor_threshold": 30
+    }
   },
-  "score_weights": {
-    "feed_match": 40,
-    "tls_sni": 35,
-    "asn_deny": 15,
-    "dns_burst": 10
+  "features": {
+    "dns_weight": 40,
+    "sni_weight": 35,
+    "asn_weight": 15,
+    "burst_weight": 10,
+    "mlp_weight": 30,
+    "yara_weight": 35
   }
 }
 ```
