@@ -38,10 +38,10 @@ Open **http://localhost:8000** and login with `admin` / `Hospital1!`.
 
 **Expected terminal output:**
 ```
-[minifw-demo] Starting MiniFW-AI Hospital Sector Demo...
-[minifw-demo] Dashboard → http://localhost:8000
-[minifw-demo] Login     → admin / Hospital1!
-INFO:     Uvicorn running on http://0.0.0.0:8000
+[minifw] Starting Hospital Demo...
+[minifw] Engine started (PID ...)
+[minifw] Dashboard ready → http://localhost:8000  (admin / Hospital1!)
+[minifw] Press Ctrl+C to stop.
 ```
 
 Events begin populating within a few seconds. The engine cycles through synthetic healthcare traffic automatically — no interaction required.
@@ -84,11 +84,16 @@ The main table shows every DNS decision made by the engine. Columns:
 
 ### Decision Thresholds (Hospital sector defaults)
 
-| Score range | Decision |
-|-------------|----------|
-| 0–39 | ALLOW |
-| 40–69 | MONITOR (logged, not blocked) |
-| 70–100 | BLOCK (nftables rule added in production) |
+Per-segment thresholds from `config/policy.json`:
+
+| Segment | MONITOR threshold | BLOCK threshold |
+|---------|-------------------|-----------------|
+| default | 40 | 85 |
+| internal | 30 | 80 |
+| guest | 20 | 65 |
+| mednet | 30 | 45 |
+
+Scores below the MONITOR threshold → ALLOW. Scores at or above MONITOR but below BLOCK → MONITOR (logged, not blocked). Scores at or above BLOCK → BLOCK (nftables rule added in production).
 
 ### AI Threat Synthesis Panel
 
@@ -162,9 +167,9 @@ The demo cycles through `demo_data/normal_traffic.json` and `demo_data/attack_tr
 
 ### policy.json
 
-`config/modes/minifw_hospital/policy.json` controls decision thresholds and score weights per segment.
+`config/policy.json` controls decision thresholds and score weights per segment.
 
-Key fields:
+Key fields (excerpt — simplified for clarity):
 
 ```json
 {
@@ -244,7 +249,7 @@ bash run_demo.sh
 **No events appearing in the dashboard:**
 - Check `logs/` for error messages
 - Verify `demo_data/normal_traffic.json` and `demo_data/attack_traffic.json` exist
-- Verify `MINIFW_SECRET_KEY` is set: `grep SECRET_KEY <(bash -c "source venv/bin/activate && bash run_demo.sh 2>&1 | head -5")`
+- Verify `MINIFW_SECRET_KEY` is set: `grep MINIFW_SECRET_KEY run_demo.sh`
 
 **Database error on first run:**
 ```bash
@@ -256,7 +261,7 @@ bash run_demo.sh
 ```bash
 cat logs/events.jsonl | tail -5
 ```
-If empty, check `logs/minifw_engine.log` for startup errors.
+If empty, check `logs/engine.log` for startup errors.
 
 ---
 
@@ -273,7 +278,7 @@ The installer prompts for sector selection, downloads the sector-specific `.deb`
 
 **Manual .deb install:**
 ```bash
-sudo dpkg -i minifw-ai_2.2.1-hospital_amd64.deb
+sudo dpkg -i minifw-ai_2.2.0-hospital_amd64.deb
 sudo systemctl status minifw-ai minifw-ai-web
 ```
 
