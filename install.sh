@@ -241,6 +241,6 @@ main() {
 }
 
 # Allow sourcing for tests without running main
-if [[ "${BASH_SOURCE[0]:-}" == "${0}" ]]; then
+if [[ "${BASH_SOURCE[0]:-}" == "${0}" || "${BASH_SOURCE[0]:-}" == "" ]]; then
     main "$@"
 fi
