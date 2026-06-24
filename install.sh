@@ -126,9 +126,11 @@ _base_url() {
 # ── Download ──────────────────────────────────────────────────────────────────
 _download_assets() {
     local base_url="$1" deb_name="$2" tmpdir="$3"
+    local curl_progress=""
+    [ -t 2 ] && curl_progress="--progress-bar"
     _info "Downloading ${deb_name}..."
-    curl -fsSL --progress-bar "${base_url}/${deb_name}" -o "${tmpdir}/${deb_name}" \
-        || _die "Package not found: ${base_url}/${deb_name}\n       Check https://github.com/${MINIFW_REPO}/releases for available packages."
+    curl -fsSL $curl_progress "${base_url}/${deb_name}" -o "${tmpdir}/${deb_name}" \
+        || _die "Download failed ($(curl -sSL -o /dev/null -w '%{http_code}' "${base_url}/${deb_name}")): ${base_url}/${deb_name}"
     curl -fsSL "${base_url}/${deb_name}.sha256" -o "${tmpdir}/${deb_name}.sha256" \
         || _die "Checksum file not found for ${deb_name}"
     curl -fsSL             "${base_url}/${deb_name}.asc"       -o "${tmpdir}/${deb_name}.asc"       2>/dev/null || _warn "No GPG signature asset found"
