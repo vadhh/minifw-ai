@@ -35,12 +35,26 @@ _check_tools() {
     command -v gpg &>/dev/null || _warn "Tool not found: gpg (GPG verification will be skipped)"
 }
 
+# ── Banner ────────────────────────────────────────────────────────────────────
+_print_banner() {
+    echo ""
+    echo "  ╔════════════════════════════════════════════════════╗"
+    echo "  ║                                                    ║"
+    echo "  ║  ███╗   ███╗██╗███╗   ██╗██╗███████╗██╗    ██╗   ║"
+    echo "  ║  ████╗ ████║██║████╗  ██║██║██╔════╝██║    ██║   ║"
+    echo "  ║  ██╔████╔██║██║██╔██╗ ██║██║█████╗  ██║ █╗ ██║   ║"
+    echo "  ║  ██║╚██╔╝██║██║██║╚██╗██║██║██╔══╝  ██║███╗██║   ║"
+    echo "  ║  ██║ ╚═╝ ██║██║██║ ╚████║██║██║     ╚███╔███╔╝   ║"
+    echo "  ║  ╚═╝     ╚═╝╚═╝╚═╝  ╚═══╝╚═╝╚═╝      ╚══╝╚══╝    ║"
+    echo "  ║                    ·  A  I  ·                      ║"
+    echo "  ║         Behavioral Firewall Engine                 ║"
+    echo "  ║                                                    ║"
+    echo "  ╚════════════════════════════════════════════════════╝"
+    echo ""
+}
+
 # ── Sector selection ──────────────────────────────────────────────────────────
 _sector_menu() {
-    echo ""
-    echo "============================================"
-    echo " MiniFW-AI Installer"
-    echo "============================================"
     echo ""
     echo "Select deployment sector:"
     echo ""
@@ -70,7 +84,7 @@ _select_sector() {
     _sector_menu
     local sector=""
     while [[ -z "$sector" ]]; do
-        read -rp "Enter number (1-6): " choice
+        read -rp "Enter number (1-6): " choice </dev/tty
         sector="$(_sector_for_choice "$choice")"
         [[ -z "$sector" ]] && echo "  Invalid choice. Please enter a number between 1 and 6."
     done
@@ -213,6 +227,7 @@ _print_summary() {
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 main() {
+    _print_banner
     _check_root
     _check_os
     _check_tools
