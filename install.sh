@@ -81,12 +81,13 @@ _sector_for_choice() {
 }
 
 _select_sector() {
-    _sector_menu
+    _sector_menu >/dev/tty
     local sector=""
     while [[ -z "$sector" ]]; do
-        read -rp "Enter number (1-6): " choice </dev/tty
+        printf "Enter number (1-6): " >/dev/tty
+        read -r choice </dev/tty
         sector="$(_sector_for_choice "$choice")"
-        [[ -z "$sector" ]] && echo "  Invalid choice. Please enter a number between 1 and 6."
+        [[ -z "$sector" ]] && printf "  Invalid choice. Please enter a number between 1 and 6.\n" >/dev/tty
     done
     echo "$sector"
 }
