@@ -124,17 +124,44 @@ _base_url() {
 }
 
 # ── Download ──────────────────────────────────────────────────────────────────
-_download_assets() {
-    local base_url="$1" deb_name="$2" tmpdir="$3"
+_download_url() {
+    local url="$1" dest="$2"
     local curl_progress=""
     [ -t 2 ] && curl_progress="--progress-bar"
+    
+    local err=0
+    curl -fsSL $curl_progress "$url" -o "$dest" || err=$?
+    
+    if [[ $err -eq 0 ]]; then
+        return 0
+    fi
+    
+    if [[ $err -eq 23 ]] && command -v wget &>/dev/null; then
+        _warn "curl failed to write (possibly Snap confinement). Retrying with wget..."
+        local wget_progress=""
+        [ -t 2 ] && wget_progress="--show-progress"
+        wget -q $wget_progress -O "$dest" "$url"
+        return $?
+    fi
+    
+    return $err
+}
+
+_download_assets() {
+    local base_url="$1" deb_name="$2" tmpdir="$3"
     _info "Downloading ${deb_name}..."
-    curl -fsSL $curl_progress "${base_url}/${deb_name}" -o "${tmpdir}/${deb_name}" \
-        || _die "Download failed ($(curl -sSL -o /dev/null -w '%{http_code}' "${base_url}/${deb_name}")): ${base_url}/${deb_name}"
-    curl -fsSL "${base_url}/${deb_name}.sha256" -o "${tmpdir}/${deb_name}.sha256" \
-        || _die "Checksum file not found for ${deb_name}"
-    curl -fsSL             "${base_url}/${deb_name}.asc"       -o "${tmpdir}/${deb_name}.asc"       2>/dev/null || _warn "No GPG signature asset found"
-    curl -fsSL             "${base_url}/minifw-ai-release.asc" -o "${tmpdir}/minifw-ai-release.asc" 2>/dev/null || _warn "No GPG public key asset found"
+    if ! _download_url "${base_url}/${deb_name}" "${tmpdir}/${deb_name}"; then
+        local http_code
+        http_code=$(curl -sSL -o /dev/null -w "%{http_code}" "${base_url}/${deb_name}" 2>/dev/null || echo "000")
+        _die "Download failed (${http_code}): ${base_url}/${deb_name}. (If exit 23, please install wget: sudo apt install wget)"
+    fi
+    
+    if ! _download_url "${base_url}/${deb_name}.sha256" "${tmpdir}/${deb_name}.sha256"; then
+        _die "Checksum file not found for ${deb_name}"
+    fi
+    
+    _download_url "${base_url}/${deb_name}.asc" "${tmpdir}/${deb_name}.asc" >/dev/null 2>&1 || true
+    _download_url "${base_url}/minifw-ai-release.asc" "${tmpdir}/minifw-ai-release.asc" >/dev/null 2>&1 || true
 }
 
 # ── Verification ──────────────────────────────────────────────────────────────
