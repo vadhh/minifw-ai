@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-BASE_VERSION="2.2.6"
+BASE_VERSION="2.2.7"
 PKG_NAME="minifw-ai"
 ARCH="amd64"
 SECTOR="${1:-establishment}"
@@ -379,6 +379,14 @@ CONFFILES_HOSPITAL="/opt/minifw_ai/config/feeds/healthcare_threats.txt"
 CONFFILES_FINANCE="/opt/minifw_ai/config/feeds/financial_fraud.txt
 /opt/minifw_ai/config/feeds/crypto_scams.txt
 /opt/minifw_ai/config/modes/minifw_financial/policy.json"
+CONFFILES_EDUCATION="/opt/minifw_ai/config/feeds/school_blacklist.txt
+/opt/minifw_ai/config/modes/minifw_school/policy.json"
+CONFFILES_GOVERNMENT="/opt/minifw_ai/config/feeds/government_sensitive.txt
+/opt/minifw_ai/config/feeds/apt_indicators.txt
+/opt/minifw_ai/config/modes/minifw_government/policy.json"
+CONFFILES_LEGAL="/opt/minifw_ai/config/feeds/legal_threats.txt
+/opt/minifw_ai/config/modes/minifw_legal/policy.json"
+CONFFILES_ESTABLISHMENT="/opt/minifw_ai/config/modes/minifw_establishment/policy.json"
 
 {
     echo "${CONFFILES_BASE}"
@@ -387,6 +395,18 @@ CONFFILES_FINANCE="/opt/minifw_ai/config/feeds/financial_fraud.txt
     fi
     if [ "${SECTOR}" = "finance" ]; then
         echo "${CONFFILES_FINANCE}"
+    fi
+    if [ "${SECTOR}" = "education" ]; then
+        echo "${CONFFILES_EDUCATION}"
+    fi
+    if [ "${SECTOR}" = "government" ]; then
+        echo "${CONFFILES_GOVERNMENT}"
+    fi
+    if [ "${SECTOR}" = "legal" ]; then
+        echo "${CONFFILES_LEGAL}"
+    fi
+    if [ "${SECTOR}" = "establishment" ]; then
+        echo "${CONFFILES_ESTABLISHMENT}"
     fi
 } > "${BUILD_DIR}/DEBIAN/conffiles"
 
