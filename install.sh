@@ -127,8 +127,10 @@ _base_url() {
 _download_assets() {
     local base_url="$1" deb_name="$2" tmpdir="$3"
     _info "Downloading ${deb_name}..."
-    curl -fsSL --progress-bar "${base_url}/${deb_name}"        -o "${tmpdir}/${deb_name}"
-    curl -fsSL             "${base_url}/${deb_name}.sha256"    -o "${tmpdir}/${deb_name}.sha256"
+    curl -fsSL --progress-bar "${base_url}/${deb_name}" -o "${tmpdir}/${deb_name}" \
+        || _die "Package not found: ${base_url}/${deb_name}\n       Check https://github.com/${MINIFW_REPO}/releases for available packages."
+    curl -fsSL "${base_url}/${deb_name}.sha256" -o "${tmpdir}/${deb_name}.sha256" \
+        || _die "Checksum file not found for ${deb_name}"
     curl -fsSL             "${base_url}/${deb_name}.asc"       -o "${tmpdir}/${deb_name}.asc"       2>/dev/null || _warn "No GPG signature asset found"
     curl -fsSL             "${base_url}/minifw-ai-release.asc" -o "${tmpdir}/minifw-ai-release.asc" 2>/dev/null || _warn "No GPG public key asset found"
 }
@@ -239,7 +241,7 @@ main() {
 
     local tmpdir
     tmpdir="$(mktemp -d)"
-    trap 'rm -rf "${tmpdir}"' EXIT
+    trap '[ -n "${tmpdir:-}" ] && rm -rf "$tmpdir"' EXIT
 
     local tag version base_url deb_name
     tag="$(_resolve_tag)"
