@@ -521,8 +521,6 @@ remain active, AI modules disabled).
 | [docs/release-verification.md](docs/release-verification.md) | GPG signing key, package verification steps |
 | [docs/monitoring-mode.md](docs/monitoring-mode.md) | Monitoring mode reference, scoring thresholds, analyst workflow |
 | [docs/rollback.md](docs/rollback.md) | Rollback and emergency removal procedure |
-| [docs/report-2026-03-16.md](docs/report-2026-03-16.md) | Establishment deployment readiness report |
-| [docs/report-2026-03-17-hospital.md](docs/report-2026-03-17-hospital.md) | Hospital sector deployment readiness report |
 
 ---
 
