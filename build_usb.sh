@@ -254,7 +254,7 @@ Troubleshooting
     Windows: open Docker Desktop and ensure WSL integration is enabled.
     Linux:   sudo systemctl start docker
 
-Full demo script: ask your MiniFW-AI contact for DEMO_MASTER_SCRIPT.md
+Full evaluation walkthrough: see README.md → "Proof of Concept / Evaluation"
 README
 
 # Docker files

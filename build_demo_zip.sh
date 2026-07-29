@@ -53,10 +53,10 @@ mkdir -p "$STAGE_DIR"
 log "  → docker/"
 cp -r docker/ "${STAGE_DIR}/docker/"
 
-# Sector mode configs (hospital / establishment / gambling only — no financial/school/legal)
+# Sector mode configs (hospital / establishment only — no financial/school/legal)
 log "  → config/modes/"
 mkdir -p "${STAGE_DIR}/config/modes"
-for mode in minifw_hospital minifw_establishment minifw_gambling; do
+for mode in minifw_hospital minifw_establishment; do
     src="config/modes/${mode}"
     if [[ -d "$src" ]]; then
         cp -r "$src" "${STAGE_DIR}/config/modes/${mode}"
@@ -75,8 +75,7 @@ for feed in \
     deny_ips.txt \
     asn_prefixes.txt \
     tor_exit_nodes.txt \
-    healthcare_threats.txt \
-    gambling_domains.txt; do
+    healthcare_threats.txt; do
     src="config/feeds/${feed}"
     if [[ -f "$src" ]]; then
         cp "$src" "${STAGE_DIR}/config/feeds/${feed}"
@@ -101,22 +100,11 @@ done
 log "  → .env files"
 for env_file in \
     .env.minifw_hospital \
-    .env.minifw_establishment \
-    .env.minifw_gambling; do
+    .env.minifw_establishment; do
     if [[ -f "$env_file" ]]; then
         cp "$env_file" "${STAGE_DIR}/${env_file}"
     else
         log "  WARNING: ${env_file} not found — skipping"
-    fi
-done
-
-# Demo docs
-log "  → demo docs"
-for doc in DEMO.md DEMO_MASTER_SCRIPT.md; do
-    if [[ -f "$doc" ]]; then
-        cp "$doc" "${STAGE_DIR}/${doc}"
-    else
-        log "  WARNING: ${doc} not found — skipping"
     fi
 done
 
@@ -129,14 +117,13 @@ MiniFW-AI Demo Package — v${VERSION}
 Prerequisites
 -------------
   - Docker + Docker Compose installed
-  - Ports 8443 / 8444 / 8445 free on localhost
+  - Ports 8443 / 8444 free on localhost
 
 Quick Start
 -----------
   cd docker
   ./demo.sh hospital up      # https://localhost:8443  admin / Hospital1!
   ./demo.sh sme up           # https://localhost:8444  admin / SME_Demo1!
-  ./demo.sh gambling up      # https://localhost:8445  admin / Gambling1!
 
   Wait ~33 seconds for the first injector loop to populate events.
   Accept the self-signed certificate warning in your browser.
@@ -145,12 +132,8 @@ Stop / Clean
 ------------
   ./demo.sh hospital down
   ./demo.sh sme down
-  ./demo.sh gambling down
 
   ./demo.sh hospital clean   # stop + wipe logs
-
-Full walkthrough: DEMO_MASTER_SCRIPT.md
-Reference:        DEMO.md
 EOF
 
 # ---------------------------------------------------------------------------

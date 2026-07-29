@@ -8,7 +8,6 @@
 # Modes:
 #   hospital   HIPAA / IoMT / healthcare threats         → :8443
 #   sme        SME establishment / balanced protection   → :8444
-#   gambling   Regulatory gambling domain enforcement    → :8445
 #   api        RitAPI Advanced API Protection WAF        → :8001
 #
 # Actions (default: up):
@@ -21,7 +20,6 @@
 # Examples:
 #   ./demo.sh hospital
 #   ./demo.sh sme up
-#   ./demo.sh gambling down
 #   ./demo.sh api logs
 #
 # ──────────────────────────────────────────────────────────────
@@ -53,15 +51,6 @@ case "$MODE" in
     COLOR="\033[0;34m"   # blue
     ;;
 
-  gambling)
-    COMPOSE_FILE="docker-compose.gambling.yml"
-    PRODUCT_MODE="minifw_gambling"
-    URL="https://localhost:8445"
-    PASSWORD="Gambling1!"
-    LABEL="Gambling — Regulatory Domain Enforcement (GAMBLING_ONLY=1)"
-    COLOR="\033[0;35m"   # purple
-    ;;
-
   api)
     # RitAPI Advanced lives in a sibling project directory
     RITAPI_DIR="$(realpath "$(dirname "$0")/../../ritapi/ritapi-adv sc/ritapi-advanced" 2>/dev/null || true)"
@@ -91,7 +80,6 @@ case "$MODE" in
     echo "  Modes:"
     printf "    %-12s %s\n" "hospital"  "HIPAA · IoMT · Healthcare          → https://localhost:8443"
     printf "    %-12s %s\n" "sme"       "SME · Balanced Protection           → https://localhost:8444"
-    printf "    %-12s %s\n" "gambling"  "Regulatory · Gambling Enforcement   → https://localhost:8445"
     printf "    %-12s %s\n" "api"       "API Protection · RitAPI Advanced    → http://localhost:8001"
     echo ""
     echo "  Actions: up (default) | down | clean | logs | ps"

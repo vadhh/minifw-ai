@@ -351,6 +351,50 @@ Features:
 
 ---
 
+## Proof of Concept / Evaluation
+
+For evaluating MiniFW-AI before purchase or full deployment. Two paths:
+
+### Scenario A — Offline USB staging (Docker, air-gapped)
+
+Uses a pre-staged USB kit; the education sector package below is the reference example
+(swap in any sector — see `dist/INDEX.md` for the full list and ports).
+
+```bash
+cp -r /media/$USER/minifw-usb-education-v2.2.0/ ~/minifw-education/
+cd ~/minifw-education/
+
+bash validate_install.sh          # pre-flight check — expect "ALL CLEAR"
+docker load -i images/minifw-education.tar
+
+bash demo.sh                      # or: docker compose -f docker/docker-compose.usb-education.yml up -d
+```
+
+### Scenario B — Native Debian install (online)
+
+```bash
+curl -fsSL https://github.com/vadhh/minifw-ai/releases/latest/download/install.sh | sudo bash
+```
+
+> The installer falls back to `wget` automatically if `curl` is Snap-confined and can't write to the target path.
+
+Credentials print to the console and are also saved to `/etc/minifw/minifw.env`.
+
+### Test plan
+
+1. **Dashboard verification** — open `https://localhost:8447` (Docker) or `https://localhost:8443` (native), log in as `admin`. Expect network segments, active rulesets, and system health to display.
+2. **Policy/threshold tweak** — edit a segment's block threshold in the Policy Management panel (or `config/modes/minifw_<sector>/policy.json` directly). Expect it to take effect without a daemon restart.
+3. **Behavioral block** — trigger a domain from `config/feeds/deny_domains.txt` (or the sector-specific feed). Expect the block to appear in `logs/audit.jsonl` and the source IP to land in the nftables set: `sudo ipset list minifw_block_v4` (or `nft list set inet minifw ...`).
+
+### Teardown
+
+```bash
+bash fast_reset.sh              # Docker scenario — wipes volumes, containers, event DB
+sudo apt-get purge -y minifw-ai # Native scenario
+```
+
+---
+
 ## Development
 
 ### Run Tests
@@ -472,8 +516,8 @@ remain active, AI modules disabled).
 
 | Document | Description |
 |----------|-------------|
-| [DEVELOPER.md](DEVELOPER.md) | Architecture deep-dive, module reference, 11-stage development lifecycle |
-| [CHANGELOG.md](CHANGELOG.md) | Version history |
+| [DEVELOPER.md](DEVELOPER.md) | Architecture deep-dive, module reference, 11-stage development lifecycle, version history |
+| [dist/INDEX.md](dist/INDEX.md) | Demo/USB kit packages — ports, credentials, build commands |
 | [docs/release-verification.md](docs/release-verification.md) | GPG signing key, package verification steps |
 | [docs/monitoring-mode.md](docs/monitoring-mode.md) | Monitoring mode reference, scoring thresholds, analyst workflow |
 | [docs/rollback.md](docs/rollback.md) | Rollback and emergency removal procedure |
