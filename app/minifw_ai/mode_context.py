@@ -66,16 +66,6 @@ _MODE_UI: dict[str, ModeUI] = {
         icon="bi-building",
         sector="establishment",
     ),
-    "minifw_gambling": ModeUI(
-        product_mode="minifw_gambling",
-        label="Gambling",
-        sublabel="Regulatory Enforcement · Domain Blocking",
-        color="#8b5cf6",
-        bg="rgba(139,92,246,0.10)",
-        css_class="mode-gambling",
-        icon="bi-shield-exclamation",
-        sector="establishment",
-    ),
     "minifw_legal": ModeUI(
         product_mode="minifw_legal",
         label="Legal",
@@ -133,9 +123,13 @@ _UNKNOWN = ModeUI(
 # Sector-value → mode UI (used when PRODUCT_MODE is absent but MINIFW_SECTOR is set)
 _SECTOR_TO_MODE: dict[str, str] = {
     "hospital":      "minifw_hospital",
+    "healthcare":    "minifw_hospital",
     "education":     "minifw_school",
+    "school":        "minifw_school",
     "finance":       "minifw_financial",
+    "financial":     "minifw_financial",
     "establishment": "minifw_establishment",
+    "sme":           "minifw_establishment",
     "government":    "minifw_government",
     "legal":         "minifw_legal",
 }

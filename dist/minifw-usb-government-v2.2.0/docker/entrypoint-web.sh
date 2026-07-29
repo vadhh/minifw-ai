@@ -19,8 +19,10 @@ db = SessionLocal()
 u = db.query(User).filter(User.username == 'admin').first()
 if u:
     u.role = UserRole.SUPER_ADMIN.value
+    import os as _os
+    u.sector = _os.environ.get('MINIFW_SECTOR', 'establishment')
     db.commit()
-    print('[WEB] Admin role → SUPER_ADMIN')
+    print('[WEB] Admin role → SUPER_ADMIN, sector →', u.sector)
 db.close()
 "
 

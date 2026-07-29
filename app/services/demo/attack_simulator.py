@@ -45,17 +45,6 @@ _DOMAINS: dict[str, dict[str, list[str]]] = {
             "microsoft.com", "slack.com", "github.com",
         ],
     },
-    "gambling": {
-        "malicious": [
-            "payment-bypass.casino.ru", "money-laundering.node.cc",
-            "bonus-abuse.fraud.io", "kyc-bypass.darkweb.onion",
-            "chip-dump.fake.ml", "pivot.gambling-c2.cn",
-        ],
-        "benign": [
-            "gamesys.co.uk", "playtech.com", "microsoft.com",
-            "office365.com", "slack.com", "cloudflare.com",
-        ],
-    },
     "education": {
         "malicious": [
             "nordvpn-bypass.proxy.io", "vpn-tunnel-free.cc",
@@ -105,13 +94,6 @@ _REASONS: dict[str, list[list[str]]] = {
         ["ip_blocked", "asn_denied"],
         ["dns_tunnel", "burst_behavior"],
     ],
-    "gambling": [
-        ["dns_denied_domain", "hard_threat_gate"],
-        ["mlp_threat_score", "asn_denied"],
-        ["tls_sni_denied_domain", "hard_threat_gate"],
-        ["ip_blocked", "asn_denied"],
-        ["yara_match", "burst_behavior"],
-    ],
     "education": [
         ["dns_denied_domain", "hard_threat_gate"],
         ["mlp_threat_score", "burst_behavior"],
@@ -135,7 +117,6 @@ _PRODUCT_MODE_TO_SECTOR = {
     "minifw_hospital": "hospital",
     "minifw_financial": "financial",
     "minifw_establishment": "establishment",
-    "minifw_gambling": "gambling",
     "minifw_school": "education",
     "minifw_legal": "legal",
 }
@@ -154,6 +135,10 @@ def _active_sector() -> str:
     if pm in _PRODUCT_MODE_TO_SECTOR:
         return _PRODUCT_MODE_TO_SECTOR[pm]
     sector = os.environ.get("MINIFW_SECTOR", "").strip().lower()
+    if sector == "finance":
+        sector = "financial"
+    elif sector == "school":
+        sector = "education"
     if sector in _DOMAINS:
         return sector
     return _DEFAULT_SECTOR

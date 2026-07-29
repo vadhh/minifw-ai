@@ -40,7 +40,6 @@ _MODE_TO_SECTOR: dict[str, Optional[str]] = {
     "minifw_school":        "education",
     "minifw_financial":     "finance",
     "minifw_establishment": "establishment",
-    "minifw_gambling":      "establishment",   # establishment sector + GAMBLING_ONLY=1
     "minifw_legal":         "legal",
     "minifw_government":    "government",
 }
@@ -120,7 +119,6 @@ def resolve_mode(product_mode: Optional[str] = None) -> Optional[ModeConfig]:
         "minifw_school":        "MiniFW-AI School — SafeSearch, VPN/proxy blocking, content filtering",
         "minifw_financial":     "MiniFW-AI Financial — PCI-DSS, Tor blocking, strict TLS",
         "minifw_establishment": "MiniFW-AI Establishment — balanced defaults for SME/retail",
-        "minifw_gambling":      "MiniFW-AI Gambling — regulatory domain enforcement (GAMBLING_ONLY=1)",
         "minifw_legal":         "MiniFW-AI Legal — attorney-client privilege, data exfiltration, ransomware C2",
         "minifw_government":    "MiniFW-AI Government — sovereign infrastructure, APT/C2 detection, full audit trail",
     }
