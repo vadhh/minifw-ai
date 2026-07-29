@@ -27,8 +27,7 @@
                   ALLOW ZONE</div>
                 <div style="font-size:2.5rem;font-weight:900;color:var(--mf-text);line-height:1;">{{ stats.total_allowed
                   }}</div>
-                <div style="font-size:14px;color:var(--mf-text-muted);margin-top:8px;font-weight:700;">VERIFIED
-                  TRANSACTIONS</div>
+                <div style="font-size:14px;color:var(--mf-text-muted);margin-top:8px;font-weight:700;">{{ lbls.allowed_label }}</div>
               </div>
               <div
                 style="width:64px;height:64px;border-radius:16px;background:rgba(16,185,129,0.1);display:flex;align-items:center;justify-content:center;color:#10b981;font-size:32px;">
@@ -49,8 +48,7 @@
                   MONITOR ZONE</div>
                 <div style="font-size:2.5rem;font-weight:900;color:var(--mf-text);line-height:1;">{{
                   stats.threats_detected }}</div>
-                <div style="font-size:14px;color:var(--mf-text-muted);margin-top:8px;font-weight:700;">SUSPICIOUS
-                  ACTIVITY</div>
+                <div style="font-size:14px;color:var(--mf-text-muted);margin-top:8px;font-weight:700;">{{ lbls.monitor_label }}</div>
               </div>
               <div
                 style="width:64px;height:64px;border-radius:16px;background:rgba(245,158,11,0.1);display:flex;align-items:center;justify-content:center;color:#f59e0b;font-size:32px;">
@@ -71,7 +69,7 @@
                   BLOCK ZONE</div>
                 <div style="font-size:2.5rem;font-weight:900;color:var(--mf-text);line-height:1;">{{ stats.total_blocked
                   }}</div>
-                <div style="font-size:14px;color:var(--mf-text-muted);margin-top:8px;font-weight:700;">FRAUD BLOCKED
+                <div style="font-size:14px;color:var(--mf-text-muted);margin-top:8px;font-weight:700;">{{ lbls.total_blocked_label }}
                 </div>
               </div>
               <div
@@ -89,7 +87,7 @@
       <div class="col-12">
         <div class="card">
           <div class="card-header d-flex align-items-center gap-2">
-            <span><i class="bi bi-cpu me-1"></i> Financial Operations Intelligence</span>
+            <span><i class="bi bi-cpu me-1"></i> {{ lbls.intelligence_title }}</span>
             <span class="badge" id="protectionStateBadge" style="background:#eff6ff;color:#3b82f6;">Loading...</span>
             <button class="btn btn-sm ms-auto si-toggle-btn" id="siToggleBtn" title="Show / hide details"
               style="border:none;background:transparent;padding:4px 8px;color:var(--mf-text-muted);transition:color .2s;">
@@ -105,8 +103,8 @@
                     <i class="bi bi-lightning-fill"></i>
                   </div>
                   <div class="mf-detect-value" style="color:#ef4444;">{{ detection_counters.hard_gate }}</div>
-                  <div class="mf-detect-label">APIs Protected</div>
-                  <div class="mf-detect-sub">Secured</div>
+                  <div class="mf-detect-label">{{ lbls.card_1_label }}</div>
+                  <div class="mf-detect-sub">{{ lbls.card_1_sub }}</div>
                 </div>
               </div>
               <div class="col-lg-2 col-md-4 col-6">
@@ -115,8 +113,8 @@
                     <i class="bi bi-cpu"></i>
                   </div>
                   <div class="mf-detect-value" style="color:#7c3aed;">{{ detection_counters.ai_scored }}</div>
-                  <div class="mf-detect-label">AI FRAUD BLOCKS</div>
-                  <div class="mf-detect-sub">Blocked by AI</div>
+                  <div class="mf-detect-label">{{ lbls.card_2_label }}</div>
+                  <div class="mf-detect-sub">{{ lbls.card_2_sub }}</div>
                 </div>
               </div>
               <div class="col-lg-2 col-md-4 col-6">
@@ -125,8 +123,8 @@
                     <i class="bi bi-code-slash"></i>
                   </div>
                   <div class="mf-detect-value" style="color:#f59e0b;">{{ detection_counters.yara }}</div>
-                  <div class="mf-detect-label">MALWARE HITS</div>
-                  <div class="mf-detect-sub">Banking Trojans</div>
+                  <div class="mf-detect-label">{{ lbls.card_3_label }}</div>
+                  <div class="mf-detect-sub">{{ lbls.card_3_sub }}</div>
                 </div>
               </div>
               <div class="col-lg-2 col-md-4 col-6">
@@ -135,8 +133,8 @@
                     <i class="bi bi-diagram-2"></i>
                   </div>
                   <div class="mf-detect-value" style="color:#06b6d4;">{{ detection_counters.dns_tunnel }}</div>
-                  <div class="mf-detect-label">EXFILTRATION</div>
-                  <div class="mf-detect-sub">Data Hiding Detected</div>
+                  <div class="mf-detect-label">{{ lbls.card_4_label }}</div>
+                  <div class="mf-detect-sub">{{ lbls.card_4_sub }}</div>
                 </div>
               </div>
               <div class="col-lg-2 col-md-4 col-6">
@@ -145,8 +143,8 @@
                     <i class="bi bi-speedometer2"></i>
                   </div>
                   <div class="mf-detect-value" style="color:#ec4899;">{{ detection_counters.port_scan }}</div>
-                  <div class="mf-detect-label">ERP NODE SCANS</div>
-                  <div class="mf-detect-sub">Vulnerability Scanning</div>
+                  <div class="mf-detect-label">{{ lbls.card_5_label }}</div>
+                  <div class="mf-detect-sub">{{ lbls.card_5_sub }}</div>
                 </div>
               </div>
               <div class="col-lg-2 col-md-4 col-6">
@@ -155,8 +153,8 @@
                     <i class="bi bi-incognito"></i>
                   </div>
                   <div class="mf-detect-value" style="color:#64748b;">{{ detection_counters.tor_anon }}</div>
-                  <div class="mf-detect-label">ANON TRAFFIC</div>
-                  <div class="mf-detect-sub">Anonymous Blocked</div>
+                  <div class="mf-detect-label">{{ lbls.card_6_label }}</div>
+                  <div class="mf-detect-sub">{{ lbls.card_6_sub }}</div>
                 </div>
               </div>
               <div class="col-lg-2 col-md-4 col-6">
@@ -165,8 +163,8 @@
                     <i class="bi bi-shield-lock"></i>
                   </div>
                   <div class="mf-detect-value" style="color:#0891b2;">{{ detection_counters.sni_hits }}</div>
-                  <div class="mf-detect-label">FAKE SITES</div>
-                  <div class="mf-detect-sub">Phishing Blocked</div>
+                  <div class="mf-detect-label">{{ lbls.card_7_label }}</div>
+                  <div class="mf-detect-sub">{{ lbls.card_7_sub }}</div>
                 </div>
               </div>
             </div>
@@ -311,6 +309,11 @@
                 <span class="badge bg-{{ collector_status.conntrack.color }}">{{ collector_status.conntrack.label
                   }}</span>
               </li>
+              <li class="list-group-item d-flex justify-content-between align-items-center"
+                style="background:transparent;border-color:var(--mf-border);padding:12px 20px;">
+                <span style="font-size:13.5px;"><i class="bi bi-clock-history me-1" style="color:#8b5cf6;"></i>System Uptime</span>
+                <span class="badge" style="background:rgba(139,92,246,0.1);color:#8b5cf6;">{{ stats.uptime }}</span>
+              </li>
             </ul>
           </div>
         </div>
@@ -381,93 +384,79 @@
     <div class="row g-3 mb-4">
       <div class="col-12">
         <div class="card">
-          <div class="card-header d-flex align-items-center gap-3">
-            <span>
-              <span class="pulse-dot" id="synthDot" style="display:inline-block;"></span>
-              <span style="margin-left:6px;"><i class="bi bi-cpu me-1" style="color:#ef4444;"></i> AI Threat
-                Synthesis</span>
-            </span>
+
+          <div class="card-header synth-card-hdr d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center gap-2">
+              <span class="pulse-dot" id="synthDot" style="background:#ef4444;flex-shrink:0;"></span>
+              <span class="synth-hdr-label">
+                <i class="bi bi-cpu me-1" style="color:#ef4444;"></i>AI Threat Synthesis
+              </span>
+            </div>
             <div class="d-flex gap-2 align-items-center">
-              <span class="badge" id="synthCountBadge" style="background:#fef2f2;color:#ef4444;font-size:11px;">0 in
-                last 5s</span>
-              <span class="badge" id="synthLiveBadge"
-                style="background:#ef4444;color:#fff;font-size:11px;display:none;">LIVE</span>
+              <span id="synthCountBadge" class="synth-count-badge">0 in last 5s</span>
+              <span id="synthLiveBadge" class="synth-live-badge" style="display:none;">LIVE</span>
             </div>
           </div>
+
           <div class="card-body p-3">
-            <!-- Hero area -->
+
+            <!-- Hero: risk ring (left) · threat detail (right) -->
             <div id="synthHero" class="synth-hero">
-              <!-- Header row: title + risk badge + action badge -->
-              <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
-                <div class="d-flex align-items-center gap-2">
+
+              <div class="synth-hero-left">
+                <div id="synthRiskBadge" class="synth-risk-ring" style="display:none;">
+                  <div id="synthRiskPct" class="synth-risk-pct">&#x2014;</div>
+                  <div class="synth-risk-label">RISK</div>
+                </div>
+                <div id="synthTimestamp" class="synth-timestamp"></div>
+              </div>
+
+              <div class="synth-hero-right">
+                <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
                   <span class="synth-hero-title">THREAT BLOCKED</span>
-                  <span id="synthActionBadge" style="display:none;background:#dc2626;color:#fff;font-size:10px;
-                               font-weight:800;padding:2px 8px;border-radius:4px;letter-spacing:1px;">
-                    BLOCKED
-                  </span>
+                  <span id="synthActionBadge" class="synth-action-badge" style="display:none;">BLOCKED</span>
                 </div>
-                <div class="d-flex align-items-center gap-2">
-                  <div id="synthRiskBadge" style="display:none;background:#fef2f2;border:2px solid #dc2626;
-                              border-radius:8px;padding:4px 12px;text-align:center;min-width:64px;">
-                    <div id="synthRiskPct" style="font-size:26px;font-weight:900;color:#dc2626;line-height:1;">&#x2014;
-                    </div>
-                    <div style="font-size:9px;color:#9f1239;font-weight:700;letter-spacing:1px;">RISK</div>
-                  </div>
-                  <span id="synthTimestamp" style="font-size:10px;color:var(--mf-text-muted);"></span>
+                <div id="synthSource" class="synth-hero-source">Waiting for a block event&hellip;</div>
+                <div>
+                  <div class="synth-field-lbl" style="color:#8b5cf6;">AI CLASSIFICATION</div>
+                  <div id="synthAiCategory" class="synth-ai-cat">&#x2014;</div>
+                  <div id="synthAiScore" class="synth-ai-score">&#x2014;</div>
                 </div>
               </div>
 
-              <!-- Source line -->
-              <div id="synthSource" class="synth-hero-source">Waiting for a block event&hellip;</div>
+            </div>
 
-              <!-- 3-column grid: AI REASON · KERNEL BLOCKED · TIME TO BLOCK -->
-              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px;">
-                <div class="synth-cell">
-                  <div style="font-size:9px;color:#7c3aed;font-weight:700;letter-spacing:1px;margin-bottom:4px;">AI
-                    REASON</div>
-                  <div id="synthAiCategory" style="font-size:13px;font-weight:700;color:#7c3aed;">&#x2014;</div>
-                  <div id="synthAiScore" style="font-size:11px;color:var(--mf-text-muted);">&#x2014;</div>
-                </div>
-                <div class="synth-cell">
-                  <div style="font-size:9px;color:#10b981;font-weight:700;letter-spacing:1px;margin-bottom:4px;">KERNEL
-                    BLOCKED</div>
-                  <div id="synthKernelLabel" style="font-size:13px;font-weight:700;color:#10b981;">Checking&hellip;
-                  </div>
-                  <div id="synthKernelDetail" style="font-size:11px;color:var(--mf-text-muted);"></div>
-                </div>
-                <div class="synth-cell">
-                  <div style="font-size:9px;color:#06b6d4;font-weight:700;letter-spacing:1px;margin-bottom:4px;">TIME TO
-                    BLOCK</div>
-                  <div id="synthTime" style="font-size:22px;font-weight:900;color:#06b6d4;">&#x2014; ms</div>
-                </div>
+            <!-- Metric cells -->
+            <div class="synth-metrics">
+              <div class="synth-cell">
+                <div class="synth-field-lbl" style="color:#10b981;">KERNEL ENFORCEMENT</div>
+                <div id="synthKernelLabel" class="synth-metric-val" style="color:#10b981;">Checking&hellip;</div>
+                <div id="synthKernelDetail" class="synth-metric-sub"></div>
               </div>
-
-              <!-- 2-column grid: DECISION OWNER · TRACE ID -->
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-                <div class="synth-cell">
-                  <div style="font-size:9px;color:#64748b;font-weight:700;letter-spacing:1px;margin-bottom:4px;">
-                    DECISION OWNER</div>
-                  <div id="synthDecisionOwner" style="font-size:12px;font-weight:700;color:var(--mf-text);">&#x2014;
-                  </div>
-                </div>
-                <div class="synth-cell">
-                  <div style="font-size:9px;color:#64748b;font-weight:700;letter-spacing:1px;margin-bottom:4px;">TRACE
-                    ID</div>
-                  <div id="synthTraceId" style="font-size:12px;font-weight:700;color:var(--mf-text);
-                              font-family:monospace;letter-spacing:2px;">&#x2014;</div>
-                </div>
+              <div class="synth-cell synth-cell-center">
+                <div class="synth-field-lbl" style="color:#06b6d4;">TIME TO BLOCK</div>
+                <div id="synthTime" class="synth-ttb">&#x2014;&thinsp;ms</div>
+              </div>
+              <div class="synth-cell">
+                <div class="synth-field-lbl">DECISION OWNER</div>
+                <div id="synthDecisionOwner" class="synth-metric-val">&#x2014;</div>
+                <div class="synth-field-lbl" style="margin-top:6px;">TRACE ID</div>
+                <div id="synthTraceId" class="synth-traceid">&#x2014;</div>
               </div>
             </div>
+
             <!-- Mini feed -->
             <div>
-              <div style="font-size:10px;color:#64748b;letter-spacing:1px;margin-bottom:6px;">RECENT BLOCKS</div>
+              <div class="synth-field-lbl" style="margin-bottom:8px;">RECENT BLOCKS</div>
               <ul class="list-unstyled mb-0" id="synthFeed">
                 <li style="color:var(--mf-text-muted);font-size:12px;text-align:center;padding:8px;">
                   No blocks yet
                 </li>
               </ul>
             </div>
+
           </div>
+
           <div class="card-footer d-flex align-items-center gap-2" style="font-size:11px;color:var(--mf-text-muted);">
             <span class="pulse-dot" id="synthDotFooter"></span>
             <span id="synthStatus">Connecting&hellip;</span>
@@ -484,7 +473,7 @@
           <div class="card-body">
             <div class="d-flex justify-content-between align-items-start">
               <div>
-                <div class="stat-label">Verified Transactions</div>
+                <div class="stat-label">Approved Domains</div>
                 <div class="stat-value">{{ stats.allow_domains }}</div>
                 <div class="stat-sub">Approved by System</div>
               </div>
@@ -502,7 +491,7 @@
           <div class="card-body">
             <div class="d-flex justify-content-between align-items-start">
               <div>
-                <div class="stat-label">Fraud Attempts Blocked</div>
+                <div class="stat-label">Blocked IP Sources</div>
                 <div class="stat-value">{{ stats.deny_ips }}</div>
                 <div class="stat-sub">Malicious Sources</div>
               </div>
@@ -520,7 +509,7 @@
           <div class="card-body">
             <div class="d-flex justify-content-between align-items-start">
               <div>
-                <div class="stat-label">Suspicious Financial Activity</div>
+                <div class="stat-label">Suspicious Network Activity</div>
                 <div class="stat-value">{{ stats.deny_asns }}</div>
                 <div class="stat-sub">Anomalous Traffic</div>
               </div>
@@ -538,7 +527,7 @@
           <div class="card-body">
             <div class="d-flex justify-content-between align-items-start">
               <div>
-                <div class="stat-label">Protected Financial APIs</div>
+                <div class="stat-label">Blocked Threat Domains</div>
                 <div class="stat-value">{{ stats.deny_domains }}</div>
                 <div class="stat-sub">Secured Endpoints</div>
               </div>
@@ -553,42 +542,7 @@
 
     </div>
 
-    <!-- Protection summary -->
-    <div class="row g-3">
-      <div class="col-12">
-        <div class="card">
-          <div class="card-header">Protection Summary</div>
-          <div class="card-body">
-            <div class="row text-center g-0">
-              <div class="col-md-3">
-                <div class="py-2 border-end" style="border-color:var(--mf-border) !important;">
-                  <div style="font-size:1.8rem;font-weight:800;color:#10b981;">{{ stats.total_allowed }}</div>
-                  <div style="font-size:12px;color:var(--mf-text-muted);">Verified Transactions</div>
-                </div>
-              </div>
-              <div class="col-md-3">
-                <div class="py-2 border-end" style="border-color:var(--mf-border) !important;">
-                  <div style="font-size:1.8rem;font-weight:800;color:#ef4444;">{{ stats.total_blocked }}</div>
-                  <div style="font-size:12px;color:var(--mf-text-muted);">Total Fraud Prevented</div>
-                </div>
-              </div>
-              <div class="col-md-3">
-                <div class="py-2 border-end" style="border-color:var(--mf-border) !important;">
-                  <div style="font-size:1.8rem;font-weight:800;color:#f59e0b;">{{ stats.threats_detected }}</div>
-                  <div style="font-size:12px;color:var(--mf-text-muted);">Anomalies Detected</div>
-                </div>
-              </div>
-              <div class="col-md-3">
-                <div class="py-2">
-                  <div style="font-size:1.8rem;font-weight:800;color:#6366f1;">{{ stats.uptime }}</div>
-                  <div style="font-size:12px;color:var(--mf-text-muted);">Uptime</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+
 
   </div>
 </div>
@@ -719,53 +673,258 @@
     }
   }
 
-  /* Synthesis hero — light mode */
+  /* === AI Threat Synthesis — light mode === */
+
+  .synth-card-hdr {
+    background: linear-gradient(90deg, rgba(239,68,68,0.05) 0%, transparent 60%);
+    border-bottom: 1px solid rgba(239,68,68,0.18) !important;
+  }
+
+  .synth-hdr-label {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    color: var(--mf-text);
+  }
+
+  .synth-count-badge {
+    font-size: 10px;
+    font-weight: 700;
+    color: #ef4444;
+    background: rgba(239,68,68,0.08);
+    border: 1px solid rgba(239,68,68,0.25);
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+
+  .synth-live-badge {
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    background: #ef4444;
+    color: #fff;
+    padding: 2px 8px;
+    border-radius: 4px;
+    animation: dash-blink 1.5s infinite;
+  }
+
   .synth-hero {
-    background: linear-gradient(135deg, #fee2e2, #fff1f2);
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    background: linear-gradient(135deg, #fef2f2 0%, #f8fafc 100%);
     border: 1px solid #fca5a5;
     border-radius: 8px;
-    padding: 16px;
-    margin-bottom: 12px;
+    padding: 14px;
+    margin-bottom: 10px;
+  }
+
+  .synth-hero-left {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    width: 68px;
+  }
+
+  .synth-risk-ring {
+    width: 62px;
+    height: 62px;
+    border-radius: 50%;
+    border: 2.5px solid #dc2626;
+    background: rgba(220,38,38,0.06);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+
+  .synth-risk-pct {
+    font-size: 18px;
+    font-weight: 900;
+    color: #dc2626;
+    line-height: 1;
+  }
+
+  .synth-risk-label {
+    font-size: 8px;
+    color: #9f1239;
+    font-weight: 800;
+    letter-spacing: 1px;
+    margin-top: 1px;
+  }
+
+  .synth-timestamp {
+    font-size: 9px;
+    color: var(--mf-text-muted);
+    font-family: monospace;
+    text-align: center;
+    word-break: break-all;
+    line-height: 1.4;
+  }
+
+  .synth-hero-right {
+    flex: 1;
+    min-width: 0;
   }
 
   .synth-hero-title {
-    font-size: 16px;
+    font-size: 13px;
     font-weight: 900;
     color: #dc2626;
-    letter-spacing: 1px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+
+  .synth-action-badge {
+    font-size: 9px;
+    font-weight: 800;
+    background: #dc2626;
+    color: #fff;
+    padding: 2px 8px;
+    border-radius: 3px;
+    letter-spacing: 1.5px;
   }
 
   .synth-hero-source {
-    font-size: 14px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #475569;
+    font-family: 'Courier New', monospace;
+    padding: 5px 9px;
+    background: rgba(0,0,0,0.04);
+    border-left: 3px solid #ef4444;
+    border-radius: 0 4px 4px 0;
+    margin-bottom: 10px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .synth-field-lbl {
+    font-size: 9px;
     font-weight: 700;
-    color: #9f1239;
-    margin-bottom: 12px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #64748b;
+    margin-bottom: 3px;
+  }
+
+  .synth-ai-cat {
+    font-size: 12px;
+    font-weight: 700;
+    color: #7c3aed;
+    line-height: 1.3;
+  }
+
+  .synth-ai-score {
+    font-size: 10px;
+    color: var(--mf-text-muted);
+    font-family: monospace;
+    margin-top: 2px;
+  }
+
+  .synth-metrics {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 10px;
   }
 
   .synth-cell {
     background: var(--mf-surface-2);
     border: 1px solid var(--mf-border);
     border-radius: 6px;
-    padding: 10px;
+    padding: 10px 12px;
   }
 
-  /* Synthesis hero — dark mode */
+  .synth-cell-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .synth-metric-val {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--mf-text);
+    line-height: 1.3;
+  }
+
+  .synth-metric-sub {
+    font-size: 10px;
+    color: var(--mf-text-muted);
+    font-family: monospace;
+    margin-top: 2px;
+  }
+
+  .synth-ttb {
+    font-size: 24px;
+    font-weight: 900;
+    color: #06b6d4;
+    line-height: 1;
+    font-family: monospace;
+  }
+
+  .synth-traceid {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--mf-text);
+    font-family: monospace;
+    letter-spacing: 1px;
+  }
+
+  /* === AI Threat Synthesis — dark mode === */
+
+  [data-bs-theme="dark"] .synth-card-hdr {
+    background: linear-gradient(90deg, rgba(239,68,68,0.1) 0%, transparent 60%);
+    border-bottom-color: rgba(239,68,68,0.3) !important;
+  }
+
   [data-bs-theme="dark"] .synth-hero {
-    background: linear-gradient(135deg, #7f1d1d, #1e293b);
-    border-color: #ef444466;
+    background: linear-gradient(135deg, #1c0707 0%, #0f172a 100%);
+    border-color: rgba(239,68,68,0.35);
   }
 
   [data-bs-theme="dark"] .synth-hero-title {
     color: #f87171;
   }
 
-  [data-bs-theme="dark"] .synth-hero-source {
+  [data-bs-theme="dark"] .synth-risk-ring {
+    border-color: #ef4444;
+    background: rgba(239,68,68,0.1);
+    box-shadow: 0 0 16px rgba(239,68,68,0.18);
+  }
+
+  [data-bs-theme="dark"] .synth-risk-pct {
+    color: #f87171;
+  }
+
+  [data-bs-theme="dark"] .synth-risk-label {
     color: #fca5a5;
   }
 
+  [data-bs-theme="dark"] .synth-hero-source {
+    color: #94a3b8;
+    background: rgba(0,0,0,0.25);
+    border-left-color: #ef4444;
+  }
+
+  [data-bs-theme="dark"] .synth-ai-cat {
+    color: #a78bfa;
+  }
+
   [data-bs-theme="dark"] .synth-cell {
-    background: #0f172a88;
-    border: none;
+    background: rgba(15,23,42,0.6);
+    border-color: rgba(148,163,184,0.1);
+  }
+
+  [data-bs-theme="dark"] .synth-ttb {
+    text-shadow: 0 0 10px rgba(6,182,212,0.35);
   }
 </style>
 
@@ -795,6 +954,7 @@
 <!-- ── Dashboard Live Events Table ──────────────────────────── -->
 <script>
   (function () {
+    var activeLabels = {{ lbls | tojson | safe }};
     var DASH_REFRESH = 5000; // 5 seconds
     var dashLastKey = '';
 
@@ -816,13 +976,13 @@
     function mapFinancialType(rawType) {
       if (!rawType) return '\u2014';
       var t = rawType.toLowerCase();
-      if (t.includes('malware') || t.includes('yara')) return 'Banking trojan detected';
-      if (t.includes('dns')) return 'Financial API abuse intercepted';
-      if (t.includes('port')) return 'ERP credential misuse detected';
-      if (t.includes('tor') || t.includes('anon')) return 'Unauthorized wire transfer blocked';
-      if (t.includes('sni')) return 'Invoice fraud attempt prevented';
-      if (t.includes('block')) return 'Ransomware attack blocked';
-      return 'Client financial records secured';
+      if (t.includes('malware') || t.includes('yara')) return activeLabels.map_yara || 'Malware detected';
+      if (t.includes('dns')) return activeLabels.map_dns || 'DNS anomaly blocked';
+      if (t.includes('port')) return activeLabels.map_port || 'Network scanning blocked';
+      if (t.includes('tor') || t.includes('anon')) return activeLabels.map_tor || 'Anonymous traffic blocked';
+      if (t.includes('sni')) return activeLabels.map_sni || 'Phishing site blocked';
+      if (t.includes('block')) return activeLabels.map_block || 'Threat blocked';
+      return activeLabels.map_default || 'Threat prevented';
     }
 
     function buildRow(ev, isNew) {
