@@ -91,6 +91,21 @@ Score weights (configurable in `policy.json`): DNS feed match +40, TLS SNI +35, 
 
 **DNS backends** (set via `MINIFW_DNS_SOURCE`): `file` (dnsmasq log), `journald`, `udp`, `none` (degraded/flow-only). Any backend failure falls back gracefully to an empty iterator.
 
+### Network Deployment Topology
+
+**Single-NIC, single-arm — not a dual-homed WAN/LAN bridge appliance.** MiniFW-AI is designed to run *on* the site's existing Linux router/gateway box, not to be inserted as a separate transparent bridge between modem and switch.
+
+- `README.md` Step 6 configures exactly **one** interface (`enp1s0`/`enp3s0`/`enp4s0`) via netplan. There is no two-NIC bridge setup script anywhere in this repo.
+- Detection is driven by **DNS query logs** (`dnsmasq` running on the same box, per `MINIFW_DNS_SOURCE=file`), not by packet capture on a WAN-facing leg.
+- Enforcement (`enforce.py::nft_apply_forward_drop`) attaches its drop rule to the nftables **`forward`** chain, which only fires on traffic already being IP-forwarded/routed through the host. This means the deployment target must already be doing routing (and, if applicable, NAT) between networks — MiniFW-AI does not configure that routing itself.
+
+**For a network engineer scoping a deployment:**
+
+1. **Target host = the existing gateway/router**, not a new inline tap. If the site's router isn't a Linux box you control, MiniFW-AI can't be dropped in-line as a bump-in-the-wire — it needs to run on the routing host itself (bare metal or a VM with `CAP_NET_ADMIN`/root and access to that host's nftables + conntrack).
+2. **One managed interface** is all the install docs assume — the LAN-facing (or single routed) interface, since that's where DNS logging and the `forward` chain enforcement apply. Any WAN-side interface on that router is outside MiniFW-AI's configuration scope; it just needs to already exist and already be routing.
+3. **If a true 2-NIC transparent bridge is required** (WAN in, LAN out, appliance in the middle) — that's a deployment model this codebase does not currently document or script. Bridging/`br0` setup, `net.ipv4.ip_forward=1`, and NAT rules would need to be built and added as new install steps; don't assume they exist.
+4. **dnsmasq must run on the same host** (or forward its logs to it) — DNS event ingestion is the primary trigger for the whole scoring pipeline, so DNS resolution for the protected network needs to transit this box.
+
 ### Sector System (Core + Sector Overlay)
 
 The project follows a **Core + Sector Overlay** model. The Common Core (traffic collection, AI scoring, dashboard skeleton) is frozen and sector-neutral. New verticals are implemented as overlays using the **4-Layer Adaptation** framework:
@@ -102,7 +117,7 @@ The project follows a **Core + Sector Overlay** model. The Common Core (traffic 
 
 **`PRODUCT_MODE`** is the canonical selector (e.g. `minifw_hospital`). `MINIFW_SECTOR` is a backward-compatible fallback; `sector_lock.json` is used on production hardware. Resolution priority: `PRODUCT_MODE` → `MINIFW_SECTOR` → `sector_lock.json`.
 
-Valid `PRODUCT_MODE` values: `minifw_hospital`, `minifw_school`, `minifw_financial`, `minifw_establishment`, `minifw_gambling`.
+Valid `PRODUCT_MODE` values: `minifw_hospital`, `minifw_school`, `minifw_financial`, `minifw_establishment`, `minifw_legal`, `minifw_government`.
 
 Per-sector configs live in `config/modes/minifw_<sector>/policy.json`.
 
