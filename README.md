@@ -49,7 +49,7 @@ The installer will:
 To install a specific version:
 
 ```bash
-sudo bash <(curl -fsSL https://github.com/vadhh/minifw-ai/releases/download/v2.2.0/install.sh)
+sudo bash <(curl -fsSL https://github.com/vadhh/minifw-ai/releases/download/v2.2.8/install.sh)
 ```
 
 ---

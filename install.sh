@@ -99,11 +99,16 @@ _resolve_tag() {
         echo "$MINIFW_TAG"
         return
     fi
-    local resp
-    resp="$(curl -fsSL "https://api.github.com/repos/${MINIFW_REPO}/releases/latest")"
-    local tag
-    tag="$(echo "$resp" | grep '"tag_name"' | head -1 | sed 's/.*"tag_name": *"\([^"]*\)".*/\1/')"
-    [[ -n "$tag" ]] || _die "Could not determine latest release tag from GitHub API"
+    local resp tag
+    resp="$(curl -fsSL "https://api.github.com/repos/${MINIFW_REPO}/releases/latest" || true)"
+    tag="$(echo "$resp" | grep '"tag_name"' | head -1 | sed 's/.*"tag_name": *"\([^"]*\)".*/\1/' || true)"
+    # ponytail: the anon API is capped at 60 req/hr per IP, which a NAT'd corporate
+    # gateway can exhaust. Fall back to the /releases/latest redirect, which is uncapped.
+    if [[ -z "$tag" ]]; then
+        tag="$(curl -sSLI -o /dev/null -w '%{url_effective}' \
+            "https://github.com/${MINIFW_REPO}/releases/latest" 2>/dev/null | sed 's|.*/tag/||')"
+    fi
+    [[ -n "$tag" ]] || _die "Could not determine latest release tag from GitHub"
     [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || _die "Unexpected tag format from GitHub API: '${tag}'"
     echo "$tag"
 }
