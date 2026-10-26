@@ -19,6 +19,7 @@ assert_eq() {
 
 # Source the installer (safe — main() is guarded by BASH_SOURCE check)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+assert_eq "DNS helper exists with LF-only endings" "$(if [[ -f "${SCRIPT_DIR}/scripts/enable_dnsmasq_logging.sh" ]] && ! LC_ALL=C grep -q $'\r' "${SCRIPT_DIR}/scripts/enable_dnsmasq_logging.sh"; then echo LF; else echo INVALID; fi)" "LF"
 # shellcheck source=../install.sh
 source "${SCRIPT_DIR}/install.sh"
 
@@ -78,11 +79,11 @@ curl() {
     if [[ "$*" == *api.github.com* ]]; then
         return 22
     fi
-    printf '%s\n' "https://github.com/vadhh/minifw-ai/releases/tag/v2.2.9"
+    printf '%s\n' "https://github.com/vadhh/minifw-ai/releases/tag/v2.2.10"
 }
 assert_eq "_resolve_tag falls back when GitHub API fails" \
     "$(_resolve_tag)" \
-    "v2.2.9"
+    "v2.2.10"
 unset -f curl
 
 echo ""
