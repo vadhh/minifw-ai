@@ -3,7 +3,7 @@ name: Release
 on:
   push:
     tags:
-      - "v[0-9]+.[0-9]+.[0-9]+"
+      - "v*"
 
 jobs:
   build-and-release:
@@ -13,6 +13,13 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Validate release tag
+        run: |
+          [[ "$GITHUB_REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || {
+            echo "Invalid release tag: ${GITHUB_REF_NAME} (expected vMAJOR.MINOR.PATCH)"
+            exit 1
+          }
 
       - name: Set up Python 3.12
         uses: actions/setup-python@v5
@@ -30,11 +37,27 @@ jobs:
         id: version
         run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
 
+      - name: Check one-line installer helpers
+        run: bash testing/test_install_sh.sh
+
       - name: Build .deb packages for all sectors
         run: |
           for sector in hospital education government finance legal establishment; do
             echo "Building sector: ${sector}"
-            bash scripts/build_deb.sh "${sector}"
+            bash scripts/build_deb.sh "${sector}" "${{ steps.version.outputs.version }}"
+          done
+
+      - name: Verify installer assets in every package
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          for sector in hospital education government finance legal establishment; do
+            deb="build/minifw-ai_${VERSION}-${sector}_amd64.deb"
+            test -s "$deb"
+            dpkg-deb --field "$deb" Version | grep -qx "${VERSION}-${sector}"
+            contents="$(dpkg-deb --contents "$deb")"
+            grep -Fq 'opt/minifw_ai/scripts/enable_dnsmasq_logging.sh' <<< "$contents"
+            grep -Fq 'etc/systemd/system/minifw-ai.service' <<< "$contents"
+            grep -Fq 'etc/systemd/system/minifw-ai-web.service' <<< "$contents"
           done
 
       - name: Generate SHA-256 checksums
