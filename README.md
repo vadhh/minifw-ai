@@ -143,6 +143,10 @@ echo "log-facility=/var/log/dnsmasq.log" | sudo tee -a /etc/dnsmasq.conf
 sudo systemctl restart dnsmasq
 ```
 
+The sector policies use `/var/log/dnsmasq.log` for `collectors.dnsmasq_log_path`.
+If you change dnsmasq's `log-facility`, update this policy setting to the same
+path so the DNS collector reads the file dnsmasq writes.
+
 ---
 
 ### Step 6 — Connect the network interface
