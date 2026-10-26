@@ -6,6 +6,16 @@ CONF="/etc/dnsmasq.conf"
 LOG="/var/log/dnsmasq.log"
 RESOLVED_CONF="/etc/systemd/resolved.conf"
 
+# DNS logging is optional. Check every prerequisite before touching the host resolver.
+if ! command -v dnsmasq >/dev/null 2>&1 || [ ! -f "${CONF}" ]; then
+    echo "dnsmasq is not installed or ${CONF} is missing; skipping DNS logging setup."
+    exit 0
+fi
+if systemctl is-active --quiet systemd-resolved 2>/dev/null && [ ! -f "${RESOLVED_CONF}" ]; then
+    echo "${RESOLVED_CONF} is missing; skipping DNS logging setup."
+    exit 0
+fi
+
 # ── 1. Disable systemd-resolved stub listener (holds port 53) ──
 if systemctl is-active --quiet systemd-resolved 2>/dev/null; then
     echo "[1/4] Disabling systemd-resolved DNS stub listener..."
