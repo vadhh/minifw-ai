@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-BASE_VERSION="2.2.8"
+BASE_VERSION="${2:-2.2.9}"
 PKG_NAME="minifw-ai"
 ARCH="amd64"
 SECTOR="${1:-establishment}"
@@ -15,6 +15,11 @@ VALID_SECTORS="hospital education government finance legal establishment"
 if ! echo "${VALID_SECTORS}" | grep -qw "${SECTOR}"; then
     echo "ERROR: Invalid sector '${SECTOR}'"
     echo "Valid sectors: ${VALID_SECTORS}"
+    exit 1
+fi
+
+if [[ ! "${BASE_VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    echo "ERROR: Invalid version '${BASE_VERSION}' (expected MAJOR.MINOR.PATCH)"
     exit 1
 fi
 
@@ -95,6 +100,8 @@ cp "${REPO_DIR}/scripts/backup.sh" "${BUILD_DIR}/opt/minifw_ai/scripts/"
 cp "${REPO_DIR}/scripts/restore.sh" "${BUILD_DIR}/opt/minifw_ai/scripts/"
 cp "${REPO_DIR}/scripts/create_admin.py" "${BUILD_DIR}/opt/minifw_ai/scripts/"
 cp "${REPO_DIR}/scripts/train_mlp.py" "${BUILD_DIR}/opt/minifw_ai/scripts/"
+cp "${REPO_DIR}/scripts/enable_dnsmasq_logging.sh" "${BUILD_DIR}/opt/minifw_ai/scripts/"
+cp "${REPO_DIR}/scripts/uninstall.sh" "${BUILD_DIR}/opt/minifw_ai/scripts/"
 chmod +x "${BUILD_DIR}/opt/minifw_ai/scripts/"*.sh
 
 # --- Systemd units ---

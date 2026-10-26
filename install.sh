@@ -29,6 +29,14 @@ _check_os() {
     esac
 }
 
+_check_architecture() {
+    local arch
+    arch="$(dpkg --print-architecture 2>/dev/null)" \
+        || _die "Could not determine package architecture with dpkg"
+    [[ "$arch" == "$MINIFW_ARCH" ]] \
+        || _die "Unsupported architecture: '${arch:-unknown}'. This release supports amd64."
+}
+
 _check_tools() {
     command -v sha256sum &>/dev/null || _die "sha256sum is required but not found (install coreutils)"
     command -v curl &>/dev/null || _die "curl is required but not found (sudo apt-get install curl)"
@@ -237,7 +245,6 @@ _run_post_install_script() {
 
 _post_install() {
     _run_post_install_script "enable_dnsmasq_logging.sh"
-    _run_post_install_script "install_systemd.sh"
 }
 
 # ── Status report ─────────────────────────────────────────────────────────────
@@ -267,6 +274,7 @@ main() {
     _print_banner
     _check_root
     _check_os
+    _check_architecture
     _check_tools
 
     local sector
