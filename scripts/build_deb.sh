@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-BASE_VERSION="${2:-2.2.9}"
+BASE_VERSION="${2:-2.2.10}"
 PKG_NAME="minifw-ai"
 ARCH="amd64"
 SECTOR="${1:-establishment}"

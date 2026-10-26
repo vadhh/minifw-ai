@@ -441,6 +441,11 @@ Stage 10  Production & Maintenance
 
 All notable changes to MiniFW-AI. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+### [2.2.10] — 2026-10-26
+
+**Fixed**
+- **DNS logging helper on fresh installs** — normalize the shared helper to LF line endings so Bash accepts `set -euo pipefail` on all sector packages.
+
 ### [2.2.0] — 2026-03-17
 
 **Changed**

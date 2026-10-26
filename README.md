@@ -51,7 +51,7 @@ The installer will:
 To install a specific version:
 
 ```bash
-curl -fsSL https://github.com/vadhh/minifw-ai/releases/download/v2.2.9/install.sh | sudo bash
+curl -fsSL https://github.com/vadhh/minifw-ai/releases/download/v2.2.10/install.sh | sudo bash
 ```
 
 ---
@@ -62,19 +62,19 @@ The native `.deb` installation requires internet access because its post-install
 
 ### Step 1 — Verify the package
 
-Download the package, its `.sha256` and `.asc` files, and `minifw-ai-release.asc` from the [v2.2.9 release](https://github.com/vadhh/minifw-ai/releases/tag/v2.2.9). Keep all four files in one directory. The example below uses the `establishment` package; choose the matching filenames for another sector.
+Download the package, its `.sha256` and `.asc` files, and `minifw-ai-release.asc` from the [v2.2.10 release](https://github.com/vadhh/minifw-ai/releases/tag/v2.2.10). Keep all four files in one directory. The example below uses the `establishment` package; choose the matching filenames for another sector.
 
 ```bash
 # Import the signing key
 gpg --import minifw-ai-release.asc
 
 # Verify GPG signature
-gpg --verify minifw-ai_2.2.9-establishment_amd64.deb.asc minifw-ai_2.2.9-establishment_amd64.deb
+gpg --verify minifw-ai_2.2.10-establishment_amd64.deb.asc minifw-ai_2.2.10-establishment_amd64.deb
 # Expected: "Good signature from MiniFW-AI Release ..."
 
 # Verify SHA-256 checksum
-sha256sum -c minifw-ai_2.2.9-establishment_amd64.deb.sha256
-# Expected: "minifw-ai_2.2.9-establishment_amd64.deb: OK"
+sha256sum -c minifw-ai_2.2.10-establishment_amd64.deb.sha256
+# Expected: "minifw-ai_2.2.10-establishment_amd64.deb: OK"
 ```
 
 See [docs/release-verification.md](docs/release-verification.md) for full details.
@@ -107,7 +107,7 @@ Install Zeek separately if your distribution provides it; Zeek is optional and e
 ### Step 4 — Install the package
 
 ```bash
-sudo dpkg -i minifw-ai_2.2.9-establishment_amd64.deb
+sudo dpkg -i minifw-ai_2.2.10-establishment_amd64.deb
 ```
 
 The installer automatically:
@@ -419,9 +419,9 @@ python3 scripts/train_mlp.py --data /opt/minifw_ai/logs/flow_records.jsonl
 
 ```bash
 bash scripts/build_deb.sh [sector] [version]
-# Defaults: sector=establishment, version=2.2.9
+# Defaults: sector=establishment, version=2.2.10
 # Examples:
-#   bash scripts/build_deb.sh hospital 2.2.9
+#   bash scripts/build_deb.sh hospital 2.2.10
 #   bash scripts/build_deb.sh finance 2.3.0
 # Output: build/minifw-ai_<version>-<sector>_amd64.deb
 ```
