@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-BASE_VERSION="2.2.8"
+BASE_VERSION="${2:-2.2.9}"
 PKG_NAME="minifw-ai"
 ARCH="amd64"
 SECTOR="${1:-establishment}"
@@ -18,11 +18,14 @@ if ! echo "${VALID_SECTORS}" | grep -qw "${SECTOR}"; then
     exit 1
 fi
 
-echo "============================================"
+if [[ ! "${BASE_VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    echo "ERROR: Invalid version '${BASE_VERSION}' (expected MAJOR.MINOR.PATCH)"
+    exit 1
+fi
+
 echo " Building ${PKG_NAME} ${VERSION}"
 echo " Sector:  ${SECTOR}"
 echo " Output:  ${DEB_OUTPUT}"
-echo "============================================"
 
 # Clean previous build
 rm -rf "${BUILD_DIR}"
@@ -95,6 +98,8 @@ cp "${REPO_DIR}/scripts/backup.sh" "${BUILD_DIR}/opt/minifw_ai/scripts/"
 cp "${REPO_DIR}/scripts/restore.sh" "${BUILD_DIR}/opt/minifw_ai/scripts/"
 cp "${REPO_DIR}/scripts/create_admin.py" "${BUILD_DIR}/opt/minifw_ai/scripts/"
 cp "${REPO_DIR}/scripts/train_mlp.py" "${BUILD_DIR}/opt/minifw_ai/scripts/"
+cp "${REPO_DIR}/scripts/enable_dnsmasq_logging.sh" "${BUILD_DIR}/opt/minifw_ai/scripts/"
+cp "${REPO_DIR}/scripts/uninstall.sh" "${BUILD_DIR}/opt/minifw_ai/scripts/"
 chmod +x "${BUILD_DIR}/opt/minifw_ai/scripts/"*.sh
 
 # --- Systemd units ---
@@ -156,9 +161,7 @@ ENV_FILE="${ENV_DIR}/minifw.env"
 TLS_DIR="${ENV_DIR}/tls"
 
 echo ""
-echo "============================================"
 echo " MiniFW-AI: Post-install setup"
-echo "============================================"
 
 # --- 1. Python virtual environment ---
 echo "[1/10] Python environment..."
@@ -325,9 +328,7 @@ systemctl enable --now minifw-ai
 systemctl enable --now minifw-ai-web
 
 echo ""
-echo "============================================"
 echo " MiniFW-AI installed and running"
-echo "============================================"
 echo ""
 echo "  Engine:    systemctl status minifw-ai"
 echo "  Dashboard: https://localhost:8443"
@@ -418,9 +419,7 @@ SHA256=$(sha256sum "${DEB_OUTPUT}" | awk '{print $1}')
 echo "${SHA256}  $(basename "${DEB_OUTPUT}")" > "${DEB_OUTPUT}.sha256"
 
 echo ""
-echo "============================================"
 echo " Package built successfully"
 echo " File: ${DEB_OUTPUT}"
 echo " Size: $(du -h "${DEB_OUTPUT}" | awk '{print $1}')"
 echo " SHA256: ${SHA256}"
-echo "============================================"

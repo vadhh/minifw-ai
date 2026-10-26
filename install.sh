@@ -8,12 +8,10 @@ MINIFW_GPG_KEY_ID="BDB471E1FB46F58A"
 MINIFW_VALID_SECTORS="hospital education government finance legal establishment"
 MINIFW_ARCH="amd64"
 
-# ── Helpers ──────────────────────────────────────────────────────────────────
 _die()  { echo "[ERROR] $*" >&2; exit 1; }
 _warn() { echo "[WARN]  $*" >&2; }
 _info() { echo "[INFO]  $*"; }
 
-# ── Pre-flight ────────────────────────────────────────────────────────────────
 _check_root() {
     [[ $EUID -eq 0 ]] || _die "Run as root: curl -fsSL ... | sudo bash"
 }
@@ -29,16 +27,22 @@ _check_os() {
     esac
 }
 
+_check_architecture() {
+    local arch
+    arch="$(dpkg --print-architecture 2>/dev/null)" \
+        || _die "Could not determine package architecture with dpkg"
+    [[ "$arch" == "$MINIFW_ARCH" ]] \
+        || _die "Unsupported architecture: '${arch:-unknown}'. This release supports amd64."
+}
+
 _check_tools() {
     command -v sha256sum &>/dev/null || _die "sha256sum is required but not found (install coreutils)"
     command -v curl &>/dev/null || _die "curl is required but not found (sudo apt-get install curl)"
     command -v gpg &>/dev/null || _warn "Tool not found: gpg (GPG verification will be skipped)"
 }
 
-# ── Banner ────────────────────────────────────────────────────────────────────
 _print_banner() {
     echo ""
-    echo "  ╔════════════════════════════════════════════════════╗"
     echo "  ║                                                    ║"
     echo "  ║  ███╗   ███╗██╗███╗   ██╗██╗███████╗██╗    ██╗   ║"
     echo "  ║  ████╗ ████║██║████╗  ██║██║██╔════╝██║    ██║   ║"
@@ -49,11 +53,9 @@ _print_banner() {
     echo "  ║                    ·  A  I  ·                      ║"
     echo "  ║         Behavioral Firewall Engine                 ║"
     echo "  ║                                                    ║"
-    echo "  ╚════════════════════════════════════════════════════╝"
     echo ""
 }
 
-# ── Sector selection ──────────────────────────────────────────────────────────
 _sector_menu() {
     echo ""
     echo "Select deployment sector:"
@@ -92,7 +94,6 @@ _select_sector() {
     echo "$sector"
 }
 
-# ── Version resolution ────────────────────────────────────────────────────────
 # Accepts optional override via MINIFW_TAG env var (used in tests).
 _resolve_tag() {
     if [[ -n "${MINIFW_TAG:-}" ]]; then
@@ -128,7 +129,6 @@ _base_url() {
     echo "https://github.com/${MINIFW_REPO}/releases/download/${tag}"
 }
 
-# ── Download ──────────────────────────────────────────────────────────────────
 _download_url() {
     local url="$1" dest="$2"
     local curl_progress=""
@@ -169,7 +169,6 @@ _download_assets() {
     _download_url "${base_url}/minifw-ai-release.asc" "${tmpdir}/minifw-ai-release.asc" >/dev/null 2>&1 || true
 }
 
-# ── Verification ──────────────────────────────────────────────────────────────
 _verify_sha256() {
     local tmpdir="$1" deb_name="$2"
     _info "Verifying SHA-256 checksum..."
@@ -212,7 +211,6 @@ _verify_gpg() {
     fi
 }
 
-# ── Install ───────────────────────────────────────────────────────────────────
 _install_deb() {
     local tmpdir="$1" deb_name="$2"
     _info "Installing ${deb_name}..."
@@ -223,7 +221,6 @@ _install_deb() {
     _info "Package installed"
 }
 
-# ── Post-install ──────────────────────────────────────────────────────────────
 _run_post_install_script() {
     local script_name="$1"
     local path="/opt/minifw_ai/scripts/${script_name}"
@@ -237,16 +234,12 @@ _run_post_install_script() {
 
 _post_install() {
     _run_post_install_script "enable_dnsmasq_logging.sh"
-    _run_post_install_script "install_systemd.sh"
 }
 
-# ── Status report ─────────────────────────────────────────────────────────────
 _print_summary() {
     local version="$1" sector="$2"
     echo ""
-    echo "============================================"
     echo " MiniFW-AI installation complete!"
-    echo "============================================"
     echo ""
     printf " Version:  %s\n" "$version"
     printf " Sector:   %s\n" "$sector"
@@ -262,11 +255,11 @@ _print_summary() {
     echo ""
 }
 
-# ── Main ──────────────────────────────────────────────────────────────────────
 main() {
     _print_banner
     _check_root
     _check_os
+    _check_architecture
     _check_tools
 
     local sector

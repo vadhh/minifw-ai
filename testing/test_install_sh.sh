@@ -47,6 +47,15 @@ assert_eq "hospital deb name" \
 assert_eq "education deb name" \
     "$(_deb_name "2.2.0" "education")" \
     "minifw-ai_2.2.0-education_amd64.deb"
+assert_eq "government deb name" \
+    "$(_deb_name "2.2.0" "government")" \
+    "minifw-ai_2.2.0-government_amd64.deb"
+assert_eq "finance deb name" \
+    "$(_deb_name "2.2.0" "finance")" \
+    "minifw-ai_2.2.0-finance_amd64.deb"
+assert_eq "legal deb name" \
+    "$(_deb_name "2.2.0" "legal")" \
+    "minifw-ai_2.2.0-legal_amd64.deb"
 assert_eq "establishment deb name" \
     "$(_deb_name "2.2.0" "establishment")" \
     "minifw-ai_2.2.0-establishment_amd64.deb"
@@ -64,6 +73,40 @@ assert_eq "_resolve_tag uses MINIFW_TAG env var" \
     "$(_resolve_tag)" \
     "v9.9.9"
 unset MINIFW_TAG
+
+curl() {
+    if [[ "$*" == *api.github.com* ]]; then
+        return 22
+    fi
+    printf '%s\n' "https://github.com/vadhh/minifw-ai/releases/tag/v2.2.9"
+}
+assert_eq "_resolve_tag falls back when GitHub API fails" \
+    "$(_resolve_tag)" \
+    "v2.2.9"
+unset -f curl
+
+echo ""
+echo "=== _check_architecture ==="
+dpkg() { echo amd64; }
+if _check_architecture; then
+    echo "  PASS: amd64 is supported"
+    PASS=$((PASS + 1))
+else
+    echo "  FAIL: amd64 should be supported"
+    FAIL=$((FAIL + 1))
+fi
+unset -f dpkg
+
+if (
+    dpkg() { echo arm64; }
+    _check_architecture
+) >/dev/null 2>&1; then
+    echo "  FAIL: arm64 should be rejected"
+    FAIL=$((FAIL + 1))
+else
+    echo "  PASS: unsupported architecture is rejected"
+    PASS=$((PASS + 1))
+fi
 
 echo ""
 echo "=== Results ==="

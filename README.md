@@ -16,12 +16,14 @@ at deployment and locked for the lifetime of that installation.
 
 ## Requirements
 
-- **OS**: Ubuntu 22.04+ / Debian 12+ (any Linux with nftables support)
+- **OS**: Ubuntu 22.04+ or Debian 12+
+- **Architecture**: amd64 (x86_64)
 - **Python**: 3.10+
 - **Root access**: Required for nftables enforcement and conntrack reading
 - **Hardware**: 4+ CPU cores, 8 GB RAM, 100 GB disk, 1 Gbps NIC
-- **System packages** (installed automatically by the `.deb`): `python3`, `python3-venv`, `nftables`, `openssl`, `curl`
-- **Recommended**: `dnsmasq` (for DNS log-based threat detection)
+- **System packages** (installed by APT as `.deb` dependencies): `python3` (3.10+), `python3-venv`, `nftables`, `openssl`, `conntrack`
+- **Installer tools**: `curl`, `sha256sum`, and an interactive terminal; `gpg` is optional
+- **Recommended**: `dnsmasq` (DNS log-based detection) and `zeek` (TLS/SNI scoring). The installer configures DNS logging when dnsmasq is available and skips it otherwise.
 
 ---
 
@@ -32,7 +34,7 @@ at deployment and locked for the lifetime of that installation.
 > **Requires an interactive terminal.** The installer prompts you to select a sector.
 
 ```bash
-sudo bash <(curl -fsSL https://github.com/vadhh/minifw-ai/releases/latest/download/install.sh)
+curl -fsSL https://github.com/vadhh/minifw-ai/releases/latest/download/install.sh | sudo bash
 ```
 
 The installer will:
@@ -41,7 +43,7 @@ The installer will:
 3. Verify the SHA-256 checksum (hard fail on mismatch)
 4. Verify the GPG signature (warn and continue if unavailable)
 5. Install the package via `dpkg`
-6. Configure DNS logging via dnsmasq
+6. Configure DNS logging when dnsmasq is installed
 7. Start the `minifw-ai` and `minifw-ai-web` services
 
 **Admin credentials** are generated at install time and stored in `/etc/minifw/minifw.env` (root-readable only). The password is also printed to the console — save it.
@@ -49,30 +51,30 @@ The installer will:
 To install a specific version:
 
 ```bash
-sudo bash <(curl -fsSL https://github.com/vadhh/minifw-ai/releases/download/v2.2.8/install.sh)
+curl -fsSL https://github.com/vadhh/minifw-ai/releases/download/v2.2.9/install.sh | sudo bash
 ```
 
 ---
 
 ### Manual installation
 
-For air-gapped or offline deployments, use the steps below.
+The native `.deb` installation requires internet access because its post-install step installs Python dependencies from PyPI. For an evaluation without network access, use the pre-staged Docker kit described under [Proof of Concept / Evaluation](#proof-of-concept--evaluation).
 
 ### Step 1 — Verify the package
 
-Before installing, confirm the package has not been tampered with:
+Download the package, its `.sha256` and `.asc` files, and `minifw-ai-release.asc` from the [v2.2.9 release](https://github.com/vadhh/minifw-ai/releases/tag/v2.2.9). Keep all four files in one directory. The example below uses the `establishment` package; choose the matching filenames for another sector.
 
 ```bash
 # Import the signing key
 gpg --import minifw-ai-release.asc
 
-# Verify GPG signature (adjust filename for your sector/version)
-gpg --verify minifw-ai_2.2.0-establishment_amd64.deb.asc minifw-ai_2.2.0-establishment_amd64.deb
+# Verify GPG signature
+gpg --verify minifw-ai_2.2.9-establishment_amd64.deb.asc minifw-ai_2.2.9-establishment_amd64.deb
 # Expected: "Good signature from MiniFW-AI Release ..."
 
 # Verify SHA-256 checksum
-sha256sum -c minifw-ai_2.2.0-establishment_amd64.deb.sha256
-# Expected: "minifw-ai_2.2.0-establishment_amd64.deb: OK"
+sha256sum -c minifw-ai_2.2.9-establishment_amd64.deb.sha256
+# Expected: "minifw-ai_2.2.9-establishment_amd64.deb: OK"
 ```
 
 See [docs/release-verification.md](docs/release-verification.md) for full details.
@@ -90,8 +92,10 @@ decide now — see [Changing the Sector](#changing-the-sector) below.
 
 ```bash
 sudo apt update
-sudo apt install -y python3 python3-venv nftables openssl dnsmasq curl zeek
+sudo apt install -y python3 python3-venv nftables openssl conntrack dnsmasq curl
 ```
+
+Install Zeek separately if your distribution provides it; Zeek is optional and enables TLS/SNI scoring.
 
 > **Zeek** provides TLS/SNI scoring (+35 points) and populates 3 MLP flow features
 > (`alpn_h2`, `cert_self_signed_suspect`, `tls_handshake_time_ms`). The engine
@@ -103,11 +107,11 @@ sudo apt install -y python3 python3-venv nftables openssl dnsmasq curl zeek
 ### Step 4 — Install the package
 
 ```bash
-sudo dpkg -i minifw-ai_2.2.0-establishment_amd64.deb
+sudo dpkg -i minifw-ai_2.2.9-establishment_amd64.deb
 ```
 
 The installer automatically:
-1. Creates a Python virtual environment and installs all dependencies
+1. Creates a Python virtual environment and installs Python dependencies from PyPI (internet required)
 2. Generates a random JWT secret key and admin password → `/etc/minifw/minifw.env`
 3. Generates a self-signed TLS certificate → `/etc/minifw/tls/`
 4. Creates the `admin` user in the database (password printed to console — save it)
@@ -146,14 +150,16 @@ sudo systemctl restart dnsmasq
 Plug the ethernet cable into the gateway NIC (`enp1s0`, `enp3s0`, or `enp4s0`).
 Configure the interface via netplan:
 
-```bash
+```yaml
 # Example: /etc/netplan/01-minifw.yaml
 network:
   version: 2
   ethernets:
     enp1s0:
       dhcp4: true   # or set a static IP
+```
 
+```bash
 sudo netplan apply
 ```
 
@@ -191,7 +197,7 @@ password change. Alternatively via the dashboard: **Users → admin → Change P
 ### Uninstall
 
 ```bash
-sudo bash /opt/minifw_ai/scripts/uninstall.sh  # recommended (removes services + data)
+sudo bash /opt/minifw_ai/scripts/uninstall.sh  # removes services, application data, and DNS logging changes
 
 # Or via dpkg:
 sudo dpkg -r minifw-ai      # remove (keeps /etc/minifw, feeds, and logs)
@@ -208,7 +214,6 @@ service unit and locked at daemon startup — it cannot be changed at runtime.
 ### Available sectors
 
 | Sector | Use case | Monitor / Block threshold | Special behaviour |
-|--------|----------|--------------------------|-------------------|
 | `establishment` | General commercial, SME, retail | 60 / 90 (default) | Balanced |
 | `hospital` | Hospitals, clinics | **40 / 85** (stricter) | HIPAA payload redaction, IoMT device alerts, `healthcare_threats.txt` feed, hospital YARA rules |
 | `finance` | Banks, financial institutions | 60 / **80** (stricter) | Tor/anonymizer blocking |
@@ -269,7 +274,6 @@ journalctl -u minifw-ai | grep "SECTOR_LOCK"
 Set `MINIFW_DNS_SOURCE` in the systemd unit:
 
 | Source | Description |
-|--------|-------------|
 | `file` | Tail dnsmasq log (default) |
 | `journald` | Stream from systemd-resolved |
 | `udp` | Listen on UDP socket |
@@ -315,7 +319,6 @@ Feed files are marked as conffiles — they are preserved on package upgrade.
 Edit `/opt/minifw_ai/config/policy.json` to tune scoring:
 
 | Signal | Default Weight | Description |
-|--------|---------------|-------------|
 | DNS deny match | +40 | Domain in deny_domains.txt |
 | TLS SNI deny match | +35 | SNI in deny_domains.txt |
 | ASN deny | +15 | IP's ASN in deny_asn.txt |
@@ -416,9 +419,9 @@ python3 scripts/train_mlp.py --data /opt/minifw_ai/logs/flow_records.jsonl
 
 ```bash
 bash scripts/build_deb.sh [sector] [version]
-# Defaults: sector=establishment, version from scripts/build_deb.sh
+# Defaults: sector=establishment, version=2.2.9
 # Examples:
-#   bash scripts/build_deb.sh hospital 2.2.0
+#   bash scripts/build_deb.sh hospital 2.2.9
 #   bash scripts/build_deb.sh finance 2.3.0
 # Output: build/minifw-ai_<version>-<sector>_amd64.deb
 ```
@@ -514,8 +517,9 @@ remain active, AI modules disabled).
 
 ## Documentation
 
+Start with the [technical reference](docs/technical-reference.md) for source-checked setup, configuration, APIs, operations, and current implementation limits.
+
 | Document | Description |
-|----------|-------------|
 | [DEVELOPER.md](DEVELOPER.md) | Architecture deep-dive, module reference, 11-stage development lifecycle, version history |
 | [dist/INDEX.md](dist/INDEX.md) | Demo/USB kit packages — ports, credentials, build commands |
 | [docs/release-verification.md](docs/release-verification.md) | GPG signing key, package verification steps |
