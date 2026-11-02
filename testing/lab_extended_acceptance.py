@@ -125,7 +125,11 @@ def guard_checks(root, run, start, record, nft, ns, member):
     python = "/opt/minifw_ai/venv/bin/python"
     start()
     try:
-        run("env", "PYTHONPATH=/opt/minifw_ai/app", python, "-m", "minifw_ai.egress_guard", "--interface", "mfcg", "--block-ipv6")
+        # Lab DoH fixture lives at 198.18.0.2:443; the shipped public list must also parse and apply.
+        doh_list = root / "doh-resolvers-lab.txt"
+        doh_list.write_text(Path("/opt/minifw_ai/config/feeds/doh_resolvers.txt").read_text() + "198.18.0.2\n")
+        run("env", "PYTHONPATH=/opt/minifw_ai/app", python, "-m", "minifw_ai.egress_guard", "--interface", "mfcg", "--block-ipv6",
+            "--doh-list", str(doh_list))
         denied = "4chan.org" if socket.gethostname().endswith("education") else "secure-bankofamerica-login.com"
         ns("dns", "198.18.0.2", denied)
         for _ in range(30):
@@ -140,10 +144,11 @@ def guard_checks(root, run, start, record, nft, ns, member):
         run("nft", "delete", "element", "inet", "minifw", "minifw_block_v4", "{", "10.10.0.20", "}")
         ns("dot", "198.18.0.2", "approved.test", allowed=False)
         ns("http", "fd42:18::2", "8080", "/", allowed=False)
-        ns("http", "198.18.0.2", "443", "/dns-query", "denied.lab.test")
+        ns("http", "198.18.0.2", "443", "/dns-query", "denied.lab.test", allowed=False)
         ns("http", "198.18.0.2", "8080", "/")
         record("guarded_bypass_scope", DoT="blocked", IPv6="blocked by explicit full IPv6 forwarding denial",
-               DoH="allowed", direct_IP="allowed", UDP_853="configured; no DoQ protocol acceptance",
+               DoH="blocked to listed resolver address on 443; unlisted/self-hosted DoH not identified",
+               direct_IP="allowed (non-443 port to the same address still allowed)", UDP_853="configured; no DoQ protocol acceptance",
                limitation="No generic HTTPS DoH identification, IPv6 inspection or all-tunnel claim")
         rules = run("nft", "-a", "list", "table", "inet", "minifw_egress").stdout
         (root / "egress-guard.nft").write_text(rules)
@@ -151,7 +156,8 @@ def guard_checks(root, run, start, record, nft, ns, member):
         run("env", "PYTHONPATH=/opt/minifw_ai/app", python, "-m", "minifw_ai.egress_guard", "--remove", check=False)
     ns("http", "fd42:18::2", "8080", "/")
     ns("dot", "198.18.0.2", "approved.test")
-    record("guard_removal_recovery", IPv6="allowed", DoT="allowed")
+    ns("http", "198.18.0.2", "443", "/dns-query", "approved.test")
+    record("guard_removal_recovery", IPv6="allowed", DoT="allowed", DoH="allowed")
 
 
 def browser_checks(output):

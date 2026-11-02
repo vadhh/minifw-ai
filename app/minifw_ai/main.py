@@ -567,8 +567,11 @@ def run():
     flow_export_interval = 100
     guard_interface = os.environ.get("MINIFW_EGRESS_GUARD_INTERFACE", "")
     if guard_interface:
-        from minifw_ai.egress_guard import apply as apply_egress_guard
-        apply_egress_guard(guard_interface, _env_flag("MINIFW_EGRESS_BLOCK_IPV6", False))
+        from minifw_ai.egress_guard import DEFAULT_DOH_LIST, apply as apply_egress_guard, load_doh_list
+        # Empty MINIFW_EGRESS_DOH_LIST disables the DoH address list; a missing configured file fails startup.
+        doh_path = os.environ.get("MINIFW_EGRESS_DOH_LIST", DEFAULT_DOH_LIST)
+        apply_egress_guard(guard_interface, _env_flag("MINIFW_EGRESS_BLOCK_IPV6", False),
+                           load_doh_list(doh_path) if doh_path else ())
     audit_daemon_start(sector_name, state_manager.get_current_state().value)
 
     from minifw_ai.runtime_health import RuntimeHealth

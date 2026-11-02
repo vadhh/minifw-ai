@@ -91,7 +91,7 @@ Continue with representative labeled real metadata, independent holdouts, false-
 
 ## Opt-in DNS and IPv6 egress guard
 
-This additional control is disabled unless configured. Set `MINIFW_EGRESS_GUARD_INTERFACE` to the client-facing interface in the engine unit environment; `MINIFW_EGRESS_BLOCK_IPV6=1` explicitly denies all forwarded IPv6 received on that interface. A functioning local port-53 resolver is required. On the isolated lab only, the equivalent manual command is:
+This additional control is disabled unless configured. Set `MINIFW_EGRESS_GUARD_INTERFACE` to the client-facing interface in the engine unit environment; `MINIFW_EGRESS_BLOCK_IPV6=1` explicitly denies all forwarded IPv6 received on that interface. The guard also drops client TCP/UDP 443 to the public DoH resolver addresses in `config/feeds/doh_resolvers.txt`; `MINIFW_EGRESS_DOH_LIST` (or `--doh-list`) selects another file, and an empty value disables the list. A functioning local port-53 resolver is required. On the isolated lab only, the equivalent manual command is:
 
 ```bash
 sudo env PYTHONPATH=/opt/minifw_ai/app /opt/minifw_ai/venv/bin/python -m minifw_ai.egress_guard --interface mfcg --block-ipv6
@@ -100,7 +100,7 @@ sudo nft -a list table inet minifw_egress
 sudo env PYTHONPATH=/opt/minifw_ai/app /opt/minifw_ai/venv/bin/python -m minifw_ai.egress_guard --remove
 ```
 
-The owned table redirects client-interface IPv4 UDP/TCP port 53 to the local resolver and drops TCP/UDP port 853. Optional IPv6 denial closes that forwarding path by refusing IPv6, not by inspecting it or providing IPv6 application support. The rules replace atomically and affect only the selected ingress interface. IPv4 HTTPS DoH and direct-IP traffic remain possible. Port 853 blocking is not identification of every encrypted-DNS protocol. This does not add OpenVPN, IPsec or obfuscated-tunnel detection. Do not claim provider domain matching or port denial as generic tunnel detection.
+The owned table redirects client-interface IPv4 UDP/TCP port 53 to the local resolver and drops TCP/UDP port 853. Optional IPv6 denial closes that forwarding path by refusing IPv6, not by inspecting it or providing IPv6 application support. The rules replace atomically and affect only the selected ingress interface. DoH is blocked only to the listed resolver addresses: unlisted, self-hosted or CDN-fronted DoH (for example browser TRR endpoints on shared edges) still passes, as does other direct-IP traffic. Port 853 blocking is not identification of every encrypted-DNS protocol. This does not add OpenVPN, IPsec or obfuscated-tunnel detection. Do not claim provider domain matching or port denial as generic tunnel detection.
 
 ## Runtime health and service restrictions
 
