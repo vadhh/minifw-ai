@@ -1,13 +1,13 @@
 # MiniFW-AI v2.2.10 — work report, 2 November 2026
 
-Written **16:50 WIB**. Covers all work on branch `fix/monday-core-20261102` today. The detailed requirement matrix, hashes and per-run evidence are in the [consolidated correction report](2026-11-02_correction-minifwai-report.md); this page is the summary.
+Written **17:00 WIB**. Covers all work on branch `fix/monday-core-20261102` today. The detailed requirement matrix, hashes and per-run evidence are in the [consolidated correction report](2026-11-02_correction-minifwai-report.md); this page is the summary.
 
 ## Status
 
 **Neither the Financial nor the Education edition is production-ready.** All testing used only v2.2.10, on two separate QEMU lab VMs (`minifw-monday-financial`, `minifw-monday-education`) reached through the testbed host. No operational host service or client network was touched.
 
-- **Latest fully verified candidate: C13.** Strict package identity, 609 Debian regression tests, and the feature, core and extended lab suites all pass in both editions.
-- **C15 is in final testing.** It is C13 plus a dashboard that no longer runs as root, with fixes for two security-review findings. Install, strict identity, 616 tests, and the feature and core suites pass in both editions. The extended suite (dashboard smoke test) and an in-place upgrade test are still running.
+- **Latest fully verified candidate: C15.** It is C13 plus a dashboard that no longer runs as root, with fixes for two security-review findings. Strict package identity, 616 Debian regression tests, and the feature, core and extended lab suites (including a real dashboard smoke test as the non-root user) all pass in both editions.
+- **Still running:** an in-place upgrade test from a C13 install (root dashboard) to C15 on the Education VM, to confirm the database and license migrate on a real upgrade rather than a fresh install.
 
 Nothing has been pushed. Seven files with pre-existing uncommitted changes (licensing feature, README, build defaults) were preserved; each source kit declares them as local inputs.
 
@@ -29,7 +29,7 @@ Nothing has been pushed. Seven files with pre-existing uncommitted changes (lice
 | C12 | Egress guard also drops client TCP/UDP 443 to 31 public DoH resolver addresses | 609 tests; all suites pass; fixture DoH blocked (2 packets dropped per VM) and restored after removal |
 | C13 | SafeSearch resolver answers Firefox's DoH canary (`use-application-dns.net`) with NXDOMAIN | 609 tests; all suites pass; canary NXDOMAIN from the real resolver |
 | C14 | Dashboard runs as unprivileged `minifw-web` | **Superseded.** Extended smoke test failed (test bug, see below); security review then found symlink issues |
-| C15 | C14 plus symlink/FIFO-safe restore and installer, repaired build script, corrected smoke test | Install, identity, 616 tests, feature and core pass; extended and upgrade tests running |
+| C15 | C14 plus symlink/FIFO-safe restore and installer, repaired build script, corrected smoke test | 616 tests; all suites pass, including the dashboard smoke test. In-place upgrade test running |
 
 ## Verified today, within stated scope
 
@@ -42,7 +42,7 @@ Nothing has been pushed. Seven files with pre-existing uncommitted changes (lice
 | Bypass controls (opt-in guard) | Alternate DNS redirected to the gateway, DoT blocked, IPv6 forwarding denied, DoH to listed public resolvers blocked; removal restores access |
 | Firefox DoH | Resolver returns NXDOMAIN for the canary, which keeps Firefox's default DoH off |
 | SafeSearch | DNS pinning for 12 Google/Bing/YouTube aliases; in the browser, Bing and YouTube strict status appear only with pinning |
-| Dashboard privileges (C15, pending extended run) | Web process runs as uid 105 with no capabilities (`CapBnd=0`, `CapEff=0`), confirmed in `/proc` on both VMs in C14 |
+| Dashboard privileges (C15) | Web process runs as uid 105 with no capabilities (`CapBnd=0`, `CapEff=0`). As that user it completed the forced password change, loaded the dashboard, events, policy and license pages, reported the kernel rule active, added and removed a deny-domain entry, and saved the same sector policy file the engine enforces |
 
 ## Failures and corrections kept on record
 
@@ -78,5 +78,5 @@ Nothing has been pushed. Seven files with pre-existing uncommitted changes (lice
 ## Evidence
 
 - Consolidated report: [2026-11-02_correction-minifwai-report.md](2026-11-02_correction-minifwai-report.md)
-- Per-candidate evidence: [C10](evidence/2026-11-02-v2210-continuation/), [C11](evidence/2026-11-02-v2210-c11/README.md), [C12](evidence/2026-11-02-v2210-c12/README.md), [C13](evidence/2026-11-02-v2210-c13/README.md), [C14, failed](evidence/2026-11-02-v2210-c14/README.md); C15 will be added when its run completes
+- Per-candidate evidence: [C10](evidence/2026-11-02-v2210-continuation/), [C11](evidence/2026-11-02-v2210-c11/README.md), [C12](evidence/2026-11-02-v2210-c12/README.md), [C13](evidence/2026-11-02-v2210-c13/README.md), [C14, failed](evidence/2026-11-02-v2210-c14/README.md), [C15](evidence/2026-11-02-v2210-c15/)
 - Lab access for the next session: `ssh -F ~/.ssh/minifw-lab/config minifw-lab-education` (or `minifw-lab-financial`)
