@@ -1,0 +1,36 @@
+== 1. clean C13 install (root-run dashboard layout)
+minifw-ai	2.2.10-education
+uid=105(minifw-web) gid=111(minifw-web) groups=111(minifw-web)
+root:root 664 /opt/minifw_ai/minifw.db
+root:root 755 /opt/minifw_ai/logs
+== 2. seed old-layout state
+== 3. dpkg -i C15 over C13, no purge
+DPKG_UPGRADE_EXIT=0
+== 4. verify migration and ownership
+minifw-ai	2.2.10-education
+OLD_DB_REMOVED
+MIGRATED_ROW [('kept-from-c13',)]
+INTEGRITY ok
+ADMIN_ACCOUNT_PRESERVED
+LICENSE_MOVED
+minifw-web:minifw-web 750 /var/lib/minifw-ai
+minifw-web:minifw-web 664 /var/lib/minifw-ai/minifw.db
+minifw-web:minifw-web 600 /var/lib/minifw-ai/license.json
+debian:debian 755 /opt/minifw_ai
+root:minifw-web 2750 /opt/minifw_ai/logs
+root:minifw-web 660 /opt/minifw_ai/logs/audit.jsonl
+root:root 600 /etc/minifw/minifw.env
+root:minifw-web 640 /etc/minifw/tls/server.key
+root:minifw-web 664 /opt/minifw_ai/config/feeds/deny_domains.txt
+root:minifw-web 2775 /opt/minifw_ai/config/modes/minifw_school
+root:minifw-web 664 /opt/minifw_ai/config/modes/minifw_school/policy.json
+active
+active
+Uid:	105	105	105	105
+Gid:	111	111	111	111
+CapEff:	0000000000000000
+CapBnd:	0000000000000000
+NoNewPrivs:	1
+DPKG_VERIFY_EXIT=0
+UPGRADE_CHECK_DONE
+UPGRADE_SCRIPT_EXIT=0
