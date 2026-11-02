@@ -17,6 +17,10 @@ def operational_checks(root, run, start, record, nft, ns, member):
     override = Path("/etc/systemd/system/minifw-ai-web.service.d/90-monday-health.conf")
     assert not override.exists()
     override.parent.mkdir(exist_ok=True)
+    # The dashboard runs as minifw-web: give the lab health folder the same setgid group model as /opt/minifw_ai/logs.
+    import grp
+    os.chown(root, 0, grp.getgrnam("minifw-web").gr_gid)
+    os.chmod(root, 0o2750)
     override.write_text(f"[Service]\nBindReadOnlyPaths={root}:/run/minifw-lab-health\n"
                         "Environment=MINIFW_HEALTH_FILE=/run/minifw-lab-health/runtime-health.json\n")
     marker = Path("/opt/minifw_ai/config/continuation-marker.json")
@@ -70,7 +74,7 @@ def operational_checks(root, run, start, record, nft, ns, member):
         record("runtime_health_quiet_sensor", http_status=status, **data)
         ready()
         marker.write_text('{"snapshot":1}')
-        database = "/opt/minifw_ai/minifw.db"
+        database = "/var/lib/minifw-ai/minifw.db"
         with sqlite3.connect(database) as connection:
             connection.execute("CREATE TABLE continuation_rehearsal (marker INTEGER)")
             connection.execute("INSERT INTO continuation_rehearsal VALUES (1)")
@@ -93,11 +97,14 @@ def operational_checks(root, run, start, record, nft, ns, member):
         pid = run("systemctl", "show", "minifw-ai-web", "-p", "MainPID", "--value").stdout.strip()
         process = dict(line.split(":", 1) for line in Path(f"/proc/{pid}/status").read_text().splitlines() if ":" in line)
         assert process["NoNewPrivs"].strip() == "1"
-        assert int(process["CapBnd"].strip(), 16) & ~(1 << 12) == 0
+        assert process["Uid"].split()[0] != "0" and process["Gid"].split()[0] != "0"
+        assert int(process["CapBnd"].strip(), 16) == 0 and int(process["CapEff"].strip(), 16) == 0
         restrictions = run("systemctl", "show", "minifw-ai-web", "-p", "User", "-p", "ProtectSystem",
                            "-p", "ProtectHome", "-p", "PrivateTmp", "-p", "NoNewPrivileges", "-p", "CapabilityBoundingSet").stdout
         record("web_service_restrictions", properties=restrictions, no_new_privileges=True,
-               remaining="Runs as root with NET_ADMIN; complete privilege separation unimplemented")
+               uid=process["Uid"].split()[0], capabilities="none (CapBnd=0, CapEff=0)",
+               remaining="Dashboard can still edit policy/feeds by design; engine remains root")
+        record("dashboard_unprivileged_smoke", **dashboard_smoke(run))
         rotation = Path("/opt/minifw_ai/logs/continuation-rotation.jsonl")
         state = rotation.with_suffix(".json")
         rotation.write_text('{"rotation":"control"}\n')
@@ -117,8 +124,60 @@ def operational_checks(root, run, start, record, nft, ns, member):
         override.unlink(missing_ok=True)
         run("systemctl", "daemon-reload", check=False)
         marker.unlink(missing_ok=True)
-        with sqlite3.connect("/opt/minifw_ai/minifw.db") as connection:
+        with sqlite3.connect("/var/lib/minifw-ai/minifw.db") as connection:
             connection.execute("DROP TABLE IF EXISTS continuation_rehearsal")
+
+
+def dashboard_smoke(run):
+    """Log into the real dashboard as admin and exercise the paths that need file access."""
+    import http.client
+    import urllib.parse
+    secrets = dict(line.split("=", 1) for line in Path("/etc/minifw/minifw.env").read_text().splitlines() if "=" in line)
+    context = ssl._create_unverified_context()
+
+    def call(method, path, body=None, cookie="", form=False):
+        connection = http.client.HTTPSConnection("127.0.0.1", 8443, context=context, timeout=10)
+        headers = {"Cookie": cookie} if cookie else {}
+        if body is not None:
+            headers["Content-Type"] = "application/x-www-form-urlencoded" if form else "application/json"
+            body = urllib.parse.urlencode(body) if form else json.dumps(body)
+        connection.request(method, path, body=body, headers=headers)
+        response = connection.getresponse()
+        return response.status, response.getheader("Set-Cookie") or "", response.read()
+
+    status, set_cookie, _ = call("POST", "/auth/login", {"username": "admin", "password": secrets["MINIFW_ADMIN_PASSWORD"].strip()}, form=True)
+    assert status == 303 and "access_token=" in set_cookie, ("login", status)  # never print the password or token
+    cookie = set_cookie.split(";", 1)[0]
+    results = {"login": "303 with session cookie"}
+    for path in ["/admin/", "/admin/api/events", "/admin/policy", "/admin/license"]:
+        status, _, _ = call("GET", path, cookie=cookie)
+        assert status == 200, (path, status)
+        results["GET " + path] = status
+    status, _, body = call("GET", "/admin/api/kernel-proof", cookie=cookie)
+    proof = json.loads(body)
+    assert status == 200 and proof["active"] is True, proof
+    results["kernel_proof"] = proof["label"]
+    feed = Path("/opt/minifw_ai/config/feeds/deny_domains.txt")
+    domain = "dashboard-smoke.lab.test"
+    assert call("POST", "/admin/deny-domain", {"domain": domain}, cookie)[0] == 200 and domain in feed.read_text()
+    assert call("DELETE", "/admin/deny-domain", {"domain": domain}, cookie)[0] == 200 and domain not in feed.read_text()
+    results["feed_add_delete"] = "deny_domains.txt written by minifw-web"
+    units = {unit: run("systemctl", "show", unit, "-p", "Environment").stdout for unit in ("minifw-ai", "minifw-ai-web")}
+    policies = {unit: next(item for item in env.split() if item.startswith("MINIFW_POLICY=")) for unit, env in units.items()}
+    assert len(set(policies.values())) == 1, policies
+    policy = Path(policies["minifw-ai"].split("=", 1)[1])
+    original = policy.read_bytes()
+    burst = json.loads(original).get("burst", {})
+    values = {"dns_queries_per_minute_monitor": burst.get("dns_queries_per_minute_monitor", 30),
+              "dns_queries_per_minute_block": burst.get("dns_queries_per_minute_block", 60)}
+    try:
+        status, _, _ = call("POST", "/admin/policy/burst", values, cookie)
+        assert status == 200, ("policy save", status)
+        assert json.loads(policy.read_text())["burst"]["dns_queries_per_minute_block"] == values["dns_queries_per_minute_block"]
+    finally:
+        policy.write_bytes(original)
+    results["policy_save"] = f"{policy} (same file as engine MINIFW_POLICY); original bytes restored"
+    return results
 
 
 def guard_checks(root, run, start, record, nft, ns, member):

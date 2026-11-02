@@ -255,6 +255,7 @@ class StateManager:
                 dir=str(self._state_file.parent), suffix=".tmp"
             )
             try:
+                os.fchmod(fd, 0o640)  # dashboard reads this via the logs group
                 with os.fdopen(fd, "w", encoding="utf-8") as f:
                     json.dump(data, f, indent=2, ensure_ascii=False)
                     f.write("\n")

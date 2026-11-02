@@ -5,22 +5,29 @@ Wants=minifw-ai.service
 
 [Service]
 Type=simple
-User=root
+User=minifw-web
+Group=minifw-web
 UMask=0077
 NoNewPrivileges=yes
 PrivateTmp=yes
 ProtectHome=yes
-ProtectSystem=full
+ProtectSystem=strict
+ReadWritePaths=/var/lib/minifw-ai /opt/minifw_ai/logs /opt/minifw_ai/config
 ProtectKernelTunables=yes
 ProtectControlGroups=yes
 RestrictSUIDSGID=yes
 RestrictRealtime=yes
 LockPersonality=yes
-CapabilityBoundingSet=CAP_NET_ADMIN
+# No capabilities: the dashboard reads kernel status from the engine's runtime health file.
+CapabilityBoundingSet=
+AmbientCapabilities=
 WorkingDirectory=/opt/minifw_ai
 EnvironmentFile=/etc/minifw/minifw.env
 Environment=PYTHONPATH=/opt/minifw_ai/app
 Environment=MINIFW_AUDIT_LOG=/opt/minifw_ai/logs/audit.jsonl
+Environment=MINIFW_POLICY=/opt/minifw_ai/config/policy.json
+Environment=MINIFW_DB_PATH=/var/lib/minifw-ai/minifw.db
+Environment=MINIFW_LICENSE_FILE=/var/lib/minifw-ai/license.json
 ExecStart=/opt/minifw_ai/venv/bin/uvicorn web.app:app --host 127.0.0.1 --port 8443 --ssl-keyfile /etc/minifw/tls/server.key --ssl-certfile /etc/minifw/tls/server.crt
 Restart=on-failure
 RestartSec=5

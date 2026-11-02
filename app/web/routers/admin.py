@@ -1127,12 +1127,9 @@ _kernel_proof_expires: float = 0.0
 def api_kernel_proof(current_user: User = Depends(get_current_user)):
     """
     Check whether the nftables minifw table/chain is active.
-    Result is cached for 15 s (matching the JS poll interval) to avoid
-    repeated subprocess + audit.jsonl reads across concurrent requests.
-
-    Two-stage detection:
-      Stage 1 — nft list (bare-metal, same network namespace)
-      Stage 2 — audit.jsonl firewall_init sentinel (Docker shared volume)
+    Result is cached for 15 s (matching the JS poll interval).
+    See kernel_proof_service: engine runtime health first, audit sentinel fallback;
+    the non-root dashboard runs no nft commands.
     """
     global _kernel_proof_cache, _kernel_proof_expires
 
@@ -1151,58 +1148,8 @@ def api_kernel_proof(current_user: User = Depends(get_current_user)):
 
 
 def _compute_kernel_proof() -> dict:
-    import subprocess
-    import json as _json
-    from pathlib import Path as _Path
-
-    result = {"active": False, "label": "Not active", "detail": "", "table": "minifw"}
-
-    # Stage 1 — direct nft probe (same network namespace)
-    try:
-        out = subprocess.run(
-            ["nft", "list", "table", "inet", "minifw"],
-            capture_output=True, text=True, timeout=3
-        )
-        if out.returncode == 0 and "MiniFW-AI-Blocklist" in out.stdout:
-            result.update(active=True, label="Blocked at kernel level (nftables)",
-                          detail="inet/minifw table active with drop rule")
-            return result
-        if out.returncode == 0:
-            result.update(active=True, label="nftables table active",
-                          detail="inet/minifw table present (drop rule pending first block)")
-            return result
-    except (FileNotFoundError, Exception):
-        pass  # not on same namespace — fall through to Stage 2
-
-    # Stage 2 — audit.jsonl sentinel (Docker shared-volume)
-    audit_log = os.environ.get("MINIFW_AUDIT_LOG", "/opt/minifw_ai/logs/audit.jsonl")
-    try:
-        audit_path = _Path(audit_log)
-        if audit_path.exists():
-            for _line in audit_path.open("r", encoding="utf-8"):
-                _line = _line.strip()
-                if not _line:
-                    continue
-                try:
-                    if _json.loads(_line).get("action") == "firewall_init":
-                        result.update(active=True,
-                                      label="Blocked at kernel level (nftables)",
-                                      detail="Confirmed via engine audit log (Docker deployment)")
-                        return result
-                except _json.JSONDecodeError:
-                    continue
-            result["detail"] = "Engine starting — nftables init pending"
-        else:
-            result["detail"] = "Engine not started (no audit log found)"
-    except Exception as exc:
-        result["detail"] = f"Audit log check failed: {exc}"
-
-    return result
-
-
-# ============================================================
-# SECTOR LOCK ROUTES (Factory-Set Configuration)
-# ============================================================
+    from app.services.system.kernel_proof_service import compute_kernel_proof
+    return compute_kernel_proof()
 
 
 @router.get("/api/sector-lock")

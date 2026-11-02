@@ -16,7 +16,8 @@ from datetime import datetime, timezone
 APP = Path("/opt/minifw_ai")
 SERVICES = ["minifw-ai-web", "minifw-ai"]
 PREFIXES = ("opt/minifw_ai/config/", "opt/minifw_ai/models/", "opt/minifw_ai/yara_rules/", "etc/minifw/tls/")
-FILES = {"opt/minifw_ai/minifw.db", "etc/minifw/minifw.env",
+# Dashboard state lives in /var/lib/minifw-ai since the dashboard runs as minifw-web.
+FILES = {"var/lib/minifw-ai/minifw.db", "var/lib/minifw-ai/license.json", "etc/minifw/minifw.env",
          "etc/systemd/system/minifw-ai.service", "etc/systemd/system/minifw-ai-web.service"}
 
 
@@ -94,7 +95,7 @@ def validate_archive(archive_path, stage, version):
             if digest(target) != entry["sha256"]:
                 raise ValueError("Backup checksum mismatch")
             target.chmod(int(entry["mode"]) & 0o777)
-        database = stage / "opt/minifw_ai/minifw.db"
+        database = stage / "var/lib/minifw-ai/minifw.db"
         if database.exists():
             with sqlite3.connect(database) as connection:
                 if connection.execute("PRAGMA integrity_check").fetchone() != ("ok",):
@@ -156,6 +157,10 @@ def main():
                     target.parent.mkdir(parents=True, exist_ok=True)
                     replacement = target.with_name(target.name + ".restore-tmp")
                     shutil.copyfile(stage / name, replacement)
+                    # Keep the installed owner (e.g. minifw-web state, dashboard-editable feeds);
+                    # a file that did not exist takes its directory's owner.
+                    owner = (target if target.exists() else target.parent).stat()
+                    os.chown(replacement, owner.st_uid, owner.st_gid)
                     replacement.chmod(int(entry["mode"]) & 0o777)
                     replacement.replace(target)
                 print("RESTORED", version, "; dynamic nftables blocks and package code were not restored")

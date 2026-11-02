@@ -126,8 +126,10 @@ esac
 SECTOR_POLICY_PATH="/opt/minifw_ai/config/modes/${PRODUCT_MODE}/policy.json"
 if [ -f "${REPO_DIR}/config/modes/${PRODUCT_MODE}/policy.json" ]; then
     sed -i "s|^Environment=MINIFW_POLICY=.*|Environment=MINIFW_POLICY=${SECTOR_POLICY_PATH}|" \
-        "${BUILD_DIR}/etc/systemd/system/minifw-ai.service"
+        "${BUILD_DIR}/etc/systemd/system/minifw-ai.service" \
+        "${BUILD_DIR}/etc/systemd/system/minifw-ai-web.service"
     # Insert PRODUCT_MODE after MINIFW_SECTOR line if not already present
+    # Engine and dashboard must read and edit the same sector policy.
     if ! grep -q "^Environment=PRODUCT_MODE=" "${BUILD_DIR}/etc/systemd/system/minifw-ai.service"; then
         sed -i "/^Environment=MINIFW_SECTOR=/a Environment=PRODUCT_MODE=${PRODUCT_MODE}" \
             "${BUILD_DIR}/etc/systemd/system/minifw-ai.service"
@@ -146,7 +148,7 @@ Version: ${VERSION}
 Section: net
 Priority: optional
 Architecture: ${ARCH}
-Depends: python3 (>= 3.10), python3-venv, nftables, openssl, conntrack, logrotate
+Depends: python3 (>= 3.10), python3-venv, nftables, openssl, conntrack, logrotate, adduser
 Recommends: dnsmasq, zeek
 Maintainer: Afridho Ikhsan <afridho@minifw.local>
 Description: MiniFW-AI Behavioral Firewall Engine (ARCHANGEL 2.0) [${SECTOR}]
@@ -185,6 +187,25 @@ echo "  Installing dependencies..."
 # --- 2. Generate secrets ---
 echo "[2/10] Secrets..."
 mkdir -p "${ENV_DIR}"
+# --- Dashboard service account (no login, no capabilities) ---
+WEB_USER="minifw-web"
+STATE_DIR="/var/lib/minifw-ai"
+if ! getent passwd "${WEB_USER}" >/dev/null; then
+    adduser --system --group --no-create-home --home /nonexistent --shell /usr/sbin/nologin "${WEB_USER}" >/dev/null
+fi
+install -d -m 0750 -o "${WEB_USER}" -g "${WEB_USER}" "${STATE_DIR}"
+# Move dashboard state written by earlier root-run versions.
+if [ -f "${APP_ROOT}/minifw.db" ] && [ ! -e "${STATE_DIR}/minifw.db" ]; then
+    # Services are stopped by prerm; move WAL companions too so committed writes are kept.
+    for suffix in "" -wal -shm; do
+        [ ! -e "${APP_ROOT}/minifw.db${suffix}" ] || mv "${APP_ROOT}/minifw.db${suffix}" "${STATE_DIR}/minifw.db${suffix}"
+    done
+fi
+if [ -f /etc/minifw/license.json ] && [ ! -e "${STATE_DIR}/license.json" ]; then
+    mv /etc/minifw/license.json "${STATE_DIR}/license.json"
+fi
+export MINIFW_DB_PATH="${STATE_DIR}/minifw.db"
+
 chmod 755 "${ENV_DIR}"
 
 if [ ! -f "${ENV_FILE}" ]; then
@@ -214,7 +235,6 @@ if [ ! -f "${TLS_DIR}/server.crt" ]; then
         -out "${TLS_DIR}/server.crt" \
         -days 365 -nodes \
         -subj "/CN=minifw-ai/O=MiniFW-AI/C=ID" 2>/dev/null
-    chmod 600 "${TLS_DIR}/server.key"
     chmod 644 "${TLS_DIR}/server.crt"
     echo "  Self-signed certificate generated (365 days)."
 else
@@ -223,6 +243,9 @@ fi
 
 # --- 4. Create admin user ---
 echo "[4/10] Admin user..."
+# uvicorn reads the key as the dashboard user; minifw.env stays root-only (read by systemd).
+chgrp "${WEB_USER}" "${TLS_DIR}/server.key"
+chmod 640 "${TLS_DIR}/server.key"
 export PYTHONPATH="${APP_ROOT}/app"
 # shellcheck disable=SC2046
 export $(grep -v '^#' "${ENV_FILE}" | xargs)
@@ -257,15 +280,26 @@ finally:
     db.close()
 " 2>&1 || echo "  Warning: Admin user creation failed (non-fatal)."
 
-# Fix SQLite database permissions
-chmod 664 "${APP_ROOT}/minifw.db" 2>/dev/null || true
-chmod 775 "${APP_ROOT}" 2>/dev/null || true
-
 # --- 5. Set permissions ---
 echo "[5/10] Permissions..."
 chmod -R 755 "${APP_ROOT}/app"
 chmod 644 "${APP_ROOT}/config/policy.json"
-chmod 755 "${APP_ROOT}/logs"
+chown -R "${WEB_USER}:${WEB_USER}" "${STATE_DIR}"
+chgrp -R "${WEB_USER}" "${APP_ROOT}/logs"
+chmod -R g+rX,o-rwx "${APP_ROOT}/logs"
+chmod 2750 "${APP_ROOT}/logs"
+touch "${APP_ROOT}/logs/audit.jsonl"
+chmod 660 "${APP_ROOT}/logs/audit.jsonl"
+# Dashboard edits feeds in place and replaces the sector policy by rename.
+chgrp "${WEB_USER}" "${APP_ROOT}"/config/feeds/*.txt
+chmod 664 "${APP_ROOT}"/config/feeds/*.txt
+for mode_dir in "${APP_ROOT}"/config/modes/*/; do
+    chgrp "${WEB_USER}" "${mode_dir}" "${mode_dir}policy.json"
+    chmod 2775 "${mode_dir}"
+    chmod 664 "${mode_dir}policy.json"
+done
+# Root owns code; the dashboard user owns only its state, logs group and editable config.
+chmod 755 "${APP_ROOT}"
 
 # --- 6. Load nf_conntrack kernel module ---
 echo "[6/10] Flow tracking (nf_conntrack)..."
@@ -368,6 +402,7 @@ if [ "$1" = "purge" ]; then
     rm -rf /etc/minifw
     echo "MiniFW-AI: Purged. Config feeds and models preserved in /opt/minifw_ai/"
 fi
+    rm -rf /var/lib/minifw-ai
 
 systemctl daemon-reload
 POSTRM

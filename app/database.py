@@ -1,10 +1,12 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from pathlib import Path
+import os
 
-# Database path
+# Database path. Packaged installs set MINIFW_DB_PATH=/var/lib/minifw-ai/minifw.db so the
+# non-root dashboard owns the database directory without write access to /opt/minifw_ai.
 BASE_DIR = Path(__file__).resolve().parent.parent
-DATABASE_PATH = BASE_DIR / "minifw.db"
+DATABASE_PATH = Path(os.environ.get("MINIFW_DB_PATH", BASE_DIR / "minifw.db"))
 SQLALCHEMY_DATABASE_URL = f"sqlite:///{DATABASE_PATH}"
 
 # Create engine

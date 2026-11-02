@@ -43,14 +43,15 @@ def test_health_route_missing_file_is_503(tmp_path, monkeypatch):
     assert health_check().status_code == 503
 
 
-def test_publisher_is_atomic_and_private(snapshot, tmp_path, monkeypatch):
+def test_publisher_is_atomic_and_group_readable(snapshot, tmp_path, monkeypatch):
     monitor = object.__new__(health.RuntimeHealth)
     monitor.path, monitor.snapshot = tmp_path / "health.json", snapshot
     monitor.kernel, monitor.last_write = (True, 99), 0
     monkeypatch.setattr(health.time, "monotonic", lambda: 100)
     monitor.observe("packet")
     assert json.loads(monitor.path.read_text())["sources"]["packet"] == 100
-    assert monitor.path.stat().st_mode & 0o777 == 0o600
+    # Group-readable for the non-root dashboard; never world-readable.
+    assert monitor.path.stat().st_mode & 0o777 == 0o640
     assert list(tmp_path.iterdir()) == [monitor.path]
 
 

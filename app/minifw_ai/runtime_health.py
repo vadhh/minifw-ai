@@ -95,6 +95,8 @@ class RuntimeHealth:
         try:
             with tempfile.NamedTemporaryFile(mode="w", dir=self.path.parent, prefix=".runtime-health-", delete=False) as stream:
                 temporary = Path(stream.name)
+                # Group-readable so the non-root dashboard (group of the setgid logs dir) can assess it.
+                os.fchmod(stream.fileno(), 0o640)
                 json.dump(self.snapshot, stream)
             temporary.replace(self.path)
         except OSError:
