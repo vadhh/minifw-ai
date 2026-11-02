@@ -1,0 +1,94 @@
+⬆ trail 0.23.0 → 0.28.1 available: run `trail upgrade` (restart your agent after).
+⚠ the diff is over 400 KB; only the first 400 KB is checked
+checking 289 changed files against 18 learnings and 0 skills
+
+✗ .github/workflows/release.yml:40
+  brings back helper line bash, which St4rdhoom's learning ruled out
+  St4rdhoom · Oct 30: Existing shell helpers have CRLF line endings that
+  bash -n rejects; normalize shell scripts and systemd units inside
+  the kits without modifying the original helpers.
+✗ .github/workflows/release.yml:47
+  brings back dpkg script build, which St4rdhoom's learning ruled out
+  St4rdhoom · Oct 30: Installed native Homebrew dpkg and gnu-sed, then
+  ran the existing scripts/build_deb.sh against each refreshed clean
+  source kit.
+✗ README.md:37
+  brings back curl sudo bash, which St4rdhoom's learning ruled out
+  St4rdhoom · Nov 2: Its installer already uses the correct
+  curl-to-sudo-bash pipe.
+✗ README.md:37
+  brings back sudo bash curl, which St4rdhoom's learning ruled out
+  St4rdhoom · Oct 26: Using `sudo bash <(curl ...)` is a poor fit for
+  this installer because Bash process substitution consumes its stdin;
+  document the curl-to-sudo-bash pipe instead.
+✗ README.md:37
+  brings back sudo bash curl, which St4rdhoom's learning ruled out
+  St4rdhoom · Oct 26: Changing the supported pipeline to avoid the words
+  `sudo bash curl` would break the intended privileged stdin flow and
+  conflict with the existing installer guidance.
+✗ README.md:61
+  brings back deb docker installation, which St4rdhoom's learning ruled out
+  St4rdhoom · Oct 30: This Mac has no dpkg-deb and Docker cannot connect
+  to a daemon, so a Linux package build, installation and live packet
+  enforcement cannot be claimed.
+✗ README.md:61
+  brings back native deb kit, which St4rdhoom's learning ruled out
+  St4rdhoom · Oct 30: Installed native Homebrew dpkg and gnu-sed, then
+  ran the existing scripts/build_deb.sh against each refreshed clean
+  source kit.
+✗ app/minifw_ai/collector_flow.py:20
+  brings back conntrack packet flow, which St4rdhoom's learning ruled out
+  St4rdhoom · Nov 2: Do not count conntrack polls as 1500-byte packets,
+  flow frequency, packet interarrival or subsecond bursts.
+✗ app/minifw_ai/collector_flow.py:20
+  brings back counter flow client, which St4rdhoom's learning ruled out
+  St4rdhoom · Nov 2: Fresh verification uses actual namespace
+  forwarding, kernel counters, controlled deny/flow decisions, failed
+  client connections, expiry/manual recovery and duplicate/restart
+  checks.
+✗ app/minifw_ai/collector_flow.py:448
+  brings back observed direction original, which St4rdhoom's learning ruled out
+  St4rdhoom · Nov 2: First-observed direction is not proof of original
+  direction for intra-site or midstream traffic.
+✗ app/minifw_ai/collector_flow.py:617
+  brings back tls dns feature, which St4rdhoom's learning ruled out
+  St4rdhoom · Nov 2: Do not feed unknown TLS/JA3/DNS inputs as invented
+  zeros into the existing 24-feature model.
+✗ app/minifw_ai/collector_flow.py:617
+  brings back measured feature, which St4rdhoom's learning ruled out
+  St4rdhoom · Nov 2: This is not measured-feature acceptance.
+✗ app/minifw_ai/collector_flow.py:618
+  brings back real measured observation, which St4rdhoom's learning ruled out
+  St4rdhoom · Nov 2: A standalone real UDP probe confirmed unprivileged
+  decoding, measured observations and zero reported drops.
+✗ app/minifw_ai/collector_packets.py:1
+  brings back conntrack poll packet, which St4rdhoom's learning ruled out
+  St4rdhoom · Nov 2: Do not count conntrack polls as 1500-byte packets,
+  flow frequency, packet interarrival or subsecond bursts.
+✗ app/minifw_ai/collector_packets.py:1
+  brings back direct tshark temporary, which St4rdhoom's learning ruled out
+  St4rdhoom · Nov 2: Direct tshark -i creates a temporary PCAP by
+  default, even when only -T fields output is requested.
+✗ app/minifw_ai/collector_packets.py:12
+  brings back tls legacy 0x0303, which St4rdhoom's learning ruled out
+  St4rdhoom · Nov 2: Do not mistake TLS 1.3 legacy 0x0303 for TLS 1.2.
+✗ app/minifw_ai/collector_packets.py:21
+  brings back first observed direction, which St4rdhoom's learning ruled out
+  St4rdhoom · Nov 2: First-observed direction is not proof of original
+  direction for intra-site or midstream traffic.
+✗ app/minifw_ai/collector_packets.py:68
+  brings back flow client duplicate, which St4rdhoom's learning ruled out
+  St4rdhoom · Nov 2: Fresh verification uses actual namespace
+  forwarding, kernel counters, controlled deny/flow decisions, failed
+  client connections, expiry/manual recovery and duplicate/restart
+  checks.
+✗ app/minifw_ai/collector_packets.py:73
+  brings back temporary path group, which St4rdhoom's learning ruled out
+  St4rdhoom · Oct 30: A temporary PATH shim selected gsed as sed and
+  invoked real dpkg-deb with --root-owner-group -Zxz.
+✗ app/minifw_ai/enforce.py:165
+  brings back conntrack packet flow, which St4rdhoom's learning ruled out
+  St4rdhoom · Nov 2: Do not count conntrack polls as 1500-byte packets,
+  flow frequency, packet interarrival or subsecond bursts.
+
+· 20 conflicts · fix them, or say why in the commit message or PR description

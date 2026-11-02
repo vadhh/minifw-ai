@@ -1,0 +1,29 @@
+/var/tmp/lab_gateway_acceptance.py:49: DeprecationWarning: ssl.TLSVersion.TLSv1 is deprecated
+  legacy_context.minimum_version = legacy_context.maximum_version = ssl.TLSVersion.TLSv1
+----------------------------------------
+Exception occurred during processing of request from ('::ffff:10.10.0.20', 54970, 0, 0)
+Traceback (most recent call last):
+  File "/usr/lib/python3.11/socketserver.py", line 691, in process_request_thread
+    self.finish_request(request, client_address)
+  File "/usr/lib/python3.11/socketserver.py", line 361, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+  File "/usr/lib/python3.11/socketserver.py", line 755, in __init__
+    self.handle()
+  File "/usr/lib/python3.11/http/server.py", line 432, in handle
+    self.handle_one_request()
+  File "/usr/lib/python3.11/http/server.py", line 420, in handle_one_request
+    method()
+  File "/var/tmp/lab_sandbox.py", line 79, in do_GET
+    self.respond(200, "<h1>MiniFW acceptance sandbox</h1><p>Fictional credits and users; no real funds.</p>"
+  File "/var/tmp/lab_sandbox.py", line 53, in respond
+    self.wfile.write(body)
+  File "/usr/lib/python3.11/socketserver.py", line 834, in write
+    self._sock.sendall(b)
+  File "/usr/lib/python3.11/ssl.py", line 1287, in sendall
+    v = self.send(byte_view[count:])
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.11/ssl.py", line 1256, in send
+    return self._sslobj.write(data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+ssl.SSLEOFError: EOF occurred in violation of protocol (_ssl.c:2393)
+----------------------------------------
