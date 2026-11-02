@@ -107,6 +107,8 @@ cp "${REPO_DIR}/scripts/enable_dnsmasq_logging.sh" "${BUILD_DIR}/opt/minifw_ai/s
 cp "${REPO_DIR}/scripts/uninstall.sh" "${BUILD_DIR}/opt/minifw_ai/scripts/"
 chmod +x "${BUILD_DIR}/opt/minifw_ai/scripts/"*.sh
 
+mkdir -p "${BUILD_DIR}/etc/logrotate.d"
+install -m 644 "${REPO_DIR}/scripts/minifw-ai.logrotate" "${BUILD_DIR}/etc/logrotate.d/minifw-ai"
 # --- Systemd units ---
 echo "[6/7] Installing systemd units..."
 cp "${REPO_DIR}/systemd/minifw-ai.service" "${BUILD_DIR}/etc/systemd/system/"
@@ -144,7 +146,7 @@ Version: ${VERSION}
 Section: net
 Priority: optional
 Architecture: ${ARCH}
-Depends: python3 (>= 3.10), python3-venv, nftables, openssl, conntrack
+Depends: python3 (>= 3.10), python3-venv, nftables, openssl, conntrack, logrotate
 Recommends: dnsmasq, zeek
 Maintainer: Afridho Ikhsan <afridho@minifw.local>
 Description: MiniFW-AI Behavioral Firewall Engine (ARCHANGEL 2.0) [${SECTOR}]
