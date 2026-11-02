@@ -106,9 +106,9 @@ cp "${REPO_DIR}/scripts/train_mlp.py" "${BUILD_DIR}/opt/minifw_ai/scripts/"
 cp "${REPO_DIR}/scripts/enable_dnsmasq_logging.sh" "${BUILD_DIR}/opt/minifw_ai/scripts/"
 cp "${REPO_DIR}/scripts/uninstall.sh" "${BUILD_DIR}/opt/minifw_ai/scripts/"
 chmod +x "${BUILD_DIR}/opt/minifw_ai/scripts/"*.sh
-
 mkdir -p "${BUILD_DIR}/etc/logrotate.d"
 install -m 644 "${REPO_DIR}/scripts/minifw-ai.logrotate" "${BUILD_DIR}/etc/logrotate.d/minifw-ai"
+
 # --- Systemd units ---
 echo "[6/7] Installing systemd units..."
 cp "${REPO_DIR}/systemd/minifw-ai.service" "${BUILD_DIR}/etc/systemd/system/"
@@ -125,11 +125,11 @@ case "${SECTOR}" in
 esac
 SECTOR_POLICY_PATH="/opt/minifw_ai/config/modes/${PRODUCT_MODE}/policy.json"
 if [ -f "${REPO_DIR}/config/modes/${PRODUCT_MODE}/policy.json" ]; then
+    # Engine and dashboard must read and edit the same sector policy.
     sed -i "s|^Environment=MINIFW_POLICY=.*|Environment=MINIFW_POLICY=${SECTOR_POLICY_PATH}|" \
         "${BUILD_DIR}/etc/systemd/system/minifw-ai.service" \
         "${BUILD_DIR}/etc/systemd/system/minifw-ai-web.service"
     # Insert PRODUCT_MODE after MINIFW_SECTOR line if not already present
-    # Engine and dashboard must read and edit the same sector policy.
     if ! grep -q "^Environment=PRODUCT_MODE=" "${BUILD_DIR}/etc/systemd/system/minifw-ai.service"; then
         sed -i "/^Environment=MINIFW_SECTOR=/a Environment=PRODUCT_MODE=${PRODUCT_MODE}" \
             "${BUILD_DIR}/etc/systemd/system/minifw-ai.service"
@@ -184,9 +184,6 @@ echo "  Installing dependencies..."
 "${APP_ROOT}/venv/bin/python" -m pip install --upgrade pip -q 2>/dev/null || true
 "${APP_ROOT}/venv/bin/pip" install -r "${APP_ROOT}/requirements.txt" -q
 
-# --- 2. Generate secrets ---
-echo "[2/10] Secrets..."
-mkdir -p "${ENV_DIR}"
 # --- Dashboard service account (no login, no capabilities) ---
 WEB_USER="minifw-web"
 STATE_DIR="/var/lib/minifw-ai"
@@ -206,6 +203,9 @@ if [ -f /etc/minifw/license.json ] && [ ! -e "${STATE_DIR}/license.json" ]; then
 fi
 export MINIFW_DB_PATH="${STATE_DIR}/minifw.db"
 
+# --- 2. Generate secrets ---
+echo "[2/10] Secrets..."
+mkdir -p "${ENV_DIR}"
 chmod 755 "${ENV_DIR}"
 
 if [ ! -f "${ENV_FILE}" ]; then
@@ -240,22 +240,22 @@ if [ ! -f "${TLS_DIR}/server.crt" ]; then
 else
     echo "  Certificate exists: ${TLS_DIR}/server.crt"
 fi
-
-# --- 4. Create admin user ---
-echo "[4/10] Admin user..."
 # uvicorn reads the key as the dashboard user; minifw.env stays root-only (read by systemd).
 chgrp "${WEB_USER}" "${TLS_DIR}/server.key"
 chmod 640 "${TLS_DIR}/server.key"
+
+# --- 4. Create admin user ---
+echo "[4/10] Admin user..."
 export PYTHONPATH="${APP_ROOT}/app"
 # shellcheck disable=SC2046
 export $(grep -v '^#' "${ENV_FILE}" | xargs)
 cd "${APP_ROOT}"
-"${APP_ROOT}/venv/bin/python" -c "
-import os, sys
-sys.path.insert(0, '${APP_ROOT}')
 # Run as the dashboard user: root must never open a database in a directory that user controls.
 chown -R "${WEB_USER}:${WEB_USER}" "${STATE_DIR}"  # -R never follows symlinks (physical walk)
 setpriv --reuid="${WEB_USER}" --regid="${WEB_USER}" --clear-groups \
+"${APP_ROOT}/venv/bin/python" -c "
+import os, sys
+sys.path.insert(0, '${APP_ROOT}')
 from app.database import SessionLocal, init_db
 from app.services.auth.user_service import create_user
 init_db()
@@ -285,6 +285,8 @@ finally:
 
 # --- 5. Set permissions ---
 echo "[5/10] Permissions..."
+# Root owns code; the dashboard user owns only its state, logs group and editable config.
+chmod 755 "${APP_ROOT}"
 chmod -R 755 "${APP_ROOT}/app"
 chmod 644 "${APP_ROOT}/config/policy.json"
 chown -R "${WEB_USER}:${WEB_USER}" "${STATE_DIR}"
@@ -296,6 +298,8 @@ chmod 660 "${APP_ROOT}/logs/audit.jsonl"
 # Dashboard edits feeds in place and replaces the sector policy by rename.
 chgrp "${WEB_USER}" "${APP_ROOT}"/config/feeds/*.txt
 chmod 664 "${APP_ROOT}"/config/feeds/*.txt
+# The dashboard can create entries inside each mode directory, so never follow a link there:
+# the web service is stopped (prerm) while this runs, and policy.json must be a regular file.
 for mode_dir in "${APP_ROOT}"/config/modes/*/; do
     [ ! -L "${mode_dir%/}" ] || { echo "  Refusing symlinked mode directory ${mode_dir}" >&2; exit 1; }
     chgrp -h "${WEB_USER}" "${mode_dir}"
@@ -309,10 +313,6 @@ for mode_dir in "${APP_ROOT}"/config/modes/*/; do
         chmod 664 "${policy_file}"
     fi
 done
-# The dashboard can create entries inside each mode directory, so never follow a link there:
-# the web service is stopped (prerm) while this runs, and policy.json must be a regular file.
-# Root owns code; the dashboard user owns only its state, logs group and editable config.
-chmod 755 "${APP_ROOT}"
 
 # --- 6. Load nf_conntrack kernel module ---
 echo "[6/10] Flow tracking (nf_conntrack)..."
@@ -412,10 +412,10 @@ if [ "$1" = "purge" ]; then
     rm -rf /opt/minifw_ai/venv
     rm -rf /opt/minifw_ai/logs
     rm -f /opt/minifw_ai/minifw.db
+    rm -rf /var/lib/minifw-ai
     rm -rf /etc/minifw
     echo "MiniFW-AI: Purged. Config feeds and models preserved in /opt/minifw_ai/"
 fi
-    rm -rf /var/lib/minifw-ai
 
 systemctl daemon-reload
 POSTRM
