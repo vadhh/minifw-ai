@@ -1,0 +1,195 @@
+test_bundled_model_loading_and_fixture_inference_control (__main__.RequirementProbes.test_bundled_model_loading_and_fixture_inference_control) ... /Users/st4rdhoom/minifw-ai/.venv/lib/python3.12/site-packages/sklearn/base.py:525: InconsistentVersionWarning: Trying to unpickle estimator LabelBinarizer from version 1.5.0 when using version 1.9.1. This might lead to breaking code or invalid results. Use at your own risk. For more info please refer to:
+https://scikit-learn.org/stable/model_persistence.html#security-maintainability-limitations
+  warnings.warn(
+/Users/st4rdhoom/minifw-ai/.venv/lib/python3.12/site-packages/sklearn/base.py:525: InconsistentVersionWarning: Trying to unpickle estimator MLPClassifier from version 1.5.0 when using version 1.9.1. This might lead to breaking code or invalid results. Use at your own risk. For more info please refer to:
+https://scikit-learn.org/stable/model_persistence.html#security-maintainability-limitations
+  warnings.warn(
+/Users/st4rdhoom/minifw-ai/.venv/lib/python3.12/site-packages/sklearn/base.py:525: InconsistentVersionWarning: Trying to unpickle estimator StandardScaler from version 1.5.0 when using version 1.9.1. This might lead to breaking code or invalid results. Use at your own risk. For more info please refer to:
+https://scikit-learn.org/stable/model_persistence.html#security-maintainability-limitations
+  warnings.warn(
+BUNDLED_MODEL_METADATA {"accuracy": 1.0, "class_distribution": {"benign": 1000, "threat": 1000}, "f1_score": 1.0, "feature_names": ["duration_sec", "pkt_count_total", "bytes_total", "bytes_per_sec", "pkts_per_sec", "avg_pkt_size", "pkt_size_std", "inbound_outbound_ratio", "max_burst_pkts_1s", "max_burst_bytes_1s", "interarrival_mean_ms", "interarrival_std_ms", "interarrival_p95_ms", "small_pkt_ratio", "tls_seen", "tls_handshake_time_ms", "ja3_hash_bucket", "sni_len", "alpn_h2", "cert_self_signed_suspect", "dns_seen", "fqdn_len", "subdomain_depth", "domain_repeat_5min"], "hidden_layers": [64, 32], "iterations": 13, "model_type": "MLPClassifier", "n_features": 24, "n_samples": 2000, "precision": 1.0, "recall": 1.0, "trained_at": "2026-03-12T09:11:52.451407", "training_data": "synthetic (generate_pretrained_model.py)"}
+MODEL_FIXTURE_ONLY_NOT_MEASURED (np.False_, 0.1790596556890577) INFERENCES 1
+ok
+test_cli_tcp_original_tuple (__main__.RequirementProbes.test_cli_tcp_original_tuple) ... PARSER 'tcp 6 117 ESTABLISHED src=10.10.0.20 dst=192.0.2.80 sport=52000 dport=443 packets=10 bytes=800 src=192.0.2.80 dst=10.10.0.20 sport=443 dport=52000 packets=8 bytes=1600 mark=0 use=2' ACTUAL ('192.0.2.80', '10.10.0.20', 52000, '117')
+FAIL
+test_cli_udp_original_tuple (__main__.RequirementProbes.test_cli_udp_original_tuple) ... PARSER 'udp 17 30 src=10.10.0.20 dst=192.0.2.80 sport=52000 dport=53 packets=10 bytes=800 src=192.0.2.80 dst=10.10.0.20 sport=53 dport=52000 packets=8 bytes=1600 mark=0 use=2' ACTUAL ('192.0.2.80', '10.10.0.20', 52000, '30')
+FAIL
+test_degraded_flow_actually_reaches_evaluation_and_enforcement (__main__.RequirementProbes.test_degraded_flow_actually_reaches_evaluation_and_enforcement) ... 2026-11-02 09:01:19,875 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /Users/st4rdhoom/minifw-ai/config/feeds/asn_prefixes.txt
+2026-11-02 09:01:19,875 - INFO - [STATE] Initial protection state: BASELINE_PROTECTION
+2026-11-02 09:01:19,875 - WARNING - [SECTOR_LOCK] Sector lock module not available
+2026-11-02 09:01:19,875 - INFO - [DEMO_MODE] Skipping nftables/ipset init (no root required in demo)
+2026-11-02 09:01:19,875 - INFO - [FLOW] Conntrack flow tracking initialised (path=/proc/net/nf_conntrack)
+2026-11-02 09:01:19,875 - WARNING - [BASELINE_PROTECTION] DNS telemetry disabled (source=none, degraded=True)
+2026-11-02 09:01:19,875 - WARNING - [BASELINE_PROTECTION] Running with flow tracking and hard-threat gates only (Fail-Closed Security)
+DEGRADED_NO_DNS evaluation_calls 0 enforcement_calls 0
+FAIL
+test_deny_domain_is_currently_score_only_control (__main__.RequirementProbes.test_deny_domain_is_currently_score_only_control) ... DENY_DOMAIN_SCORE_ONLY minifw_school (40, ['dns_denied_domain'], 'monitor')
+DENY_DOMAIN_SCORE_ONLY minifw_financial (40, ['dns_denied_domain'], 'monitor')
+ok
+test_dns_requires_connection_correlation (__main__.RequirementProbes.test_dns_requires_connection_correlation) ... DNS_UNRELATED_DESTINATION bank.example
+FAIL
+test_education_bare_domain_matches_school_feed (__main__.RequirementProbes.test_education_bare_domain_matches_school_feed) ... 2026-11-02 09:01:20,887 - INFO - [FEEDS] Loaded 14 patterns from school_blacklist.txt
+EDUCATION_BARE_SUBDOMAIN [False, True]
+FAIL
+test_education_template_segment_selection_control (__main__.RequirementProbes.test_education_template_segment_selection_control) ... EDUCATION_TEMPLATE_SEGMENT 10.10.0.20 student
+EDUCATION_TEMPLATE_SEGMENT 192.168.1.20 staff
+EDUCATION_TEMPLATE_SEGMENT 192.168.100.20 guest
+EDUCATION_TEMPLATE_SEGMENT 10.0.0.20 admin
+ok
+test_financial_dmz_precedence (__main__.RequirementProbes.test_financial_dmz_precedence) ... FINANCIAL_DMZ internal
+FAIL
+test_procfs_tcp_original_tuple (__main__.RequirementProbes.test_procfs_tcp_original_tuple) ... PARSER 'ipv4 2 tcp 6 117 ESTABLISHED src=10.10.0.20 dst=192.0.2.80 sport=52000 dport=443 packets=10 bytes=800 src=192.0.2.80 dst=10.10.0.20 sport=443 dport=52000 packets=8 bytes=1600 mark=0 use=2' ACTUAL ('192.0.2.80', '10.10.0.20', 52000, 'tcp')
+FAIL
+test_procfs_udp_original_tuple (__main__.RequirementProbes.test_procfs_udp_original_tuple) ... PARSER 'ipv4 2 udp 17 30 src=10.10.0.20 dst=192.0.2.80 sport=52000 dport=53 packets=10 bytes=800 src=192.0.2.80 dst=10.10.0.20 sport=53 dport=52000 packets=8 bytes=1600 mark=0 use=2' ACTUAL ('192.0.2.80', '10.10.0.20', 52000, 'udp')
+FAIL
+test_sni_does_not_label_unrelated_connection (__main__.RequirementProbes.test_sni_does_not_label_unrelated_connection) ... SNI_UNRELATED_PORT_22 bank.example
+FAIL
+test_benign_flow_no_gate_fires (testing.test_baseline_hard_gates.TestBaselineHardGates.test_benign_flow_no_gate_fires)
+Normal traffic flow triggers no hard gates. ... ok
+test_bot_regular_timing_gate (testing.test_baseline_hard_gates.TestBaselineHardGates.test_bot_regular_timing_gate)
+Flow with very regular IAT (std < 5ms) and high PPS triggers gate. ... ok
+test_bot_regular_timing_gate_low_pps_no_trigger (testing.test_baseline_hard_gates.TestBaselineHardGates.test_bot_regular_timing_gate_low_pps_no_trigger)
+Regular IAT but low PPS (< 100) does NOT trigger. ... ok
+test_bot_small_packets_gate (testing.test_baseline_hard_gates.TestBaselineHardGates.test_bot_small_packets_gate)
+Flow with >95% small packets and duration < 3s triggers bot gate. ... ok
+test_bot_small_packets_gate_long_duration_no_trigger (testing.test_baseline_hard_gates.TestBaselineHardGates.test_bot_small_packets_gate_long_duration_no_trigger)
+Flow with >95% small packets but duration >= 3s does NOT trigger. ... ok
+test_burst_flood_gate (testing.test_baseline_hard_gates.TestBaselineHardGates.test_burst_flood_gate)
+Burst window with > 300 packets triggers burst_flood gate. ... ok
+test_burst_flood_gate_below_threshold (testing.test_baseline_hard_gates.TestBaselineHardGates.test_burst_flood_gate_below_threshold)
+Burst window at exactly 300 packets does NOT trigger burst_flood. ... ok
+test_flow_frequency_gate (testing.test_baseline_hard_gates.TestBaselineHardGates.test_flow_frequency_gate)
+flow_freq >= flow_freq_threshold triggers flow_frequency gate. ... ok
+test_hard_gate_survives_ai_failure (testing.test_baseline_hard_gates.TestBaselineHardGates.test_hard_gate_survives_ai_failure) ... 2026-11-02 09:01:20,896 - INFO - [MLP] No model configured (set MINIFW_MLP_MODEL environment variable)
+2026-11-02 09:01:20,896 - INFO - [YARA] No rules configured (set MINIFW_YARA_RULES environment variable)
+ok
+test_low_pkt_count_skipped (testing.test_baseline_hard_gates.TestBaselineHardGates.test_low_pkt_count_skipped)
+Flows with pkt_count < 5 are skipped by gate evaluation. ... ok
+
+======================================================================
+FAIL: test_cli_tcp_original_tuple (__main__.RequirementProbes.test_cli_tcp_original_tuple)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/st4rdhoom/minifw-ai/docs/evidence/2026-11-02-readiness/probes.py", line 43, in test_cli_tcp_original_tuple
+    self.parse_case("", "tcp", 443)
+  File "/Users/st4rdhoom/minifw-ai/docs/evidence/2026-11-02-readiness/probes.py", line 34, in parse_case
+    self.assertEqual(actual, ("10.10.0.20", "192.0.2.80", port, proto))
+AssertionError: Tuples differ: ('192.0.2.80', '10.10.0.20', 52000, '117') != ('10.10.0.20', '192.0.2.80', 443, 'tcp')
+
+First differing element 0:
+'192.0.2.80'
+'10.10.0.20'
+
+- ('192.0.2.80', '10.10.0.20', 52000, '117')
++ ('10.10.0.20', '192.0.2.80', 443, 'tcp')
+
+======================================================================
+FAIL: test_cli_udp_original_tuple (__main__.RequirementProbes.test_cli_udp_original_tuple)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/st4rdhoom/minifw-ai/docs/evidence/2026-11-02-readiness/probes.py", line 46, in test_cli_udp_original_tuple
+    self.parse_case("", "udp", 53)
+  File "/Users/st4rdhoom/minifw-ai/docs/evidence/2026-11-02-readiness/probes.py", line 34, in parse_case
+    self.assertEqual(actual, ("10.10.0.20", "192.0.2.80", port, proto))
+AssertionError: Tuples differ: ('192.0.2.80', '10.10.0.20', 52000, '30') != ('10.10.0.20', '192.0.2.80', 53, 'udp')
+
+First differing element 0:
+'192.0.2.80'
+'10.10.0.20'
+
+- ('192.0.2.80', '10.10.0.20', 52000, '30')
++ ('10.10.0.20', '192.0.2.80', 53, 'udp')
+
+======================================================================
+FAIL: test_degraded_flow_actually_reaches_evaluation_and_enforcement (__main__.RequirementProbes.test_degraded_flow_actually_reaches_evaluation_and_enforcement)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/st4rdhoom/minifw-ai/docs/evidence/2026-11-02-readiness/probes.py", line 125, in test_degraded_flow_actually_reaches_evaluation_and_enforcement
+    self.assertGreater(evaluate.call_count, 0, "flow threshold=1 was supplied but evaluator was never called")
+AssertionError: 0 not greater than 0 : flow threshold=1 was supplied but evaluator was never called
+
+======================================================================
+FAIL: test_dns_requires_connection_correlation (__main__.RequirementProbes.test_dns_requires_connection_correlation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/st4rdhoom/minifw-ai/docs/evidence/2026-11-02-readiness/probes.py", line 62, in test_dns_requires_connection_correlation
+    self.assertEqual(other.domain, "")
+AssertionError: 'bank.example' != ''
+- bank.example
+
+
+======================================================================
+FAIL: test_education_bare_domain_matches_school_feed (__main__.RequirementProbes.test_education_bare_domain_matches_school_feed)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/st4rdhoom/minifw-ai/docs/evidence/2026-11-02-readiness/probes.py", line 75, in test_education_bare_domain_matches_school_feed
+    self.assertEqual(actual, [True, True])
+AssertionError: Lists differ: [False, True] != [True, True]
+
+First differing element 0:
+False
+True
+
+- [False, True]
++ [True, True]
+
+======================================================================
+FAIL: test_financial_dmz_precedence (__main__.RequirementProbes.test_financial_dmz_precedence)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/st4rdhoom/minifw-ai/docs/evidence/2026-11-02-readiness/probes.py", line 68, in test_financial_dmz_precedence
+    self.assertEqual(actual, "dmz")
+AssertionError: 'internal' != 'dmz'
+- internal
++ dmz
+
+
+======================================================================
+FAIL: test_procfs_tcp_original_tuple (__main__.RequirementProbes.test_procfs_tcp_original_tuple)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/st4rdhoom/minifw-ai/docs/evidence/2026-11-02-readiness/probes.py", line 37, in test_procfs_tcp_original_tuple
+    self.parse_case("ipv4 2 ", "tcp", 443)
+  File "/Users/st4rdhoom/minifw-ai/docs/evidence/2026-11-02-readiness/probes.py", line 34, in parse_case
+    self.assertEqual(actual, ("10.10.0.20", "192.0.2.80", port, proto))
+AssertionError: Tuples differ: ('192.0.2.80', '10.10.0.20', 52000, 'tcp') != ('10.10.0.20', '192.0.2.80', 443, 'tcp')
+
+First differing element 0:
+'192.0.2.80'
+'10.10.0.20'
+
+- ('192.0.2.80', '10.10.0.20', 52000, 'tcp')
++ ('10.10.0.20', '192.0.2.80', 443, 'tcp')
+
+======================================================================
+FAIL: test_procfs_udp_original_tuple (__main__.RequirementProbes.test_procfs_udp_original_tuple)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/st4rdhoom/minifw-ai/docs/evidence/2026-11-02-readiness/probes.py", line 40, in test_procfs_udp_original_tuple
+    self.parse_case("ipv4 2 ", "udp", 53)
+  File "/Users/st4rdhoom/minifw-ai/docs/evidence/2026-11-02-readiness/probes.py", line 34, in parse_case
+    self.assertEqual(actual, ("10.10.0.20", "192.0.2.80", port, proto))
+AssertionError: Tuples differ: ('192.0.2.80', '10.10.0.20', 52000, 'udp') != ('10.10.0.20', '192.0.2.80', 53, 'udp')
+
+First differing element 0:
+'192.0.2.80'
+'10.10.0.20'
+
+- ('192.0.2.80', '10.10.0.20', 52000, 'udp')
++ ('10.10.0.20', '192.0.2.80', 53, 'udp')
+
+======================================================================
+FAIL: test_sni_does_not_label_unrelated_connection (__main__.RequirementProbes.test_sni_does_not_label_unrelated_connection)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/st4rdhoom/minifw-ai/docs/evidence/2026-11-02-readiness/probes.py", line 54, in test_sni_does_not_label_unrelated_connection
+    self.assertEqual(other.sni, "")
+AssertionError: 'bank.example' != ''
+- bank.example
+
+
+----------------------------------------------------------------------
+Ran 22 tests in 1.041s
+
+FAILED (failures=9)
+AUDIT_TOTAL 22 FAILURES 9 ERRORS 0 SKIPPED 0

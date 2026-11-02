@@ -1,0 +1,61 @@
+$ dpkg-query -W minifw-ai
+minifw-ai	2.2.10-finance
+$ ip -j netns list
+[]
+$ systemctl stop minifw-ai minifw-ai-web dnsmasq
+$ nft -a list table inet minifw
+table inet minifw { # handle 3
+	set minifw_block_v4 { # handle 1
+		type ipv4_addr
+		timeout 1h
+	}
+
+	chain forward { # handle 2
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 218 bytes 11816 comment "MiniFW-AI-Conntrack" # handle 5
+		ip saddr @minifw_block_v4 counter packets 118 bytes 6240 drop comment "MiniFW-AI-Blocklist" # handle 6
+	}
+}
+$ nft delete table inet minifw
+$ modprobe nf_conntrack
+$ sysctl -w net.ipv4.ip_forward=1 net.ipv6.conf.all.forwarding=1 net.netfilter.nf_conntrack_acct=0
+net.ipv4.ip_forward = 1
+net.ipv6.conf.all.forwarding = 1
+net.netfilter.nf_conntrack_acct = 0
+$ ip netns add mf-client
+$ ip -n mf-client link set lo up
+$ ip netns add mf-server
+$ ip -n mf-server link set lo up
+$ ip link add mfcg type veth peer name mfc0
+$ ip link set mfc0 netns mf-client
+$ ip addr add 10.10.0.1/24 dev mfcg
+$ ip addr add fd42:10::1/64 dev mfcg
+$ ip link set mfcg up
+$ ip -n mf-client addr add 10.10.0.20/24 dev mfc0
+$ ip -n mf-client addr add fd42:10::20/64 dev mfc0
+$ ip -n mf-client link set mfc0 up
+$ ip -n mf-client route add default via 10.10.0.1
+$ ip -n mf-client -6 route add default via fd42:10::1
+$ ip link add mfsg type veth peer name mfs0
+RTNETLINK answers: File exists
+$ systemctl stop minifw-ai
+$ journalctl -u minifw-ai --no-pager --since '2026-11-02 04:03:14 UTC'
+-- No entries --
+$ nft -a list table inet minifw
+Error: No such file or directory
+list table inet minifw
+                ^^^^^^
+$ systemctl daemon-reload
+$ ip netns delete mf-client
+$ ip netns delete mf-server
+EVIDENCE_DIRECTORY /var/tmp/minifw-monday-financial-20261102T040314Z
+Traceback (most recent call last):
+  File "/tmp/lab_gateway_acceptance.py", line 497, in <module>
+    acceptance(sys.argv[1], sys.argv[2])
+  File "/tmp/lab_gateway_acceptance.py", line 295, in acceptance
+    run("ip", "link", "add", gateway, "type", "veth", "peer", "name", peer)
+  File "/tmp/lab_gateway_acceptance.py", line 213, in run
+    result.check_returncode()
+  File "/usr/lib/python3.11/subprocess.py", line 502, in check_returncode
+    raise CalledProcessError(self.returncode, self.args, self.stdout,
+subprocess.CalledProcessError: Command '('ip', 'link', 'add', 'mfsg', 'type', 'veth', 'peer', 'name', 'mfs0')' returned non-zero exit status 2.

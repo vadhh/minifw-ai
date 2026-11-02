@@ -1,0 +1,134 @@
+OBSERVED_UTC 2026-11-02T01:59:17.635673+00:00
+HOST macOS-26.7.1-arm64-arm-64bit PYTHON 3.12.15
+REPO https://github.com/vadhh/minifw-ai
+BRANCH main HEAD e6b62a9df65261bba2cfc10618af7d552f016817
+WORKTREE
+M README.md
+ M app/web/routers/admin.py
+ M app/web/templates/admin/partials/sidebar.html
+ M build_usb.sh
+ M pyproject.toml
+ M requirements.txt
+ M scripts/build_deb.sh
+?? .DS_Store
+?? .claude/
+?? .serena/
+?? .trail/.gitignore
+?? .trail/README.md
+?? .trail/hook.cjs
+?? .trail/learnings/2026-10-21-customer-deployment-uses-native-linux-gateway-st4rdhoom.md
+?? .trail/learnings/2026-10-27-agent-orchestration-stack-on-this-machine-st4rdhoom.md
+?? .trail/learnings/2026-10-28-omniroute-install-on-orange-pi-r1-st4rdhoom.md
+?? .trail/learnings/2026-10-28-omniroute-installed-via-docker-on-sydeco-st4rdhoom.md
+?? .trail/learnings/2026-10-30-assessment-installer-versions-follow-v2-2-st4rdhoom.md
+?? .trail/learnings/2026-10-30-ceo-assessment-kits-use-native-linux-st4rdhoom.md
+?? .trail/learnings/2026-10-30-sendable-assessment-zips-contain-prebuilt-sector-st4rdhoom.md
+?? app/minifw_ai/licensing.py
+?? app/web/templates/admin/license.html
+?? config/license_public_keys.json
+?? docs/deployment-assessment.md
+?? docs/evidence/
+?? docs/licensing.md
+?? docs/technical-reference.md
+?? scripts/build_assessment_zips.py
+?? scripts/license_tool.py
+?? uv.lock
+TRACKED_DIFF
+README.md                                     |  1 +
+ app/web/routers/admin.py                      | 39 +++++++++++++++++++++++--
+ app/web/templates/admin/partials/sidebar.html | 10 ++++++-
+ build_usb.sh                                  | 41 ++++-----------------------
+ pyproject.toml                                |  3 +-
+ requirements.txt                              |  1 +
+ scripts/build_deb.sh                          |  5 +++-
+ 7 files changed, 60 insertions(+), 40 deletions(-)
+TOOL python3 /opt/homebrew/bin/python3
+TOOL uv /opt/homebrew/bin/uv
+TOOL pytest None
+TOOL nft None
+TOOL dpkg-deb /opt/homebrew/bin/dpkg-deb
+TOOL docker /opt/homebrew/bin/docker
+TOOL systemctl None
+MODULE pytest False
+MODULE numpy True
+MODULE pandas True
+MODULE sklearn True
+MODULE yara False
+STANDALONE_DEBS build []
+STANDALONE_DEBS dist []
+
+ARCHIVE minifw-ai-education-v2.2.10-source-assessment.zip SHA256 60e7c2f20da0f3b9f8d79eda54806b081aaf19866bd974dfa3cf7d2bb36894c2
+ZIP_CRC None
+MANIFEST minifw-ai-education-v2.2.10-source-assessment/MANIFEST.json {"artifact_type": "source-deployment-assessment", "base_commit": "e6b62a9df65261bba2cfc10618af7d552f016817", "checks": ["python_ast", "bash_syntax", "json_parse", "required_inputs", "sector_mapping", "template_static_assets", "zip_crc", "sha256"], "created_at": "2026-10-30T07:56:44.009484+00:00", "included_local_changes": ["app/minifw_ai/licensing.py", "app/web/routers/admin.py", "app/web/templates/admin/license.html", "app/web/templates/admin/partials/sidebar.html", "config/license_public_keys.json", "docs/licensing.md", "requirements.txt", "scripts/build_deb.sh"], "normalized_lf_files": ["scripts/backup.sh", "scripts/enable_dnsmasq_logging.sh", "scripts/restore.sh", "scripts/uninstall.sh", "systemd/minifw-ai-web.service", "systemd/minifw-ai.service"], "not_verified": ["linux_deb_build", "linux_install", "live_enforcement", "browser", "performance", "full_security_audit"], "product_mode": "minifw_school", "sector": "education", "version": "2.2.10"}
+MANIFEST_HASHES 200 ARCHIVE_MISMATCHES []
+CURRENT_REPO_COMPARISONS 198 MISMATCHES []
+UNCHANGED_FROM_HEAD app/minifw_ai/main.py True
+UNCHANGED_FROM_HEAD app/minifw_ai/collector_flow.py True
+UNCHANGED_FROM_HEAD app/minifw_ai/enforce.py True
+UNCHANGED_FROM_HEAD models/mlp_model.pkl True
+
+ARCHIVE minifw-ai-education-v2.2.9-installer.zip SHA256 7b305597339a7907ea36a32498fc0aa0597295082a8258ba1743e3b3423c9747
+ZIP_CRC None
+MANIFEST minifw-ai-education-v2.2.9-installer/BUILD_MANIFEST.json {"artifact_type": "prebuilt-debian-installer-assessment", "base_commit": "e6b62a9df65261bba2cfc10618af7d552f016817", "builder_host": "macOS-26.7.1-arm64-arm-64bit-Mach-O", "checks": ["python_ast", "bash_syntax", "json_parse", "required_inputs", "sector_mapping", "template_static_assets", "zip_crc", "sha256"], "created_at": "2026-10-30T07:51:46.984173+00:00", "deb_file": "minifw-ai_2.2.9-education_amd64.deb", "deb_sha256": "508dc7488f718a55426a6e36a481741577b459ab37c0aef2df987f65f3bb4a2e", "dpkg_deb_version": "Debian 'dpkg-deb' package archive backend version 1.23.11 (darwin-arm64).", "included_local_changes": ["app/minifw_ai/licensing.py", "app/web/routers/admin.py", "app/web/templates/admin/license.html", "app/web/templates/admin/partials/sidebar.html", "config/license_public_keys.json", "docs/licensing.md", "requirements.txt", "scripts/build_deb.sh"], "installed_file_count": 196, "normalized_lf_files": ["scripts/backup.sh", "scripts/enable_dnsmasq_logging.sh", "scripts/restore.sh", "scripts/uninstall.sh", "systemd/minifw-ai-web.service", "systemd/minifw-ai.service"], "not_verified": ["linux_install", "live_enforcement", "browser", "performance", "full_security_audit"], "package_checks": ["dpkg_metadata", "dpkg_payload_and_control_extraction", "root_ownership", "sector_services_and_policy", "source_payload_hashes", "conffiles_present", "maintainer_script_syntax", "secret_file_exclusions", "zip_crc", "sha256"], "product_mode": "minifw_school", "sector": "education", "version": "2.2.9"}
+MANIFEST_HASHES 200 ARCHIVE_MISMATCHES []
+SOURCE_MANIFEST_NOTE source files are provenance, not embedded ZIP members; Debian payload checked separately
+CURRENT_REPO_COMPARISONS 198 MISMATCHES ['scripts/build_deb.sh']
+UNCHANGED_FROM_HEAD app/minifw_ai/main.py True
+UNCHANGED_FROM_HEAD app/minifw_ai/collector_flow.py True
+UNCHANGED_FROM_HEAD app/minifw_ai/enforce.py True
+UNCHANGED_FROM_HEAD models/mlp_model.pkl True
+NESTED_DEB minifw-ai-education-v2.2.9-installer/minifw-ai_2.2.9-education_amd64.deb SHA256 508dc7488f718a55426a6e36a481741577b459ab37c0aef2df987f65f3bb4a2e
+DEB_METADATA 0 Package: minifw-ai
+Version: 2.2.9-education
+Architecture: amd64 
+DEB_SHA_MATCHES_MANIFEST True
+INSTALLED_PAYLOAD_HASHES 196 MISMATCHES []
+
+ARCHIVE minifw-ai-education-v2.2.9-source-assessment.zip SHA256 9d9aa59610b934e090d7d60f96cbdde5a58315daa32f8c1e2b48518b6df591a9
+ZIP_CRC None
+MANIFEST minifw-ai-education-v2.2.9-source-assessment/MANIFEST.json {"artifact_type": "source-deployment-assessment", "base_commit": "e6b62a9df65261bba2cfc10618af7d552f016817", "checks": ["python_ast", "bash_syntax", "json_parse", "required_inputs", "sector_mapping", "template_static_assets", "zip_crc", "sha256"], "created_at": "2026-10-30T07:51:46.984173+00:00", "included_local_changes": ["app/minifw_ai/licensing.py", "app/web/routers/admin.py", "app/web/templates/admin/license.html", "app/web/templates/admin/partials/sidebar.html", "config/license_public_keys.json", "docs/licensing.md", "requirements.txt", "scripts/build_deb.sh"], "normalized_lf_files": ["scripts/backup.sh", "scripts/enable_dnsmasq_logging.sh", "scripts/restore.sh", "scripts/uninstall.sh", "systemd/minifw-ai-web.service", "systemd/minifw-ai.service"], "not_verified": ["linux_deb_build", "linux_install", "live_enforcement", "browser", "performance", "full_security_audit"], "product_mode": "minifw_school", "sector": "education", "version": "2.2.9"}
+MANIFEST_HASHES 200 ARCHIVE_MISMATCHES []
+CURRENT_REPO_COMPARISONS 198 MISMATCHES ['scripts/build_deb.sh']
+UNCHANGED_FROM_HEAD app/minifw_ai/main.py True
+UNCHANGED_FROM_HEAD app/minifw_ai/collector_flow.py True
+UNCHANGED_FROM_HEAD app/minifw_ai/enforce.py True
+UNCHANGED_FROM_HEAD models/mlp_model.pkl True
+
+ARCHIVE minifw-ai-financial-v2.2.10-source-assessment.zip SHA256 15b31e1c0ddef104584fcb46972099948ccd229b6cbaead38ff89f4a51c43e61
+ZIP_CRC None
+MANIFEST minifw-ai-financial-v2.2.10-source-assessment/MANIFEST.json {"artifact_type": "source-deployment-assessment", "base_commit": "e6b62a9df65261bba2cfc10618af7d552f016817", "checks": ["python_ast", "bash_syntax", "json_parse", "required_inputs", "sector_mapping", "template_static_assets", "zip_crc", "sha256"], "created_at": "2026-10-30T07:56:44.220961+00:00", "included_local_changes": ["app/minifw_ai/licensing.py", "app/web/routers/admin.py", "app/web/templates/admin/license.html", "app/web/templates/admin/partials/sidebar.html", "config/license_public_keys.json", "docs/licensing.md", "requirements.txt", "scripts/build_deb.sh"], "normalized_lf_files": ["scripts/backup.sh", "scripts/enable_dnsmasq_logging.sh", "scripts/restore.sh", "scripts/uninstall.sh", "systemd/minifw-ai-web.service", "systemd/minifw-ai.service"], "not_verified": ["linux_deb_build", "linux_install", "live_enforcement", "browser", "performance", "full_security_audit"], "product_mode": "minifw_financial", "sector": "finance", "version": "2.2.10"}
+MANIFEST_HASHES 200 ARCHIVE_MISMATCHES []
+CURRENT_REPO_COMPARISONS 198 MISMATCHES []
+UNCHANGED_FROM_HEAD app/minifw_ai/main.py True
+UNCHANGED_FROM_HEAD app/minifw_ai/collector_flow.py True
+UNCHANGED_FROM_HEAD app/minifw_ai/enforce.py True
+UNCHANGED_FROM_HEAD models/mlp_model.pkl True
+
+ARCHIVE minifw-ai-financial-v2.2.9-installer.zip SHA256 9eccde6902304bfef85a4822e054f2665a0186831a20c933fd8d41f39841bef9
+ZIP_CRC None
+MANIFEST minifw-ai-financial-v2.2.9-installer/BUILD_MANIFEST.json {"artifact_type": "prebuilt-debian-installer-assessment", "base_commit": "e6b62a9df65261bba2cfc10618af7d552f016817", "builder_host": "macOS-26.7.1-arm64-arm-64bit-Mach-O", "checks": ["python_ast", "bash_syntax", "json_parse", "required_inputs", "sector_mapping", "template_static_assets", "zip_crc", "sha256"], "created_at": "2026-10-30T07:51:47.196599+00:00", "deb_file": "minifw-ai_2.2.9-finance_amd64.deb", "deb_sha256": "3af65157cb43a1ffb61e1d8a00a53346c7c345a62e258c7ff1cd26f0372504e0", "dpkg_deb_version": "Debian 'dpkg-deb' package archive backend version 1.23.11 (darwin-arm64).", "included_local_changes": ["app/minifw_ai/licensing.py", "app/web/routers/admin.py", "app/web/templates/admin/license.html", "app/web/templates/admin/partials/sidebar.html", "config/license_public_keys.json", "docs/licensing.md", "requirements.txt", "scripts/build_deb.sh"], "installed_file_count": 196, "normalized_lf_files": ["scripts/backup.sh", "scripts/enable_dnsmasq_logging.sh", "scripts/restore.sh", "scripts/uninstall.sh", "systemd/minifw-ai-web.service", "systemd/minifw-ai.service"], "not_verified": ["linux_install", "live_enforcement", "browser", "performance", "full_security_audit"], "package_checks": ["dpkg_metadata", "dpkg_payload_and_control_extraction", "root_ownership", "sector_services_and_policy", "source_payload_hashes", "conffiles_present", "maintainer_script_syntax", "secret_file_exclusions", "zip_crc", "sha256"], "product_mode": "minifw_financial", "sector": "finance", "version": "2.2.9"}
+MANIFEST_HASHES 200 ARCHIVE_MISMATCHES []
+SOURCE_MANIFEST_NOTE source files are provenance, not embedded ZIP members; Debian payload checked separately
+CURRENT_REPO_COMPARISONS 198 MISMATCHES ['scripts/build_deb.sh']
+UNCHANGED_FROM_HEAD app/minifw_ai/main.py True
+UNCHANGED_FROM_HEAD app/minifw_ai/collector_flow.py True
+UNCHANGED_FROM_HEAD app/minifw_ai/enforce.py True
+UNCHANGED_FROM_HEAD models/mlp_model.pkl True
+NESTED_DEB minifw-ai-financial-v2.2.9-installer/minifw-ai_2.2.9-finance_amd64.deb SHA256 3af65157cb43a1ffb61e1d8a00a53346c7c345a62e258c7ff1cd26f0372504e0
+DEB_METADATA 0 Package: minifw-ai
+Version: 2.2.9-finance
+Architecture: amd64 
+DEB_SHA_MATCHES_MANIFEST True
+INSTALLED_PAYLOAD_HASHES 196 MISMATCHES []
+
+ARCHIVE minifw-ai-financial-v2.2.9-source-assessment.zip SHA256 5a8d957b0543784cee58b6f200825924542f5bd35c1f3a9f4b58eccb0274b546
+ZIP_CRC None
+MANIFEST minifw-ai-financial-v2.2.9-source-assessment/MANIFEST.json {"artifact_type": "source-deployment-assessment", "base_commit": "e6b62a9df65261bba2cfc10618af7d552f016817", "checks": ["python_ast", "bash_syntax", "json_parse", "required_inputs", "sector_mapping", "template_static_assets", "zip_crc", "sha256"], "created_at": "2026-10-30T07:51:47.196599+00:00", "included_local_changes": ["app/minifw_ai/licensing.py", "app/web/routers/admin.py", "app/web/templates/admin/license.html", "app/web/templates/admin/partials/sidebar.html", "config/license_public_keys.json", "docs/licensing.md", "requirements.txt", "scripts/build_deb.sh"], "normalized_lf_files": ["scripts/backup.sh", "scripts/enable_dnsmasq_logging.sh", "scripts/restore.sh", "scripts/uninstall.sh", "systemd/minifw-ai-web.service", "systemd/minifw-ai.service"], "not_verified": ["linux_deb_build", "linux_install", "live_enforcement", "browser", "performance", "full_security_audit"], "product_mode": "minifw_financial", "sector": "finance", "version": "2.2.9"}
+MANIFEST_HASHES 200 ARCHIVE_MISMATCHES []
+CURRENT_REPO_COMPARISONS 198 MISMATCHES ['scripts/build_deb.sh']
+UNCHANGED_FROM_HEAD app/minifw_ai/main.py True
+UNCHANGED_FROM_HEAD app/minifw_ai/collector_flow.py True
+UNCHANGED_FROM_HEAD app/minifw_ai/enforce.py True
+UNCHANGED_FROM_HEAD models/mlp_model.pkl True
+
+EXISTING_TMP_PYTHONS []

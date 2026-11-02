@@ -1,0 +1,198 @@
+Oct 26 13:09:25 minifw-v2210-test systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Oct 26 13:09:27 minifw-v2210-test python[1125]: 2026-10-26 06:09:27,500 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Oct 26 13:09:27 minifw-v2210-test python[1125]: 2026-10-26 06:09:27,503 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Oct 26 13:09:27 minifw-v2210-test python[1125]: 2026-10-26 06:09:27,503 - INFO - [STATE] Initial protection state: AI_ENHANCED_PROTECTION
+Oct 26 13:09:27 minifw-v2210-test python[1125]: 2026-10-26 06:09:27,513 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_financial: sector=finance
+Oct 26 13:09:27 minifw-v2210-test python[1125]: 2026-10-26 06:09:27,513 - INFO - [SECTOR_LOCK] Loaded config for finance: ['description', 'block_tor', 'block_anonymizers', 'strict_tls', 'minimum_tls_version', 'pci_compliance_mode', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_retention_days']
+Oct 26 13:09:27 minifw-v2210-test python[1125]: 2026-10-26 06:09:27,513 - INFO - [SECTOR_LOCK] Device sector: finance (LOCKED)
+Oct 26 13:09:27 minifw-v2210-test python[1125]: 2026-10-26 06:09:27,513 - INFO - [SECTOR_LOCK] Config: Finance: PCI-DSS compliance focus and anti-fraud.
+Oct 26 13:09:27 minifw-v2210-test python[1125]: 2026-10-26 06:09:27,514 - INFO - [FEEDS] Loaded 10 patterns from financial_fraud.txt
+Oct 26 13:09:27 minifw-v2210-test python[1125]: 2026-10-26 06:09:27,514 - INFO - [FEEDS] Loaded 9 patterns from crypto_scams.txt
+Oct 26 13:09:27 minifw-v2210-test python[1125]: 2026-10-26 06:09:27,514 - INFO - [SECTOR_LOCK] Loaded 19 sector-specific feed patterns
+Oct 26 13:09:27 minifw-v2210-test python[1125]: 2026-10-26 06:09:27,514 - INFO - [FEEDS] Loaded 0 Tor exit node IPs from /opt/minifw_ai/config/feeds/tor_exit_nodes.txt
+Oct 26 13:09:27 minifw-v2210-test python[1125]: 2026-10-26 06:09:27,514 - INFO - [SECTOR_LOCK] Tor/anonymizer blocking enabled: loaded 0 exit IPs
+Oct 26 13:09:27 minifw-v2210-test python[1125]: 2026-10-26 06:09:27,515 - INFO - Loading MLP model from: /opt/minifw_ai/models/mlp_model.pkl
+Oct 26 13:09:27 minifw-v2210-test python[1125]: /opt/minifw_ai/venv/lib/python3.11/site-packages/sklearn/base.py:376: InconsistentVersionWarning: Trying to unpickle estimator LabelBinarizer from version 1.5.0 when using version 1.5.2. This might lead to breaking code or invalid results. Use at your own risk. For more info please refer to:
+Oct 26 13:09:27 minifw-v2210-test python[1125]: https://scikit-learn.org/stable/model_persistence.html#security-maintainability-limitations
+Oct 26 13:09:27 minifw-v2210-test python[1125]:   warnings.warn(
+Oct 26 13:09:27 minifw-v2210-test python[1125]: /opt/minifw_ai/venv/lib/python3.11/site-packages/sklearn/base.py:376: InconsistentVersionWarning: Trying to unpickle estimator MLPClassifier from version 1.5.0 when using version 1.5.2. This might lead to breaking code or invalid results. Use at your own risk. For more info please refer to:
+Oct 26 13:09:27 minifw-v2210-test python[1125]: https://scikit-learn.org/stable/model_persistence.html#security-maintainability-limitations
+Oct 26 13:09:27 minifw-v2210-test python[1125]:   warnings.warn(
+Oct 26 13:09:27 minifw-v2210-test python[1125]: /opt/minifw_ai/venv/lib/python3.11/site-packages/sklearn/base.py:376: InconsistentVersionWarning: Trying to unpickle estimator StandardScaler from version 1.5.0 when using version 1.5.2. This might lead to breaking code or invalid results. Use at your own risk. For more info please refer to:
+Oct 26 13:09:27 minifw-v2210-test python[1125]: https://scikit-learn.org/stable/model_persistence.html#security-maintainability-limitations
+Oct 26 13:09:27 minifw-v2210-test python[1125]:   warnings.warn(
+Oct 26 13:09:27 minifw-v2210-test python[1125]: 2026-10-26 06:09:27,516 - INFO - Model trained on: 2026-03-12T09:11:52.451407
+Oct 26 13:09:27 minifw-v2210-test python[1125]: 2026-10-26 06:09:27,517 - INFO - Training samples: 2000
+Oct 26 13:09:27 minifw-v2210-test python[1125]: 2026-10-26 06:09:27,517 - INFO - Model accuracy: 1.0
+Oct 26 13:09:27 minifw-v2210-test python[1125]: 2026-10-26 06:09:27,517 - INFO - ✓ MLP model loaded successfully
+Oct 26 13:09:27 minifw-v2210-test python[1125]: 2026-10-26 06:09:27,517 - INFO - [MLP] Loaded model from: /opt/minifw_ai/models/mlp_model.pkl
+Oct 26 13:09:27 minifw-v2210-test python[1125]: 2026-10-26 06:09:27,517 - INFO - [MLP] Threshold: 0.5
+Oct 26 13:09:27 minifw-v2210-test python[1125]: 2026-10-26 06:09:27,517 - INFO - Compiling YARA rules from: /opt/minifw_ai/yara_rules
+Oct 26 13:09:27 minifw-v2210-test python[1125]: 2026-10-26 06:09:27,528 - INFO - ✓ Compiled 6 YARA rule namespaces
+Oct 26 13:09:27 minifw-v2210-test python[1125]: 2026-10-26 06:09:27,528 - INFO - [YARA] Loaded rules from: /opt/minifw_ai/yara_rules
+Oct 26 13:09:27 minifw-v2210-test python[1125]: 2026-10-26 06:09:27,528 - INFO - [YARA] Rules loaded: True
+Oct 26 13:09:27 minifw-v2210-test python[1125]: 2026-10-26 06:09:27,885 - INFO - [FLOW] Conntrack flow tracking initialised (path=/proc/net/nf_conntrack)
+Oct 26 13:09:27 minifw-v2210-test python[1125]: 2026-10-26 06:09:27,885 - INFO - [DNS_COLLECTOR] Using file source: /opt/minifw_ai/logs/dnsmasq.log
+Oct 26 13:09:27 minifw-v2210-test python[1125]: 2026-10-26 06:09:27,885 - INFO - [DNS_COLLECTOR] Successfully initialized DNS event stream (source=file)
+Oct 26 13:09:37 minifw-v2210-test python[1125]: 2026-10-26 06:09:37,886 - INFO - [ZEEK] ssl.log not found at /var/log/zeek/ssl.log — SNI enrichment disabled
+Oct 26 13:50:46 minifw-v2210-test systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Oct 26 13:50:46 minifw-v2210-test python[1125]: 2026-10-26 06:50:46,926 - INFO - Caught SIGTERM, shutting down.
+Oct 26 13:50:46 minifw-v2210-test python[1125]: [!] Warning: DNS log file not found at /opt/minifw_ai/logs/dnsmasq.log.
+Oct 26 13:50:46 minifw-v2210-test python[1125]: [BASELINE_PROTECTION] Service will continue monitoring for file creation...
+Oct 26 13:50:46 minifw-v2210-test python[1125]: [BASELINE_PROTECTION] Other security functions remain active (Fail-Closed)
+Oct 26 13:50:47 minifw-v2210-test systemd[1]: minifw-ai.service: Deactivated successfully.
+Oct 26 13:50:47 minifw-v2210-test systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Oct 26 13:50:47 minifw-v2210-test systemd[1]: minifw-ai.service: Consumed 2.163s CPU time.
+-- Boot 4b4324829b9340be8b891742aa8570d2 --
+Oct 26 14:23:45 minifw-v2210-test systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Oct 26 14:24:50 minifw-v2210-test python[344]: 2026-10-26 07:24:50,701 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Oct 26 14:24:50 minifw-v2210-test python[344]: 2026-10-26 07:24:50,969 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Oct 26 14:24:50 minifw-v2210-test python[344]: 2026-10-26 07:24:50,972 - INFO - [STATE] Initial protection state: AI_ENHANCED_PROTECTION
+Oct 26 14:24:51 minifw-v2210-test python[344]: 2026-10-26 07:24:51,229 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_financial: sector=finance
+Oct 26 14:24:51 minifw-v2210-test python[344]: 2026-10-26 07:24:51,234 - INFO - [SECTOR_LOCK] Loaded config for finance: ['description', 'block_tor', 'block_anonymizers', 'strict_tls', 'minimum_tls_version', 'pci_compliance_mode', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_retention_days']
+Oct 26 14:24:51 minifw-v2210-test python[344]: 2026-10-26 07:24:51,237 - INFO - [SECTOR_LOCK] Device sector: finance (LOCKED)
+Oct 26 14:24:51 minifw-v2210-test python[344]: 2026-10-26 07:24:51,241 - INFO - [SECTOR_LOCK] Config: Finance: PCI-DSS compliance focus and anti-fraud.
+Oct 26 14:24:51 minifw-v2210-test python[344]: 2026-10-26 07:24:51,248 - INFO - [FEEDS] Loaded 10 patterns from financial_fraud.txt
+Oct 26 14:24:51 minifw-v2210-test python[344]: 2026-10-26 07:24:51,254 - INFO - [FEEDS] Loaded 9 patterns from crypto_scams.txt
+Oct 26 14:24:51 minifw-v2210-test python[344]: 2026-10-26 07:24:51,258 - INFO - [SECTOR_LOCK] Loaded 19 sector-specific feed patterns
+Oct 26 14:24:51 minifw-v2210-test python[344]: 2026-10-26 07:24:51,264 - INFO - [FEEDS] Loaded 0 Tor exit node IPs from /opt/minifw_ai/config/feeds/tor_exit_nodes.txt
+Oct 26 14:24:51 minifw-v2210-test python[344]: 2026-10-26 07:24:51,267 - INFO - [SECTOR_LOCK] Tor/anonymizer blocking enabled: loaded 0 exit IPs
+Oct 26 14:24:51 minifw-v2210-test python[344]: 2026-10-26 07:24:51,273 - INFO - Loading MLP model from: /opt/minifw_ai/models/mlp_model.pkl
+Oct 26 14:24:51 minifw-v2210-test python[344]: /opt/minifw_ai/venv/lib/python3.11/site-packages/sklearn/base.py:376: InconsistentVersionWarning: Trying to unpickle estimator LabelBinarizer from version 1.5.0 when using version 1.5.2. This might lead to breaking code or invalid results. Use at your own risk. For more info please refer to:
+Oct 26 14:24:51 minifw-v2210-test python[344]: https://scikit-learn.org/stable/model_persistence.html#security-maintainability-limitations
+Oct 26 14:24:51 minifw-v2210-test python[344]:   warnings.warn(
+Oct 26 14:24:51 minifw-v2210-test python[344]: /opt/minifw_ai/venv/lib/python3.11/site-packages/sklearn/base.py:376: InconsistentVersionWarning: Trying to unpickle estimator MLPClassifier from version 1.5.0 when using version 1.5.2. This might lead to breaking code or invalid results. Use at your own risk. For more info please refer to:
+Oct 26 14:24:51 minifw-v2210-test python[344]: https://scikit-learn.org/stable/model_persistence.html#security-maintainability-limitations
+Oct 26 14:24:51 minifw-v2210-test python[344]:   warnings.warn(
+Oct 26 14:24:51 minifw-v2210-test python[344]: /opt/minifw_ai/venv/lib/python3.11/site-packages/sklearn/base.py:376: InconsistentVersionWarning: Trying to unpickle estimator StandardScaler from version 1.5.0 when using version 1.5.2. This might lead to breaking code or invalid results. Use at your own risk. For more info please refer to:
+Oct 26 14:24:51 minifw-v2210-test python[344]: https://scikit-learn.org/stable/model_persistence.html#security-maintainability-limitations
+Oct 26 14:24:51 minifw-v2210-test python[344]:   warnings.warn(
+Oct 26 14:24:51 minifw-v2210-test python[344]: 2026-10-26 07:24:51,367 - INFO - Model trained on: 2026-03-12T09:11:52.451407
+Oct 26 14:24:51 minifw-v2210-test python[344]: 2026-10-26 07:24:51,371 - INFO - Training samples: 2000
+Oct 26 14:24:51 minifw-v2210-test python[344]: 2026-10-26 07:24:51,375 - INFO - Model accuracy: 1.0
+Oct 26 14:24:51 minifw-v2210-test python[344]: 2026-10-26 07:24:51,378 - INFO - ✓ MLP model loaded successfully
+Oct 26 14:24:51 minifw-v2210-test python[344]: 2026-10-26 07:24:51,382 - INFO - [MLP] Loaded model from: /opt/minifw_ai/models/mlp_model.pkl
+Oct 26 14:24:51 minifw-v2210-test python[344]: 2026-10-26 07:24:51,386 - INFO - [MLP] Threshold: 0.5
+Oct 26 14:24:51 minifw-v2210-test python[344]: 2026-10-26 07:24:51,391 - INFO - Compiling YARA rules from: /opt/minifw_ai/yara_rules
+Oct 26 14:24:51 minifw-v2210-test python[344]: 2026-10-26 07:24:51,706 - INFO - ✓ Compiled 6 YARA rule namespaces
+Oct 26 14:24:51 minifw-v2210-test python[344]: 2026-10-26 07:24:51,721 - INFO - [YARA] Loaded rules from: /opt/minifw_ai/yara_rules
+Oct 26 14:24:51 minifw-v2210-test python[344]: 2026-10-26 07:24:51,723 - INFO - [YARA] Rules loaded: True
+Oct 26 14:24:53 minifw-v2210-test python[344]: 2026-10-26 07:24:53,539 - INFO - [FLOW] Conntrack flow tracking initialised (path=/proc/net/nf_conntrack)
+Oct 26 14:24:53 minifw-v2210-test python[344]: 2026-10-26 07:24:53,549 - INFO - [DNS_COLLECTOR] Using file source: /opt/minifw_ai/logs/dnsmasq.log
+Oct 26 14:24:53 minifw-v2210-test python[344]: 2026-10-26 07:24:53,552 - INFO - [DNS_COLLECTOR] Successfully initialized DNS event stream (source=file)
+Oct 26 14:25:03 minifw-v2210-test python[344]: 2026-10-26 07:25:03,563 - INFO - [ZEEK] ssl.log not found at /var/log/zeek/ssl.log — SNI enrichment disabled
+Oct 26 14:26:21 minifw-v2210-test python[344]: 2026-10-26 07:26:21,056 - INFO - Caught SIGTERM, shutting down.
+Oct 26 14:26:21 minifw-v2210-test systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Oct 26 14:26:21 minifw-v2210-test python[344]: [!] Warning: DNS log file not found at /opt/minifw_ai/logs/dnsmasq.log.
+Oct 26 14:26:21 minifw-v2210-test python[344]: [BASELINE_PROTECTION] Service will continue monitoring for file creation...
+Oct 26 14:26:21 minifw-v2210-test python[344]: [BASELINE_PROTECTION] Other security functions remain active (Fail-Closed)
+Oct 26 14:26:22 minifw-v2210-test systemd[1]: minifw-ai.service: Deactivated successfully.
+Oct 26 14:26:22 minifw-v2210-test systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Oct 26 14:26:22 minifw-v2210-test systemd[1]: minifw-ai.service: Consumed 29.432s CPU time.
+-- Boot 04190d05ef044fe79172f0cf36d1f5b1 --
+Nov 02 09:31:35 minifw-monday-education systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 02 09:31:38 minifw-monday-education python[506]: 2026-11-02 02:31:38,462 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Nov 02 09:31:38 minifw-monday-education python[506]: 2026-11-02 02:31:38,470 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Nov 02 09:31:38 minifw-monday-education python[506]: 2026-11-02 02:31:38,470 - INFO - [STATE] Initial protection state: AI_ENHANCED_PROTECTION
+Nov 02 09:31:38 minifw-monday-education python[506]: 2026-11-02 02:31:38,480 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_financial: sector=finance
+Nov 02 09:31:38 minifw-monday-education python[506]: 2026-11-02 02:31:38,480 - INFO - [SECTOR_LOCK] Loaded config for finance: ['description', 'block_tor', 'block_anonymizers', 'strict_tls', 'minimum_tls_version', 'pci_compliance_mode', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_retention_days']
+Nov 02 09:31:38 minifw-monday-education python[506]: 2026-11-02 02:31:38,480 - INFO - [SECTOR_LOCK] Device sector: finance (LOCKED)
+Nov 02 09:31:38 minifw-monday-education python[506]: 2026-11-02 02:31:38,480 - INFO - [SECTOR_LOCK] Config: Finance: PCI-DSS compliance focus and anti-fraud.
+Nov 02 09:31:38 minifw-monday-education python[506]: 2026-11-02 02:31:38,481 - INFO - [FEEDS] Loaded 10 patterns from financial_fraud.txt
+Nov 02 09:31:38 minifw-monday-education python[506]: 2026-11-02 02:31:38,482 - INFO - [FEEDS] Loaded 9 patterns from crypto_scams.txt
+Nov 02 09:31:38 minifw-monday-education python[506]: 2026-11-02 02:31:38,482 - INFO - [SECTOR_LOCK] Loaded 19 sector-specific feed patterns
+Nov 02 09:31:38 minifw-monday-education python[506]: 2026-11-02 02:31:38,483 - INFO - [FEEDS] Loaded 0 Tor exit node IPs from /opt/minifw_ai/config/feeds/tor_exit_nodes.txt
+Nov 02 09:31:38 minifw-monday-education python[506]: 2026-11-02 02:31:38,483 - INFO - [SECTOR_LOCK] Tor/anonymizer blocking enabled: loaded 0 exit IPs
+Nov 02 09:31:38 minifw-monday-education python[506]: 2026-11-02 02:31:38,483 - INFO - Loading MLP model from: /opt/minifw_ai/models/mlp_model.pkl
+Nov 02 09:31:38 minifw-monday-education python[506]: /opt/minifw_ai/venv/lib/python3.11/site-packages/sklearn/base.py:376: InconsistentVersionWarning: Trying to unpickle estimator LabelBinarizer from version 1.5.0 when using version 1.5.2. This might lead to breaking code or invalid results. Use at your own risk. For more info please refer to:
+Nov 02 09:31:38 minifw-monday-education python[506]: https://scikit-learn.org/stable/model_persistence.html#security-maintainability-limitations
+Nov 02 09:31:38 minifw-monday-education python[506]:   warnings.warn(
+Nov 02 09:31:38 minifw-monday-education python[506]: /opt/minifw_ai/venv/lib/python3.11/site-packages/sklearn/base.py:376: InconsistentVersionWarning: Trying to unpickle estimator MLPClassifier from version 1.5.0 when using version 1.5.2. This might lead to breaking code or invalid results. Use at your own risk. For more info please refer to:
+Nov 02 09:31:38 minifw-monday-education python[506]: https://scikit-learn.org/stable/model_persistence.html#security-maintainability-limitations
+Nov 02 09:31:38 minifw-monday-education python[506]:   warnings.warn(
+Nov 02 09:31:38 minifw-monday-education python[506]: /opt/minifw_ai/venv/lib/python3.11/site-packages/sklearn/base.py:376: InconsistentVersionWarning: Trying to unpickle estimator StandardScaler from version 1.5.0 when using version 1.5.2. This might lead to breaking code or invalid results. Use at your own risk. For more info please refer to:
+Nov 02 09:31:38 minifw-monday-education python[506]: https://scikit-learn.org/stable/model_persistence.html#security-maintainability-limitations
+Nov 02 09:31:38 minifw-monday-education python[506]:   warnings.warn(
+Nov 02 09:31:38 minifw-monday-education python[506]: 2026-11-02 02:31:38,486 - INFO - Model trained on: 2026-03-12T09:11:52.451407
+Nov 02 09:31:38 minifw-monday-education python[506]: 2026-11-02 02:31:38,486 - INFO - Training samples: 2000
+Nov 02 09:31:38 minifw-monday-education python[506]: 2026-11-02 02:31:38,486 - INFO - Model accuracy: 1.0
+Nov 02 09:31:38 minifw-monday-education python[506]: 2026-11-02 02:31:38,486 - INFO - ✓ MLP model loaded successfully
+Nov 02 09:31:38 minifw-monday-education python[506]: 2026-11-02 02:31:38,486 - INFO - [MLP] Loaded model from: /opt/minifw_ai/models/mlp_model.pkl
+Nov 02 09:31:38 minifw-monday-education python[506]: 2026-11-02 02:31:38,486 - INFO - [MLP] Threshold: 0.5
+Nov 02 09:31:38 minifw-monday-education python[506]: 2026-11-02 02:31:38,486 - INFO - Compiling YARA rules from: /opt/minifw_ai/yara_rules
+Nov 02 09:31:38 minifw-monday-education python[506]: 2026-11-02 02:31:38,500 - INFO - ✓ Compiled 6 YARA rule namespaces
+Nov 02 09:31:38 minifw-monday-education python[506]: 2026-11-02 02:31:38,501 - INFO - [YARA] Loaded rules from: /opt/minifw_ai/yara_rules
+Nov 02 09:31:38 minifw-monday-education python[506]: 2026-11-02 02:31:38,501 - INFO - [YARA] Rules loaded: True
+Nov 02 09:31:38 minifw-monday-education python[506]: 2026-11-02 02:31:38,586 - INFO - [FLOW] Conntrack flow tracking initialised (path=/proc/net/nf_conntrack)
+Nov 02 09:31:38 minifw-monday-education python[506]: 2026-11-02 02:31:38,586 - INFO - [DNS_COLLECTOR] Using file source: /opt/minifw_ai/logs/dnsmasq.log
+Nov 02 09:31:38 minifw-monday-education python[506]: 2026-11-02 02:31:38,586 - INFO - [DNS_COLLECTOR] Successfully initialized DNS event stream (source=file)
+Nov 02 09:31:39 minifw-monday-education python[506]: 2026-11-02 02:31:39,236 - INFO - Caught SIGTERM, shutting down.
+Nov 02 09:31:39 minifw-monday-education python[506]: [!] Warning: DNS log file not found at /opt/minifw_ai/logs/dnsmasq.log.
+Nov 02 09:31:39 minifw-monday-education python[506]: [BASELINE_PROTECTION] Service will continue monitoring for file creation...
+Nov 02 09:31:39 minifw-monday-education python[506]: [BASELINE_PROTECTION] Other security functions remain active (Fail-Closed)
+Nov 02 09:31:39 minifw-monday-education systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 02 09:31:39 minifw-monday-education systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 02 09:31:39 minifw-monday-education systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 02 09:31:39 minifw-monday-education systemd[1]: minifw-ai.service: Consumed 2.331s CPU time.
+Nov 02 10:16:51 minifw-monday-education systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 02 10:16:53 minifw-monday-education python[2085]: 2026-11-02 10:16:53,113 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Nov 02 10:16:53 minifw-monday-education python[2085]: 2026-11-02 10:16:53,117 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Nov 02 10:16:53 minifw-monday-education python[2085]: 2026-11-02 10:16:53,118 - INFO - [STATE] Initial protection state: AI_ENHANCED_PROTECTION
+Nov 02 10:16:53 minifw-monday-education python[2085]: 2026-11-02 10:16:53,126 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_school: sector=education
+Nov 02 10:16:53 minifw-monday-education python[2085]: 2026-11-02 10:16:53,126 - INFO - [SECTOR_LOCK] Loaded config for education: ['description', 'force_safesearch', 'safesearch_domains', 'block_vpns', 'block_proxies', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_student_activity']
+Nov 02 10:16:53 minifw-monday-education python[2085]: 2026-11-02 10:16:53,127 - INFO - [SECTOR_LOCK] Device sector: education (LOCKED)
+Nov 02 10:16:53 minifw-monday-education python[2085]: 2026-11-02 10:16:53,127 - INFO - [SECTOR_LOCK] Config: Education: domain policies; SafeSearch resolver enforcement pending.
+Nov 02 10:16:53 minifw-monday-education python[2085]: 2026-11-02 10:16:53,127 - INFO - [FEEDS] Loaded 14 patterns from school_blacklist.txt
+Nov 02 10:16:53 minifw-monday-education python[2085]: 2026-11-02 10:16:53,127 - INFO - [SECTOR_LOCK] Loaded 14 sector-specific feed patterns
+Nov 02 10:16:53 minifw-monday-education python[2085]: 2026-11-02 10:16:53,127 - INFO - [SECTOR_LOCK] Search-domain allowlist: 8 patterns; SafeSearch resolver enforcement is pending
+Nov 02 10:16:53 minifw-monday-education python[2085]: 2026-11-02 10:16:53,127 - INFO - [SECTOR_LOCK] VPN/proxy provider domain matching enabled; tunnel detection is not implemented
+Nov 02 10:16:53 minifw-monday-education python[2085]: 2026-11-02 10:16:53,128 - INFO - Loading MLP model from: /opt/minifw_ai/models/mlp_model.pkl
+Nov 02 10:16:53 minifw-monday-education python[2085]: /opt/minifw_ai/venv/lib/python3.11/site-packages/sklearn/base.py:376: InconsistentVersionWarning: Trying to unpickle estimator LabelBinarizer from version 1.5.0 when using version 1.5.2. This might lead to breaking code or invalid results. Use at your own risk. For more info please refer to:
+Nov 02 10:16:53 minifw-monday-education python[2085]: https://scikit-learn.org/stable/model_persistence.html#security-maintainability-limitations
+Nov 02 10:16:53 minifw-monday-education python[2085]:   warnings.warn(
+Nov 02 10:16:53 minifw-monday-education python[2085]: /opt/minifw_ai/venv/lib/python3.11/site-packages/sklearn/base.py:376: InconsistentVersionWarning: Trying to unpickle estimator MLPClassifier from version 1.5.0 when using version 1.5.2. This might lead to breaking code or invalid results. Use at your own risk. For more info please refer to:
+Nov 02 10:16:53 minifw-monday-education python[2085]: https://scikit-learn.org/stable/model_persistence.html#security-maintainability-limitations
+Nov 02 10:16:53 minifw-monday-education python[2085]:   warnings.warn(
+Nov 02 10:16:53 minifw-monday-education python[2085]: /opt/minifw_ai/venv/lib/python3.11/site-packages/sklearn/base.py:376: InconsistentVersionWarning: Trying to unpickle estimator StandardScaler from version 1.5.0 when using version 1.5.2. This might lead to breaking code or invalid results. Use at your own risk. For more info please refer to:
+Nov 02 10:16:53 minifw-monday-education python[2085]: https://scikit-learn.org/stable/model_persistence.html#security-maintainability-limitations
+Nov 02 10:16:53 minifw-monday-education python[2085]:   warnings.warn(
+Nov 02 10:16:53 minifw-monday-education python[2085]: 2026-11-02 10:16:53,130 - INFO - Model trained on: 2026-03-12T09:11:52.451407
+Nov 02 10:16:53 minifw-monday-education python[2085]: 2026-11-02 10:16:53,130 - INFO - Training samples: 2000
+Nov 02 10:16:53 minifw-monday-education python[2085]: 2026-11-02 10:16:53,130 - INFO - Model accuracy: 1.0
+Nov 02 10:16:53 minifw-monday-education python[2085]: 2026-11-02 10:16:53,130 - INFO - ✓ MLP model loaded successfully
+Nov 02 10:16:53 minifw-monday-education python[2085]: 2026-11-02 10:16:53,130 - INFO - [MLP] Loaded model from: /opt/minifw_ai/models/mlp_model.pkl
+Nov 02 10:16:53 minifw-monday-education python[2085]: 2026-11-02 10:16:53,130 - INFO - [MLP] Threshold: 0.5
+Nov 02 10:16:53 minifw-monday-education python[2085]: 2026-11-02 10:16:53,131 - INFO - Compiling YARA rules from: /opt/minifw_ai/yara_rules
+Nov 02 10:16:53 minifw-monday-education python[2085]: 2026-11-02 10:16:53,141 - INFO - ✓ Compiled 6 YARA rule namespaces
+Nov 02 10:16:53 minifw-monday-education python[2085]: 2026-11-02 10:16:53,141 - INFO - [YARA] Loaded rules from: /opt/minifw_ai/yara_rules
+Nov 02 10:16:53 minifw-monday-education python[2085]: 2026-11-02 10:16:53,141 - INFO - [YARA] Rules loaded: True
+Nov 02 10:16:53 minifw-monday-education python[2085]: 2026-11-02 10:16:53,193 - WARNING - [TELEMETRY] Conntrack provides counter deltas, not packet timing/size distributions; 24-feature MLP disabled for these observations
+Nov 02 10:16:53 minifw-monday-education python[2085]: 2026-11-02 10:16:53,359 - INFO - Caught SIGTERM, shutting down.
+Nov 02 10:16:53 minifw-monday-education systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 02 10:16:53 minifw-monday-education python[2085]: [*] DNS Collector reading from /var/log/dnsmasq.log
+Nov 02 10:16:53 minifw-monday-education systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 02 10:16:53 minifw-monday-education systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 02 10:16:53 minifw-monday-education systemd[1]: minifw-ai.service: Consumed 1.722s CPU time.
+Nov 02 10:27:00 minifw-monday-education systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 02 10:27:01 minifw-monday-education systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 02 10:27:01 minifw-monday-education systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 02 10:27:01 minifw-monday-education systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 02 10:31:54 minifw-monday-education systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 02 10:31:55 minifw-monday-education python[2799]: 2026-11-02 10:31:55,788 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Nov 02 10:31:55 minifw-monday-education python[2799]: 2026-11-02 10:31:55,792 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Nov 02 10:31:55 minifw-monday-education python[2799]: 2026-11-02 10:31:55,792 - INFO - [STATE] Initial protection state: BASELINE_PROTECTION
+Nov 02 10:31:55 minifw-monday-education python[2799]: 2026-11-02 10:31:55,800 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_school: sector=education
+Nov 02 10:31:55 minifw-monday-education python[2799]: 2026-11-02 10:31:55,800 - INFO - [SECTOR_LOCK] Loaded config for education: ['description', 'force_safesearch', 'safesearch_domains', 'block_vpns', 'block_proxies', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_student_activity']
+Nov 02 10:31:55 minifw-monday-education python[2799]: 2026-11-02 10:31:55,800 - INFO - [SECTOR_LOCK] Device sector: education (LOCKED)
+Nov 02 10:31:55 minifw-monday-education python[2799]: 2026-11-02 10:31:55,800 - INFO - [SECTOR_LOCK] Config: Education: domain policies; SafeSearch resolver enforcement pending.
+Nov 02 10:31:55 minifw-monday-education python[2799]: 2026-11-02 10:31:55,800 - INFO - [FEEDS] Loaded 14 patterns from school_blacklist.txt
+Nov 02 10:31:55 minifw-monday-education python[2799]: 2026-11-02 10:31:55,801 - INFO - [SECTOR_LOCK] Loaded 14 sector-specific feed patterns
+Nov 02 10:31:55 minifw-monday-education python[2799]: 2026-11-02 10:31:55,801 - INFO - [SECTOR_LOCK] Search-domain allowlist: 8 patterns; SafeSearch resolver enforcement is pending
+Nov 02 10:31:55 minifw-monday-education python[2799]: 2026-11-02 10:31:55,801 - INFO - [SECTOR_LOCK] VPN/proxy provider domain matching enabled; tunnel detection is not implemented
+Nov 02 10:31:55 minifw-monday-education python[2799]: 2026-11-02 10:31:55,843 - WARNING - [TELEMETRY] Conntrack provides counter deltas, not packet timing/size distributions; 24-feature MLP disabled for these observations
+Nov 02 10:31:59 minifw-monday-education python[2799]: 2026-11-02 10:31:59,295 - INFO - Caught SIGTERM, shutting down.
+Nov 02 10:31:59 minifw-monday-education systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 02 10:31:59 minifw-monday-education python[2799]: [*] DNS Collector reading from /var/tmp/minifw-monday-education-20261102T033152Z/dns.log
+Nov 02 10:31:59 minifw-monday-education systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 02 10:31:59 minifw-monday-education systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 02 10:31:59 minifw-monday-education systemd[1]: minifw-ai.service: Consumed 1.700s CPU time.

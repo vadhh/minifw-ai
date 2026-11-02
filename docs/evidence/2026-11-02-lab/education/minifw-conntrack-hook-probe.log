@@ -1,0 +1,12 @@
+$ cat /sys/module/nf_conntrack/parameters/enable_hooks 
+  cat: /sys/module/nf_conntrack/parameters/enable_hooks: No such file or directory
+ exit 1
+$ conntrack -L -p udp -s 127.0.0.1 -o extended 
+  conntrack v1.4.7 (conntrack-tools): 0 flow entries have been shown.
+ exit 0
+$ nft add rule inet minifw forward ct state new counter comment MiniFW-AI-Conntrack 
+   exit 0
+$ conntrack -L -p udp -s 127.0.0.1 -o extended 
+ ipv4     2 udp      17 29 src=127.0.0.1 dst=127.0.0.1 sport=40603 dport=55680 packets=1 bytes=48 [UNREPLIED] src=127.0.0.1 dst=127.0.0.1 sport=55680 dport=40603 packets=0 bytes=0 mark=0 use=1
+ conntrack v1.4.7 (conntrack-tools): 1 flow entries have been shown.
+ exit 0

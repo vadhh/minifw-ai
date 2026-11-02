@@ -1,0 +1,15 @@
+Read-only post-acceptance verification, 2 November 2026. Operational host services were not changed.
+Command: ssh minifw-labhost 'sha256sum -c /home/sydeco/vms/minifw-monday-20261102/backing-SHA256SUMS && systemctl show minifw-ai minifw-ai-web -p Id -p ActiveState -p MainPID -p ActiveEnterTimestamp && cat /home/sydeco/vms/minifw-monday-20261102/backing-SHA256SUMS'
+/home/sydeco/vms/minifw-v2210-installer-test/minifw-v2210.qcow2: OK
+/home/sydeco/vms/minifw-v229-installer-test/debian-12-genericcloud-amd64.qcow2: OK
+Id=minifw-ai.service
+ActiveState=active
+ActiveEnterTimestamp=Fri 2026-10-30 12:25:23 WIB
+MainPID=1672
+Id=minifw-ai-web.service
+ActiveState=activating
+ActiveEnterTimestamp=Mon 2026-11-02 11:05:29 WIB
+MainPID=0
+186a1db30da753e401a70efc4ba874d68682ddc40ed61f673da80945438b810d  /home/sydeco/vms/minifw-v2210-installer-test/minifw-v2210.qcow2
+b1b018dc1046fb21815f6cfe4b67ac1d56bc841e19c4ba2c16073031386ad774  /home/sydeco/vms/minifw-v229-installer-test/debian-12-genericcloud-amd64.qcow2
+The host dashboard's observed activating state is not an acceptance result and was left untouched.
