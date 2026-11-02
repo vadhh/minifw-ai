@@ -1,13 +1,13 @@
 # MiniFW-AI v2.2.10 — work report, 2 November 2026
 
-Written **17:00 WIB**. Covers all work on branch `fix/monday-core-20261102` today. The detailed requirement matrix, hashes and per-run evidence are in the [consolidated correction report](2026-11-02_correction-minifwai-report.md); this page is the summary.
+Written **17:10 WIB**. Covers all work on branch `fix/monday-core-20261102` today. The detailed requirement matrix, hashes and per-run evidence are in the [consolidated correction report](2026-11-02_correction-minifwai-report.md); this page is the summary.
 
 ## Status
 
 **Neither the Financial nor the Education edition is production-ready.** All testing used only v2.2.10, on two separate QEMU lab VMs (`minifw-monday-financial`, `minifw-monday-education`) reached through the testbed host. No operational host service or client network was touched.
 
 - **Latest fully verified candidate: C15.** It is C13 plus a dashboard that no longer runs as root, with fixes for two security-review findings. Strict package identity, 616 Debian regression tests, and the feature, core and extended lab suites (including a real dashboard smoke test as the non-root user) all pass in both editions.
-- **Still running:** an in-place upgrade test from a C13 install (root dashboard) to C15 on the Education VM, to confirm the database and license migrate on a real upgrade rather than a fresh install.
+- **In-place upgrade passes:** installing C15 over a C13 install (root dashboard) on the Education VM moved the database (with existing data and the admin account) and the license to `/var/lib/minifw-ai`, applied the new ownership, started both services, and left `dpkg --verify` clean.
 
 Nothing has been pushed. Seven files with pre-existing uncommitted changes (licensing feature, README, build defaults) were preserved; each source kit declares them as local inputs.
 
@@ -29,7 +29,7 @@ Nothing has been pushed. Seven files with pre-existing uncommitted changes (lice
 | C12 | Egress guard also drops client TCP/UDP 443 to 31 public DoH resolver addresses | 609 tests; all suites pass; fixture DoH blocked (2 packets dropped per VM) and restored after removal |
 | C13 | SafeSearch resolver answers Firefox's DoH canary (`use-application-dns.net`) with NXDOMAIN | 609 tests; all suites pass; canary NXDOMAIN from the real resolver |
 | C14 | Dashboard runs as unprivileged `minifw-web` | **Superseded.** Extended smoke test failed (test bug, see below); security review then found symlink issues |
-| C15 | C14 plus symlink/FIFO-safe restore and installer, repaired build script, corrected smoke test | 616 tests; all suites pass, including the dashboard smoke test. In-place upgrade test running |
+| C15 | C14 plus symlink/FIFO-safe restore and installer, repaired build script, corrected smoke test | 616 tests; all suites pass, including the dashboard smoke test; in-place upgrade from C13 passes |
 
 ## Verified today, within stated scope
 
@@ -68,6 +68,7 @@ Nothing has been pushed. Seven files with pre-existing uncommitted changes (lice
 | Google SafeSearch browser confirmation | Google shows locked with or without pinning |
 | AI model quality | Packet model misclassifies benign traffic (lab 6/9; public IoT-23 139/155). Stays shadow-only with zero enforcement weight |
 | Engine privileges | Engine still runs as root (needed for nftables) |
+| Pre-existing `/opt/minifw_ai` ownership | On both lab VM images the code folder is owned by the image user `debian` (it existed before these packages). dpkg keeps the owner of existing folders, so the installer should reset code folders to root; one-line fix, not yet built |
 | Older non-package installer `scripts/install_systemd.sh` | Not updated for the dashboard account |
 | Real sites, sustained load, disk-full, long-run behaviour | Not tested |
 
