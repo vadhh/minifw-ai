@@ -1,7 +1,8 @@
 {
   "_mode": "minifw_school",
   "_sector": "education",
-  "_note": "SafeSearch resolver enforcement is pending. VPN/proxy provider domain matching does not identify arbitrary tunnels. Deny-domain matches isolate the client's forwarded IPv4 traffic.",
+  "_note": "SafeSearch requires the generated dnsmasq overrides. Packet metadata supports TLS version policy and WireGuard pattern detection; other tunnels remain unsupported. Deny-domain matches isolate the client's forwarded IPv4 traffic.",
+  "protocol_controls": {"minimum_tls_version": "TLSv1.2", "block_vpn_tunnels": false},
   "segments": {
     "default": {
       "block_threshold": 80,

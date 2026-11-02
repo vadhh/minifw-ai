@@ -28,6 +28,11 @@ class Event:
     telemetry_source: str = ""
     mlp_status: str = "not_run"
     sni: str = ""
+    tls_version: str = ""
+    vpn_protocol: str = ""
+    mlp_probability: float | None = None
+    mlp_schema: str = ""
+    mlp_features: list[float] | None = None
 
 
 def now_iso() -> str:

@@ -1,7 +1,7 @@
 """Dynamic State Transition System for MiniFW-AI.
 
 Manages automatic transitions between BASELINE_PROTECTION (hard gates only)
-and AI_ENHANCED_PROTECTION (hard gates + MLP + YARA) based on DNS telemetry
+and AI_ENHANCED_PROTECTION (hard gates + MLP + YARA) based on available DNS/packet telemetry
 health. Hard gates remain active in all states.
 
 TODO items: 4.1 (upgrade logic) and 4.2 (downgrade safety).
@@ -28,7 +28,7 @@ class ProtectionState(Enum):
 
 
 class TelemetryHealth:
-    """Tracks DNS telemetry health via event flow monitoring.
+    """Tracks telemetry health via event flow monitoring.
 
     Uses consecutive healthy/unhealthy check counts to determine
     when state transitions should occur, avoiding flapping.
@@ -53,7 +53,10 @@ class TelemetryHealth:
         self.consecutive_unhealthy: int = 0
 
     def record_dns_event(self) -> None:
-        """Record receipt of a real DNS event."""
+        self.record_event()
+
+    def record_event(self) -> None:
+        """Record real telemetry, never a quiet-reader tick."""
         self.last_event_time = time.monotonic()
         self.event_count += 1
 
@@ -96,7 +99,7 @@ class TelemetryHealth:
 class StateManager:
     """Orchestrates protection state transitions.
 
-    Monitors DNS telemetry health and triggers transitions between
+    Monitors telemetry health and triggers transitions between
     BASELINE_PROTECTION and AI_ENHANCED_PROTECTION. Hard gates remain
     active regardless of state.
     """
@@ -107,6 +110,7 @@ class StateManager:
         state_file_path: str = "/opt/minifw_ai/logs/deployment_state.json",
     ):
         self._state = initial_state
+        self._enabled_by_config = os.environ.get("AI_ENABLED", "1").lower() not in {"0", "false", "no", "off"}
         self._state_file = Path(state_file_path)
 
         # Read config from env with safe defaults (no new mandatory vars)
@@ -124,6 +128,8 @@ class StateManager:
 
         # Try to load existing state from file
         self._load_existing_state()
+        if not self._enabled_by_config:
+            self._state = ProtectionState.BASELINE_PROTECTION
 
     def _load_existing_state(self) -> None:
         """Load state from deployment_state.json if it exists."""
@@ -154,6 +160,10 @@ class StateManager:
         if client_ip is not None and domain is not None:
             self._health.record_dns_event()
 
+    def record_packet_event(self) -> None:
+        """Valid packet metadata can support the measured-feature model without DNS."""
+        self._health.record_event()
+
     def check_and_transition(self) -> tuple[bool, ProtectionState, str]:
         """Check telemetry health and trigger state transition if needed.
 
@@ -165,6 +175,7 @@ class StateManager:
 
         if (
             self._state == ProtectionState.BASELINE_PROTECTION
+            and self._enabled_by_config
             and self._health.ready_for_upgrade()
         ):
             reason = (

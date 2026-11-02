@@ -78,13 +78,19 @@ class FlowStats:
     cert_self_signed_suspect: float = 0.0  # 1.0 if cert chain length == 1 (self-signed)
     src_port: int = 0
     packet_timing_available: bool = True
+    packet_metadata_only: bool = False
     counter_baseline: Optional[tuple] = None
     counter_started_at: Optional[float] = None
     counter_elapsed: float = 0.0
+    tls_version: str = ""
+    vpn_protocol: str = ""
+    wg_initiator: int = -1
+    wg_responder: int = -1
+    wg_started_at: float = 0.0
 
-    def update(self, pkt_size: int, direction: str = "out") -> None:
+    def update(self, pkt_size: int, direction: str = "out", *, observed_at: Optional[float] = None) -> None:
         """Update flow stats with new packet"""
-        now = time.time()
+        now = time.time() if observed_at is None else observed_at
         self.last_seen = now
         self.pkt_count += 1
 
@@ -116,6 +122,8 @@ class FlowStats:
 
     def get_duration(self) -> float:
         """Get flow duration in seconds"""
+        if self.packet_metadata_only:
+            return max(0.0, self.last_seen - self.first_seen)
         if not self.packet_timing_available:
             return max(0.1, self.counter_elapsed)
         return max(0.1, self.last_seen - self.first_seen)
@@ -194,13 +202,13 @@ class FlowStats:
         """Get maximum burst packets in any 1-second window"""
         if not self.burst_windows:
             return self.current_window_pkts
-        return max(w["pkts"] for w in self.burst_windows)
+        return max(self.current_window_pkts, max(w["pkts"] for w in self.burst_windows))
 
     def get_max_burst_bytes_1s(self) -> int:
         """Get maximum burst bytes in any 1-second window"""
         if not self.burst_windows:
             return self.current_window_bytes
-        return max(w["bytes"] for w in self.burst_windows)
+        return max(self.current_window_bytes, max(w["bytes"] for w in self.burst_windows))
 
     def get_interarrival_mean_ms(self) -> float:
         """Get mean inter-arrival time in milliseconds"""
@@ -539,7 +547,7 @@ def build_feature_vector_24(flow: FlowStats, tracker: "FlowTracker | None" = Non
         flow: FlowStats instance for the connection being scored.
         tracker: Optional FlowTracker — required to populate domain_repeat_5min.
     """
-    if not flow.packet_timing_available:
+    if not flow.packet_timing_available or flow.packet_metadata_only:
         raise ValueError("24-feature MLP requires packet timing/size data unavailable from conntrack snapshots")
 
     # Basic flow (8)
@@ -604,3 +612,15 @@ def build_feature_vector_24(flow: FlowStats, tracker: "FlowTracker | None" = Non
         subdomain_depth,
         domain_repeat_5min,
     ]
+
+
+def build_packet_features_14(flow: FlowStats) -> list[float]:
+    """Measured capture statistics only; no fabricated TLS/DNS metadata."""
+    if not flow.packet_timing_available or not flow.packet_metadata_only or flow.last_seen <= flow.first_seen:
+        raise ValueError("packet14 requires real packet observations over a positive measured interval")
+    return [flow.get_duration(), float(flow.pkt_count), float(flow.get_total_bytes()),
+            flow.get_bytes_per_sec(), flow.get_pkts_per_sec(), flow.get_avg_pkt_size(),
+            flow.get_pkt_size_std(), flow.get_inbound_outbound_ratio(),
+            float(flow.get_max_burst_pkts_1s()), float(flow.get_max_burst_bytes_1s()),
+            flow.get_interarrival_mean_ms(), flow.get_interarrival_std_ms(),
+            flow.get_interarrival_p95_ms(), flow.get_small_pkt_ratio()]

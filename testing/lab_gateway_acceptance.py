@@ -45,7 +45,13 @@ def serve(cert, key):
     plain = DualHTTP(("::", 8080), Handler)
     secure = DualHTTP(("::", 443), Handler)
     secure.socket = context.wrap_socket(secure.socket, server_side=True)
-    for server in [plain, secure]:
+    legacy_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+    legacy_context.minimum_version = legacy_context.maximum_version = ssl.TLSVersion.TLSv1
+    legacy_context.set_ciphers("DEFAULT:@SECLEVEL=0")
+    legacy_context.load_cert_chain(cert, key)
+    legacy = DualHTTP(("::", 8445), Handler)
+    legacy.socket = legacy_context.wrap_socket(legacy.socket, server_side=True)
+    for server in [plain, secure, legacy]:
         threading.Thread(target=server.serve_forever, daemon=True).start()
 
     class DoT(socketserver.BaseRequestHandler):
@@ -99,6 +105,22 @@ def client(args):
                 data = sock.recv(size)
                 assert data[:2] == query[:2]
                 print(json.dumps({"ok": True, "transport": "DoT", "tls": sock.version()}))
+    elif mode == "tls":
+        version = getattr(ssl.TLSVersion, args[3])
+        context.minimum_version = context.maximum_version = version
+        context.set_ciphers("DEFAULT:@SECLEVEL=0")
+        with socket.create_connection((host, int(args[2])), timeout=3) as raw:
+            with context.wrap_socket(raw, server_hostname="lab.test") as sock:
+                negotiated = sock.version()
+                time.sleep(1)  # Observe post-ServerHello policy before sending application data.
+                sock.sendall(b"GET / HTTP/1.0\r\nHost: lab.test\r\n\r\n")
+                data = sock.recv(4096)
+                assert b"200 OK" in data
+                print(json.dumps({"tls": negotiated, "application_access": "allowed"}))
+    elif mode == "udp":
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
+            sock.sendto(b"ordinary UDP, not a VPN", (host, 51820))
+        print(json.dumps({"ordinary_udp_sent": True}))
     elif mode == "scan":
         connections = [socket.create_connection((host, port), timeout=2) for port in range(20000, 20015)]
         print(json.dumps({"opened": len(connections)}), flush=True)
@@ -190,7 +212,11 @@ def client(args):
         connection.close()
 
 
-def acceptance(edition, package):
+def acceptance(edition, package, metadata=False):
+    sector = "education" if edition == "education" else "finance"
+    installed = subprocess.check_output(["dpkg-query", "-W", "-f=${Version}", "minifw-ai"], text=True).strip()
+    assert installed == "2.2.10-" + sector, "Only v2.2.10 may be tested"
+    assert subprocess.check_output(["dpkg-deb", "-f", package, "Version"], text=True).strip() == installed
     mode = "minifw_school" if edition == "education" else "minifw_financial"
     sector = "education" if edition == "education" else "finance"
     root = Path("/var/tmp") / ("minifw-monday-" + edition + "-" + datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ"))
@@ -201,6 +227,9 @@ def acceptance(edition, package):
     journal_since = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
     dropin = Path("/etc/systemd/system/minifw-ai.service.d/90-monday-lab.conf")
     assert not dropin.exists(), "Existing lab override must be reviewed before another run"
+    state_path = Path("/opt/minifw_ai/logs/deployment_state.json")
+    state_before = state_path.read_bytes() if state_path.exists() else None
+    state_mode = state_path.stat().st_mode & 0o777 if state_before is not None else 0o600
 
     def run(*command, check=True, timeout=30):
         print("$", shlex.join(command), flush=True)
@@ -256,8 +285,12 @@ def acceptance(edition, package):
     nft("before-lab")
     run("nft", "delete", "table", "inet", "minifw", check=False)
 
-    def start(source="file", flow="normal", zeek_missing=False):
+    def start(source="file", flow="normal", zeek_missing=False, packet=False, ai=False, block_vpn=False):
         run("systemctl", "stop", "minifw-ai")
+        if metadata:
+            policy["protocol_controls"] = {"minimum_tls_version": "TLSv1.2", "block_vpn_tunnels": block_vpn}
+            (root / "policy.json").write_text(json.dumps(policy, indent=2))
+            state_path.unlink(missing_ok=True)  # Controlled initial AI state; original restored in finally.
         run("nft", "flush", "set", "inet", "minifw", "minifw_block_v4", check=False)
         run("conntrack", "-D", "-s", CLIENT, check=False)
         if zeek_missing:
@@ -269,7 +302,9 @@ def acceptance(edition, package):
         text = ("[Service]\n" + extra + f"Environment=MINIFW_POLICY={root}/policy.json\n"
                 f"Environment=MINIFW_LOG={root}/events.jsonl\nEnvironment=MINIFW_AUDIT_LOG={root}/audit.jsonl\n"
                 f"Environment=MINIFW_FLOW_RECORDS={root}/flows.jsonl\nEnvironment=MINIFW_DNS_SOURCE={source}\n"
-                f"Environment=MINIFW_CONNTRACK_PATH={conntrack}\nEnvironment=AI_ENABLED=0\nEnvironment=DEGRADED_MODE=0\n"
+                f"Environment=MINIFW_CONNTRACK_PATH={conntrack}\nEnvironment=AI_ENABLED={int(ai)}\nEnvironment=DEGRADED_MODE=0\n"
+                f"Environment=MINIFW_PACKET_INTERFACE={'mfcg' if packet else ''}\n"
+                f"Environment=MINIFW_MLP_MODEL=/opt/minifw_ai/models/mlp_packet14.pkl\n"
                 f"Environment=MINIFW_DISABLE_FLOWS=0\nEnvironment=MINIFW_SECTOR={sector}\nEnvironment=PRODUCT_MODE={mode}\n")
         dropin.parent.mkdir(exist_ok=True)
         dropin.write_text(text)
@@ -278,7 +313,7 @@ def acceptance(edition, package):
         run("systemctl", "daemon-reload")
         run("systemctl", "start", "minifw-ai")
         wait_for(lambda: audit.exists() and audit.read_text().count('"daemon_start"') > previous, 20)
-        time.sleep(0.4)
+        time.sleep(1.5 if packet else 0.4)
         run("systemctl", "show", "minifw-ai", "-p", "ActiveState", "-p", "MainPID", "-p", "ExecMainStatus")
 
     dns_log = (root / "dnsmasq-process.log").open("w")
@@ -321,6 +356,110 @@ def acceptance(edition, package):
         children.append(alternate_dns)
         time.sleep(1.5)
         assert all(process.poll() is None for process in children), "Lab fixtures failed to start"
+        if metadata:
+            def rows():
+                path = root / "events.jsonl"
+                return [json.loads(line) for line in path.read_text().splitlines()] if path.exists() else []
+
+            start(source="none")
+            ns("tls", SERVER, "8445", "TLSv1")
+            record("TLS10_fixture_before_enforcement", application="allowed", meaning="The lab server genuinely accepts TLS 1.0")
+            start(source="none", packet=True, ai=True)
+            ns("http", SERVER, "8080", "/")
+            wait_for(lambda: any(row.get("mlp_status") == "inferred" for row in rows()))
+            inferred = next(row for row in reversed(rows()) if row.get("mlp_status") == "inferred")
+            features = inferred["mlp_features"]
+            assert inferred["mlp_schema"] == "packet14-v1" and len(features) == 14
+            assert features[0] > 0 and features[1] >= 5
+            assert abs(features[3] - features[2] / features[0]) < 0.001
+            record("measured_packet_model_inference", schema=inferred["mlp_schema"], features=features,
+                   probability=inferred["mlp_probability"], telemetry=inferred["telemetry_source"],
+                   training="synthetic; no real-world sector accuracy", DNS="disabled")
+            workflow = ns("workflows", SERVER, CLIENT)
+            record("measured_AI_legitimate_workflows", **json.loads(workflow.stdout))
+            exports = [json.loads(line) for line in (root / "flows.jsonl").read_text().splitlines()]
+            assert exports and all(row["features"] is None and row["packet_feature_schema"] == "packet14-v1" for row in exports)
+            record("packet_schema_export", legacy24_features=None, packet_schema="packet14-v1")
+            for version in ["TLSv1_2", "TLSv1_3"]:
+                ns("tls", SERVER, "443", version)
+                expected = "TLSv1.2" if version == "TLSv1_2" else "TLSv1.3"
+                wait_for(lambda: any(row.get("tls_version") == expected for row in rows()))
+                assert not member()
+                record("allowed_" + expected, application="allowed", selected_version=expected)
+            start(source="none", packet=True)
+            ns("tls", SERVER, "8445", "TLSv1", allowed=False)
+            wait_for(member)
+            nft("tls10-blocked")
+            assert any("tls_version_below_minimum:TLSv1.0:TLSv1.2" in row["reasons"] for row in rows())
+            ns("http", SERVER, "8080", "/", allowed=False)
+            record("TLS10_enforcement", client=CLIENT, forwarded="blocked", scope="After visible ServerHello; no TLS decryption")
+            run("nft", "delete", "element", "inet", "minifw", "minifw_block_v4", "{", CLIENT, "}")
+            ns("http", SERVER, "8080", "/")
+
+            def wireguard():
+                run("modprobe", "wireguard")
+                keys = [subprocess.check_output(["wg", "genkey"], text=True) for _ in range(2)]
+                public = [subprocess.check_output(["wg", "pubkey"], input=key, text=True).strip() for key in keys]
+                for index, namespace in enumerate(["mf-client", "mf-server"]):
+                    key_path = root / (namespace + ".key")
+                    key_path.touch(mode=0o600, exist_ok=True)
+                    key_path.write_text(keys[index])
+                    run("ip", "-n", namespace, "link", "delete", "wg0", check=False)
+                    run("ip", "-n", namespace, "link", "add", "wg0", "type", "wireguard")
+                    run("ip", "-n", namespace, "addr", "add", f"10.66.0.{index+1}/30", "dev", "wg0")
+                    command = ["ip", "netns", "exec", namespace, "wg", "set", "wg0", "listen-port", "51820",
+                               "private-key", str(key_path), "peer", public[1-index],
+                               "allowed-ips", f"10.66.0.{2-index}/32"]
+                    if index == 0:
+                        command += ["endpoint", SERVER + ":51820"]
+                    run(*command)
+                    run("ip", "-n", namespace, "link", "set", "wg0", "up")
+
+            start(source="none", packet=True)
+            ns("udp", SERVER)
+            time.sleep(0.5)
+            assert not any(row.get("vpn_protocol") for row in rows())
+            record("ordinary_UDP_not_a_tunnel", detected=False)
+            wireguard()
+            run("ip", "netns", "exec", "mf-client", "ping", "-I", "wg0", "-c", "2", "-W", "2", "10.66.0.2")
+            wait_for(lambda: any(row.get("vpn_protocol") == "wireguard" for row in rows()))
+            assert not member()
+            record("WireGuard_monitor", tunnel="actual kernel WireGuard", inner_ping="allowed", action="monitor")
+            start(source="none", packet=True, block_vpn=True)
+            wireguard()
+            run("ip", "netns", "exec", "mf-client", "ping", "-I", "wg0", "-c", "2", "-W", "1", "10.66.0.2", check=False)
+            wait_for(member)
+            nft("wireguard-blocked")
+            failed = run("ip", "netns", "exec", "mf-client", "ping", "-I", "wg0", "-c", "1", "-W", "1", "10.66.0.2", check=False)
+            assert failed.returncode != 0
+            ns("http", SERVER, "8080", "/", allowed=False)
+            record("WireGuard_enforcement", client=CLIENT, inner_ping="blocked", forwarded="blocked",
+                   limitation="Handshake/transport pattern, not cryptographic authentication or all VPN protocols")
+
+            start()
+            dns.terminate()
+            dns.wait(timeout=5)
+            config = root / "safesearch.conf"
+            run("/opt/minifw_ai/venv/bin/python", "/opt/minifw_ai/app/minifw_ai/safesearch.py", "--output", str(config))
+            print(config.read_text(), flush=True)
+            restricted = subprocess.Popen(["/usr/sbin/dnsmasq", "--conf-file=" + str(config), "--keep-in-foreground",
+                "--user=root", "--no-resolv", "--no-hosts", "--bind-interfaces", "--listen-address=10.10.0.1",
+                "--address=/#/198.18.0.2", "--log-queries", f"--log-facility={root}/restricted-dns.log"],
+                stdout=dns_log, stderr=dns_log)
+            children.append(restricted)
+            time.sleep(.5)
+            assert restricted.poll() is None
+            for name, target in [("www.google.com", "forcesafesearch.google.com"), ("www.bing.com", "strict.bing.com"),
+                                 ("www.youtube.com", "restrict.youtube.com")]:
+                answer = run("ip", "netns", "exec", "mf-client", "dig", "@10.10.0.1", name, "A", "+noall", "+answer").stdout
+                assert target + "." in answer and "\tA\t" in answer
+                record("restricted_DNS_" + name, cname=target, answer=answer.strip())
+            answer = run("ip", "netns", "exec", "mf-client", "dig", "@10.10.0.1", "accounts.google.com", "A", "+short").stdout
+            assert answer.strip() == SERVER
+            ns("http", SERVER, "8080", "/")
+            record("SafeSearch_scope", accounts_unmodified=True, forwarding="allowed",
+                   remaining="Alternate/encrypted DNS, unlisted domains and browser results require separate acceptance")
+            return
         start()
         assert Path("/proc/sys/net/netfilter/nf_conntrack_acct").read_text().strip() == "1"
         record("engine_activates_kernel_accounting", result="enabled")
@@ -474,6 +613,12 @@ def acceptance(edition, package):
         (root / "engine-journal.log").write_text(journal)
         nft("final")
         dropin.unlink(missing_ok=True)
+        if metadata:
+            if state_before is None:
+                state_path.unlink(missing_ok=True)
+            else:
+                state_path.write_bytes(state_before)
+                state_path.chmod(state_mode)
         run("systemctl", "daemon-reload", check=False)
         for namespace in ["mf-client", "mf-server"]:
             run("ip", "netns", "delete", namespace, check=False)
@@ -496,4 +641,4 @@ if __name__ == "__main__":
         assert os.geteuid() == 0 and subprocess.check_output(["systemd-detect-virt"], text=True).strip() in {"kvm", "qemu"}
         assert sys.argv[1] in {"education", "financial"}
         assert socket.gethostname() == "minifw-monday-" + sys.argv[1]
-        acceptance(sys.argv[1], sys.argv[2])
+        acceptance(sys.argv[1], sys.argv[2], metadata="--metadata" in sys.argv[3:])

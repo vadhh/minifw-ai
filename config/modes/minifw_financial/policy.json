@@ -1,7 +1,8 @@
 {
   "_mode": "minifw_financial",
   "_sector": "finance",
-  "_note": "Financial metadata policy; no compliance certification. TLS minimum-version enforcement is unimplemented. Deny-domain matches isolate the client's forwarded IPv4 traffic.",
+  "_note": "Financial metadata policy; no compliance certification. TLS version controls require an explicit packet metadata interface. Deny-domain matches isolate the client's forwarded IPv4 traffic.",
+  "protocol_controls": {"minimum_tls_version": "TLSv1.2", "block_vpn_tunnels": false},
   "segments": {
     "default": {
       "block_threshold": 85,

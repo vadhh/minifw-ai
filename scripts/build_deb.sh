@@ -86,6 +86,9 @@ fi
 # --- Copy models ---
 echo "[3/7] Copying ML models..."
 cp "${REPO_DIR}/models/mlp_model.pkl" "${BUILD_DIR}/opt/minifw_ai/models/"
+if [ -f "${REPO_DIR}/models/mlp_packet14.pkl" ]; then
+    cp "${REPO_DIR}/models/mlp_packet14.pkl" "${BUILD_DIR}/opt/minifw_ai/models/"
+fi
 
 # --- Copy YARA rules ---
 echo "[4/7] Copying YARA rules..."

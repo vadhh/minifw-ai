@@ -19,6 +19,7 @@ from minifw_ai.enforce import ipset_create, ipset_add, nft_apply_forward_drop
 from minifw_ai.collector_dnsmasq import stream_dns_events_file
 from minifw_ai.collector_runtime import stream_collector_events
 from minifw_ai.collector_zeek import stream_zeek_sni_events
+from minifw_ai.collector_packets import stream_packet_events, observe_packet, protocol_policy
 from minifw_ai.burst import BurstTracker
 from minifw_ai.audit import (
     audit_daemon_start, audit_daemon_stop, audit_config_loaded,
@@ -30,6 +31,7 @@ from minifw_ai.audit import (
 from minifw_ai.collector_flow import (
     FlowTracker,
     build_feature_vector_24,
+    build_packet_features_14,
     stream_conntrack_flows,
 )
 
@@ -239,6 +241,9 @@ def evaluate_hard_threat(
     for flow in flows:
         if flow.pkt_count < 5:
             continue
+        # Per-second packet gates need a complete measurement interval, not a partial TLS burst.
+        if getattr(flow, "packet_metadata_only", False) and flow.get_duration() < 1.0:
+            continue
 
         # Rule 1: PPS Saturation (>200 packets/sec)
         if flow.pkts_per_sec > 200:
@@ -319,6 +324,8 @@ def init_yara_scanner(ai_enabled: bool) -> tuple[Any, bool]:
 
 
 def _resolve_decision_owner(reasons: list[str]) -> str:
+    if any(reason.startswith(("tls_version_below_minimum:", "vpn_tunnel:")) for reason in reasons):
+        return "Protocol Policy"
     if any(reason.startswith("hard_threat_gate") for reason in reasons):
         return "Hard Gate"
     if any(reason == "mlp_threat_score" or reason.startswith("mlp_threat_score_") for reason in reasons):
@@ -525,12 +532,22 @@ def run():
     if use_zeek:
         sources["zeek"] = lambda: stream_zeek_sni_events(zeek_ssl)
     conntrack_path = os.environ.get("MINIFW_CONNTRACK_PATH", "/proc/net/nf_conntrack")
-    if os.environ.get("MINIFW_DISABLE_FLOWS", "0") != "1":
+    packet_interface = os.environ.get("MINIFW_PACKET_INTERFACE", col.get("packet_interface", ""))
+    client_subnets = [ipaddress.ip_network(cidr, strict=False) for cidrs in seg_map.values() for cidr in cidrs]
+    controls = pol.cfg.get("protocol_controls", {})
+    if controls and not packet_interface:
+        logging.warning("[PROTOCOL] TLS version/WireGuard metadata unavailable without MINIFW_PACKET_INTERFACE")
+    if packet_interface:
+        sources["packet"] = lambda: stream_packet_events(packet_interface)
+    elif os.environ.get("MINIFW_DISABLE_FLOWS", "0") != "1":
         sources["flow"] = lambda: stream_conntrack_flows(conntrack_path)
     flow_freq_window = _safe_int_cast(os.environ.get("MINIFW_FLOW_FREQ_WINDOW_SEC"), 60)
     flow_freq_threshold = _safe_int_cast(os.environ.get("MINIFW_FLOW_FREQ_THRESHOLD"), 200)
     flow_freq_tracker = BurstTracker(window_seconds=flow_freq_window, max_size=20000)
-    logging.warning("[TELEMETRY] Conntrack provides counter deltas, not packet timing/size distributions; 24-feature MLP disabled for these observations")
+    if packet_interface:
+        logging.info("[TELEMETRY] Packet metadata on %s; packet14 model required; no TLS decryption", packet_interface)
+    else:
+        logging.warning("[TELEMETRY] Conntrack provides counter deltas, not packet timing/size distributions; 24-feature MLP disabled for these observations")
 
     dns_source = os.environ.get("MINIFW_DNS_SOURCE", "file")
     if dns_source == "none" or _initial_degraded:
@@ -562,13 +579,21 @@ def run():
             client_ip = observation.client_ip
             if is_new:
                 flow_freq_tracker.add(client_ip)
+        elif source == "packet":
+            flow_for_event, is_new = observe_packet(flow_tracker, observation, client_subnets)
+            if flow_for_event is not None:
+                state_manager.record_packet_event()
+                client_ip = flow_for_event.client_ip
+                if is_new:
+                    flow_freq_tracker.add(client_ip)
         elif source == "zeek":
             evt = observation
             if evt.dst_ip and evt.dst_port and evt.src_port:
                 client_ip = evt.client_ip
                 existing = flow_tracker.get_flow(client_ip, evt.dst_ip, evt.dst_port, "tcp", evt.src_port)
                 flow_for_event = flow_tracker.update_flow(client_ip, evt.dst_ip, evt.dst_port, "tcp", src_port=evt.src_port)
-                flow_for_event.packet_timing_available = False
+                if existing is None:
+                    flow_for_event.packet_timing_available = False
                 if existing is None:
                     flow_freq_tracker.add(client_ip)
                 flow_tracker.enrich_with_sni(client_ip, evt.sni, evt.handshake_ms,
@@ -678,6 +703,7 @@ def run():
                 and mlp_detector
                 and flow_for_ai
                 and flow_for_ai.packet_timing_available
+                and mlp_detector.can_infer(flow_for_ai)
                 and flow_for_ai.pkt_count >= 5
             ):
                 try:
@@ -734,6 +760,15 @@ def run():
                 tunnel_score=tunnel_score,
                 deny_domain_immediate=sector_name in {"finance", "education"},
             )
+
+            if flow_for_event is not None:
+                protocol_action, protocol_reasons = protocol_policy(flow_for_event, controls)
+                if protocol_action:
+                    reasons.extend(protocol_reasons)
+                    if protocol_action == "block":
+                        action, score = "block", 100
+                    elif action == "allow":
+                        action = "monitor"
 
             # Sector rules layer — runs after base scoring, can upgrade action
             if evaluate_sector and flow_for_event is not None and sector_name in {"finance", "government"}:
@@ -794,6 +829,11 @@ def run():
                 telemetry_source=source,
                 mlp_status="disabled_unsupported_packet_features" if flow_for_event and not flow_for_event.packet_timing_available else ("inferred" if mlp_ran else "not_run"),
                 sni=sni,
+                tls_version=flow_for_event.tls_version if flow_for_event else "",
+                vpn_protocol=flow_for_event.vpn_protocol if flow_for_event else "",
+                mlp_probability=mlp_proba if mlp_ran else None,
+                mlp_schema=mlp_detector.feature_schema if mlp_ran else "",
+                mlp_features=mlp_detector.last_features if mlp_ran else None,
             )
 
             # HIPAA: Redact domain/SNI from event logs when sector requires it
@@ -849,7 +889,8 @@ def run():
                     if flow.pkt_count < 5:  # Skip very small flows
                         continue
 
-                    features = build_feature_vector_24(flow, tracker=flow_tracker) if flow.packet_timing_available else None
+                    features = (build_packet_features_14(flow) if flow.packet_metadata_only else
+                                build_feature_vector_24(flow, tracker=flow_tracker)) if flow.packet_timing_available and flow.last_seen > flow.first_seen else None
 
                     # HIPAA: Redact domain/SNI from flow records when sector requires it
                     _redact = sector_config.get("redact_payloads", False)
@@ -863,10 +904,12 @@ def run():
                         "domain": "[REDACTED]" if _redact else flow.domain,
                         "sni": "[REDACTED]" if _redact else flow.sni,
                         "segment": segment_for_ip(flow.client_ip, seg_map),
-                        "features": features,
+                        "features": None if flow.packet_metadata_only else features,
+                        "packet_features": features if flow.packet_metadata_only else None,
+                        "packet_feature_schema": "packet14-v1" if flow.packet_metadata_only else "",
                         "src_port": flow.src_port,
                         "packet_timing_available": flow.packet_timing_available,
-                        "mlp_status": "eligible" if flow.packet_timing_available else "disabled_unsupported_packet_features",
+                        "mlp_status": ("eligible_packet14_only" if flow.packet_metadata_only else "eligible") if features is not None else "disabled_unsupported_packet_features",
                         "duration": flow.get_duration(),
                         "packets": flow.pkt_count,
                         "bytes": flow.get_total_bytes(),
@@ -875,7 +918,7 @@ def run():
                         "score": score if flow is flow_for_event else None,
                         # NEW: AI Verdict (auditability)
                         "ai_verdict": (
-                            ("threat" if mlp_score > 50 else "normal")
+                            ("threat" if mlp_proba >= mlp_detector.threshold else "normal")
                             if mlp_ran and flow is flow_for_event else None
                         ),
                         "ai_confidence": (
