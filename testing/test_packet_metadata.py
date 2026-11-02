@@ -108,7 +108,9 @@ def test_safesearch_exact_hosts_preserve_unrelated_services(monkeypatch):
     assert "cname=www.google.com,forcesafesearch.google.com" in text
     assert "cname=www.bing.com,strict.bing.com" in text
     assert "cname=www.youtube.com,restrict.youtube.com" in text
-    assert "cname=youtube.com," not in text and "accounts.google.com" not in text and "address=/" not in text
+    assert "cname=youtube.com," not in text and "accounts.google.com" not in text
+    # The only address override is Firefox's DoH canary, answered NXDOMAIN.
+    assert [line for line in text.splitlines() if line.startswith("address=")] == ["address=/use-application-dns.net/"]
     monkeypatch.setattr(socket, "getaddrinfo", lambda *args: [(None, None, None, None, ("127.0.0.1", 0))])
     with pytest.raises(ValueError):
         render_safesearch()

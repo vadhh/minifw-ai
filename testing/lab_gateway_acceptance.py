@@ -486,6 +486,10 @@ def acceptance(edition, package, metadata=False, extended=False, provider_only=F
             assert answer.strip() == SERVER
             answer = run("ip", "netns", "exec", "mf-client", "dig", "@10.10.0.1", "youtube.com", "A", "+short").stdout
             assert answer.strip() == SERVER
+            canary = run("ip", "netns", "exec", "mf-client", "dig", "@10.10.0.1", "use-application-dns.net", "A").stdout
+            assert "status: NXDOMAIN" in canary, canary
+            record("firefox_doh_canary", query="use-application-dns.net A", status="NXDOMAIN",
+                   meaning="Firefox keeps default DoH off on this resolver; explicit user DoH and other browsers unaffected")
             ns("http", SERVER, "8080", "/")
             record("SafeSearch_scope", accounts_unmodified=True, forwarding="allowed",
                    remaining="Alternate/encrypted DNS, unlisted domains and browser results require separate acceptance")

@@ -6,6 +6,8 @@ import socket
 import subprocess
 import tempfile
 
+FIREFOX_DOH_CANARY = "use-application-dns.net"
+
 TARGETS = {
     "forcesafesearch.google.com": ["google.com", "www.google.com", "google.co.id", "www.google.co.id"],
     "strict.bing.com": ["bing.com", "www.bing.com", "edgeservices.bing.com"],
@@ -26,6 +28,9 @@ def render_safesearch():
             lines.append(f"host-record={target},{address}")
         for alias in aliases:
             lines.append(f"cname={alias},{target}")
+    # Mozilla's canary: NXDOMAIN tells Firefox to keep default DoH off on this network.
+    # Does not affect users who enable DoH explicitly or other browsers.
+    lines.append(f"address=/{FIREFOX_DOH_CANARY}/")
     return "\n".join(lines) + "\n"
 
 
