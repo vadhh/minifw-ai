@@ -212,7 +212,7 @@ def client(args):
         connection.close()
 
 
-def acceptance(edition, package, metadata=False):
+def acceptance(edition, package, metadata=False, extended=False):
     sector = "education" if edition == "education" else "finance"
     installed = subprocess.check_output(["dpkg-query", "-W", "-f=${Version}", "minifw-ai"], text=True).strip()
     assert installed == "2.2.10-" + sector, "Only v2.2.10 may be tested"
@@ -369,6 +369,10 @@ def acceptance(edition, package, metadata=False):
         children.append(alternate_dns)
         time.sleep(1.5)
         assert all(process.poll() is None for process in children), "Lab fixtures failed to start"
+        if extended:
+            from lab_extended_acceptance import exercise
+            exercise(root, run, start, record, nft, ns, member, children)
+            return
         if metadata:
             def rows():
                 path = root / "events.jsonl"
@@ -663,4 +667,4 @@ if __name__ == "__main__":
         assert os.geteuid() == 0 and subprocess.check_output(["systemd-detect-virt"], text=True).strip() in {"kvm", "qemu"}
         assert sys.argv[1] in {"education", "financial"}
         assert socket.gethostname() == "minifw-monday-" + sys.argv[1]
-        acceptance(sys.argv[1], sys.argv[2], metadata="--metadata" in sys.argv[3:])
+        acceptance(sys.argv[1], sys.argv[2], metadata="--metadata" in sys.argv[3:], extended="--extended" in sys.argv[3:])

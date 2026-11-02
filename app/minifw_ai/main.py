@@ -565,9 +565,17 @@ def run():
 
     flow_export_counter = 0
     flow_export_interval = 100
+    guard_interface = os.environ.get("MINIFW_EGRESS_GUARD_INTERFACE", "")
+    if guard_interface:
+        from minifw_ai.egress_guard import apply as apply_egress_guard
+        apply_egress_guard(guard_interface, _env_flag("MINIFW_EGRESS_BLOCK_IPV6", False))
     audit_daemon_start(sector_name, state_manager.get_current_state().value)
 
+    from minifw_ai.runtime_health import RuntimeHealth
+    health = RuntimeHealth(os.environ.get("MINIFW_HEALTH_FILE", str(Path(log_path).with_name("runtime-health.json"))),
+                           sources, table_name, chain, set_name)
     for source, observation in stream_collector_events(sources):
+        health.observe("tick")
         client_ip, domain, flow_for_event = None, "", None
         if source == "dns":
             client_ip, domain = observation
@@ -858,6 +866,7 @@ def run():
                 ev.audit_mode = True
 
             writer.write(ev)
+            health.observe(source)
 
             # Update Prometheus metrics
             if METRICS_AVAILABLE and update_metrics:

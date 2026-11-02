@@ -6,6 +6,8 @@ Wants=dnsmasq.service
 [Service]
 Type=simple
 User=root
+UMask=0077
+NoNewPrivileges=yes
 WorkingDirectory=/opt/minifw_ai
 Environment=MINIFW_POLICY=/opt/minifw_ai/config/policy.json
 Environment=MINIFW_FEEDS=/opt/minifw_ai/config/feeds

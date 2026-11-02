@@ -87,3 +87,29 @@ The experimental model recipe is `scripts/generate_packet_model.py`, reusing the
 It uses 2,000 synthetic examples and does not report them as real Financial/Education accuracy. The selected model/version and actual feature arrays belong in the evidence. Serialization/version constraints follow [scikit-learn's model persistence guidance](https://scikit-learn.org/stable/model_persistence.html). TLS metadata fields are documented by [Wireshark](https://www.wireshark.org/docs/dfref/t/tls.html); the handshake/transport pattern is grounded in the [WireGuard protocol](https://www.wireguard.com/protocol/) and [Wireshark WireGuard fields](https://www.wireshark.org/docs/dfref/w/wg.html).
 
 Continue with representative labeled real metadata, independent holdouts, false-positive/false-negative measurements, sustained learning/video/payment traffic, sensor-loss/failure tests, offload/capture calibration, response-latency measurements and operational policy review. The narrow lab results do not validate all VPNs, production AI accuracy or readiness. The consolidated Monday report records successful and failed tests and exact candidate hashes.
+
+
+## Opt-in DNS and IPv6 egress guard
+
+This additional control is disabled unless configured. Set `MINIFW_EGRESS_GUARD_INTERFACE` to the client-facing interface in the engine unit environment; `MINIFW_EGRESS_BLOCK_IPV6=1` explicitly denies all forwarded IPv6 received on that interface. A functioning local port-53 resolver is required. On the isolated lab only, the equivalent manual command is:
+
+```bash
+sudo env PYTHONPATH=/opt/minifw_ai/app /opt/minifw_ai/venv/bin/python -m minifw_ai.egress_guard --interface mfcg --block-ipv6
+sudo nft -a list table inet minifw_egress
+# Explicit removal; disabling the environment does not remove an existing table.
+sudo env PYTHONPATH=/opt/minifw_ai/app /opt/minifw_ai/venv/bin/python -m minifw_ai.egress_guard --remove
+```
+
+The owned table redirects client-interface IPv4 UDP/TCP port 53 to the local resolver and drops TCP/UDP port 853. Optional IPv6 denial closes that forwarding path by refusing IPv6, not by inspecting it or providing IPv6 application support. The rules replace atomically and affect only the selected ingress interface. IPv4 HTTPS DoH and direct-IP traffic remain possible. Port 853 blocking is not identification of every encrypted-DNS protocol. This does not add OpenVPN, IPsec or obfuscated-tunnel detection. Do not claim provider domain matching or port denial as generic tunnel detection.
+
+## Runtime health and service restrictions
+
+`/health/` now returns 503 until there is evidence from the same running engine process/boot: heartbeat within five seconds, independent kernel proof within ten seconds, and a completed decision from every configured source within thirty seconds. Quiet sources are unverified even if the system is functioning. The main decision thread does not run the external kernel probe. Rule presence is not an end-to-end enforcement test, model-quality check, capture-loss check or proof of the optional egress guard. Custom paths require the same `MINIFW_HEALTH_FILE` in both engine and web environments.
+
+The web unit adds a private temporary directory, read-only system directories, home protection, privilege restrictions and a capability bound retaining only `CAP_NET_ADMIN` for existing nft unblock operations. Both units use restrictive umasks and `NoNewPrivileges`. The dashboard still runs as root and retains firewall authority. This is reduced exposure, not completed privilege separation.
+
+## Private backup and restoration
+
+The packaged `backup.sh` and `restore.sh` use the installed Python helper. Run them only in matching isolated v2.2.10 Financial/Education VMs during this assessment. Backup stops the engine and web service while copying configuration, models, database, environment secrets, TLS files and base service units, then restores the previously active service states. SQLite backup includes committed WAL data. Archives are root-owned 0600 under a 0700 directory and contain secrets; never attach the archive to public evidence.
+
+Restore requires an explicit private root-owned archive, matching edition/version, allowed regular-file paths, exact manifest membership/hashes and database integrity, all validated before stopping services. Runtime quarantine entries, logs, systemd drop-ins, package code/dependencies and full-VM rollback are outside this backup. Existing dynamic kernel entries are left as they are; no cross-reboot persistence is implied. Keep the exact accepted Debian package separately for package rollback. Representative disaster recovery, disk-full behavior and interrupted/power-loss restore still need validation.

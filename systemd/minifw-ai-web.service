@@ -6,6 +6,17 @@ Wants=minifw-ai.service
 [Service]
 Type=simple
 User=root
+UMask=0077
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectHome=yes
+ProtectSystem=full
+ProtectKernelTunables=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+RestrictRealtime=yes
+LockPersonality=yes
+CapabilityBoundingSet=CAP_NET_ADMIN
 WorkingDirectory=/opt/minifw_ai
 EnvironmentFile=/etc/minifw/minifw.env
 Environment=PYTHONPATH=/opt/minifw_ai/app
