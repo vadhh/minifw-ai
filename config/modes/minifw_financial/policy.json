@@ -1,7 +1,7 @@
 {
   "_mode": "minifw_financial",
   "_sector": "finance",
-  "_note": "PCI-DSS compliance. Tor/anonymizer blocking. Strict TLS 1.2+ enforcement. Thresholds pre-adjusted: block-5, monitor-5 from base.",
+  "_note": "Financial metadata policy; no compliance certification. TLS minimum-version enforcement is unimplemented. Deny-domain matches isolate the client's forwarded IPv4 traffic.",
   "segments": {
     "default": {
       "block_threshold": 85,
@@ -19,12 +19,12 @@
     "guest": {
       "block_threshold": 65,
       "monitor_threshold": 35,
-      "_note": "Client / visitor WiFi — Tor exit nodes always blocked."
+      "_note": "Client / visitor WiFi. Deny-IP/Tor matches contribute a score; confirmed deny-domain matches isolate forwarded client IPv4."
     },
     "dmz": {
       "block_threshold": 75,
       "monitor_threshold": 50,
-      "_note": "Public-facing servers — SNI and TLS strict enforcement."
+      "_note": "Public-facing servers. SNI needs a separate Zeek sensor; TLS minimum-version enforcement is unimplemented."
     }
   },
   "segment_subnets": {
@@ -53,7 +53,7 @@
     "dnsmasq_log_path": "/var/log/dnsmasq.log",
     "zeek_ssl_log_path": "/var/log/zeek/ssl.log",
     "use_zeek_sni": true,
-    "_zeek_note": "SNI inspection mandatory for PCI-DSS TLS enforcement."
+    "_zeek_note": "Requires a separately provisioned Zeek sensor for connection-specific SNI metadata; TLS minimum-version enforcement is unimplemented."
   },
   "burst": {
     "dns_queries_per_minute_monitor": 30,

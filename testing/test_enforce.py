@@ -94,7 +94,8 @@ def test_ipset_create_ignores_file_exists_error(mock_run):
 def test_ipset_add_calls_nft_add_element(mock_run):
     mock_run.return_value = MagicMock(returncode=0, stderr="")
 
-    ipset_add("minifw_block_v4", "192.168.1.100", timeout=86400)
+    mock_run.side_effect = [MagicMock(returncode=1), MagicMock(returncode=0)]
+    assert ipset_add("minifw_block_v4", "192.168.1.100", timeout=86400) is True
 
     cmd = mock_run.call_args[0][0]
     assert "add" in cmd and "element" in cmd
@@ -111,10 +112,18 @@ def test_ipset_add_rejects_invalid_set_name(mock_run):
 
 
 @patch("minifw_ai.enforce.subprocess.run")
+def test_ipset_add_does_not_refresh_an_existing_block(mock_run):
+    mock_run.return_value = MagicMock(returncode=0)
+    assert ipset_add("minifw_block_v4", "192.168.1.100", timeout=86400) is False
+    mock_run.assert_called_once()
+    assert mock_run.call_args[0][0][1:3] == ["get", "element"]
+
+
+@patch("minifw_ai.enforce.subprocess.run")
 def test_ipset_add_raises_on_subprocess_error(mock_run):
-    mock_run.side_effect = subprocess.CalledProcessError(
+    mock_run.side_effect = [MagicMock(returncode=1), subprocess.CalledProcessError(
         1, "nft", stderr="some error"
-    )
+    )]
     with pytest.raises(subprocess.CalledProcessError):
         ipset_add("minifw_block_v4", "10.0.0.1", timeout=3600)
 

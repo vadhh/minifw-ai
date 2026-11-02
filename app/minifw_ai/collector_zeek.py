@@ -1,5 +1,7 @@
 from __future__ import annotations
 import time
+import os
+import ipaddress
 from pathlib import Path
 from typing import Iterator, Optional, NamedTuple
 
@@ -10,6 +12,9 @@ class ZeekSSLEvent(NamedTuple):
     handshake_ms: float        # Reserved — ssl.log lacks direct timing; 0.0 until conn.log integration
     alpn_h2: float             # 1.0 if ALPN negotiated h2 (HTTP/2), else 0.0
     cert_self_signed: float    # 1.0 if cert_chain has exactly 1 entry (self-signed proxy heuristic)
+    dst_ip: str = ""
+    dst_port: int = 0
+    src_port: int = 0
 
 
 # Zeek ssl.log TSV column indices (standard Zeek 5.x/6.x schema)
@@ -27,6 +32,8 @@ def tail_lines(path: Path) -> Iterator[str]:
         while True:
             line = f.readline()
             if not line:
+                if path.stat().st_ino != os.fstat(f.fileno()).st_ino or path.stat().st_size < f.tell():
+                    return
                 time.sleep(0.2)
                 continue
             yield line.rstrip("\n")
@@ -46,7 +53,7 @@ def parse_zeek_ssl_tsv(line: str) -> Optional[ZeekSSLEvent]:
         return None
 
     try:
-        client_ip = parts[_COL_CLIENT_IP].strip()
+        client_ip = str(ipaddress.ip_address(parts[_COL_CLIENT_IP].strip()))
         if not client_ip or client_ip == "-":
             return None
 
@@ -73,6 +80,9 @@ def parse_zeek_ssl_tsv(line: str) -> Optional[ZeekSSLEvent]:
                 handshake_ms=0.0,  # ssl.log lacks direct timing; requires conn.log correlation
                 alpn_h2=alpn_h2,
                 cert_self_signed=cert_self_signed,
+                dst_ip=str(ipaddress.ip_address(parts[4].strip())),
+                dst_port=int(parts[5]),
+                src_port=int(parts[3]),
             )
     except Exception:
         return None
@@ -86,10 +96,12 @@ def stream_zeek_sni_events(log_path: str) -> Iterator[ZeekSSLEvent]:
     """
     import logging as _logging
     p = Path(log_path)
-    if not p.exists():
-        _logging.info("[ZEEK] ssl.log not found at %s — SNI enrichment disabled", p)
-        return
-    for ln in tail_lines(p):
-        evt = parse_zeek_ssl_tsv(ln)
-        if evt:
-            yield evt
+    while True:
+        try:
+            for ln in tail_lines(p):
+                evt = parse_zeek_ssl_tsv(ln)
+                if evt:
+                    yield evt
+        except OSError:
+            _logging.warning("[ZEEK] ssl.log unavailable at %s; retrying independently", p)
+            time.sleep(5)

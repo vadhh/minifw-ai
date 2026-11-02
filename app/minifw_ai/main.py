@@ -9,7 +9,6 @@ import logging
 import subprocess
 import ipaddress
 from pathlib import Path
-from collections import OrderedDict
 from typing import Any
 
 from minifw_ai.policy import Policy
@@ -18,7 +17,8 @@ from minifw_ai.netutil import ip_in_any_subnet, ASNResolver
 from minifw_ai.events import Event, EventWriter, now_iso
 from minifw_ai.enforce import ipset_create, ipset_add, nft_apply_forward_drop
 from minifw_ai.collector_dnsmasq import stream_dns_events_file
-from minifw_ai.collector_zeek import stream_zeek_sni_events, ZeekSSLEvent
+from minifw_ai.collector_runtime import stream_collector_events
+from minifw_ai.collector_zeek import stream_zeek_sni_events
 from minifw_ai.burst import BurstTracker
 from minifw_ai.audit import (
     audit_daemon_start, audit_daemon_stop, audit_config_loaded,
@@ -85,10 +85,14 @@ except ImportError:
 
 
 def segment_for_ip(ip: str, mapping: dict[str, list[str]]) -> str:
+    address = ipaddress.ip_address(ip)
+    best_segment, best_prefix = "default", -1
     for seg, cidrs in mapping.items():
-        if ip_in_any_subnet(ip, cidrs):
-            return seg
-    return "default"
+        for cidr in cidrs:
+            network = ipaddress.ip_network(cidr, strict=False)
+            if address in network and network.prefixlen > best_prefix:
+                best_segment, best_prefix = seg, network.prefixlen
+    return best_segment
 
 
 def _safe_int_cast(value: Any, default: int) -> int:
@@ -123,9 +127,15 @@ def score_and_decide(
     pre_reasons: list[str] | None = None,
     ip_denied: bool = False,
     tunnel_score: int = 0,
+    deny_domain_immediate: bool = False,
 ):
     score = 0
     reasons = list(pre_reasons) if pre_reasons else []
+
+    if deny_domain_immediate and (denied or sni_denied):
+        reasons.append("dns_denied_domain" if denied else "tls_sni_denied_domain")
+        reasons.append("deny_domain_client_ipv4_isolation")
+        return 100, reasons, "block"
 
     # CRITICAL: Hard threat override bypasses normal scoring
     if hard_threat_override:
@@ -183,14 +193,14 @@ def _build_sector_flow(
     client_ip: str,
     domain: str,
     flows: list,
-    burst_hit: int,
+    connection_count: int,
 ) -> dict:
     import datetime
     flow_for_sector: dict = {
         "src_ip": client_ip,
         "dst_host": domain,
         "hour": datetime.datetime.now().hour,
-        "burst_conn_count": burst_hit * 60,
+        "burst_conn_count": connection_count,
     }
     if flows:
         latest = flows[-1]
@@ -235,16 +245,16 @@ def evaluate_hard_threat(
             return True, "pps_saturation"
 
         # Rule 2: Burst Flood (>300 packets in 1 second)
-        if flow.max_burst_pkts_1s > 300:
+        if flow.packet_timing_available and flow.max_burst_pkts_1s > 300:
             return True, "burst_flood"
 
         # Rule 3: Bot-like Small Packets (>95% small packets + short duration)
-        if flow.small_pkt_ratio > 0.95 and flow.duration < 3:
+        if flow.packet_timing_available and flow.small_pkt_ratio > 0.95 and flow.duration < 3:
             return True, "bot_like_small_packets"
 
         # Rule 4: Extreme Interarrival Regularity (std < 5ms with high PPS)
         if (
-            hasattr(flow, "interarrival_std_ms")
+            flow.packet_timing_available
             and flow.interarrival_std_ms < 5
             and flow.pkts_per_sec > 100
         ):
@@ -309,11 +319,11 @@ def init_yara_scanner(ai_enabled: bool) -> tuple[Any, bool]:
 
 
 def _resolve_decision_owner(reasons: list[str]) -> str:
-    if "hard_threat_gate" in reasons:
+    if any(reason.startswith("hard_threat_gate") for reason in reasons):
         return "Hard Gate"
-    if "mlp_threat_score" in reasons:
+    if any(reason == "mlp_threat_score" or reason.startswith("mlp_threat_score_") for reason in reasons):
         return "AI Engine (MLP)"
-    if "yara_match" in reasons:
+    if any(reason.startswith(("yara_", "yara_match")) for reason in reasons):
         return "YARA Scanner"
     return "Policy Engine"
 
@@ -426,13 +436,13 @@ def run():
                         protected.append(f"*.{d}")
                 feeds.allow_domains.extend(protected)
                 logging.info(
-                    f"[SECTOR_LOCK] SafeSearch enforcement: protected {len(protected)} patterns from blocking"
+                    f"[SECTOR_LOCK] Search-domain allowlist: {len(protected)} patterns; SafeSearch resolver enforcement is pending"
                 )
 
             # Education sector: VPN/proxy blocking confirmation
             if sector_config.get("block_vpns") or sector_config.get("block_proxies"):
                 logging.info(
-                    "[SECTOR_LOCK] VPN/proxy blocking active — entries loaded via school_blacklist.txt"
+                    "[SECTOR_LOCK] VPN/proxy provider domain matching enabled; tunnel detection is not implemented"
                 )
 
             # Get IoMT subnets for hospital sector (from policy.json, not hardcoded)
@@ -492,7 +502,7 @@ def run():
                 f"FATAL: Could not initialize firewall rules. Exiting. Error: {e}"
             )
             audit_firewall_init_failed(str(e))
-            return  # Exit if firewall can't be set up
+            raise SystemExit(1)
 
     burst_cfg = pol.burst()
     monitor_qpm = _safe_int_cast(burst_cfg.get("dns_queries_per_minute_monitor"), 120)
@@ -511,164 +521,63 @@ def run():
     zeek_ssl = col.get("zeek_ssl_log_path", "/var/log/zeek/ssl.log")
     use_zeek = bool(col.get("use_zeek_sni", False))
 
-    zeek_iter = None
-    MAX_SNI_CACHE_SIZE = 10000
-    last_sni = OrderedDict()
-
+    sources = {}
     if use_zeek:
-        try:
-            zeek_iter = stream_zeek_sni_events(zeek_ssl)
-        except Exception:
-            logging.warning(
-                "Failed to start Zeek SNI event stream - continuing in BASELINE_PROTECTION",
-                exc_info=True,
-            )
-            zeek_iter = None
-
-    # Conntrack flow stream for baseline tracking.
-    # stream_conntrack_flows() auto-detects procfs vs conntrack CLI — always start it.
-    # Set MINIFW_DISABLE_FLOWS=1 to skip flow tracking (e.g. Docker demo with no real traffic).
+        sources["zeek"] = lambda: stream_zeek_sni_events(zeek_ssl)
     conntrack_path = os.environ.get("MINIFW_CONNTRACK_PATH", "/proc/net/nf_conntrack")
-    flow_iter = None
     if os.environ.get("MINIFW_DISABLE_FLOWS", "0") != "1":
-        try:
-            flow_iter = stream_conntrack_flows(conntrack_path)
-            logging.info("[FLOW] Conntrack flow tracking initialised (path=%s)", conntrack_path)
-        except Exception:
-            logging.warning(
-                "[FLOW] Failed to start conntrack flow stream — hard gates may be degraded",
-                exc_info=True,
-            )
-    else:
-        logging.info("[FLOW] Flow tracking disabled via MINIFW_DISABLE_FLOWS=1")
-
+        sources["flow"] = lambda: stream_conntrack_flows(conntrack_path)
     flow_freq_window = _safe_int_cast(os.environ.get("MINIFW_FLOW_FREQ_WINDOW_SEC"), 60)
-    flow_freq_threshold = _safe_int_cast(
-        os.environ.get("MINIFW_FLOW_FREQ_THRESHOLD"), 200
-    )
+    flow_freq_threshold = _safe_int_cast(os.environ.get("MINIFW_FLOW_FREQ_THRESHOLD"), 200)
     flow_freq_tracker = BurstTracker(window_seconds=flow_freq_window, max_size=20000)
-    flow_pkt_size = _safe_int_cast(
-        os.environ.get("MINIFW_FLOW_PKT_SIZE_ESTIMATE"), 1500
-    )
+    logging.warning("[TELEMETRY] Conntrack provides counter deltas, not packet timing/size distributions; 24-feature MLP disabled for these observations")
 
-    def pump_zeek():
-        if zeek_iter is None:
-            return
-        for _ in range(3):
-            try:
-                evt: ZeekSSLEvent = next(zeek_iter)
-                last_sni[evt.client_ip] = evt.sni
-                flow_tracker.enrich_with_sni(
-                    evt.client_ip,
-                    evt.sni,
-                    handshake_ms=evt.handshake_ms,
-                    alpn_h2=evt.alpn_h2,
-                    cert_self_signed=evt.cert_self_signed,
-                )
-            except StopIteration:
-                break
-            except Exception:
-                logging.warning("Error pumping zeek event", exc_info=True)
-                break
-
-    def pump_flows():
-        if flow_iter is None:
-            return
-        for _ in range(5):
-            try:
-                src_ip, dst_ip, dst_port, proto = next(flow_iter)
-                flow_tracker.update_flow(
-                    src_ip, dst_ip, dst_port, proto, pkt_size=flow_pkt_size
-                )
-                flow_freq_tracker.add(src_ip)
-            except Exception:
-                logging.warning("Error pumping conntrack flow", exc_info=True)
-                break
-
-    # NEW: Counter for flow record exports
-    flow_export_counter = 0
-    flow_export_interval = 100  # Export flow records every 100 DNS queries
-
-    # PLUGGABLE DNS BACKEND: Support multiple DNS sources
-    dns_events = None
-    dns_source = os.environ.get(
-        "MINIFW_DNS_SOURCE", "file"
-    )  # file, journald, udp, none
-    degraded_mode = os.environ.get("DEGRADED_MODE", "0") == "1"
-
-    if dns_source == "none" or degraded_mode:
-        logging.warning(
-            f"[BASELINE_PROTECTION] DNS telemetry disabled (source={dns_source}, degraded={degraded_mode})"
-        )
-        logging.warning(
-            "[BASELINE_PROTECTION] Running with flow tracking and hard-threat gates only (Fail-Closed Security)"
-        )
-
-        # Create empty iterator that yields None indefinitely
-        def empty_dns_iterator():
-            import time
-
-            while True:
-                yield None, None
-                time.sleep(1)  # Yield empty event every second to keep loop alive
-
-        dns_events = empty_dns_iterator()
+    dns_source = os.environ.get("MINIFW_DNS_SOURCE", "file")
+    if dns_source == "none" or _initial_degraded:
+        logging.warning("[DNS] Disabled; flow decisions continue independently")
+    elif dns_source == "journald":
+        from minifw_ai.collector_journald import stream_dns_events_journald
+        unit = os.environ.get("MINIFW_JOURNALD_UNIT", "systemd-resolved")
+        sources["dns"] = lambda: stream_dns_events_journald(unit=unit)
+    elif dns_source == "udp":
+        from minifw_ai.collector_dnsmasq import stream_dns_events_udp
+        dns_port = int(os.environ.get("MINIFW_DNS_UDP_PORT", "5514"))
+        sources["dns"] = lambda: stream_dns_events_udp(port=dns_port)
     else:
-        try:
-            if dns_source == "file":
-                logging.info(f"[DNS_COLLECTOR] Using file source: {dns_log}")
-                dns_events = stream_dns_events_file(dns_log)
-            elif dns_source == "journald":
-                from minifw_ai.collector_journald import stream_dns_events_journald
+        sources["dns"] = lambda: stream_dns_events_file(dns_log)
 
-                journald_unit = os.environ.get(
-                    "MINIFW_JOURNALD_UNIT", "systemd-resolved"
-                )
-                logging.info(
-                    f"[DNS_COLLECTOR] Using journald source (unit={journald_unit})"
-                )
-                dns_events = stream_dns_events_journald(unit=journald_unit)
-            elif dns_source == "udp":
-                from minifw_ai.collector_dnsmasq import stream_dns_events_udp
-
-                dns_port = int(os.environ.get("MINIFW_DNS_UDP_PORT", "5514"))
-                logging.info(f"[DNS_COLLECTOR] Using UDP source on port {dns_port}")
-                dns_events = stream_dns_events_udp(port=dns_port)
-            else:
-                logging.warning(
-                    f"[DNS_COLLECTOR] Unknown DNS source: {dns_source}, using file as fallback"
-                )
-                dns_events = stream_dns_events_file(dns_log)
-
-            logging.info(
-                f"[DNS_COLLECTOR] Successfully initialized DNS event stream (source={dns_source})"
-            )
-        except Exception as e:
-            logging.warning(
-                f"[BASELINE_PROTECTION] DNS collector failed to initialize: {e}"
-            )
-            logging.warning(
-                "[BASELINE_PROTECTION] Continuing with IP filtering and flow tracking only (Fail-Closed Security)..."
-            )
-
-            # Create empty generator to keep service running
-            def empty_dns_iterator():
-                import time
-
-                while True:
-                    yield None, None
-                    time.sleep(1)
-
-            dns_events = empty_dns_iterator()
-
+    flow_export_counter = 0
+    flow_export_interval = 100
     audit_daemon_start(sector_name, state_manager.get_current_state().value)
 
-    for client_ip, domain in dns_events:
-        pump_zeek()
-        pump_flows()
+    for source, observation in stream_collector_events(sources):
+        client_ip, domain, flow_for_event = None, "", None
+        if source == "dns":
+            client_ip, domain = observation
+            if client_ip is not None and domain is not None:
+                state_manager.record_dns_event(client_ip, domain)
+                flow_tracker.enrich_with_dns(client_ip, domain)
+        elif source == "flow":
+            flow_for_event, is_new = flow_tracker.observe_conntrack(observation)
+            client_ip = observation.client_ip
+            if is_new:
+                flow_freq_tracker.add(client_ip)
+        elif source == "zeek":
+            evt = observation
+            if evt.dst_ip and evt.dst_port and evt.src_port:
+                client_ip = evt.client_ip
+                existing = flow_tracker.get_flow(client_ip, evt.dst_ip, evt.dst_port, "tcp", evt.src_port)
+                flow_for_event = flow_tracker.update_flow(client_ip, evt.dst_ip, evt.dst_port, "tcp", src_port=evt.src_port)
+                flow_for_event.packet_timing_available = False
+                if existing is None:
+                    flow_freq_tracker.add(client_ip)
+                flow_tracker.enrich_with_sni(client_ip, evt.sni, evt.handshake_ms,
+                    evt.alpn_h2, evt.cert_self_signed, dst_ip=evt.dst_ip,
+                    dst_port=evt.dst_port, src_port=evt.src_port)
+        elif source == "tick":
+            flow_tracker.cleanup_old_flows()
 
         # Dynamic state transition check (TODO 4.1/4.2)
-        state_manager.record_dns_event(client_ip, domain)
         state_changed, new_state, transition_reason = (
             state_manager.check_and_transition()
         )
@@ -683,15 +592,14 @@ def run():
                    else ProtectionState.AI_ENHANCED_PROTECTION)
             audit_state_transition(old.value, new_state.value, transition_reason)
 
-        # CRITICAL: Skip empty events from degraded mode DNS iterator
-        # But ALWAYS run flow-based hard-threat gates via pump_flows() above
-        if client_ip is None or domain is None:
-            # In degraded mode: only run flow-based detection (no DNS-based scoring)
-            # Hard-threat gates still execute every iteration via pump_flows()
+        if client_ip is None:
             continue
+        if domain is None:
+            domain = ""
 
         mlp_score = 0
         mlp_proba = 0.0
+        mlp_ran = False
         yara_score = 0
         yara_matches = []
         hard_threat = False
@@ -721,20 +629,18 @@ def run():
             else:
                 denied = feeds.domain_denied(domain)
 
-            sni = last_sni.get(client_ip, "")
+            sni = flow_for_event.sni if flow_for_event is not None else ""
             sni_denied = bool(
                 sni and (not feeds.domain_allowed(sni)) and feeds.domain_denied(sni)
             )
 
-            # ASN lookup: resolve client IP to ASN, check against deny list
-            client_asn = asn_resolver.lookup(client_ip) if asn_resolver.loaded else None
-            asn_denied = bool(client_asn and feeds.asn_denied(client_asn))
+            destination_ip = flow_for_event.dst_ip if flow_for_event is not None else ""
+            destination_asn = asn_resolver.lookup(destination_ip) if destination_ip and asn_resolver.loaded else None
+            asn_denied = bool(destination_asn and feeds.asn_denied(destination_asn))
+            destination_ip_denied = bool(destination_ip and feeds.ip_denied(destination_ip))
 
-            # IP deny check (covers Tor exit nodes, anonymizers, and static deny_ips)
-            client_ip_denied = feeds.ip_denied(client_ip)
-
-            qpm = burst.add(client_ip)
-            burst_hit = 1 if (qpm >= block_qpm or qpm >= monitor_qpm) else 0
+            qpm = burst.add(client_ip) if source == "dns" else burst.get_rate(client_ip)
+            burst_hit = int(qpm >= monitor_qpm or qpm >= block_qpm)
 
             # Port scan detection
             port_scan_hit, port_count = flow_tracker.detect_port_scan(
@@ -765,19 +671,22 @@ def run():
                 reasons.extend(tunnel_reasons)
 
             # Layer 2: AI risk amplifier (conditional)
-            flow_for_ai = flows_for_client[-1] if flows_for_client else None
+            flow_for_ai = flow_for_event
             if (
                 state_manager.is_ai_enabled()
                 and mlp_enabled
                 and mlp_detector
                 and flow_for_ai
+                and flow_for_ai.packet_timing_available
                 and flow_for_ai.pkt_count >= 5
             ):
                 try:
+                    previous_inferences = mlp_detector.total_inferences
                     is_threat, proba = mlp_detector.is_suspicious(
                         flow_for_ai, return_probability=True
                     )
                     mlp_proba = proba
+                    mlp_ran = mlp_detector.total_inferences > previous_inferences
                     if is_threat:
                         mlp_score = int(proba * 100)
                 except Exception:
@@ -819,16 +728,20 @@ def run():
                 mlp_score,
                 yara_score,
                 hard_threat_override=hard_threat,
-                ip_denied=client_ip_denied,
+                ip_denied=destination_ip_denied,
                 hard_threat_reason=hard_threat_reason,
                 pre_reasons=reasons,
                 tunnel_score=tunnel_score,
+                deny_domain_immediate=sector_name in {"finance", "education"},
             )
 
             # Sector rules layer — runs after base scoring, can upgrade action
-            if evaluate_sector and sector_name in {"finance", "government"}:
-                _flow_s = _build_sector_flow(client_ip, domain, flows_for_client, burst_hit)
-                _s_detections = evaluate_sector(sector_name, _flow_s)
+            if evaluate_sector and flow_for_event is not None and sector_name in {"finance", "government"}:
+                _flow_s = _build_sector_flow(client_ip, domain, [flow_for_event], flow_freq)
+                _flow_s["dst_asn"] = destination_asn
+                _flow_s["is_internal"] = ip_in_any_subnet(destination_ip, [cidr for cidrs in seg_map.values() for cidr in cidrs])
+                cfg = {"blocked_asns": feeds.deny_asn} if sector_name == "finance" else None
+                _s_detections = evaluate_sector(sector_name, _flow_s, cfg)
                 _s_decision = decide_sector_action(sector_name, _s_detections)
                 if _s_decision and _s_decision["final_action"] == "block" and action != "block":
                     action = "block"
@@ -839,8 +752,13 @@ def run():
                     action = "monitor"
                     reasons.append(f"sector_rule:{_s_decision.get('trigger_type', 'sector_alert')}")
 
+            if action == "block" and ipaddress.ip_address(client_ip).version != 4:
+                action = "monitor"
+                reasons.append("ipv6_enforcement_unsupported")
             if action == "block":
-                ipset_add(set_name, client_ip, timeout, family=table, table_name=table_name)
+                added = ipset_add(set_name, client_ip, timeout, family=table, table_name=table_name)
+                if added is False:
+                    continue
                 audit_ip_block(client_ip, score, reasons, domain, sector_name)
 
             # Hospital sector IoMT high-priority alerting
@@ -869,6 +787,13 @@ def run():
                 severity=event_severity,
                 trace_id=uuid.uuid4().hex[:8].upper(),
                 decision_owner=_resolve_decision_owner(reasons),
+                dst_ip=destination_ip,
+                dst_port=flow_for_event.dst_port if flow_for_event else 0,
+                src_port=flow_for_event.src_port if flow_for_event else 0,
+                proto=flow_for_event.proto if flow_for_event else "dns",
+                telemetry_source=source,
+                mlp_status="disabled_unsupported_packet_features" if flow_for_event and not flow_for_event.packet_timing_available else ("inferred" if mlp_ran else "not_run"),
+                sni=sni,
             )
 
             # HIPAA: Redact domain/SNI from event logs when sector requires it
@@ -883,7 +808,7 @@ def run():
 
             # Education: tag events where VPN/proxy YARA rule fired
             if sector_config.get("block_vpns") or sector_config.get("block_proxies"):
-                if any("VpnProxy" in r for r in ev.reasons):
+                if action == "block" and any("VpnProxy" in r for r in ev.reasons):
                     ev.vpn_block_enforced = True
 
             # Strict-logging sectors: mark all events as audit-mode
@@ -909,9 +834,6 @@ def run():
         except Exception:
             logging.error("Unhandled exception in main event loop", exc_info=True)
 
-        # NEW: Enrich flow tracker with DNS domain
-        flow_tracker.enrich_with_dns(client_ip, domain)
-
         # NEW: Export flow records periodically
         flow_export_counter += 1
         if flow_export_counter >= flow_export_interval:
@@ -927,7 +849,7 @@ def run():
                     if flow.pkt_count < 5:  # Skip very small flows
                         continue
 
-                    features = build_feature_vector_24(flow, tracker=flow_tracker)
+                    features = build_feature_vector_24(flow, tracker=flow_tracker) if flow.packet_timing_available else None
 
                     # HIPAA: Redact domain/SNI from flow records when sector requires it
                     _redact = sector_config.get("redact_payloads", False)
@@ -942,43 +864,45 @@ def run():
                         "sni": "[REDACTED]" if _redact else flow.sni,
                         "segment": segment_for_ip(flow.client_ip, seg_map),
                         "features": features,
+                        "src_port": flow.src_port,
+                        "packet_timing_available": flow.packet_timing_available,
+                        "mlp_status": "eligible" if flow.packet_timing_available else "disabled_unsupported_packet_features",
                         "duration": flow.get_duration(),
                         "packets": flow.pkt_count,
                         "bytes": flow.get_total_bytes(),
                         # Include decision info if available
-                        "action": action if flow.client_ip == client_ip else None,
-                        "score": score if flow.client_ip == client_ip else None,
+                        "action": action if flow is flow_for_event else None,
+                        "score": score if flow is flow_for_event else None,
                         # NEW: AI Verdict (auditability)
                         "ai_verdict": (
-                            "threat"
-                            if (hard_threat or mlp_score > 50 or yara_score > 50)
-                            else "normal"
+                            ("threat" if mlp_score > 50 else "normal")
+                            if mlp_ran and flow is flow_for_event else None
                         ),
                         "ai_confidence": (
-                            (1.0 if hard_threat else max(mlp_proba, yara_score / 100.0))
-                            if flow.client_ip == client_ip
+                            mlp_proba
+                            if mlp_ran and flow is flow_for_event
                             else None
                         ),
                         "hard_threat_override": (
-                            hard_threat if flow.client_ip == client_ip else None
+                            hard_threat if flow is flow_for_event else None
                         ),
                         "hard_threat_reason": (
                             hard_threat_reason
-                            if (flow.client_ip == client_ip and hard_threat)
+                            if (flow is flow_for_event and hard_threat)
                             else None
                         ),
                         # NEW: Include MLP prediction if available
                         "mlp_enabled": mlp_enabled,
-                        "mlp_proba": mlp_proba if flow.client_ip == client_ip else None,
-                        "mlp_score": mlp_score if flow.client_ip == client_ip else None,
+                        "mlp_proba": mlp_proba if flow is flow_for_event else None,
+                        "mlp_score": mlp_score if flow is flow_for_event else None,
                         # NEW: Include YARA matches if available
                         "yara_enabled": yara_enabled,
                         "yara_score": (
-                            yara_score if flow.client_ip == client_ip else None
+                            yara_score if flow is flow_for_event else None
                         ),
                         "yara_matches": (
                             [m.to_dict() for m in yara_matches]
-                            if (flow.client_ip == client_ip and yara_matches)
+                            if (flow is flow_for_event and yara_matches)
                             else []
                         ),
                         "label": None,  # To be labeled later for training

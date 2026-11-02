@@ -129,7 +129,7 @@ def stream_dns_events_file(log_path: str) -> Iterator[Tuple[str, str]]:
                             print(f"[*] Log file recreated. Resuming...")
                             break  # Break inner loop to reopen file
 
-                        if current_pos > file_size and file_size > 0:
+                        if current_pos > file_size or os.stat(log_path).st_ino != os.fstat(f.fileno()).st_ino:
                             print(f"[!] Log file rotated. Re-opening {log_path}")
                             f.close()
                             f = open(log_path, "r")

@@ -1,7 +1,7 @@
 {
   "_mode": "minifw_school",
   "_sector": "education",
-  "_note": "SafeSearch enforcement, VPN/proxy blocking, content filtering. Thresholds pre-adjusted: block-10, monitor-10 from base.",
+  "_note": "SafeSearch resolver enforcement is pending. VPN/proxy provider domain matching does not identify arbitrary tunnels. Deny-domain matches isolate the client's forwarded IPv4 traffic.",
   "segments": {
     "default": {
       "block_threshold": 80,
@@ -15,7 +15,7 @@
     "student": {
       "block_threshold": 70,
       "monitor_threshold": 35,
-      "_note": "Student network — stricter monitoring; SafeSearch enforced."
+      "_note": "Student network; SafeSearch resolver enforcement is pending."
     },
     "guest": {
       "block_threshold": 60,
@@ -53,7 +53,8 @@
   "collectors": {
     "dnsmasq_log_path": "/var/log/dnsmasq.log",
     "zeek_ssl_log_path": "/var/log/zeek/ssl.log",
-    "use_zeek_sni": false
+    "use_zeek_sni": false,
+    "_zeek_note": "No Zeek sensor is provisioned by the Education installer. SNI and Zeek TLS features remain unavailable unless a separate metadata sensor is configured."
   },
   "burst": {
     "dns_queries_per_minute_monitor": 30,

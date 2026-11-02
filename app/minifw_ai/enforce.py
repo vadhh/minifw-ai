@@ -2,6 +2,7 @@ from __future__ import annotations
 import subprocess
 import logging
 import re
+import ipaddress
 
 
 def is_valid_nft_object_name(name: str) -> bool:
@@ -62,12 +63,22 @@ def ipset_add(
     timeout: int,
     family: str = "inet",
     table_name: str = "minifw",
-) -> None:
+) -> bool:
     """
     Adds an IP to the native nftables set.
     """
     if not is_valid_nft_object_name(set_name):
         raise ValueError(f"Invalid nftables set name: {set_name}")
+    ipaddress.IPv4Address(ip)
+    if not all(is_valid_nft_object_name(name) for name in (family, table_name)):
+        raise ValueError("Invalid nftables family/table")
+
+    present = subprocess.run(
+        ["nft", "get", "element", family, table_name, set_name, "{", ip, "}"],
+        capture_output=True, text=True,
+    )
+    if present.returncode == 0:
+        return False
 
     try:
         cmd = [
@@ -84,6 +95,7 @@ def ipset_add(
             "}",
         ]
         subprocess.run(cmd, check=True, capture_output=True, text=True)
+        return True
     except subprocess.CalledProcessError as e:
         logging.error(f"Failed to add IP {ip} to nft set '{set_name}': {e.stderr}")
         raise
@@ -162,6 +174,7 @@ def nft_apply_forward_drop(
                     "ip",
                     "saddr",
                     f"@{set_name}",
+                    "counter",
                     "drop",
                     "comment",
                     "MiniFW-AI-Blocklist",
