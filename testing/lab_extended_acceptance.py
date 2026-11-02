@@ -17,7 +17,8 @@ def operational_checks(root, run, start, record, nft, ns, member):
     override = Path("/etc/systemd/system/minifw-ai-web.service.d/90-monday-health.conf")
     assert not override.exists()
     override.parent.mkdir(exist_ok=True)
-    override.write_text(f"[Service]\nEnvironment=MINIFW_HEALTH_FILE={root}/runtime-health.json\n")
+    override.write_text(f"[Service]\nBindReadOnlyPaths={root}:/run/minifw-lab-health\n"
+                        "Environment=MINIFW_HEALTH_FILE=/run/minifw-lab-health/runtime-health.json\n")
     marker = Path("/opt/minifw_ai/config/continuation-marker.json")
     assert not marker.exists()
 
@@ -33,6 +34,7 @@ def operational_checks(root, run, start, record, nft, ns, member):
             ns("http", "198.18.0.2", "8080", "/")
             try:
                 status, data = health()
+                print("HEALTH_POLL", status, json.dumps(data), flush=True)
                 if status == 200:
                     return data
             except (OSError, ValueError):
@@ -88,6 +90,28 @@ def operational_checks(root, run, start, record, nft, ns, member):
                archive_mode="0600", directory_mode="0700", unprivileged_read="denied",
                dynamic_blocks="not restored", package_rollback="not tested")
         ready()
+        pid = run("systemctl", "show", "minifw-ai-web", "-p", "MainPID", "--value").stdout.strip()
+        process = dict(line.split(":", 1) for line in Path(f"/proc/{pid}/status").read_text().splitlines() if ":" in line)
+        assert process["NoNewPrivs"].strip() == "1"
+        assert int(process["CapBnd"].strip(), 16) & ~(1 << 12) == 0
+        restrictions = run("systemctl", "show", "minifw-ai-web", "-p", "User", "-p", "ProtectSystem",
+                           "-p", "ProtectHome", "-p", "PrivateTmp", "-p", "NoNewPrivileges", "-p", "CapabilityBoundingSet").stdout
+        record("web_service_restrictions", properties=restrictions, no_new_privileges=True,
+               remaining="Runs as root with NET_ADMIN; complete privilege separation unimplemented")
+        rotation = Path("/opt/minifw_ai/logs/continuation-rotation.jsonl")
+        state = rotation.with_suffix(".json")
+        rotation.write_text('{"rotation":"control"}\n')
+        state.write_text('{"state":"must remain"}')
+        try:
+            run("logrotate", "--force", "--state", str(root / "logrotate.state"), "/etc/logrotate.d/minifw-ai")
+            assert rotation.read_bytes() == b"" and b'"control"' in Path(str(rotation) + ".1").read_bytes()
+            assert json.loads(state.read_text())["state"] == "must remain"
+            record("actual_log_rotation", append_log="rotated and truncated", state_json="preserved",
+                   remaining="copytruncate has a possible concurrent-write loss window; disk-full/load behavior unverified")
+        finally:
+            rotation.unlink(missing_ok=True)
+            Path(str(rotation) + ".1").unlink(missing_ok=True)
+            state.unlink(missing_ok=True)
     finally:
         run("systemctl", "stop", "minifw-ai-web", check=False)
         override.unlink(missing_ok=True)
@@ -101,7 +125,7 @@ def guard_checks(root, run, start, record, nft, ns, member):
     python = "/opt/minifw_ai/venv/bin/python"
     start()
     try:
-        run(python, "-m", "minifw_ai.egress_guard", "--interface", "mfcg", "--block-ipv6")
+        run("env", "PYTHONPATH=/opt/minifw_ai/app", python, "-m", "minifw_ai.egress_guard", "--interface", "mfcg", "--block-ipv6")
         denied = "4chan.org" if socket.gethostname().endswith("education") else "secure-bankofamerica-login.com"
         ns("dns", "198.18.0.2", denied)
         for _ in range(30):
@@ -124,7 +148,7 @@ def guard_checks(root, run, start, record, nft, ns, member):
         rules = run("nft", "-a", "list", "table", "inet", "minifw_egress").stdout
         (root / "egress-guard.nft").write_text(rules)
     finally:
-        run(python, "-m", "minifw_ai.egress_guard", "--remove", check=False)
+        run("env", "PYTHONPATH=/opt/minifw_ai/app", python, "-m", "minifw_ai.egress_guard", "--remove", check=False)
     ns("http", "fd42:18::2", "8080", "/")
     ns("dot", "198.18.0.2", "approved.test")
     record("guard_removal_recovery", IPv6="allowed", DoT="allowed")
@@ -210,6 +234,12 @@ def provider_browser(output):
                                   review="Rendered status retained; no restricted-content quality or bypass claim")
                     if provider == "youtube" and any("DNS" in row and "Strict" in row for row in rows):
                         result["status"] = "strict_DNS_status_observed"
+                    if provider == "youtube" and "DNS restrictions are on" in text and "Strict restricted for" in text:
+                        result["status"] = "strict_DNS_status_observed"
+                    if provider == "google" and "Pemfilteran aktif" in text and "Anda tidak dapat mengubah" in text:
+                        result["status"] = "filtering_locked_observed"
+                    if provider == "bing" and "requires a strict Bing SafeSearch setting" in text:
+                        result.update(status="strict_regional_status_observed", attribution="Regional policy confounds DNS-only attribution")
                 except Exception as error:
                     result.update(error_type=type(error).__name__, error=str(error).splitlines()[0])
                 results.append(result)
@@ -244,10 +274,27 @@ def provider_checks(root, run, start, record, children):
         assert resolver.poll() is None
         for domain in ["www.google.com", "www.bing.com", "www.youtube.com"]:
             run("ip", "netns", "exec", "mf-client", "dig", "@10.10.0.53", domain, "A", "+noall", "+answer")
-        result = run("ip", "netns", "exec", "mf-client", "runuser", "-u", "lab", "--",
-                     "/opt/minifw_ai/venv/bin/python", __file__, "providers", str(root / "browser"), timeout=110)
-        record("provider_browser_restriction_status", results=json.loads(result.stdout.splitlines()[-1]),
-               topology="Client namespace -> isolated VM NAT -> public provider; certificate validation enabled")
+        for phase in ["pinned", "unconfigured_control"]:
+            if phase == "unconfigured_control":
+                resolver.terminate()
+                resolver.wait(timeout=5)
+                control = root / "public-control.conf"
+                control.write_text("")
+                resolver = subprocess.Popen(["dnsmasq", "--keep-in-foreground", "--user=root", "--conf-file=" + str(control),
+                    "--no-resolv", "--no-hosts", "--bind-interfaces", "--listen-address=10.10.0.53", "--server=10.231.0.3",
+                    "--log-queries", "--log-facility=-"], stdout=log, stderr=log)
+                children.append(resolver)
+                time.sleep(.5)
+                assert resolver.poll() is None
+            output = root / ("browser-" + phase)
+            output.mkdir()
+            run("chown", "lab:lab", str(output))
+            for domain in ["www.google.com", "www.bing.com", "www.youtube.com"]:
+                run("ip", "netns", "exec", "mf-client", "dig", "@10.10.0.53", domain, "A", "+noall", "+answer")
+            result = run("ip", "netns", "exec", "mf-client", "runuser", "-u", "lab", "--",
+                         "/opt/minifw_ai/venv/bin/python", __file__, "providers", str(output), timeout=110)
+            record("provider_browser_" + phase, results=json.loads(result.stdout.splitlines()[-1]),
+                   topology="Client namespace -> isolated VM NAT -> public provider; certificate validation enabled")
     finally:
         run("nft", "delete", "table", "ip", "minifw_browser_internet", check=False)
         (resolver_directory / "resolv.conf").unlink(missing_ok=True)
