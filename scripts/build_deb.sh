@@ -253,6 +253,9 @@ cd "${APP_ROOT}"
 "${APP_ROOT}/venv/bin/python" -c "
 import os, sys
 sys.path.insert(0, '${APP_ROOT}')
+# Run as the dashboard user: root must never open a database in a directory that user controls.
+chown -R "${WEB_USER}:${WEB_USER}" "${STATE_DIR}"  # -R never follows symlinks (physical walk)
+setpriv --reuid="${WEB_USER}" --regid="${WEB_USER}" --clear-groups \
 from app.database import SessionLocal, init_db
 from app.services.auth.user_service import create_user
 init_db()
@@ -294,10 +297,20 @@ chmod 660 "${APP_ROOT}/logs/audit.jsonl"
 chgrp "${WEB_USER}" "${APP_ROOT}"/config/feeds/*.txt
 chmod 664 "${APP_ROOT}"/config/feeds/*.txt
 for mode_dir in "${APP_ROOT}"/config/modes/*/; do
-    chgrp "${WEB_USER}" "${mode_dir}" "${mode_dir}policy.json"
+    [ ! -L "${mode_dir%/}" ] || { echo "  Refusing symlinked mode directory ${mode_dir}" >&2; exit 1; }
+    chgrp -h "${WEB_USER}" "${mode_dir}"
     chmod 2775 "${mode_dir}"
-    chmod 664 "${mode_dir}policy.json"
+    policy_file="${mode_dir}policy.json"
+    if [ -L "${policy_file}" ] || { [ -e "${policy_file}" ] && [ ! -f "${policy_file}" ]; }; then
+        echo "  Refusing non-regular ${policy_file}" >&2; exit 1
+    fi
+    if [ -f "${policy_file}" ]; then
+        chgrp -h "${WEB_USER}" "${policy_file}"
+        chmod 664 "${policy_file}"
+    fi
 done
+# The dashboard can create entries inside each mode directory, so never follow a link there:
+# the web service is stopped (prerm) while this runs, and policy.json must be a regular file.
 # Root owns code; the dashboard user owns only its state, logs group and editable config.
 chmod 755 "${APP_ROOT}"
 

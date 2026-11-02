@@ -58,3 +58,29 @@ def test_database_backup_includes_committed_wal(tmp_path):
 @pytest.mark.parametrize("name", ["/opt/minifw_ai/config/a", "etc/shadow", "opt/minifw_ai/config/../app/a"])
 def test_paths_are_restricted(name):
     assert not allowed(name)
+
+
+def test_restore_publish_replaces_symlink_instead_of_following(tmp_path):
+    import os
+    from minifw_ai.maintenance import publish, read_regular
+    victim = tmp_path / "victim"
+    victim.write_bytes(b"untouched")
+    target = tmp_path / "minifw.db"
+    target.symlink_to(victim)
+    with pytest.raises(ValueError):
+        read_regular(target)  # a planted link is refused, never read through
+    publish(target, b"restored", 0o640, os.getuid(), os.getgid())
+    assert victim.read_bytes() == b"untouched"
+    assert not target.is_symlink() and target.read_bytes() == b"restored"
+    assert target.stat().st_mode & 0o777 == 0o640
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["minifw.db", "victim"]
+
+
+def test_read_regular_returns_owner_and_mode(tmp_path):
+    import os
+    from minifw_ai.maintenance import read_regular
+    path = tmp_path / "policy.json"
+    path.write_bytes(b"{}")
+    path.chmod(0o664)
+    assert read_regular(path) == (b"{}", 0o664, os.getuid(), os.getgid())
+    assert read_regular(tmp_path / "absent") is None

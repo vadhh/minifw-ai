@@ -103,6 +103,43 @@ def validate_archive(archive_path, stage, version):
     return metadata
 
 
+def read_regular(path):
+    """(bytes, mode, uid, gid) of an existing regular file without following symlinks, else None.
+
+    Restore runs as root inside directories the dashboard user can write, so a planted
+    symlink or special file must never be read through or replaced in place."""
+    try:
+        fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW)
+    except FileNotFoundError:
+        return None
+    except OSError as error:
+        raise ValueError(f"Restore destination is not a regular file: {path}") from error
+    with os.fdopen(fd, "rb") as handle:
+        info = os.fstat(handle.fileno())
+        if not stat.S_ISREG(info.st_mode):
+            raise ValueError(f"Restore destination is not a regular file: {path}")
+        return handle.read(), stat.S_IMODE(info.st_mode), info.st_uid, info.st_gid
+
+
+def publish(target, data, mode, uid, gid):
+    """Write via an unpredictable O_EXCL temp file in the target directory, then rename over it.
+
+    Ownership and mode are set on the descriptor, and rename replaces a path rather than
+    following it, so no symlink in the directory is ever dereferenced."""
+    fd, temporary = tempfile.mkstemp(prefix=".restore-", dir=target.parent)
+    try:
+        os.fchown(fd, uid, gid)
+        os.fchmod(fd, mode)
+        with os.fdopen(fd, "wb") as handle:
+            handle.write(data)
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temporary, target)
+    except BaseException:
+        Path(temporary).unlink(missing_ok=True)
+        raise
+
+
 def restart(services):
     subprocess.run(["systemctl", "daemon-reload"], check=True)
     for service in reversed(services):
@@ -151,26 +188,21 @@ def main():
                         raise ValueError("Restore destination has a symlink")
                     candidates = [target] + ([Path(str(target) + suffix) for suffix in ("-wal", "-shm")] if target.name == "minifw.db" else [])
                     for candidate in candidates:
-                        previous[candidate] = (candidate.read_bytes(), stat.S_IMODE(candidate.stat().st_mode)) if candidate.exists() else None
+                        previous[candidate] = read_regular(candidate)
                         if candidate != target:
                             candidate.unlink(missing_ok=True)
                     target.parent.mkdir(parents=True, exist_ok=True)
-                    replacement = target.with_name(target.name + ".restore-tmp")
-                    shutil.copyfile(stage / name, replacement)
                     # Keep the installed owner (e.g. minifw-web state, dashboard-editable feeds);
                     # a file that did not exist takes its directory's owner.
-                    owner = (target if target.exists() else target.parent).stat()
-                    os.chown(replacement, owner.st_uid, owner.st_gid)
-                    replacement.chmod(int(entry["mode"]) & 0o777)
-                    replacement.replace(target)
+                    owner = previous[target][2:] if previous[target] else (os.lstat(target.parent).st_uid, os.lstat(target.parent).st_gid)
+                    publish(target, (stage / name).read_bytes(), int(entry["mode"]) & 0o777, *owner)
                 print("RESTORED", version, "; dynamic nftables blocks and package code were not restored")
         except Exception:
             for target, saved in previous.items():
                 if saved is None:
                     target.unlink(missing_ok=True)
                 else:
-                    target.write_bytes(saved[0])
-                    target.chmod(saved[1])
+                    publish(target, *saved)
             raise
         finally:
             restart(active)
