@@ -425,7 +425,7 @@ class FlowTracker:
         return len(ports) >= threshold, len(ports)
 
 
-def parse_conntrack_line(line: str) -> Optional[ConntrackFlow]:
+def parse_conntrack_line(line: str, *, observed_at: Optional[float] = None) -> Optional[ConntrackFlow]:
     """Parse procfs or conntrack -L TCP/UDP original and reply counters."""
     try:
         parts = line.split()
@@ -454,7 +454,8 @@ def parse_conntrack_line(line: str) -> Optional[ConntrackFlow]:
                     for fields in (original, reply) for key in ("packets", "bytes")]
         if any(value is not None and value < 0 for value in counters):
             return None
-        return ConntrackFlow(client_ip, dst_ip, dst_port, proto, src_port, *counters, observed_at=time.monotonic())
+        return ConntrackFlow(client_ip, dst_ip, dst_port, proto, src_port, *counters,
+                             observed_at=time.monotonic() if observed_at is None else observed_at)
     except (IndexError, KeyError, ValueError):
         return None
 
@@ -475,8 +476,9 @@ def _stream_conntrack_via_cli(poll_interval: float = 5.0) -> Iterator[tuple]:
                 timeout=10,
                 check=True,
             )
+            snapshot_at = time.monotonic()
             for line in result.stdout.splitlines():
-                parsed = parse_conntrack_line(line.strip())
+                parsed = parse_conntrack_line(line.strip(), observed_at=snapshot_at)
                 if parsed:
                     yield parsed
         except FileNotFoundError:
@@ -515,10 +517,12 @@ def stream_conntrack_flows(
     while True:
         try:
             with p.open("r") as f:
-                for line in f:
-                    parsed = parse_conntrack_line(line.strip())
-                    if parsed:
-                        yield parsed
+                lines = f.readlines()
+            snapshot_at = time.monotonic()
+            for line in lines:
+                parsed = parse_conntrack_line(line.strip(), observed_at=snapshot_at)
+                if parsed:
+                    yield parsed
             time.sleep(5)
         except Exception:
             logging.exception("[FLOW] Conntrack procfs read failed; retrying independently")

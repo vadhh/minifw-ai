@@ -90,6 +90,21 @@ def test_counter_rate_uses_collection_time_even_if_decisions_are_delayed(monkeyp
     assert flow.get_duration() == 5.0 and flow.get_pkts_per_sec() == 2.0
 
 
+def test_cli_snapshot_timestamp_is_stable_while_consumer_is_delayed(monkeypatch):
+    from minifw_ai import collector_flow
+    first = "tcp 6 117 src=10.10.0.20 dst=198.18.0.2 sport=51000 dport=443"
+    second = first.replace("51000", "51001")
+    monkeypatch.setattr(collector_flow.subprocess, "run", lambda *args, **kwargs: SimpleNamespace(stdout=first + "\n" + second))
+    clock = [100.0]
+    monkeypatch.setattr(collector_flow.time, "monotonic", lambda: clock[0])
+    stream = collector_flow._stream_conntrack_via_cli()
+    a = next(stream)
+    clock[0] = 1000.0
+    b = next(stream)
+    stream.close()
+    assert a.observed_at == b.observed_at == 100.0
+
+
 def test_sni_matches_connection_and_source_port_dns_queries_do_not_label_flows():
     tracker = FlowTracker()
     first = tracker.update_flow("10.10.0.20", "198.18.0.2", 443, "tcp", src_port=51000)
