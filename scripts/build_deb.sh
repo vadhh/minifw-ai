@@ -204,13 +204,6 @@ else
     echo "  Secrets exist: ${ENV_FILE}"
 fi
 
-# Inject EnvironmentFile into daemon unit if not present
-if [ -f /etc/systemd/system/minifw-ai.service ]; then
-    if ! grep -q "EnvironmentFile=" /etc/systemd/system/minifw-ai.service; then
-        sed -i '/^\[Service\]/a EnvironmentFile=/etc/minifw/minifw.env' \
-            /etc/systemd/system/minifw-ai.service
-    fi
-fi
 
 # --- 3. Generate TLS certificate ---
 echo "[3/10] TLS certificate..."
