@@ -529,10 +529,10 @@ def run():
     use_zeek = bool(col.get("use_zeek_sni", False))
 
     sources = {}
-    if use_zeek:
+    packet_interface = os.environ.get("MINIFW_PACKET_INTERFACE", col.get("packet_interface", ""))
+    if use_zeek and not packet_interface:
         sources["zeek"] = lambda: stream_zeek_sni_events(zeek_ssl)
     conntrack_path = os.environ.get("MINIFW_CONNTRACK_PATH", "/proc/net/nf_conntrack")
-    packet_interface = os.environ.get("MINIFW_PACKET_INTERFACE", col.get("packet_interface", ""))
     client_subnets = [ipaddress.ip_network(cidr, strict=False) for cidrs in seg_map.values() for cidr in cidrs]
     controls = pol.cfg.get("protocol_controls", {})
     if controls and not packet_interface:

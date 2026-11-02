@@ -190,6 +190,7 @@ def test_numeric_model_reason_retains_model_attribution():
     ("finance", "minifw_financial", "port_scan"),
     ("finance", "minifw_financial", "destination_asn"),
     ("finance", "minifw_financial", "destination_ip"),
+    ("finance", "minifw_financial", "packet_source_precedence"),
 ])
 def test_engine_enforces_flow_threat_without_dns(tmp_path, monkeypatch, sector, mode, scenario):
     from pathlib import Path
@@ -223,9 +224,20 @@ def test_engine_enforces_flow_threat_without_dns(tmp_path, monkeypatch, sector, 
     samples = [ConntrackFlow("10.10.0.20", "198.18.0.2", 10000 + i, "tcp", 51000 + i)
                for i in range(15 if scenario == "port_scan" else 1)]
     monkeypatch.setattr(main, "stream_collector_events", lambda sources: iter(("flow", s) for s in samples))
+    if scenario == "packet_source_precedence":
+        monkeypatch.setenv("MINIFW_PACKET_INTERFACE", "mfcg")
+
+        def inspect_sources(sources):
+            assert set(sources) == {"packet"}, "Packet mode must not merge counter/Zeek flow state"
+            return iter(())
+
+        monkeypatch.setattr(main, "stream_collector_events", inspect_sources)
     enforce = Mock(return_value=True)
     monkeypatch.setattr(main, "ipset_add", enforce)
     main.run()
+    if scenario == "packet_source_precedence":
+        enforce.assert_not_called()
+        return
     events = [json.loads(line) for line in (tmp_path / "events.jsonl").read_text().splitlines()]
     if scenario == "destination_ip":
         enforce.assert_not_called()
