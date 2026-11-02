@@ -1,0 +1,66 @@
+........................................................................ [ 11%]
+........................................................................ [ 23%]
+.F...................................................................... [ 35%]
+........................................................................ [ 47%]
+........................................................................ [ 59%]
+........................................................................ [ 70%]
+........................................................................ [ 82%]
+........................................................................ [ 94%]
+.................................                                        [100%]
+=================================== FAILURES ===================================
+_________________________ test_shipped_doh_list_parses _________________________
+
+    def test_shipped_doh_list_parses():
+        from pathlib import Path
+>       listed = egress_guard.load_doh_list(Path(__file__).resolve().parents[1] / "config/feeds/doh_resolvers.txt")
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+testing/test_egress_guard.py:42: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+path = PosixPath('/home/lab/minifw-monday-src/config/feeds/doh_resolvers.txt')
+
+    def load_doh_list(path):
+        """Parse one address per line; '#' comments allowed. Invalid entries raise."""
+        addresses = []
+>       for line in open(path, encoding="utf-8"):
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/home/lab/minifw-monday-src/config/feeds/doh_resolvers.txt'
+
+app/minifw_ai/egress_guard.py:16: FileNotFoundError
+=============================== warnings summary ===============================
+app/models/user.py:6
+testing/test_sector_lock.py::TestSectorLock::test_sector_loads_from_env_education
+  /home/lab/minifw-monday-src/app/models/user.py:6: MovedIn20Warning: The ``declarative_base()`` function is now available as sqlalchemy.orm.declarative_base(). (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
+    Base = declarative_base()
+
+../../../opt/minifw_ai/venv/lib/python3.11/site-packages/passlib/utils/__init__.py:854
+  /opt/minifw_ai/venv/lib/python3.11/site-packages/passlib/utils/__init__.py:854: DeprecationWarning: 'crypt' is deprecated and slated for removal in Python 3.13
+    from crypt import crypt as _crypt
+
+app/models/audit.py:15
+  /home/lab/minifw-monday-src/app/models/audit.py:15: MovedIn20Warning: The ``declarative_base()`` function is now available as sqlalchemy.orm.declarative_base(). (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
+    Base = declarative_base()
+
+testing/test_full_integration.py::test_mlp_detection
+testing/test_full_integration.py::test_decision_integration
+  /opt/minifw_ai/venv/lib/python3.11/site-packages/sklearn/base.py:376: InconsistentVersionWarning: Trying to unpickle estimator LabelBinarizer from version 1.5.0 when using version 1.5.2. This might lead to breaking code or invalid results. Use at your own risk. For more info please refer to:
+  https://scikit-learn.org/stable/model_persistence.html#security-maintainability-limitations
+    warnings.warn(
+
+testing/test_full_integration.py::test_mlp_detection
+testing/test_full_integration.py::test_decision_integration
+  /opt/minifw_ai/venv/lib/python3.11/site-packages/sklearn/base.py:376: InconsistentVersionWarning: Trying to unpickle estimator MLPClassifier from version 1.5.0 when using version 1.5.2. This might lead to breaking code or invalid results. Use at your own risk. For more info please refer to:
+  https://scikit-learn.org/stable/model_persistence.html#security-maintainability-limitations
+    warnings.warn(
+
+testing/test_full_integration.py::test_mlp_detection
+testing/test_full_integration.py::test_decision_integration
+  /opt/minifw_ai/venv/lib/python3.11/site-packages/sklearn/base.py:376: InconsistentVersionWarning: Trying to unpickle estimator StandardScaler from version 1.5.0 when using version 1.5.2. This might lead to breaking code or invalid results. Use at your own risk. For more info please refer to:
+  https://scikit-learn.org/stable/model_persistence.html#security-maintainability-limitations
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED testing/test_egress_guard.py::test_shipped_doh_list_parses - FileNotFo...
+1 failed, 608 passed, 10 warnings in 9.96s
