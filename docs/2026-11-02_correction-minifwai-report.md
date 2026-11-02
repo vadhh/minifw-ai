@@ -1,10 +1,12 @@
 # MiniFWAI v2.2.10 — shared corrections and separate lab acceptance
 
-Record updated **2 November 2026, 16:05 WIB**. Only v2.2.10 was rebuilt/tested in this feature pass. The current candidate is C11 (604 Debian regression tests; C10 had 599, updates below); the earlier C9 feature candidate passed **566 Debian regression tests**, and the C9 results in this paragraph refer to that pass. Both separate VMs completed the new-feature suite (23 result/scope records each), followed by shared-core routed acceptance (22 Financial, 23 Education records). **Neither edition is production-ready.** Restricted resolver answers, reactive TLS-version isolation and WireGuard-pattern control have controlled packet evidence. Measured packet-model inference works, but a separate benign classification control **fails in both editions**; packet14 is therefore shadow-only and contributes zero enforcement score. Real institutions, external learning-platform acceptance, browser SafeSearch results and strict inline TLS prevention remain unverified.
+Record updated **2 November 2026, 16:20 WIB**. Only v2.2.10 was rebuilt/tested in this feature pass. The current candidate is C12 (609 Debian regression tests; C11 had 604 and C10 599, updates below); the earlier C9 feature candidate passed **566 Debian regression tests**, and the C9 results in this paragraph refer to that pass. Both separate VMs completed the new-feature suite (23 result/scope records each), followed by shared-core routed acceptance (22 Financial, 23 Education records). **Neither edition is production-ready.** Restricted resolver answers, reactive TLS-version isolation and WireGuard-pattern control have controlled packet evidence. Measured packet-model inference works, but a separate benign classification control **fails in both editions**; packet14 is therefore shadow-only and contributes zero enforcement score. Real institutions, external learning-platform acceptance, browser SafeSearch results and strict inline TLS prevention remain unverified.
 
 The [08:59 baseline and original audit](2026-11-02_readiness-minifwai-report.md) remain an immutable account of the earlier state: 13 passing controls and 9 failed requirement probes. This report supersedes its current-status conclusions. It is an interim consolidated submission in the requested evening-report format; it does not claim that 12:00, 15:00 or 17:00 submissions have already occurred.
 
 **v2.2.10-only verification update:** Following the user's explicit version restriction, fresh packet-level runs completed at **11:33–11:34 WIB** against only `2.2.10-finance` and `2.2.10-education`. Each installed version, exact package SHA256 and all 163 application/model/edition-policy payload files of that earlier build were checked before its run (the final C9 identity gates check 166 files). Both drivers exited zero with 22 Financial and 23 Education result/scope records. No package was rebuilt and no older version was tested in this pass. [Fresh identity, command, nftables and result evidence](evidence/2026-11-02-v2210-verification/README.md) is separate from the previous runs. The earlier 546-test regression count is historical evidence and was not counted as a fresh test run. Existing unsupported claims and bypass limitations remain unchanged.
+
+**C12 update (16:15 WIB):** the opt-in egress guard now also drops client TCP/UDP 443 to 31 listed public DoH resolver addresses (Google, Cloudflare, Quad9, OpenDNS, AdGuard, CleanBrowsing, Mullvad). In both VMs, with the guard on, fixture DoH to a listed address fails (drop counter 2 packets), port 8080 to the same address still works, and DoH recovers after removal. Unlisted, self-hosted and CDN-fronted DoH and other direct-IP traffic still pass. C12 also passes strict identity, **609 Debian tests** and all three suites. [C12 evidence](evidence/2026-11-02-v2210-c12/README.md).
 
 **C11 update (16:00 WIB):** C11 changes only packaging: the engine unit now ships `EnvironmentFile`, so postinst no longer modifies a packaged file. Rebuilt C11 candidates pass a strict identity check with no allowance (178 files, `dpkg --verify` clean), **604 Debian regression tests**, and the feature, core and extended suites in both VMs. The extended results match C10. [C11 evidence](evidence/2026-11-02-v2210-c11/README.md).
 
@@ -46,6 +48,8 @@ The baseline recorded seven pre-existing modified files: `README.md`, `app/web/r
 | Report | `40223a2c73327e79063e9b8e4e59e76ce9a3529f` | C10 report update (this document's later edits follow in subsequent commits) |
 | C11 | `3aaa7051486d4f2e8a01940c5636988ce77d858f` | Engine unit ships `EnvironmentFile`; postinst no longer rewrites a packaged file; regression test |
 | C11 evidence | `429845de0ba8da55f249151bceda3945b7f77e4c` | C11 strict identity, 604 tests and feature/core/extended acceptance |
+| C12 | `97945ac42bf08f0c2e1376b7cbb260d3987ca9f3` | Egress guard denies listed public DoH resolver addresses on 443 |
+| C12 evidence | `d70830015dd21a82912db8393f3a05049f3a0b39` | C12 strict identity, 609 tests, DoH block and recovery |
 
 **Owner/allocation:** Codex performed implementation, testing and reporting through C10a. After Codex reached its usage limit at about 15:40 WIB, Claude Code recorded its uncommitted evidence (C10b/C10c), closed the identity check and updated this report. No other engineer assisted. The user approved immediate client IPv4 isolation on a confirmed deny-domain match and creation of local acceptance targets.
 
@@ -105,7 +109,7 @@ All scoring thresholds and weights were retained. Only the lab block timeout cha
 | Education deny-list client restriction | Codex | Verified complete | C1 | Deny DNS → event → nft → client connection | Actual restriction, not only dashboard/score | Immediate isolation and connection timeout | E | Operational exceptions/allowlist review |
 | Education known VPN/provider-domain control | Codex | Verified complete | C1 | `nordvpn.com` DNS match and forwarded HTTP | Precisely test known-name restriction | Client forwarding blocked; no tunnel claim | E | Provider-feed quality and legitimate remote-access exceptions |
 | Education VPN tunnel detection, WireGuard-pattern scope | Codex | Verified complete | C5–C9 | Actual kernel tunnel, monitor/block and ordinary UDP | Detect real tunnel protocol metadata separately from names | Correlated WireGuard pattern detected; configured client IPv4 isolation stops inner ping/forwarding; UDP-port-only negative passes | N | Other VPN/obfuscated protocols, midstream handshakes and cryptographic identification unsupported |
-| Education alternate DNS, DoH, DoT, direct IP, IPv6 | Codex | Verified complete | C4/C10 | Five actual client cases, default and with opt-in egress guard | Record blocked/detected/allowed separately | Default: all five allowed. Guard on: alternate DNS redirected to the gateway and denied name blocked, DoT blocked, IPv6 blocked by full IPv6 forwarding denial; DoH and direct IP still allowed; removal restores access | E; C; bypass table below | DoH/direct-IP controls unimplemented; guard is opt-in and interface-bound |
+| Education alternate DNS, DoH, DoT, direct IP, IPv6 | Codex | Verified complete | C4/C10 | Five actual client cases, default and with opt-in egress guard | Record blocked/detected/allowed separately | Default: all five allowed. Guard on: alternate DNS redirected to the gateway and denied name blocked, DoT blocked, IPv6 blocked by full IPv6 forwarding denial; direct IP still allowed. C12 guard: DoH to listed resolver addresses dropped on 443 (fixture DoH fails, port 8080 to the same address works); removal restores access | E; C; [K12](evidence/2026-11-02-v2210-c12/README.md); bypass table below | Unlisted/self-hosted/CDN-fronted DoH and direct-IP controls unimplemented; guard is opt-in and interface-bound |
 | Education student/staff/guest/admin selection | Codex | Verified complete | C1/C4 | Actual assigned aliases and recorded DNS events | Select four supplied policy segments | All four selected correctly | E | VLAN/physical segmentation and deployment map acceptance |
 | Education legitimate learning/staff sandbox | Codex | Verified complete | C4/C10 | Lesson, search, VP8 video/range, staff role/service; unprivileged Chromium 156 | Approved sandbox remains usable | All pass; Chromium decodes 20 video frames (2 s, 160×90); student denied staff service, staff allowed | U; E; C | External platforms and sustained video unverified |
 | Education disabled Zeek and missing protections | Codex | In progress | C1 | Supplied policy and installer review | Explain technical effect and historical rationale accurately | Policy disables SNI; installer does not provision Zeek; no historical product decision record found | Policy/source | Product owner rationale and actual sensor provisioning |
@@ -119,7 +123,7 @@ All scoring thresholds and weights were retained. Only the lab block timeout cha
 | Startup and readiness, progress and IPv4-rule scope | Codex | Verified complete | C1–C3/C6–C10 | Live `/health/` on both VMs: ready, engine stopped, rule flushed, sensor quiet | Do not equate process startup with protection | Ready (HTTP 200) only with same boot/process, fresh heartbeat, recent source and the drop rule present; returns 503 when the engine stops, the forward rule is flushed or the packet source is quiet >30 s | C | Load/loss alerting; health does not prove traffic enforcement or AI quality |
 | Logging retention, rotation scope | Claude Code/Codex | Verified complete | C10b | Forced logrotate on packaged policy in both VMs | Bounded retention without losing state files | `*.jsonl` rotated and truncated (daily/100 MB, 14 compressed copies); `*.json` state preserved | C | copytruncate has a small concurrent-write loss window; disk-full and long-run volume untested |
 | Backup and restore, config/database scope | Codex | Verified complete | C10 | Private backup, marker change, restore rehearsal on both VMs | Consistent backup and demonstrated restore | Services quiesced; config and database restored; SQLite integrity ok; archive 0600, directory 0700, unprivileged read denied; archive path/hash/edition validated before stopping services | C | Package rollback and dynamic block restoration not covered; traffic-recovery rehearsal after restore |
-| Traceable commits and separate rebuilt packages | Codex/Claude Code | Verified complete | C1–C11 | Exact C9, C10 and C11 package/source/payload checks | Tie actual tests to corrective source | C9 feature packages matched C9 plus declared local files; current C10 packages match C10 plus declared local files (178 installed files, one recorded postinst line); native installation, feature/core/extended acceptance pass | N; C | Clean-install matrix and release signatures |
+| Traceable commits and separate rebuilt packages | Codex/Claude Code | Verified complete | C1–C12 | Exact C9, C10, C11 and C12 package/source/payload checks | Tie actual tests to corrective source | C9 feature packages matched C9 plus declared local files; current C10 packages match C10 plus declared local files (178 installed files, one recorded postinst line); native installation, feature/core/extended acceptance pass | N; C | Clean-install matrix and release signatures |
 | Consolidated report and checkpoints | Codex/Claude Code | In progress | C1–C10c; report commit | Current timestamped matrix/evidence | Candid current submission before evening | Final C9 feature/core results available by 14:44; exact runs indexed in N; 09:00 Linux lab and noon checkpoint were missed, not backfilled | All evidence | Submit current findings; retain real validation/service backlog; no future checkpoint claimed |
 
 ## Financial rule-input inventory
@@ -156,7 +160,7 @@ SafeSearch resolver pinning for the documented 12 aliases is now verified with a
 | Actual bypass test | Financial | Education | Meaning |
 | --- | --- | --- | --- |
 | Denied name queried through alternate local DNS | Allowed | Allowed | Query bypasses gateway DNS logging |
-| DoH query over actual TLS | Allowed | Allowed | Encrypted queried name unavailable to DNS collector |
+| DoH query over actual TLS | Allowed | Allowed | Encrypted queried name unavailable to DNS collector. With the C12 guard on, DoH to a listed resolver address is dropped |
 | DoT query over actual TLS | Allowed | Allowed | Same limitation; TLS 1.3 transport observed |
 | Direct-IP HTTP to test server | Allowed | Allowed | No name to match; no independently triggered flow rule |
 | IPv6 HTTP | Allowed | Allowed | IPv4 block set cannot enforce it |
@@ -236,9 +240,18 @@ C9 feature artifacts are in `dist/v2210-feature-candidates/` (earlier candidates
 | Education Debian package | `d9ce4d6f64bebc2e71df1332d0a45faed7507846a5ecf3770413c2ed4ab85a68` |
 | Financial Debian package | `c2362a9d498f47049e0d93ff993d34d113f78db8ccef80fa90e237917ff145ec` |
 
-Current C11 artifacts are in `dist/v2210-c11-candidates/` (base C11 plus declared local inputs):
+Current C12 artifacts are in `dist/v2210-c12-candidates/` (base C12 plus declared local inputs):
 
-| C11 v2.2.10 artifact | SHA256 |
+| C12 v2.2.10 artifact | SHA256 |
+| --- | --- |
+| Education source ZIP | `830af778f55213c4f922ca29af17bd86f74afa7853883811e8c842b60f08a09a` |
+| Financial source ZIP | `927fe25c226f888a6d13349284282df0d8954b3df62725d29a78fd21245e0e05` |
+| Education Debian package | `398fe8056527822cdcbbbc9d9cb614f32527dd6c69019ac8e7f846c67225070d` |
+| Financial Debian package | `6388811848330d868a5291f0d43237701c8e628b3c533ff861d449aaa97da904` |
+
+Superseded C11 artifacts are in `dist/v2210-c11-candidates/`:
+
+| C11 v2.2.10 artifact (superseded by C12) | SHA256 |
 | --- | --- |
 | Education source ZIP | `2c33d720e776df09a0c53429b35ee3f66db395c68de0d0d8ea31fb437e082590` |
 | Financial source ZIP | `46e74736d34bddecfde0b01524b9830b3036d22fdd545696261c71120038f5b7` |
