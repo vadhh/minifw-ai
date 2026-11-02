@@ -1,0 +1,252 @@
+$ dpkg-query -W minifw-ai
+minifw-ai	2.2.10-education
+$ ip -j netns list
+[]
+$ systemctl stop minifw-ai minifw-ai-web dnsmasq
+$ nft -a list table inet minifw
+table inet minifw { # handle 22
+	set minifw_block_v4 { # handle 1
+		type ipv4_addr
+		timeout 1h
+	}
+
+	chain forward { # handle 2
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 73 bytes 4295 comment "MiniFW-AI-Conntrack" # handle 3
+		ip saddr @minifw_block_v4 counter packets 74 bytes 3960 drop comment "MiniFW-AI-Blocklist" # handle 4
+	}
+}
+$ nft delete table inet minifw
+$ modprobe nf_conntrack
+$ sysctl -w net.ipv4.ip_forward=1 net.ipv6.conf.all.forwarding=1 net.netfilter.nf_conntrack_acct=0
+net.ipv4.ip_forward = 1
+net.ipv6.conf.all.forwarding = 1
+net.netfilter.nf_conntrack_acct = 0
+$ ip netns add mf-client
+$ ip -n mf-client link set lo up
+$ ip netns add mf-server
+$ ip -n mf-server link set lo up
+$ ip link add mfcg type veth peer name mfc0
+$ ip link set mfc0 netns mf-client
+$ ip addr add 10.10.0.1/24 dev mfcg
+$ ip addr add fd42:10::1/64 dev mfcg
+$ ip link set mfcg up
+$ ip -n mf-client addr add 10.10.0.20/24 dev mfc0
+$ ip -n mf-client addr add fd42:10::20/64 dev mfc0
+$ ip -n mf-client link set mfc0 up
+$ ip -n mf-client route add default via 10.10.0.1
+$ ip -n mf-client -6 route add default via fd42:10::1
+$ ip link add mfsg type veth peer name mfs0
+$ ip link set mfs0 netns mf-server
+$ ip addr add 198.18.0.1/24 dev mfsg
+$ ip addr add fd42:18::1/64 dev mfsg
+$ ip link set mfsg up
+$ ip -n mf-server addr add 198.18.0.2/24 dev mfs0
+$ ip -n mf-server addr add fd42:18::2/64 dev mfs0
+$ ip -n mf-server link set mfs0 up
+$ ip -n mf-server route add default via 198.18.0.1
+$ ip -n mf-server -6 route add default via fd42:18::1
+$ ip -br address
+lo               UNKNOWN        127.0.0.1/8 ::1/128 
+ens3             UP             10.231.0.15/24 metric 100 fec0::5054:ff:fe22:1001/64 fe80::5054:ff:fe22:1001/64 
+mfcg@if63        UP             10.10.0.1/24 fd42:10::1/64 fe80::8494:6dff:fe33:f74/64 
+mfsg@if65        UP             198.18.0.1/24 fd42:18::1/64 fe80::f060:cbff:fed4:659/64
+$ ip -n mf-client route
+default via 10.10.0.1 dev mfc0 
+10.10.0.0/24 dev mfc0 proto kernel scope link src 10.10.0.20
+$ ip -n mf-server route
+default via 198.18.0.1 dev mfs0 
+198.18.0.0/24 dev mfs0 proto kernel scope link src 198.18.0.2
+$ openssl req -x509 -newkey rsa:2048 -nodes -days 1 -subj /CN=lab.test -keyout /var/tmp/minifw-monday-education-20261102T082551Z/server.key -out /var/tmp/minifw-monday-education-20261102T082551Z/server.crt
+.........+.....+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*.....+...+.+...+..+.........+.......+...+......+...+..+...+.............+........+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*..................+.....+....+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+.+....+..+.+............+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*.+..+.+..+.+..+............+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*............+........+....+..+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+-----
+$ systemctl stop minifw-ai
+$ nft flush set inet minifw minifw_block_v4
+Error: No such file or directory
+flush set inet minifw minifw_block_v4
+               ^^^^^^
+$ conntrack -D -s 10.10.0.20
+tcp      6 247 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=38224 dport=20005 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20005 dport=38224 packets=0 bytes=0 mark=0 use=1
+tcp      6 247 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=60342 dport=20004 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20004 dport=60342 packets=0 bytes=0 mark=0 use=1
+tcp      6 247 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=49296 dport=20010 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20010 dport=49296 packets=0 bytes=0 mark=0 use=1
+tcp      6 247 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=43606 dport=20001 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20001 dport=43606 packets=0 bytes=0 mark=0 use=1
+tcp      6 247 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=52444 dport=20013 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20013 dport=52444 packets=0 bytes=0 mark=0 use=1
+tcp      6 247 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=36952 dport=20012 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20012 dport=36952 packets=0 bytes=0 mark=0 use=1
+tcp      6 247 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=41140 dport=20000 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20000 dport=41140 packets=0 bytes=0 mark=0 use=1
+tcp      6 247 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=42400 dport=20007 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20007 dport=42400 packets=0 bytes=0 mark=0 use=1
+tcp      6 247 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=43166 dport=20008 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20008 dport=43166 packets=0 bytes=0 mark=0 use=1
+tcp      6 247 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=34106 dport=20014 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20014 dport=34106 packets=0 bytes=0 mark=0 use=1
+tcp      6 247 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=43686 dport=20006 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20006 dport=43686 packets=0 bytes=0 mark=0 use=1
+tcp      6 247 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=41912 dport=20011 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20011 dport=41912 packets=0 bytes=0 mark=0 use=1
+tcp      6 247 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=58082 dport=20009 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20009 dport=58082 packets=0 bytes=0 mark=0 use=1
+tcp      6 247 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=34242 dport=20002 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20002 dport=34242 packets=0 bytes=0 mark=0 use=1
+tcp      6 247 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=36960 dport=20003 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20003 dport=36960 packets=0 bytes=0 mark=0 use=1
+conntrack v1.4.7 (conntrack-tools): 15 flow entries have been deleted.
+$ systemctl daemon-reload
+$ systemctl start minifw-ai
+$ systemctl show minifw-ai -p ActiveState -p MainPID -p ExecMainStatus
+MainPID=19026
+ExecMainStatus=0
+ActiveState=active
+$ ip netns exec mf-client /usr/bin/python3 /var/tmp/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+$ /opt/minifw_ai/venv/bin/python /opt/minifw_ai/app/minifw_ai/safesearch.py --output /var/tmp/minifw-monday-education-20261102T082551Z/public-safesearch.conf
+dnsmasq: syntax check OK.
+$ ip addr add 10.10.0.53/24 dev mfcg
+$ nft add table ip minifw_browser_internet
+$ nft -f -
+add chain ip minifw_browser_internet postrouting { type nat hook postrouting priority srcnat; policy accept; }
+add rule ip minifw_browser_internet postrouting ip saddr 10.10.0.20 oifname "ens3" counter masquerade
+
+$ ip netns exec mf-client dig @10.10.0.53 www.google.com A +noall +answer
+www.google.com.		0	IN	CNAME	forcesafesearch.google.com.
+forcesafesearch.google.com. 0	IN	A	216.239.38.120
+$ ip netns exec mf-client dig @10.10.0.53 www.bing.com A +noall +answer
+www.bing.com.		0	IN	CNAME	strict.bing.com.
+strict.bing.com.	0	IN	A	150.171.27.16
+strict.bing.com.	0	IN	A	150.171.28.16
+$ ip netns exec mf-client dig @10.10.0.53 www.youtube.com A +noall +answer
+www.youtube.com.	0	IN	CNAME	restrict.youtube.com.
+restrict.youtube.com.	0	IN	A	216.239.38.120
+$ chown lab:lab /var/tmp/minifw-monday-education-20261102T082551Z/browser-pinned
+$ ip netns exec mf-client dig @10.10.0.53 www.google.com A +noall +answer
+www.google.com.		0	IN	CNAME	forcesafesearch.google.com.
+forcesafesearch.google.com. 0	IN	A	216.239.38.120
+$ ip netns exec mf-client dig @10.10.0.53 www.bing.com A +noall +answer
+www.bing.com.		0	IN	CNAME	strict.bing.com.
+strict.bing.com.	0	IN	A	150.171.28.16
+strict.bing.com.	0	IN	A	150.171.27.16
+$ ip netns exec mf-client dig @10.10.0.53 www.youtube.com A +noall +answer
+www.youtube.com.	0	IN	CNAME	restrict.youtube.com.
+restrict.youtube.com.	0	IN	A	216.239.38.120
+$ ip netns exec mf-client runuser -u lab -- /opt/minifw_ai/venv/bin/python /var/tmp/lab_extended_acceptance.py providers /var/tmp/minifw-monday-education-20261102T082551Z/browser-pinned
+[{"provider": "google", "requested_url": "https://www.google.com/safesearch", "status": "filtering_locked_observed", "http_status": 200, "final_url": "https://www.google.com/safesearch", "table_rows": [], "review": "Rendered status retained; no restricted-content quality or bypass claim"}, {"provider": "bing", "requested_url": "https://www.bing.com/account/general", "status": "strict_regional_status_observed", "http_status": 200, "final_url": "https://www.bing.com/account/general", "table_rows": [], "review": "Rendered status retained; no restricted-content quality or bypass claim", "attribution": "Regional policy confounds DNS-only attribution"}, {"provider": "youtube", "requested_url": "https://www.youtube.com/check_content_restrictions", "status": "strict_DNS_status_observed", "http_status": 200, "final_url": "https://www.youtube.com/check_content_restrictions", "table_rows": [], "review": "Rendered status retained; no restricted-content quality or bypass claim"}]
+VERIFIED {"test": "provider_browser_pinned", "actual": {"results": [{"provider": "google", "requested_url": "https://www.google.com/safesearch", "status": "filtering_locked_observed", "http_status": 200, "final_url": "https://www.google.com/safesearch", "table_rows": [], "review": "Rendered status retained; no restricted-content quality or bypass claim"}, {"provider": "bing", "requested_url": "https://www.bing.com/account/general", "status": "strict_regional_status_observed", "http_status": 200, "final_url": "https://www.bing.com/account/general", "table_rows": [], "review": "Rendered status retained; no restricted-content quality or bypass claim", "attribution": "Regional policy confounds DNS-only attribution"}, {"provider": "youtube", "requested_url": "https://www.youtube.com/check_content_restrictions", "status": "strict_DNS_status_observed", "http_status": 200, "final_url": "https://www.youtube.com/check_content_restrictions", "table_rows": [], "review": "Rendered status retained; no restricted-content quality or bypass claim"}], "topology": "Client namespace -> isolated VM NAT -> public provider; certificate validation enabled"}, "time": "2026-11-02T08:26:09.981981+00:00"}
+$ chown lab:lab /var/tmp/minifw-monday-education-20261102T082551Z/browser-unconfigured_control
+$ ip netns exec mf-client dig @10.10.0.53 www.google.com A +noall +answer
+www.google.com.		0	IN	CNAME	forcesafesearch.google.com.
+forcesafesearch.google.com. 86311 IN	A	216.239.38.120
+$ ip netns exec mf-client dig @10.10.0.53 www.bing.com A +noall +answer
+www.bing.com.		21512	IN	CNAME	www-www.bing.com.trafficmanager.net.
+www-www.bing.com.trafficmanager.net. 25	IN CNAME www.bing.com.edgekey.net.
+www.bing.com.edgekey.net. 3842	IN	CNAME	e86303.dscx.akamaiedge.net.
+e86303.dscx.akamaiedge.net. 7	IN	A	118.98.113.74
+e86303.dscx.akamaiedge.net. 7	IN	A	118.98.113.65
+e86303.dscx.akamaiedge.net. 7	IN	A	118.98.113.42
+e86303.dscx.akamaiedge.net. 7	IN	A	118.98.113.58
+e86303.dscx.akamaiedge.net. 7	IN	A	118.98.113.41
+e86303.dscx.akamaiedge.net. 7	IN	A	118.98.113.73
+e86303.dscx.akamaiedge.net. 7	IN	A	118.98.113.66
+e86303.dscx.akamaiedge.net. 7	IN	A	118.98.113.51
+e86303.dscx.akamaiedge.net. 7	IN	A	118.98.113.72
+$ ip netns exec mf-client dig @10.10.0.53 www.youtube.com A +noall +answer
+www.youtube.com.	135	IN	A	142.251.156.4
+www.youtube.com.	135	IN	A	142.251.151.4
+www.youtube.com.	135	IN	A	142.251.150.4
+www.youtube.com.	135	IN	A	142.251.154.4
+www.youtube.com.	135	IN	A	142.251.155.4
+www.youtube.com.	135	IN	A	142.251.153.4
+www.youtube.com.	135	IN	A	142.251.152.4
+www.youtube.com.	135	IN	A	142.251.157.4
+$ ip netns exec mf-client runuser -u lab -- /opt/minifw_ai/venv/bin/python /var/tmp/lab_extended_acceptance.py providers /var/tmp/minifw-monday-education-20261102T082551Z/browser-unconfigured_control
+[{"provider": "google", "requested_url": "https://www.google.com/safesearch", "status": "filtering_locked_observed", "http_status": 200, "final_url": "https://www.google.com/safesearch", "table_rows": [], "review": "Rendered status retained; no restricted-content quality or bypass claim"}, {"provider": "bing", "requested_url": "https://www.bing.com/account/general", "status": "unverified", "http_status": 200, "final_url": "https://www.bing.com/account/general", "table_rows": [], "review": "Rendered status retained; no restricted-content quality or bypass claim"}, {"provider": "youtube", "requested_url": "https://www.youtube.com/check_content_restrictions", "status": "unverified", "http_status": 200, "final_url": "https://www.youtube.com/check_content_restrictions", "table_rows": [], "review": "Rendered status retained; no restricted-content quality or bypass claim"}]
+VERIFIED {"test": "provider_browser_unconfigured_control", "actual": {"results": [{"provider": "google", "requested_url": "https://www.google.com/safesearch", "status": "filtering_locked_observed", "http_status": 200, "final_url": "https://www.google.com/safesearch", "table_rows": [], "review": "Rendered status retained; no restricted-content quality or bypass claim"}, {"provider": "bing", "requested_url": "https://www.bing.com/account/general", "status": "unverified", "http_status": 200, "final_url": "https://www.bing.com/account/general", "table_rows": [], "review": "Rendered status retained; no restricted-content quality or bypass claim"}, {"provider": "youtube", "requested_url": "https://www.youtube.com/check_content_restrictions", "status": "unverified", "http_status": 200, "final_url": "https://www.youtube.com/check_content_restrictions", "table_rows": [], "review": "Rendered status retained; no restricted-content quality or bypass claim"}], "topology": "Client namespace -> isolated VM NAT -> public provider; certificate validation enabled"}, "time": "2026-11-02T08:26:24.035187+00:00"}
+$ nft delete table ip minifw_browser_internet
+$ systemctl stop minifw-ai
+$ journalctl -u minifw-ai --no-pager --since '2026-11-02 08:25:51 UTC'
+Nov 02 15:25:53 minifw-monday-education systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 02 15:25:54 minifw-monday-education python[19026]: 2026-11-02 15:25:54,867 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Nov 02 15:25:54 minifw-monday-education python[19026]: 2026-11-02 15:25:54,870 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Nov 02 15:25:54 minifw-monday-education python[19026]: 2026-11-02 15:25:54,870 - INFO - [STATE] Initial protection state: BASELINE_PROTECTION
+Nov 02 15:25:54 minifw-monday-education python[19026]: 2026-11-02 15:25:54,877 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_school: sector=education
+Nov 02 15:25:54 minifw-monday-education python[19026]: 2026-11-02 15:25:54,877 - INFO - [SECTOR_LOCK] Loaded config for education: ['description', 'force_safesearch', 'safesearch_domains', 'block_vpns', 'block_proxies', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_student_activity']
+Nov 02 15:25:54 minifw-monday-education python[19026]: 2026-11-02 15:25:54,877 - INFO - [SECTOR_LOCK] Device sector: education (LOCKED)
+Nov 02 15:25:54 minifw-monday-education python[19026]: 2026-11-02 15:25:54,877 - INFO - [SECTOR_LOCK] Config: Education: domain policies; restricted DNS configuration and optional WireGuard metadata.
+Nov 02 15:25:54 minifw-monday-education python[19026]: 2026-11-02 15:25:54,877 - INFO - [FEEDS] Loaded 14 patterns from school_blacklist.txt
+Nov 02 15:25:54 minifw-monday-education python[19026]: 2026-11-02 15:25:54,877 - INFO - [SECTOR_LOCK] Loaded 14 sector-specific feed patterns
+Nov 02 15:25:54 minifw-monday-education python[19026]: 2026-11-02 15:25:54,877 - INFO - [SECTOR_LOCK] Search-domain allowlist: 8 patterns; restricted search requires the generated dnsmasq overrides
+Nov 02 15:25:54 minifw-monday-education python[19026]: 2026-11-02 15:25:54,878 - INFO - [SECTOR_LOCK] VPN/proxy provider domain matching enabled; optional packet metadata detects WireGuard patterns
+Nov 02 15:25:54 minifw-monday-education python[19026]: 2026-11-02 15:25:54,928 - INFO - [TELEMETRY] Packet metadata on mfcg; packet14 model required; no TLS decryption
+Nov 02 15:25:54 minifw-monday-education python[19026]: 2026-11-02 15:25:54,928 - WARNING - [DNS] Disabled; flow decisions continue independently
+Nov 02 15:25:54 minifw-monday-education python[19042]: Capturing on 'mfcg'
+Nov 02 15:25:54 minifw-monday-education python[19042]: File: -
+Nov 02 15:26:24 minifw-monday-education python[19042]: [740B blob data]
+Nov 02 15:26:24 minifw-monday-education python[19042]: Packets received/dropped on interface 'mfcg': 4997/0 (pcap:0/dumpcap:0/flushed:0/ps_ifdrop:0) (100.0%)
+Nov 02 15:26:24 minifw-monday-education python[19026]: 2026-11-02 15:26:24,062 - INFO - Caught SIGTERM, shutting down.
+Nov 02 15:26:24 minifw-monday-education systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 02 15:26:24 minifw-monday-education python[19026]: 2026-11-02 15:26:24,111 - ERROR - [packet] Collector failed; retrying independently
+Nov 02 15:26:24 minifw-monday-education python[19026]: Traceback (most recent call last):
+Nov 02 15:26:24 minifw-monday-education python[19026]:   File "/opt/minifw_ai/app/minifw_ai/collector_runtime.py", line 16, in collect
+Nov 02 15:26:24 minifw-monday-education python[19026]:     for event in factory():
+Nov 02 15:26:24 minifw-monday-education python[19026]:   File "/opt/minifw_ai/app/minifw_ai/collector_packets.py", line 87, in stream_packet_events
+Nov 02 15:26:24 minifw-monday-education python[19026]:     raise RuntimeError(f"Packet metadata sensor stopped: exit={decoder.wait()}")
+Nov 02 15:26:24 minifw-monday-education python[19026]: RuntimeError: Packet metadata sensor stopped: exit=0
+Nov 02 15:26:24 minifw-monday-education python[19026]: [FlowCollector] Exported 5 flows, cleaned 0 old flows
+Nov 02 15:26:24 minifw-monday-education python[19026]: [FlowCollector] Exported 8 flows, cleaned 0 old flows
+Nov 02 15:26:24 minifw-monday-education python[19026]: [FlowCollector] Exported 10 flows, cleaned 0 old flows
+Nov 02 15:26:24 minifw-monday-education python[19026]: [FlowCollector] Exported 11 flows, cleaned 0 old flows
+Nov 02 15:26:24 minifw-monday-education python[19026]: [FlowCollector] Exported 14 flows, cleaned 0 old flows
+Nov 02 15:26:24 minifw-monday-education python[19026]: [FlowCollector] Exported 19 flows, cleaned 0 old flows
+Nov 02 15:26:24 minifw-monday-education python[19026]: [FlowCollector] Exported 22 flows, cleaned 0 old flows
+Nov 02 15:26:24 minifw-monday-education python[19026]: [FlowCollector] Exported 26 flows, cleaned 0 old flows
+Nov 02 15:26:24 minifw-monday-education python[19026]: [FlowCollector] Exported 29 flows, cleaned 0 old flows
+Nov 02 15:26:24 minifw-monday-education python[19026]: [FlowCollector] Exported 31 flows, cleaned 0 old flows
+Nov 02 15:26:24 minifw-monday-education python[19026]: [FlowCollector] Exported 33 flows, cleaned 0 old flows
+Nov 02 15:26:24 minifw-monday-education python[19026]: [FlowCollector] Exported 34 flows, cleaned 0 old flows
+Nov 02 15:26:24 minifw-monday-education python[19026]: [FlowCollector] Exported 37 flows, cleaned 0 old flows
+Nov 02 15:26:24 minifw-monday-education python[19026]: [FlowCollector] Exported 38 flows, cleaned 0 old flows
+Nov 02 15:26:24 minifw-monday-education python[19026]: [FlowCollector] Exported 43 flows, cleaned 0 old flows
+Nov 02 15:26:24 minifw-monday-education python[19026]: [FlowCollector] Exported 47 flows, cleaned 0 old flows
+Nov 02 15:26:24 minifw-monday-education python[19026]: [FlowCollector] Exported 51 flows, cleaned 0 old flows
+Nov 02 15:26:24 minifw-monday-education python[19026]: [FlowCollector] Exported 55 flows, cleaned 0 old flows
+Nov 02 15:26:24 minifw-monday-education python[19026]: [FlowCollector] Exported 60 flows, cleaned 0 old flows
+Nov 02 15:26:24 minifw-monday-education python[19026]: [FlowCollector] Exported 60 flows, cleaned 0 old flows
+Nov 02 15:26:24 minifw-monday-education python[19026]: [FlowCollector] Exported 62 flows, cleaned 0 old flows
+Nov 02 15:26:24 minifw-monday-education python[19026]: [FlowCollector] Exported 66 flows, cleaned 0 old flows
+Nov 02 15:26:24 minifw-monday-education python[19026]: [FlowCollector] Exported 66 flows, cleaned 0 old flows
+Nov 02 15:26:24 minifw-monday-education python[19026]: [FlowCollector] Exported 71 flows, cleaned 0 old flows
+Nov 02 15:26:24 minifw-monday-education python[19026]: [FlowCollector] Exported 71 flows, cleaned 0 old flows
+Nov 02 15:26:24 minifw-monday-education python[19026]: [FlowCollector] Exported 71 flows, cleaned 0 old flows
+Nov 02 15:26:24 minifw-monday-education python[19026]: [FlowCollector] Exported 76 flows, cleaned 0 old flows
+Nov 02 15:26:24 minifw-monday-education python[19026]: [FlowCollector] Exported 81 flows, cleaned 0 old flows
+Nov 02 15:26:24 minifw-monday-education python[19026]: [FlowCollector] Exported 85 flows, cleaned 0 old flows
+Nov 02 15:26:24 minifw-monday-education python[19026]: [FlowCollector] Exported 92 flows, cleaned 0 old flows
+Nov 02 15:26:24 minifw-monday-education python[19026]: [FlowCollector] Exported 93 flows, cleaned 0 old flows
+Nov 02 15:26:24 minifw-monday-education python[19026]: [FlowCollector] Exported 95 flows, cleaned 0 old flows
+Nov 02 15:26:24 minifw-monday-education python[19026]: [FlowCollector] Exported 96 flows, cleaned 0 old flows
+Nov 02 15:26:24 minifw-monday-education python[19026]: [FlowCollector] Exported 96 flows, cleaned 0 old flows
+Nov 02 15:26:24 minifw-monday-education python[19026]: [FlowCollector] Exported 96 flows, cleaned 0 old flows
+Nov 02 15:26:24 minifw-monday-education python[19026]: [FlowCollector] Exported 97 flows, cleaned 0 old flows
+Nov 02 15:26:24 minifw-monday-education python[19026]: [FlowCollector] Exported 100 flows, cleaned 0 old flows
+Nov 02 15:26:24 minifw-monday-education python[19026]: [FlowCollector] Exported 101 flows, cleaned 0 old flows
+Nov 02 15:26:24 minifw-monday-education python[19026]: [FlowCollector] Exported 102 flows, cleaned 0 old flows
+Nov 02 15:26:24 minifw-monday-education python[19026]: [FlowCollector] Exported 107 flows, cleaned 0 old flows
+Nov 02 15:26:24 minifw-monday-education python[19026]: [FlowCollector] Exported 109 flows, cleaned 0 old flows
+Nov 02 15:26:24 minifw-monday-education python[19026]: [FlowCollector] Exported 111 flows, cleaned 0 old flows
+Nov 02 15:26:24 minifw-monday-education python[19026]: [FlowCollector] Exported 114 flows, cleaned 0 old flows
+Nov 02 15:26:24 minifw-monday-education python[19026]: [FlowCollector] Exported 117 flows, cleaned 0 old flows
+Nov 02 15:26:24 minifw-monday-education python[19026]: [FlowCollector] Exported 120 flows, cleaned 0 old flows
+Nov 02 15:26:24 minifw-monday-education python[19026]: [FlowCollector] Exported 120 flows, cleaned 0 old flows
+Nov 02 15:26:24 minifw-monday-education systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 02 15:26:24 minifw-monday-education systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 02 15:26:24 minifw-monday-education systemd[1]: minifw-ai.service: Consumed 7.938s CPU time.
+$ nft -a list table inet minifw
+table inet minifw { # handle 23
+	set minifw_block_v4 { # handle 1
+		type ipv4_addr
+		timeout 1h
+	}
+
+	chain forward { # handle 2
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 224 bytes 80812 comment "MiniFW-AI-Conntrack" # handle 3
+		ip saddr @minifw_block_v4 counter packets 0 bytes 0 drop comment "MiniFW-AI-Blocklist" # handle 4
+	}
+}
+$ systemctl daemon-reload
+$ ip netns delete mf-client
+$ ip netns delete mf-server
+$ ip link delete mfcg
+$ ip link delete mfsg
+EVIDENCE_DIRECTORY /var/tmp/minifw-monday-education-20261102T082551Z

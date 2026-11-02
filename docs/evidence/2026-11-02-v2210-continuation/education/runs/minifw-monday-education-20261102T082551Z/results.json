@@ -1,0 +1,75 @@
+[
+  {
+    "test": "provider_browser_pinned",
+    "actual": {
+      "results": [
+        {
+          "provider": "google",
+          "requested_url": "https://www.google.com/safesearch",
+          "status": "filtering_locked_observed",
+          "http_status": 200,
+          "final_url": "https://www.google.com/safesearch",
+          "table_rows": [],
+          "review": "Rendered status retained; no restricted-content quality or bypass claim"
+        },
+        {
+          "provider": "bing",
+          "requested_url": "https://www.bing.com/account/general",
+          "status": "strict_regional_status_observed",
+          "http_status": 200,
+          "final_url": "https://www.bing.com/account/general",
+          "table_rows": [],
+          "review": "Rendered status retained; no restricted-content quality or bypass claim",
+          "attribution": "Regional policy confounds DNS-only attribution"
+        },
+        {
+          "provider": "youtube",
+          "requested_url": "https://www.youtube.com/check_content_restrictions",
+          "status": "strict_DNS_status_observed",
+          "http_status": 200,
+          "final_url": "https://www.youtube.com/check_content_restrictions",
+          "table_rows": [],
+          "review": "Rendered status retained; no restricted-content quality or bypass claim"
+        }
+      ],
+      "topology": "Client namespace -> isolated VM NAT -> public provider; certificate validation enabled"
+    },
+    "time": "2026-11-02T08:26:09.981981+00:00"
+  },
+  {
+    "test": "provider_browser_unconfigured_control",
+    "actual": {
+      "results": [
+        {
+          "provider": "google",
+          "requested_url": "https://www.google.com/safesearch",
+          "status": "filtering_locked_observed",
+          "http_status": 200,
+          "final_url": "https://www.google.com/safesearch",
+          "table_rows": [],
+          "review": "Rendered status retained; no restricted-content quality or bypass claim"
+        },
+        {
+          "provider": "bing",
+          "requested_url": "https://www.bing.com/account/general",
+          "status": "unverified",
+          "http_status": 200,
+          "final_url": "https://www.bing.com/account/general",
+          "table_rows": [],
+          "review": "Rendered status retained; no restricted-content quality or bypass claim"
+        },
+        {
+          "provider": "youtube",
+          "requested_url": "https://www.youtube.com/check_content_restrictions",
+          "status": "unverified",
+          "http_status": 200,
+          "final_url": "https://www.youtube.com/check_content_restrictions",
+          "table_rows": [],
+          "review": "Rendered status retained; no restricted-content quality or bypass claim"
+        }
+      ],
+      "topology": "Client namespace -> isolated VM NAT -> public provider; certificate validation enabled"
+    },
+    "time": "2026-11-02T08:26:24.035187+00:00"
+  }
+]
