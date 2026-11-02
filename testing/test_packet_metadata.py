@@ -34,6 +34,12 @@ def test_measured_packet_direction_time_and_schema():
     assert second.pkt_count == 2
 
 
+def test_ambiguous_initial_intrasite_direction_is_not_guessed():
+    tracker = FlowTracker()
+    flow, new = observe_packet(tracker, packet(dst_ip="10.10.0.30"), NETS)
+    assert flow is None and not new and not tracker.flows
+
+
 def test_server_hello_selects_tls13_without_legacy_version_false_positive():
     fields = [""] * len(FIELDS)
     fields[:4] = ["100.0", "100", "198.18.0.2", "10.10.0.20"]

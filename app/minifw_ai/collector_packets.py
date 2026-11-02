@@ -105,6 +105,9 @@ def observe_packet(tracker, packet, client_subnets):
         dst_client = any(ipaddress.ip_address(packet.dst_ip) in net for net in client_subnets)
         if not src_client and not dst_client:
             return None, False
+        # Initial intra-site direction needs SYN/conntrack correlation; do not guess a client.
+        if src_client and dst_client:
+            return None, False
         inbound = dst_client and not src_client
     src, dst = (packet.dst_ip, packet.src_ip) if inbound else (packet.src_ip, packet.dst_ip)
     sport, dport = (packet.dst_port, packet.src_port) if inbound else (packet.src_port, packet.dst_port)

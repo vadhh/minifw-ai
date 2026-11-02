@@ -13,6 +13,8 @@ Use separate disposable Financial and Education gateways. Both packages are name
 
 The existing conntrack reader still measures counter deltas and cannot supply packet timing. Enabling the packet interface selects the packet source instead, so the same traffic is not counted twice. Missing sensor tooling/interfaces must be treated as unavailable coverage, not healthy protection. DNS collection remains independent. Packet mode currently needs an explicit client-facing interface and configured client subnets; do not use `any`, which duplicates forwarded observations. Capture startup, losses, GRO/offload effects, load and long-lived sessions need additional validation.
 
+Initial packets whose two endpoints both belong to configured client subnets are skipped rather than guessing the client direction. Intra-site packet attribution needs SYN/conntrack correlation before claiming coverage. The verified tests use unambiguous client-to-server tuples across the isolated routed link.
+
 `dumpcap -P -w -` feeds `tshark -r -` through a memory pipe. No raw PCAP, application payload or key material is written/exported by this path. Packet decoding runs as `nobody`, with no supplementary groups and a minimal environment; it does not inherit application secrets or key-log settings. The capture helper and enforcement engine still require privilege. This does not resolve the existing dashboard-root concern.
 
 ## Controlled lab verification
