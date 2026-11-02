@@ -443,13 +443,13 @@ def run():
                         protected.append(f"*.{d}")
                 feeds.allow_domains.extend(protected)
                 logging.info(
-                    f"[SECTOR_LOCK] Search-domain allowlist: {len(protected)} patterns; SafeSearch resolver enforcement is pending"
+                    f"[SECTOR_LOCK] Search-domain allowlist: {len(protected)} patterns; restricted search requires the generated dnsmasq overrides"
                 )
 
             # Education sector: VPN/proxy blocking confirmation
             if sector_config.get("block_vpns") or sector_config.get("block_proxies"):
                 logging.info(
-                    "[SECTOR_LOCK] VPN/proxy provider domain matching enabled; tunnel detection is not implemented"
+                    "[SECTOR_LOCK] VPN/proxy provider domain matching enabled; optional packet metadata detects WireGuard patterns"
                 )
 
             # Get IoMT subnets for hospital sector (from policy.json, not hardcoded)

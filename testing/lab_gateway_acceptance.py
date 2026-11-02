@@ -287,6 +287,8 @@ def acceptance(edition, package, metadata=False):
 
     def start(source="file", flow="normal", zeek_missing=False, packet=False, ai=False, block_vpn=False):
         run("systemctl", "stop", "minifw-ai")
+        event_path = root / "events.jsonl"
+        previous_packets = event_path.read_text().count('"telemetry_source": "packet"') if event_path.exists() else 0
         if metadata:
             policy["protocol_controls"] = {"minimum_tls_version": "TLSv1.2", "block_vpn_tunnels": block_vpn}
             (root / "policy.json").write_text(json.dumps(policy, indent=2))
@@ -315,6 +317,17 @@ def acceptance(edition, package, metadata=False):
         wait_for(lambda: audit.exists() and audit.read_text().count('"daemon_start"') > previous, 20)
         time.sleep(1.5 if packet else 0.4)
         run("systemctl", "show", "minifw-ai", "-p", "ActiveState", "-p", "MainPID", "-p", "ExecMainStatus")
+        if packet:
+            # Readiness is an observed packet decision, not a process or fixed startup delay.
+            until = time.monotonic() + 20
+            while time.monotonic() < until:
+                ns("http", SERVER, "8080", "/")
+                path = root / "events.jsonl"
+                if path.exists() and path.read_text().count('"telemetry_source": "packet"') > previous_packets:
+                    break
+                time.sleep(.5)
+            else:
+                raise AssertionError("Packet sensor not ready: no observed packet decisions")
 
     dns_log = (root / "dnsmasq-process.log").open("w")
     try:

@@ -65,20 +65,25 @@ def parse_packet_fields(line):
 def stream_packet_events(interface):
     if not re.fullmatch(r"[a-zA-Z0-9_][a-zA-Z0-9_.:-]{0,14}", interface) or interface == "any":
         raise ValueError("Choose one explicit client-facing interface; 'any' duplicates forwarded packets")
-    command = ["tshark", "-l", "-n", "-i", interface, "-f", "ip or ip6", "-T", "fields",
+    command = ["tshark", "-l", "-n", "-r", "-", "-T", "fields",
                "-E", "occurrence=f"]
     for field in FIELDS:
         command.extend(["-e", field])
-    # stderr stays in the service journal: capture failures/drops must remain visible.
-    with subprocess.Popen(command, stdout=subprocess.PIPE, text=True, bufsize=1) as process:
-        try:
-            for line in process.stdout:
-                observation = parse_packet_fields(line)
-                if observation is not None:
-                    yield observation
-            raise RuntimeError(f"Packet metadata sensor stopped: exit={process.wait()}")
-        finally:
-            if process.poll() is None:
+    # A pipe avoids tshark's default on-disk temporary capture; stderr preserves loss/errors.
+    capture = subprocess.Popen(["dumpcap", "-p", "-i", interface, "-f", "ip or ip6", "-P", "-w", "-"],
+                               stdout=subprocess.PIPE)
+    decoder = None
+    try:
+        decoder = subprocess.Popen(command, stdin=capture.stdout, stdout=subprocess.PIPE, text=True, bufsize=1)
+        capture.stdout.close()
+        for line in decoder.stdout:
+            observation = parse_packet_fields(line)
+            if observation is not None:
+                yield observation
+        raise RuntimeError(f"Packet metadata sensor stopped: exit={decoder.wait()}")
+    finally:
+        for process in [decoder, capture]:
+            if process is not None and process.poll() is None:
                 process.terminate()
                 try:
                     process.wait(timeout=3)

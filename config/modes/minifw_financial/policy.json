@@ -25,7 +25,7 @@
     "dmz": {
       "block_threshold": 75,
       "monitor_threshold": 50,
-      "_note": "Public-facing servers. SNI needs a separate Zeek sensor; TLS minimum-version enforcement is unimplemented."
+      "_note": "Public-facing servers. SNI needs a metadata sensor; TLS version control requires an explicit packet interface."
     }
   },
   "segment_subnets": {
@@ -54,7 +54,7 @@
     "dnsmasq_log_path": "/var/log/dnsmasq.log",
     "zeek_ssl_log_path": "/var/log/zeek/ssl.log",
     "use_zeek_sni": true,
-    "_zeek_note": "Requires a separately provisioned Zeek sensor for connection-specific SNI metadata; TLS minimum-version enforcement is unimplemented."
+    "_zeek_note": "Requires a separately provisioned Zeek sensor or packet interface for SNI; TLS version control uses the packet interface."
   },
   "burst": {
     "dns_queries_per_minute_monitor": 30,

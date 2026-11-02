@@ -150,3 +150,25 @@ def test_bundled_packet_model_infers_only_its_measured_schema():
     assert not detector.can_infer(flow)
     detector.is_suspicious(flow)
     assert detector.total_inferences == 1
+
+
+def test_capture_stream_uses_memory_pipe_and_stops_both_children(monkeypatch):
+    import io
+    from unittest.mock import MagicMock
+    from minifw_ai import collector_packets
+    fields = [""] * len(FIELDS)
+    fields[:4] = ["100", "100", "10.10.0.20", "198.18.0.2"]
+    fields[6:8] = ["51000", "443"]
+    capture, decoder = MagicMock(), MagicMock()
+    capture.stdout = io.BytesIO()
+    decoder.stdout = iter(["\t".join(fields)])
+    capture.poll.return_value = decoder.poll.return_value = None
+    launch = MagicMock(side_effect=[capture, decoder])
+    monkeypatch.setattr(collector_packets.subprocess, "Popen", launch)
+    events = collector_packets.stream_packet_events("mfcg")
+    assert next(events).size == 100
+    events.close()
+    assert launch.call_args_list[0].args[0][-2:] == ["-w", "-"]
+    assert "-r" in launch.call_args_list[1].args[0]
+    capture.terminate.assert_called_once()
+    decoder.terminate.assert_called_once()
