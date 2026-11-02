@@ -198,7 +198,7 @@ class MLPThreatDetector:
                         f"Training samples: {metadata.get('n_samples', 'unknown')}"
                     )
                     logger.info(
-                        f"Model accuracy: {metadata.get('accuracy', 'unknown')}"
+                        f"Training-data accuracy: {metadata.get('accuracy', 'unknown')}; provenance: {metadata.get('training_data', 'unknown')}"
                     )
             else:
                 # Assume it's just the model

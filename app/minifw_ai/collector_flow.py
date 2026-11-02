@@ -243,7 +243,7 @@ class FlowTracker:
             flow_timeout: Flow timeout in seconds (default 5 minutes)
             max_flows: Maximum number of active flows to retain (LRU eviction)
         """
-        self.flows: OrderedDict[str, FlowStats] = OrderedDict()
+        self.flows: OrderedDict[tuple, FlowStats] = OrderedDict()
         self.flow_timeout = flow_timeout
         self.max_flows = max_flows
         self.last_cleanup = time.time()
@@ -253,9 +253,9 @@ class FlowTracker:
         self._domain_timestamps: dict[str, deque] = {}
         self._domain_freq_window = 300  # 5 minutes in seconds
 
-    def _flow_key(self, client_ip: str, dst_ip: str, dst_port: int, proto: str, src_port: int = 0) -> str:
+    def _flow_key(self, client_ip: str, dst_ip: str, dst_port: int, proto: str, src_port: int = 0) -> tuple:
         """Generate unique flow key"""
-        return f"{client_ip}:{src_port}:{dst_ip}:{dst_port}:{proto}"
+        return client_ip, src_port, dst_ip, dst_port, proto
 
     def update_flow(
         self,

@@ -3,6 +3,7 @@ import subprocess
 import logging
 import re
 import ipaddress
+from pathlib import Path
 
 
 def is_valid_nft_object_name(name: str) -> bool:
@@ -160,6 +161,18 @@ def nft_apply_forward_drop(
             check=True,
         )
         out = result.stdout
+
+        # A loaded module alone does not activate conntrack hooks in a fresh network namespace.
+        if "MiniFW-AI-Conntrack" not in out:
+            subprocess.run(
+                ["nft", "add", "rule", table, table_name, chain, "ct", "state", "new",
+                 "counter", "comment", "MiniFW-AI-Conntrack"],
+                check=True, capture_output=True, text=True,
+            )
+        try:
+            Path("/proc/sys/net/netfilter/nf_conntrack_acct").write_text("1\n")
+        except OSError:
+            logging.warning("[FLOW] Conntrack accounting unavailable; packet/byte rate features require measured counters")
 
         # 4. Add the rule if missing
         if f"@{set_name}" not in out:

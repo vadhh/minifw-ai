@@ -117,6 +117,13 @@ def test_sni_matches_connection_and_source_port_dns_queries_do_not_label_flows()
     assert first.domain == second.domain == other.domain == ""
 
 
+def test_ipv6_connection_identities_cannot_collide_at_colon_boundaries():
+    tracker = FlowTracker()
+    first = tracker.update_flow("2001:db8::1", "2001:db8::2", 443, "tcp", src_port=10)
+    second = tracker.update_flow("2001:db8::1:10", "db8::2", 443, "tcp", src_port=2001)
+    assert first is not second and len(tracker.flows) == 2
+
+
 @pytest.mark.parametrize("silent", ["dns", "zeek", "flow"])
 @pytest.mark.parametrize("mode", ["quiet", "missing", "stopped"])
 def test_collectors_continue_when_another_source_is_quiet_missing_or_stopped(silent, mode):

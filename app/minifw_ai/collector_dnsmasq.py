@@ -88,7 +88,7 @@ def stream_dns_events_file(log_path: str) -> Iterator[Tuple[str, str]]:
             "[BASELINE_PROTECTION] Service will continue monitoring for file creation..."
         )
         print(
-            "[BASELINE_PROTECTION] Other security functions remain active (Fail-Closed)"
+            "[BASELINE_PROTECTION] DNS telemetry unavailable; flow decisions continue independently"
         )
         # Wait indefinitely for file to appear - NEVER EXIT
         while not os.path.exists(log_path):

@@ -133,7 +133,8 @@ def test_ipset_add_raises_on_subprocess_error(mock_run):
 # ---------------------------------------------------------------------------
 
 @patch("minifw_ai.enforce.subprocess.run")
-def test_nft_apply_forward_drop_adds_rule_when_missing(mock_run):
+@patch("minifw_ai.enforce.Path.write_text")
+def test_nft_apply_forward_drop_adds_rule_when_missing(mock_accounting, mock_run):
     """When the set is NOT in the chain output, the drop rule is added."""
     mock_run.side_effect = [
         MagicMock(returncode=0),  # add table
@@ -141,6 +142,7 @@ def test_nft_apply_forward_drop_adds_rule_when_missing(mock_run):
         MagicMock(returncode=0),  # ipset_create: add table
         MagicMock(returncode=0, stderr=""),  # ipset_create: add set
         MagicMock(returncode=0, stdout="chain forward {\n}\n"),  # list chain (no rule)
+        MagicMock(returncode=0),  # activate conntrack hooks
         MagicMock(returncode=0),  # add rule
     ]
 
@@ -151,10 +153,13 @@ def test_nft_apply_forward_drop_adds_rule_when_missing(mock_run):
     assert "add" in last_cmd and "rule" in last_cmd
     assert "drop" in last_cmd
     assert "@minifw_block_v4" in last_cmd
+    assert mock_run.call_args_list[-2][0][0][-6:] == ["ct", "state", "new", "counter", "comment", "MiniFW-AI-Conntrack"]
+    mock_accounting.assert_called_once_with("1\n")
 
 
 @patch("minifw_ai.enforce.subprocess.run")
-def test_nft_apply_forward_drop_skips_if_rule_exists(mock_run):
+@patch("minifw_ai.enforce.Path.write_text")
+def test_nft_apply_forward_drop_skips_if_rule_exists(mock_accounting, mock_run):
     """When the set IS already in the chain output, no rule is added."""
     mock_run.side_effect = [
         MagicMock(returncode=0),  # add table
@@ -163,7 +168,7 @@ def test_nft_apply_forward_drop_skips_if_rule_exists(mock_run):
         MagicMock(returncode=0, stderr=""),  # ipset_create: add set
         MagicMock(
             returncode=0,
-            stdout="chain forward {\n  ip saddr @minifw_block_v4 drop\n}\n",
+            stdout='chain forward {\n  ct state new counter comment "MiniFW-AI-Conntrack"\n  ip saddr @minifw_block_v4 drop\n}\n',
         ),  # list chain (rule exists)
     ]
 
@@ -171,6 +176,18 @@ def test_nft_apply_forward_drop_skips_if_rule_exists(mock_run):
 
     # Should NOT have a 6th call to add the rule
     assert mock_run.call_count == 5
+
+
+@patch("minifw_ai.enforce.subprocess.run")
+@patch("minifw_ai.enforce.Path.write_text")
+def test_legacy_drop_rule_also_gets_conntrack_hooks(mock_accounting, mock_run):
+    mock_run.side_effect = [MagicMock(returncode=0) for _ in range(4)] + [
+        MagicMock(returncode=0, stdout="ip saddr @minifw_block_v4 drop"),
+        MagicMock(returncode=0),
+    ]
+    nft_apply_forward_drop("minifw_block_v4")
+    assert mock_run.call_count == 6
+    assert mock_run.call_args[0][0][-6:] == ["ct", "state", "new", "counter", "comment", "MiniFW-AI-Conntrack"]
 
 
 @patch("minifw_ai.enforce.subprocess.run")
