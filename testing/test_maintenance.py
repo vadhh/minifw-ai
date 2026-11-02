@@ -84,3 +84,12 @@ def test_read_regular_returns_owner_and_mode(tmp_path):
     path.chmod(0o664)
     assert read_regular(path) == (b"{}", 0o664, os.getuid(), os.getgid())
     assert read_regular(tmp_path / "absent") is None
+
+
+def test_read_regular_rejects_fifo_without_blocking(tmp_path):
+    import os
+    from minifw_ai.maintenance import read_regular
+    fifo = tmp_path / "minifw.db"
+    os.mkfifo(fifo)
+    with pytest.raises(ValueError):
+        read_regular(fifo)

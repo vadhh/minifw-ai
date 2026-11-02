@@ -109,15 +109,19 @@ def read_regular(path):
     Restore runs as root inside directories the dashboard user can write, so a planted
     symlink or special file must never be read through or replaced in place."""
     try:
-        fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW)
+        before = os.lstat(path)
     except FileNotFoundError:
         return None
+    if not stat.S_ISREG(before.st_mode):  # also rejects FIFOs, which would block a plain open
+        raise ValueError(f"Restore destination is not a regular file: {path}")
+    try:
+        fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK | os.O_NOCTTY)
     except OSError as error:
         raise ValueError(f"Restore destination is not a regular file: {path}") from error
     with os.fdopen(fd, "rb") as handle:
         info = os.fstat(handle.fileno())
-        if not stat.S_ISREG(info.st_mode):
-            raise ValueError(f"Restore destination is not a regular file: {path}")
+        if not stat.S_ISREG(info.st_mode) or (info.st_dev, info.st_ino) != (before.st_dev, before.st_ino):
+            raise ValueError(f"Restore destination changed while opening: {path}")
         return handle.read(), stat.S_IMODE(info.st_mode), info.st_uid, info.st_gid
 
 

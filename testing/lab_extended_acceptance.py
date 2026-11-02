@@ -143,17 +143,45 @@ def dashboard_smoke(run):
             body = urllib.parse.urlencode(body) if form else json.dumps(body)
         connection.request(method, path, body=body, headers=headers)
         response = connection.getresponse()
-        return response.status, response.getheader("Set-Cookie") or "", response.read()
+        return response.status, response.getheader("Set-Cookie") or "", response.read(), response.getheader("Location") or ""
 
-    status, set_cookie, _ = call("POST", "/auth/login", {"username": "admin", "password": secrets["MINIFW_ADMIN_PASSWORD"].strip()}, form=True)
-    assert status == 303 and "access_token=" in set_cookie, ("login", status)  # never print the password or token
-    cookie = set_cookie.split(";", 1)[0]
-    results = {"login": "303 with session cookie"}
+    def login(password):
+        status, set_cookie, _, location = call("POST", "/auth/login", {"username": "admin", "password": password}, form=True)
+        assert status == 303 and "access_token=" in set_cookie, ("login", status)  # never print the password or token
+        return set_cookie.split(";", 1)[0], location
+
+    def change(cookie, old, new):
+        status, _, _, location = call("POST", "/auth/change-password", {"current_password": old, "new_password": new,
+                                      "confirm_password": new}, cookie, form=True)
+        assert status == 303 and location.startswith("/auth/login"), ("change-password", status, location)
+
+    import secrets as token_source
+    original = secrets["MINIFW_ADMIN_PASSWORD"].strip()
+    temporary = "Lab-" + token_source.token_urlsafe(18)
+    cookie, location = login(original)
+    # A fresh install forces the admin to change the password before any admin page.
+    assert location == "/auth/change-password", location
+    status, _, _, location = call("GET", "/admin/", cookie=cookie)
+    assert status == 303 and location == "/auth/change-password", ("forced change", status, location)
+    change(cookie, original, temporary)  # a real database write by minifw-web
+    cookie, location = login(temporary)
+    assert location == "/admin/", location
+    results = {"forced_password_change": "enforced, then completed (database write as minifw-web)", "login": "303 to /admin/"}
+    try:
+        results.update(dashboard_checks(call, cookie, run))
+    finally:
+        change(cookie, temporary, original)  # leave the documented installer password in place
+    results["admin_password"] = "restored to the installer value; must_change_password now false"
+    return results
+
+
+def dashboard_checks(call, cookie, run):
+    results = {}
     for path in ["/admin/", "/admin/api/events", "/admin/policy", "/admin/license"]:
-        status, _, _ = call("GET", path, cookie=cookie)
-        assert status == 200, (path, status)
+        status, _, _, location = call("GET", path, cookie=cookie)
+        assert status == 200, (path, status, location)
         results["GET " + path] = status
-    status, _, body = call("GET", "/admin/api/kernel-proof", cookie=cookie)
+    status, _, body, _ = call("GET", "/admin/api/kernel-proof", cookie=cookie)
     proof = json.loads(body)
     assert status == 200 and proof["active"] is True, proof
     results["kernel_proof"] = proof["label"]
@@ -162,16 +190,17 @@ def dashboard_smoke(run):
     assert call("POST", "/admin/deny-domain", {"domain": domain}, cookie)[0] == 200 and domain in feed.read_text()
     assert call("DELETE", "/admin/deny-domain", {"domain": domain}, cookie)[0] == 200 and domain not in feed.read_text()
     results["feed_add_delete"] = "deny_domains.txt written by minifw-web"
-    units = {unit: run("systemctl", "show", unit, "-p", "Environment").stdout for unit in ("minifw-ai", "minifw-ai-web")}
-    policies = {unit: next(item for item in env.split() if item.startswith("MINIFW_POLICY=")) for unit, env in units.items()}
-    assert len(set(policies.values())) == 1, policies
-    policy = Path(policies["minifw-ai"].split("=", 1)[1])
+    # Compare the packaged units (the lab drop-in points the engine at a fixture policy).
+    policies = {unit: next(line for line in Path(f"/etc/systemd/system/{unit}.service").read_text().splitlines()
+                           if line.startswith("Environment=MINIFW_POLICY=")) for unit in ("minifw-ai", "minifw-ai-web")}
+    assert len(set(policies.values())) == 1 and "/config/modes/" in policies["minifw-ai"], policies
+    policy = Path(policies["minifw-ai"].split("=", 2)[2])
     original = policy.read_bytes()
     burst = json.loads(original).get("burst", {})
     values = {"dns_queries_per_minute_monitor": burst.get("dns_queries_per_minute_monitor", 30),
               "dns_queries_per_minute_block": burst.get("dns_queries_per_minute_block", 60)}
     try:
-        status, _, _ = call("POST", "/admin/policy/burst", values, cookie)
+        status, _, _, _ = call("POST", "/admin/policy/burst", values, cookie)
         assert status == 200, ("policy save", status)
         assert json.loads(policy.read_text())["burst"]["dns_queries_per_minute_block"] == values["dns_queries_per_minute_block"]
     finally:
