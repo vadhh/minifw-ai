@@ -713,7 +713,8 @@ def run():
                     )
                     mlp_proba = proba
                     mlp_ran = mlp_detector.total_inferences > previous_inferences
-                    if is_threat:
+                    # The new synthetic packet model is evaluation-only until representative validation.
+                    if is_threat and mlp_detector.feature_schema != "packet14-v1":
                         mlp_score = int(proba * 100)
                 except Exception:
                     logging.warning(
@@ -834,6 +835,7 @@ def run():
                 mlp_probability=mlp_proba if mlp_ran else None,
                 mlp_schema=mlp_detector.feature_schema if mlp_ran else "",
                 mlp_features=mlp_detector.last_features if mlp_ran else None,
+                mlp_mode=("shadow_only" if mlp_detector.feature_schema == "packet14-v1" else "scoring") if mlp_ran else "not_run",
             )
 
             # HIPAA: Redact domain/SNI from event logs when sector requires it
@@ -936,6 +938,7 @@ def run():
                         ),
                         # NEW: Include MLP prediction if available
                         "mlp_enabled": mlp_enabled,
+                        "mlp_mode": ("shadow_only" if flow.packet_metadata_only else "scoring") if mlp_ran and flow is flow_for_event else "not_run",
                         "mlp_proba": mlp_proba if flow is flow_for_event else None,
                         "mlp_score": mlp_score if flow is flow_for_event else None,
                         # NEW: Include YARA matches if available

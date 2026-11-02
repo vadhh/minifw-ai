@@ -383,13 +383,15 @@ def acceptance(edition, package, metadata=False):
             inferred = next(row for row in reversed(rows()) if row.get("mlp_status") == "inferred")
             features = inferred["mlp_features"]
             assert inferred["mlp_schema"] == "packet14-v1" and len(features) == 14
+            assert inferred["mlp_mode"] == "shadow_only" and inferred["score"] == 0
             assert features[0] > 0 and features[1] >= 5
             assert abs(features[3] - features[2] / features[0]) < 0.001
             record("measured_packet_model_inference", schema=inferred["mlp_schema"], features=features,
                    probability=inferred["mlp_probability"], telemetry=inferred["telemetry_source"],
-                   training="synthetic; no real-world sector accuracy", DNS="disabled")
+                   training="synthetic; no real-world sector accuracy", DNS="disabled", mode="shadow_only", enforcement_score=0)
             workflow = ns("workflows", SERVER, CLIENT)
             record("measured_AI_legitimate_workflows", **json.loads(workflow.stdout))
+            wait_for(lambda: (root / "flows.jsonl").exists() and (root / "flows.jsonl").stat().st_size > 0)
             exports = [json.loads(line) for line in (root / "flows.jsonl").read_text().splitlines()]
             assert exports and all(row["features"] is None and row["packet_feature_schema"] == "packet14-v1" for row in exports)
             record("packet_schema_export", legacy24_features=None, packet_schema="packet14-v1")
@@ -462,12 +464,19 @@ def acceptance(edition, package, metadata=False):
             children.append(restricted)
             time.sleep(.5)
             assert restricted.poll() is None
-            for name, target in [("www.google.com", "forcesafesearch.google.com"), ("www.bing.com", "strict.bing.com"),
-                                 ("www.youtube.com", "restrict.youtube.com")]:
+            aliases = {
+                "forcesafesearch.google.com": ["google.com", "www.google.com", "google.co.id", "www.google.co.id"],
+                "strict.bing.com": ["bing.com", "www.bing.com", "edgeservices.bing.com"],
+                "restrict.youtube.com": ["www.youtube.com", "m.youtube.com", "youtubei.googleapis.com",
+                                         "youtube.googleapis.com", "www.youtube-nocookie.com"],
+            }
+            for name, target in [(name, target) for target, names in aliases.items() for name in names]:
                 answer = run("ip", "netns", "exec", "mf-client", "dig", "@10.10.0.1", name, "A", "+noall", "+answer").stdout
                 assert target + "." in answer and "\tA\t" in answer
                 record("restricted_DNS_" + name, cname=target, answer=answer.strip())
             answer = run("ip", "netns", "exec", "mf-client", "dig", "@10.10.0.1", "accounts.google.com", "A", "+short").stdout
+            assert answer.strip() == SERVER
+            answer = run("ip", "netns", "exec", "mf-client", "dig", "@10.10.0.1", "youtube.com", "A", "+short").stdout
             assert answer.strip() == SERVER
             ns("http", SERVER, "8080", "/")
             record("SafeSearch_scope", accounts_unmodified=True, forwarding="allowed",

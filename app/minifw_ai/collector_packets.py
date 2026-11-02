@@ -4,6 +4,7 @@ from dataclasses import dataclass
 import ipaddress
 import logging
 import math
+import pwd
 import re
 import subprocess
 
@@ -74,7 +75,10 @@ def stream_packet_events(interface):
                                stdout=subprocess.PIPE)
     decoder = None
     try:
-        decoder = subprocess.Popen(command, stdin=capture.stdout, stdout=subprocess.PIPE, text=True, bufsize=1)
+        account = pwd.getpwnam("nobody")
+        decoder = subprocess.Popen(command, stdin=capture.stdout, stdout=subprocess.PIPE, text=True, bufsize=1,
+                                   user=account.pw_uid, group=account.pw_gid, extra_groups=[],
+                                   env={"PATH": "/usr/bin:/bin", "LANG": "C.UTF-8", "HOME": "/nonexistent"})
         capture.stdout.close()
         for line in decoder.stdout:
             observation = parse_packet_fields(line)

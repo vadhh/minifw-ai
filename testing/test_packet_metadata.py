@@ -108,12 +108,13 @@ def test_safesearch_exact_hosts_preserve_unrelated_services(monkeypatch):
         render_safesearch()
 
 
-def test_explicit_ai_disable_overrides_persisted_state_and_packet_health(tmp_path, monkeypatch):
+@pytest.mark.parametrize("flag", ["0", "false", "FALSE ", "off", "invalid"])
+def test_explicit_ai_disable_overrides_persisted_state_and_packet_health(tmp_path, monkeypatch, flag):
     from minifw_ai.state_manager import StateManager, ProtectionState
     import json
     path = tmp_path / "state.json"
     path.write_text(json.dumps({"current_protection_state": "AI_ENHANCED_PROTECTION"}))
-    monkeypatch.setenv("AI_ENABLED", "0")
+    monkeypatch.setenv("AI_ENABLED", flag)
     state = StateManager(ProtectionState.AI_ENHANCED_PROTECTION, str(path))
     state.record_packet_event()
     state._health.consecutive_healthy = 10
@@ -170,5 +171,8 @@ def test_capture_stream_uses_memory_pipe_and_stops_both_children(monkeypatch):
     events.close()
     assert launch.call_args_list[0].args[0][-2:] == ["-w", "-"]
     assert "-r" in launch.call_args_list[1].args[0]
+    assert launch.call_args_list[1].kwargs["user"] != 0
+    assert "SSLKEYLOGFILE" not in launch.call_args_list[1].kwargs["env"]
+    assert "JWT_SECRET" not in launch.call_args_list[1].kwargs["env"]
     capture.terminate.assert_called_once()
     decoder.terminate.assert_called_once()

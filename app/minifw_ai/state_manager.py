@@ -110,7 +110,7 @@ class StateManager:
         state_file_path: str = "/opt/minifw_ai/logs/deployment_state.json",
     ):
         self._state = initial_state
-        self._enabled_by_config = os.environ.get("AI_ENABLED", "1").lower() not in {"0", "false", "no", "off"}
+        self._enabled_by_config = os.environ.get("AI_ENABLED", "1").strip().lower() in {"1", "true", "yes", "on"}
         self._state_file = Path(state_file_path)
 
         # Read config from env with safe defaults (no new mandatory vars)

@@ -318,7 +318,8 @@ if command -v zeek >/dev/null 2>&1 || command -v zeekctl >/dev/null 2>&1; then
     fi
     echo "  Zeek TLS collector active — SNI scoring and TLS features enabled."
 else
-    echo "  Zeek not installed — TLS/SNI scoring disabled (DNS-only mode)."
+    echo "  Zeek not installed — Zeek TLS/SNI collection disabled."
+    echo "  Optional packet metadata requires tshark and an explicit client interface."
     echo "  Install with: apt install zeek   then re-run: dpkg-reconfigure minifw-ai"
 fi
 

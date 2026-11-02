@@ -32,6 +32,7 @@ class Event:
     vpn_protocol: str = ""
     mlp_probability: float | None = None
     mlp_schema: str = ""
+    mlp_mode: str = "not_run"
     mlp_features: list[float] | None = None
 
 
