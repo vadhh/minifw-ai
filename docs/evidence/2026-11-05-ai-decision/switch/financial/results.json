@@ -1,0 +1,78 @@
+[
+  {
+    "test": "ai_switch_off_shadow",
+    "actual": {
+      "inferred_events": 161,
+      "mlp_mode": "shadow_only",
+      "score": 0,
+      "isolation": false,
+      "requests": 16,
+      "succeeded": 16
+    },
+    "time": "2026-11-05T02:57:43.208938+00:00"
+  },
+  {
+    "test": "ai_caused_kernel_isolation",
+    "actual": {
+      "model": "TEST-ONLY always-threat",
+      "model_sha256": "871527e9928ded0ec15326bec4c08fd61ec6b354d5c449b4a47a28bfe7e69d0c",
+      "score": 30,
+      "reasons": [
+        "mlp_threat_score_100"
+      ],
+      "kernel_set_member": true,
+      "routed_HTTP": "blocked",
+      "lab_thresholds": "block 30 in lab policy copy only",
+      "detection_quality": "not evaluated"
+    },
+    "time": "2026-11-05T02:58:21.639571+00:00"
+  },
+  {
+    "test": "ai_switch_mismatched_approval",
+    "actual": {
+      "approved_sha256": "shipped packet14 model",
+      "loaded": "test model",
+      "mlp_mode": "shadow_only",
+      "isolation": false,
+      "requests": 16,
+      "succeeded": 16
+    },
+    "time": "2026-11-05T02:58:32.073860+00:00"
+  },
+  {
+    "test": "ai_model_corrupt_baseline_continues",
+    "actual": {
+      "engine_active": true,
+      "mlp_inferences": 0,
+      "journal_model_warning": true,
+      "ordinary_requests": {
+        "requests": 10,
+        "succeeded": 10
+      },
+      "baseline_scan_isolation": true,
+      "reasons": [
+        "port_scan",
+        "hard_threat_gate_override"
+      ]
+    },
+    "time": "2026-11-05T02:58:39.887550+00:00"
+  },
+  {
+    "test": "ai_model_missing_baseline_continues",
+    "actual": {
+      "engine_active": true,
+      "mlp_inferences": 0,
+      "journal_model_warning": true,
+      "ordinary_requests": {
+        "requests": 10,
+        "succeeded": 10
+      },
+      "baseline_scan_isolation": true,
+      "reasons": [
+        "port_scan",
+        "hard_threat_gate_override"
+      ]
+    },
+    "time": "2026-11-05T02:58:47.775588+00:00"
+  }
+]

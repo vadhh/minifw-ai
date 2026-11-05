@@ -1,0 +1,687 @@
+{
+  "education": [
+    {
+      "test": "bounded_load",
+      "actual": {
+        "duration_seconds": 59.803347601002315,
+        "offered_rate_rps": 5,
+        "scheduled": 300,
+        "attempted": 300,
+        "completed": 300,
+        "success": 300,
+        "failures": 0,
+        "legitimate_not_isolated": true,
+        "qualification": "60 seconds only, not prolonged load"
+      },
+      "time": "2026-11-04T06:57:16.625697+00:00"
+    },
+    {
+      "test": "bounded_load_acceptance",
+      "actual": {
+        "result": "pass"
+      },
+      "time": "2026-11-04T06:57:16.642047+00:00"
+    },
+    {
+      "test": "full_log_and_flow_volume_progress",
+      "actual": {
+        "pid_before": "54398",
+        "pid_after": "54398",
+        "automatic_restarts": 0,
+        "legitimate_HTTP": 30
+      },
+      "time": "2026-11-04T06:57:30.109500+00:00"
+    },
+    {
+      "test": "older_block_renewed_by_explicit_deny",
+      "actual": {
+        "old_timeout_seconds": 2,
+        "checked_after_seconds": 4,
+        "kernel_block_present": true
+      },
+      "time": "2026-11-04T06:57:34.233680+00:00"
+    },
+    {
+      "test": "isolated_disk_full",
+      "actual": {
+        "filesystem_bytes": 65536,
+        "kernel_block_present": true,
+        "free_bytes": 0,
+        "event_log_bytes": 0,
+        "flow_log_bytes": 0,
+        "routed_http_exit": 2,
+        "services": "NRestarts=0\nMemoryCurrent=190406656\nCPUUsageNSec=2525248000\nActiveState=active\n\nNRestarts=0\nMemoryCurrent=122499072\nCPUUsageNSec=2647736000\nActiveState=active\n",
+        "dashboard_http": {
+          "/auth/login": 200,
+          "/health/": 503
+        },
+        "acceptance": "pass"
+      },
+      "time": "2026-11-04T06:57:36.482793+00:00"
+    },
+    {
+      "test": "disk_full_recovery",
+      "actual": {
+        "legitimate_http": "200",
+        "engine": "restarted with normal log path"
+      },
+      "time": "2026-11-04T06:57:41.716823+00:00"
+    },
+    {
+      "test": "vendor_signed_licence_activation",
+      "actual": {
+        "actual_vendor_key": "minifw-vendor-2026",
+        "licence": {
+          "status": "valid",
+          "license_id": "40d18670-2131-4243-9600-49724d257906",
+          "customer_id": "wednesday-isolated-education-lab",
+          "deployment_id": "a04decf6-26d9-4f51-a45b-5b81d54224e1",
+          "product_mode": "minifw_school",
+          "starts_at": "2026-11-04T06:21:01Z",
+          "expires_at": "2027-11-04T06:21:01Z"
+        },
+        "tampered_upload_http": 400,
+        "persists_after_web_restart": true,
+        "scope": "isolated lab deployment, actual vendor signature"
+      },
+      "time": "2026-11-04T06:59:04.713542+00:00"
+    },
+    {
+      "test": "dashboard_explicit_apply",
+      "actual": {
+        "response": {
+          "message": "Engine restarted; saved policy and feeds loaded. Check protection status on the dashboard.",
+          "engine_pid": 54916
+        },
+        "root_restart_after_save": false
+      },
+      "time": "2026-11-04T06:59:09.775585+00:00"
+    },
+    {
+      "test": "dashboard_to_engine_enforcement",
+      "actual": {
+        "authenticated_save": true,
+        "packaged_policy": "/opt/minifw_ai/config/modes/minifw_school/policy.json",
+        "restart_required": true,
+        "restart_requested_by": "authenticated dashboard apply button",
+        "previous_timeout_seconds": 86400,
+        "timeout_seconds": 11,
+        "added_domain": "wednesday-policy.lab.test",
+        "fixture_setup": "collector paths supplied directly by lab root; enforcement timeout and deny domain saved through dashboard",
+        "actual_kernel": "table inet minifw {\n\tset minifw_block_v4 {\n\t\ttype ipv4_addr\n\t\ttimeout 1h\n\t\telements = { 10.10.0.20 timeout 11s expires 10s816ms }\n\t}\n}\n",
+        "routed_before": "HTTP 200",
+        "routed_after": "blocked"
+      },
+      "time": "2026-11-04T06:59:12.295283+00:00"
+    },
+    {
+      "test": "engine_activates_kernel_accounting",
+      "actual": {
+        "result": "enabled"
+      },
+      "time": "2026-11-04T06:59:18.233817+00:00"
+    },
+    {
+      "test": "policy_selection_student",
+      "actual": {
+        "client": "10.10.0.20",
+        "segment": "student",
+        "topology": "Routed source aliases in the isolated client namespace; not VLAN-isolation acceptance"
+      },
+      "time": "2026-11-04T06:59:18.544390+00:00"
+    },
+    {
+      "test": "policy_selection_staff",
+      "actual": {
+        "client": "192.168.1.20",
+        "segment": "staff",
+        "topology": "Routed source aliases in the isolated client namespace; not VLAN-isolation acceptance"
+      },
+      "time": "2026-11-04T06:59:18.877339+00:00"
+    },
+    {
+      "test": "policy_selection_guest",
+      "actual": {
+        "client": "192.168.100.20",
+        "segment": "guest",
+        "topology": "Routed source aliases in the isolated client namespace; not VLAN-isolation acceptance"
+      },
+      "time": "2026-11-04T06:59:19.198102+00:00"
+    },
+    {
+      "test": "policy_selection_admin",
+      "actual": {
+        "client": "10.0.0.20",
+        "segment": "admin",
+        "topology": "Routed source aliases in the isolated client namespace; not VLAN-isolation acceptance"
+      },
+      "time": "2026-11-04T06:59:19.533549+00:00"
+    },
+    {
+      "test": "legitimate_sandbox_workflows",
+      "actual": {
+        "login": "passed",
+        "api": "passed",
+        "payment_credits": 1250,
+        "transfer_credits": 2500,
+        "alice_credits": 96250,
+        "bob_credits": 52500,
+        "overdraft_rejected": true,
+        "statement_sha256": "af86a44302fed2f6533fd1e1734c5618ac9258c60917c0514c48d55a89202435",
+        "lesson": "passed",
+        "search": "passed",
+        "student_staff_access": "rejected",
+        "staff_service": "passed",
+        "staff_source_ip": "192.168.1.20",
+        "video_bytes": 14723,
+        "video_sha256": "836f294b179103aa3d90ee58618435ce91e019c9a767b5994752d8eff947aacd",
+        "video_range": "passed",
+        "scope": "Fictional local sandbox; external institutions and browser playback are not validated"
+      },
+      "time": "2026-11-04T06:59:19.708572+00:00"
+    },
+    {
+      "test": "kernel_counter_deltas",
+      "actual": {
+        "first": [
+          7,
+          410,
+          6,
+          3507
+        ],
+        "second": [
+          15,
+          826,
+          14,
+          12115
+        ],
+        "measured_packets": 16,
+        "measured_bytes_out": 416,
+        "measured_bytes_in": 8608,
+        "repeated_snapshot_increments": 0,
+        "packet_timing_available": false
+      },
+      "time": "2026-11-04T06:59:22.542464+00:00"
+    },
+    {
+      "test": "bypass_alternate_DNS",
+      "actual": {
+        "result": "allowed",
+        "coverage": "outside current name/IPv4 coverage"
+      },
+      "time": "2026-11-04T06:59:22.636024+00:00"
+    },
+    {
+      "test": "bypass_DoH",
+      "actual": {
+        "result": "allowed",
+        "coverage": "outside current name/IPv4 coverage"
+      },
+      "time": "2026-11-04T06:59:22.740938+00:00"
+    },
+    {
+      "test": "bypass_DoT",
+      "actual": {
+        "result": "allowed",
+        "coverage": "outside current name/IPv4 coverage"
+      },
+      "time": "2026-11-04T06:59:22.842390+00:00"
+    },
+    {
+      "test": "bypass_direct_IP",
+      "actual": {
+        "result": "allowed",
+        "coverage": "outside current name/IPv4 coverage"
+      },
+      "time": "2026-11-04T06:59:22.938503+00:00"
+    },
+    {
+      "test": "bypass_IPv6",
+      "actual": {
+        "result": "allowed",
+        "coverage": "outside current name/IPv4 coverage"
+      },
+      "time": "2026-11-04T06:59:23.053571+00:00"
+    },
+    {
+      "test": "DNS_decision_with_flow_quiet",
+      "actual": {
+        "client": "10.10.0.20",
+        "domain": "4chan.org",
+        "elapsed_seconds": 0.32996995298890397,
+        "forwarded": "blocked"
+      },
+      "time": "2026-11-04T06:59:28.407744+00:00"
+    },
+    {
+      "test": "DNS_decision_with_flow_missing",
+      "actual": {
+        "client": "10.10.0.20",
+        "domain": "www.4chan.org",
+        "elapsed_seconds": 0.3306949489924591,
+        "forwarded": "blocked"
+      },
+      "time": "2026-11-04T06:59:33.755713+00:00"
+    },
+    {
+      "test": "VPN_provider_domain",
+      "actual": {
+        "domain": "nordvpn.com",
+        "forwarded": "blocked",
+        "limitation": "Not a VPN tunnel detection test"
+      },
+      "time": "2026-11-04T06:59:40.381330+00:00"
+    },
+    {
+      "test": "repeated_explicit_deny",
+      "actual": {
+        "added_events": 1,
+        "expiry_refresh": true
+      },
+      "time": "2026-11-04T06:59:44.128539+00:00"
+    },
+    {
+      "test": "restart_preserves_kernel_block",
+      "actual": {
+        "result": "blocked"
+      },
+      "time": "2026-11-04T06:59:46.932703+00:00"
+    },
+    {
+      "test": "expiry_recovery",
+      "actual": {
+        "result": "allowed",
+        "lab_timeout_seconds": 15
+      },
+      "time": "2026-11-04T06:59:58.892517+00:00"
+    },
+    {
+      "test": "IPv6_during_IPv4_isolation",
+      "actual": {
+        "result": "allowed",
+        "limitation": "IPv6 is not enforced"
+      },
+      "time": "2026-11-04T06:59:59.333445+00:00"
+    },
+    {
+      "test": "manual_unblock_recovery",
+      "actual": {
+        "result": "allowed"
+      },
+      "time": "2026-11-04T06:59:59.467768+00:00"
+    },
+    {
+      "test": "flow_only_with_DNS_none",
+      "actual": {
+        "client": "10.10.0.20",
+        "destination": "198.18.0.2",
+        "decision": [
+          "port_scan",
+          "hard_threat_gate_override"
+        ],
+        "forwarded": "blocked"
+      },
+      "time": "2026-11-04T07:00:09.109686+00:00"
+    },
+    {
+      "test": "flow_only_with_DNS_missing",
+      "actual": {
+        "client": "10.10.0.20",
+        "destination": "198.18.0.2",
+        "decision": [
+          "port_scan",
+          "hard_threat_gate_override"
+        ],
+        "forwarded": "blocked"
+      },
+      "time": "2026-11-04T07:00:14.534887+00:00"
+    },
+    {
+      "test": "acceptance_scope",
+      "actual": {
+        "shared_core": "verified by controlled routed traffic",
+        "production_ready": false,
+        "remaining": "real sector applications, SafeSearch, VPN tunnel detection, measured-feature model validation"
+      },
+      "time": "2026-11-04T07:00:15.036120+00:00"
+    }
+  ],
+  "financial": [
+    {
+      "test": "bounded_load",
+      "actual": {
+        "duration_seconds": 59.80295334500261,
+        "offered_rate_rps": 5,
+        "scheduled": 300,
+        "attempted": 300,
+        "completed": 300,
+        "success": 300,
+        "failures": 0,
+        "legitimate_not_isolated": true,
+        "qualification": "60 seconds only, not prolonged load"
+      },
+      "time": "2026-11-04T06:57:23.039651+00:00"
+    },
+    {
+      "test": "bounded_load_acceptance",
+      "actual": {
+        "result": "pass"
+      },
+      "time": "2026-11-04T06:57:23.048862+00:00"
+    },
+    {
+      "test": "full_log_and_flow_volume_progress",
+      "actual": {
+        "pid_before": "47566",
+        "pid_after": "47566",
+        "automatic_restarts": 0,
+        "legitimate_HTTP": 30
+      },
+      "time": "2026-11-04T06:57:36.809994+00:00"
+    },
+    {
+      "test": "older_block_renewed_by_explicit_deny",
+      "actual": {
+        "old_timeout_seconds": 2,
+        "checked_after_seconds": 4,
+        "kernel_block_present": true
+      },
+      "time": "2026-11-04T06:57:40.928701+00:00"
+    },
+    {
+      "test": "isolated_disk_full",
+      "actual": {
+        "filesystem_bytes": 65536,
+        "kernel_block_present": true,
+        "free_bytes": 0,
+        "event_log_bytes": 0,
+        "flow_log_bytes": 0,
+        "routed_http_exit": 2,
+        "services": "NRestarts=0\nMemoryCurrent=194224128\nCPUUsageNSec=2761011000\nActiveState=active\n\nNRestarts=0\nMemoryCurrent=124407808\nCPUUsageNSec=5645179000\nActiveState=active\n",
+        "dashboard_http": {
+          "/auth/login": 200,
+          "/health/": 503
+        },
+        "acceptance": "pass"
+      },
+      "time": "2026-11-04T06:57:43.184441+00:00"
+    },
+    {
+      "test": "disk_full_recovery",
+      "actual": {
+        "legitimate_http": "200",
+        "engine": "restarted with normal log path"
+      },
+      "time": "2026-11-04T06:57:48.359679+00:00"
+    },
+    {
+      "test": "vendor_signed_licence_activation",
+      "actual": {
+        "actual_vendor_key": "minifw-vendor-2026",
+        "licence": {
+          "status": "valid",
+          "license_id": "63e8de78-29f5-4149-ba7c-25a1e31bc6df",
+          "customer_id": "wednesday-isolated-financial-lab",
+          "deployment_id": "d46d5313-1fe4-4ae3-873d-c18ed59b8584",
+          "product_mode": "minifw_financial",
+          "starts_at": "2026-11-04T06:21:01Z",
+          "expires_at": "2027-11-04T06:21:01Z"
+        },
+        "tampered_upload_http": 400,
+        "persists_after_web_restart": true,
+        "scope": "isolated lab deployment, actual vendor signature"
+      },
+      "time": "2026-11-04T06:59:07.709339+00:00"
+    },
+    {
+      "test": "dashboard_explicit_apply",
+      "actual": {
+        "response": {
+          "message": "Engine restarted; saved policy and feeds loaded. Check protection status on the dashboard.",
+          "engine_pid": 48075
+        },
+        "root_restart_after_save": false
+      },
+      "time": "2026-11-04T06:59:14.844121+00:00"
+    },
+    {
+      "test": "dashboard_to_engine_enforcement",
+      "actual": {
+        "authenticated_save": true,
+        "packaged_policy": "/opt/minifw_ai/config/modes/minifw_financial/policy.json",
+        "restart_required": true,
+        "restart_requested_by": "authenticated dashboard apply button",
+        "previous_timeout_seconds": 86400,
+        "timeout_seconds": 11,
+        "added_domain": "wednesday-policy.lab.test",
+        "fixture_setup": "collector paths supplied directly by lab root; enforcement timeout and deny domain saved through dashboard",
+        "actual_kernel": "table inet minifw {\n\tset minifw_block_v4 {\n\t\ttype ipv4_addr\n\t\ttimeout 1h\n\t\telements = { 10.10.0.20 timeout 11s expires 10s868ms }\n\t}\n}\n",
+        "routed_before": "HTTP 200",
+        "routed_after": "blocked"
+      },
+      "time": "2026-11-04T06:59:17.472872+00:00"
+    },
+    {
+      "test": "engine_activates_kernel_accounting",
+      "actual": {
+        "result": "enabled"
+      },
+      "time": "2026-11-04T06:59:23.684445+00:00"
+    },
+    {
+      "test": "policy_selection_dmz",
+      "actual": {
+        "client": "10.10.0.20",
+        "segment": "dmz",
+        "topology": "Routed source aliases in the isolated client namespace; not VLAN-isolation acceptance"
+      },
+      "time": "2026-11-04T06:59:24.000840+00:00"
+    },
+    {
+      "test": "policy_selection_trading",
+      "actual": {
+        "client": "10.50.0.20",
+        "segment": "trading",
+        "topology": "Routed source aliases in the isolated client namespace; not VLAN-isolation acceptance"
+      },
+      "time": "2026-11-04T06:59:24.299567+00:00"
+    },
+    {
+      "test": "policy_selection_internal",
+      "actual": {
+        "client": "192.168.1.20",
+        "segment": "internal",
+        "topology": "Routed source aliases in the isolated client namespace; not VLAN-isolation acceptance"
+      },
+      "time": "2026-11-04T06:59:24.600796+00:00"
+    },
+    {
+      "test": "policy_selection_guest",
+      "actual": {
+        "client": "192.168.100.20",
+        "segment": "guest",
+        "topology": "Routed source aliases in the isolated client namespace; not VLAN-isolation acceptance"
+      },
+      "time": "2026-11-04T06:59:24.900348+00:00"
+    },
+    {
+      "test": "legitimate_sandbox_workflows",
+      "actual": {
+        "login": "passed",
+        "api": "passed",
+        "payment_credits": 1250,
+        "transfer_credits": 2500,
+        "alice_credits": 96250,
+        "bob_credits": 52500,
+        "overdraft_rejected": true,
+        "statement_sha256": "af86a44302fed2f6533fd1e1734c5618ac9258c60917c0514c48d55a89202435",
+        "lesson": "passed",
+        "search": "passed",
+        "student_staff_access": "rejected",
+        "staff_service": "passed",
+        "staff_source_ip": "192.168.1.20",
+        "video_bytes": 14723,
+        "video_sha256": "836f294b179103aa3d90ee58618435ce91e019c9a767b5994752d8eff947aacd",
+        "video_range": "passed",
+        "scope": "Fictional local sandbox; external institutions and browser playback are not validated"
+      },
+      "time": "2026-11-04T06:59:25.098786+00:00"
+    },
+    {
+      "test": "kernel_counter_deltas",
+      "actual": {
+        "first": [
+          7,
+          410,
+          6,
+          3507
+        ],
+        "second": [
+          15,
+          826,
+          14,
+          12115
+        ],
+        "measured_packets": 16,
+        "measured_bytes_out": 416,
+        "measured_bytes_in": 8608,
+        "repeated_snapshot_increments": 0,
+        "packet_timing_available": false
+      },
+      "time": "2026-11-04T06:59:27.936710+00:00"
+    },
+    {
+      "test": "bypass_alternate_DNS",
+      "actual": {
+        "result": "allowed",
+        "coverage": "outside current name/IPv4 coverage"
+      },
+      "time": "2026-11-04T06:59:28.062627+00:00"
+    },
+    {
+      "test": "bypass_DoH",
+      "actual": {
+        "result": "allowed",
+        "coverage": "outside current name/IPv4 coverage"
+      },
+      "time": "2026-11-04T06:59:28.185319+00:00"
+    },
+    {
+      "test": "bypass_DoT",
+      "actual": {
+        "result": "allowed",
+        "coverage": "outside current name/IPv4 coverage"
+      },
+      "time": "2026-11-04T06:59:28.351517+00:00"
+    },
+    {
+      "test": "bypass_direct_IP",
+      "actual": {
+        "result": "allowed",
+        "coverage": "outside current name/IPv4 coverage"
+      },
+      "time": "2026-11-04T06:59:28.465569+00:00"
+    },
+    {
+      "test": "bypass_IPv6",
+      "actual": {
+        "result": "allowed",
+        "coverage": "outside current name/IPv4 coverage"
+      },
+      "time": "2026-11-04T06:59:28.590963+00:00"
+    },
+    {
+      "test": "DNS_decision_with_flow_quiet",
+      "actual": {
+        "client": "10.10.0.20",
+        "domain": "secure-bankofamerica-login.com",
+        "elapsed_seconds": 0.3062430419959128,
+        "forwarded": "blocked"
+      },
+      "time": "2026-11-04T06:59:34.123214+00:00"
+    },
+    {
+      "test": "DNS_decision_with_flow_missing",
+      "actual": {
+        "client": "10.10.0.20",
+        "domain": "www.secure-bankofamerica-login.com",
+        "elapsed_seconds": 0.33526678101043217,
+        "forwarded": "blocked"
+      },
+      "time": "2026-11-04T06:59:40.363147+00:00"
+    },
+    {
+      "test": "repeated_explicit_deny",
+      "actual": {
+        "added_events": 1,
+        "expiry_refresh": true
+      },
+      "time": "2026-11-04T06:59:44.405687+00:00"
+    },
+    {
+      "test": "restart_preserves_kernel_block",
+      "actual": {
+        "result": "blocked"
+      },
+      "time": "2026-11-04T06:59:47.465402+00:00"
+    },
+    {
+      "test": "expiry_recovery",
+      "actual": {
+        "result": "allowed",
+        "lab_timeout_seconds": 15
+      },
+      "time": "2026-11-04T06:59:59.208867+00:00"
+    },
+    {
+      "test": "IPv6_during_IPv4_isolation",
+      "actual": {
+        "result": "allowed",
+        "limitation": "IPv6 is not enforced"
+      },
+      "time": "2026-11-04T06:59:59.660331+00:00"
+    },
+    {
+      "test": "manual_unblock_recovery",
+      "actual": {
+        "result": "allowed"
+      },
+      "time": "2026-11-04T06:59:59.816355+00:00"
+    },
+    {
+      "test": "flow_only_with_DNS_none",
+      "actual": {
+        "client": "10.10.0.20",
+        "destination": "198.18.0.2",
+        "decision": [
+          "port_scan",
+          "hard_threat_gate_override"
+        ],
+        "forwarded": "blocked"
+      },
+      "time": "2026-11-04T07:00:09.690826+00:00"
+    },
+    {
+      "test": "flow_only_with_DNS_missing",
+      "actual": {
+        "client": "10.10.0.20",
+        "destination": "198.18.0.2",
+        "decision": [
+          "port_scan",
+          "hard_threat_gate_override"
+        ],
+        "forwarded": "blocked"
+      },
+      "time": "2026-11-04T07:00:15.239647+00:00"
+    },
+    {
+      "test": "acceptance_scope",
+      "actual": {
+        "shared_core": "verified by controlled routed traffic",
+        "production_ready": false,
+        "remaining": "real sector applications, SafeSearch, VPN tunnel detection, measured-feature model validation"
+      },
+      "time": "2026-11-04T07:00:15.740834+00:00"
+    }
+  ]
+}

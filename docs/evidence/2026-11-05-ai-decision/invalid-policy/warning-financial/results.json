@@ -1,0 +1,120 @@
+[
+  {
+    "test": "healthy_configured_gateway",
+    "actual": {
+      "http_status": 200,
+      "health": {
+        "status": "ready",
+        "heartbeat_age_seconds": 0.2781149939983152,
+        "kernel_rule_present": true,
+        "source_age_seconds": {
+          "zeek": 1.0812000379955862,
+          "flow": 3.2461671300115995,
+          "dns": 1.28271587198833
+        },
+        "coverage": "Progress and IPv4 rule presence only; quiet sources remain unverified; not traffic enforcement or AI quality acceptance"
+      },
+      "existing_block": true,
+      "browser": {
+        "expected": "recovered",
+        "browser": "156.0.8078.79",
+        "viewports": [
+          {
+            "width": 1280,
+            "height": 900,
+            "visible": false,
+            "bounds": null
+          },
+          {
+            "width": 390,
+            "height": 844,
+            "visible": false,
+            "bounds": null
+          }
+        ],
+        "warning_text": "",
+        "scope": "Chromium on isolated VM; screenshots and viewport checks, no physical-device or screen-reader acceptance"
+      }
+    },
+    "time": "2026-11-05T03:34:02.770012+00:00"
+  },
+  {
+    "test": "invalid_policy_outage_visible",
+    "actual": {
+      "http_status": 503,
+      "health": {
+        "status": "not_ready",
+        "reason": "missing, stale or invalid engine evidence"
+      },
+      "seconds_to_503": 0.0,
+      "browser": {
+        "expected": "warning",
+        "browser": "156.0.8078.79",
+        "viewports": [
+          {
+            "width": 1280,
+            "height": 900,
+            "visible": true,
+            "bounds": {
+              "x": 276,
+              "y": 72.65023803710938,
+              "width": 988,
+              "height": 72.5
+            }
+          },
+          {
+            "width": 390,
+            "height": 844,
+            "visible": true,
+            "bounds": {
+              "x": 16,
+              "y": 72,
+              "width": 358,
+              "height": 113
+            }
+          }
+        ],
+        "warning_text": "Protection checks unavailable. New detections and reliable event recording are not confirmed. Existing blocks may remain. Check available log storage and contact your administrator if this continues.",
+        "scope": "Chromium on isolated VM; screenshots and viewport checks, no physical-device or screen-reader acceptance"
+      },
+      "existing_block_retained": true,
+      "new_routed_traffic": "forwarded without new detection",
+      "engine": [
+        "NRestarts=0",
+        "ActiveState=activating",
+        "SubState=auto-restart"
+      ]
+    },
+    "time": "2026-11-05T03:34:10.098396+00:00"
+  },
+  {
+    "test": "policy_corrected_recovered",
+    "actual": {
+      "http_status": 200,
+      "seconds_to_200": 6.3,
+      "existing_block_retained": true,
+      "browser": {
+        "expected": "recovered",
+        "browser": "156.0.8078.79",
+        "viewports": [
+          {
+            "width": 1280,
+            "height": 900,
+            "visible": false,
+            "bounds": null
+          },
+          {
+            "width": 390,
+            "height": 844,
+            "visible": false,
+            "bounds": null
+          }
+        ],
+        "warning_text": "",
+        "scope": "Chromium on isolated VM; screenshots and viewport checks, no physical-device or screen-reader acceptance"
+      },
+      "restored_identical": true
+    },
+    "time": "2026-11-05T03:34:23.072890+00:00"
+  }
+]

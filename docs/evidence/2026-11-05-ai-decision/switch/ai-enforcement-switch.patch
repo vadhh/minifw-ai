@@ -1,0 +1,150 @@
+diff --color -ruN --exclude=__pycache__ --exclude=lab_ai_switch.py c19src/app/minifw_ai/main.py switch/app/minifw_ai/main.py
+--- c19src/app/minifw_ai/main.py	2026-11-05 07:00:00
++++ switch/app/minifw_ai/main.py	2026-11-05 09:43:48
+@@ -264,6 +264,14 @@
+     return False, None
+ 
+ 
++def mlp_may_enforce(detector) -> bool:
++    """Packet models stay shadow-only unless root-only config approves this exact model file."""
++    if detector.feature_schema != "packet14-v1":
++        return True
++    approved = os.environ.get("MINIFW_AI_ENFORCE_MODEL_SHA256", "").strip().lower()
++    return bool(approved) and approved == getattr(detector, "model_sha256", "")
++
++
+ def init_mlp_detector(ai_enabled: bool) -> tuple[Any, bool]:
+     if not ai_enabled:
+         return None, False
+@@ -719,8 +727,8 @@
+                     )
+                     mlp_proba = proba
+                     mlp_ran = mlp_detector.total_inferences > previous_inferences
+-                    # The new synthetic packet model is evaluation-only until representative validation.
+-                    if is_threat and mlp_detector.feature_schema != "packet14-v1":
++                    # Packet models are evaluation-only until an approved model hash is configured.
++                    if is_threat and mlp_may_enforce(mlp_detector):
+                         mlp_score = int(proba * 100)
+                 except Exception:
+                     logging.warning(
+@@ -842,7 +850,7 @@
+                 mlp_probability=mlp_proba if mlp_ran else None,
+                 mlp_schema=mlp_detector.feature_schema if mlp_ran else "",
+                 mlp_features=mlp_detector.last_features if mlp_ran else None,
+-                mlp_mode=("shadow_only" if mlp_detector.feature_schema == "packet14-v1" else "scoring") if mlp_ran else "not_run",
++                mlp_mode=("scoring" if mlp_may_enforce(mlp_detector) else "shadow_only") if mlp_ran else "not_run",
+             )
+ 
+             # HIPAA: Redact domain/SNI from event logs when sector requires it
+@@ -947,7 +955,7 @@
+                             ),
+                             # NEW: Include MLP prediction if available
+                             "mlp_enabled": mlp_enabled,
+-                            "mlp_mode": ("shadow_only" if flow.packet_metadata_only else "scoring") if mlp_ran and flow is flow_for_event else "not_run",
++                            "mlp_mode": ("scoring" if mlp_may_enforce(mlp_detector) else "shadow_only") if mlp_ran and flow is flow_for_event else "not_run",
+                             "mlp_proba": mlp_proba if flow is flow_for_event else None,
+                             "mlp_score": mlp_score if flow is flow_for_event else None,
+                             # NEW: Include YARA matches if available
+diff --color -ruN --exclude=__pycache__ --exclude=lab_ai_switch.py c19src/app/minifw_ai/utils/mlp_engine.py switch/app/minifw_ai/utils/mlp_engine.py
+--- c19src/app/minifw_ai/utils/mlp_engine.py	2026-11-05 07:00:00
++++ switch/app/minifw_ai/utils/mlp_engine.py	2026-11-05 09:43:32
+@@ -10,6 +10,7 @@
+ """
+ 
+ from __future__ import annotations
++import hashlib
+ import os
+ import pickle
+ from pathlib import Path
+@@ -106,6 +107,7 @@
+         self.model: Optional[MLPClassifier] = None
+         self.scaler: Optional[StandardScaler] = None
+         self.model_loaded = False
++        self.model_sha256 = ""
+ 
+         # Default model path
+         if model_path is None:
+@@ -145,6 +147,7 @@
+             Exception: If model loading fails
+         """
+         self.model_loaded = False
++        self.model_sha256 = ""
+         path = Path(model_path)
+ 
+         if not path.exists():
+@@ -153,8 +156,11 @@
+         logger.info(f"Loading MLP model from: {model_path}")
+ 
+         try:
+-            with path.open("rb") as f:
+-                model_data = pickle.load(f)
++            # The model is root-owned package content (pickle is only safe for trusted files).
++            # Hash the exact bytes that are unpickled, so an enforcement approval names what actually runs.
++            raw = path.read_bytes()
++            self.model_sha256 = hashlib.sha256(raw).hexdigest()
++            model_data = pickle.loads(raw)
+ 
+             # Support both dict format and direct model format
+             if isinstance(model_data, dict):
+--- c19src/testing/test_ai_enforcement_switch.py	1970-01-01 07:00:00
++++ switch/testing/test_ai_enforcement_switch.py	2026-11-05 09:44:20
+@@ -0,0 +1,59 @@
++"""Packet-model enforcement stays off unless root config approves the exact loaded model file."""
++import hashlib
++from pathlib import Path
++from types import SimpleNamespace
++
++from minifw_ai import main
++from minifw_ai.policy import Policy
++from minifw_ai.utils import mlp_engine
++
++ROOT = Path(__file__).resolve().parents[1]
++HASH = "ab" * 32
++
++
++def test_packet_model_enforces_only_with_matching_approval(monkeypatch):
++    packet = SimpleNamespace(feature_schema="packet14-v1", model_sha256=HASH)
++    monkeypatch.delenv("MINIFW_AI_ENFORCE_MODEL_SHA256", raising=False)
++    assert not main.mlp_may_enforce(packet)
++    monkeypatch.setenv("MINIFW_AI_ENFORCE_MODEL_SHA256", "cd" * 32)
++    assert not main.mlp_may_enforce(packet)
++    monkeypatch.setenv("MINIFW_AI_ENFORCE_MODEL_SHA256", f" {HASH.upper()}\n")
++    assert main.mlp_may_enforce(packet)
++    # An approval never matches a detector whose load failed (empty hash).
++    monkeypatch.setenv("MINIFW_AI_ENFORCE_MODEL_SHA256", "")
++    assert not main.mlp_may_enforce(SimpleNamespace(feature_schema="packet14-v1", model_sha256=""))
++    # Legacy 24-feature models keep their existing scoring behaviour.
++    assert main.mlp_may_enforce(SimpleNamespace(feature_schema="legacy24"))
++
++
++def test_load_hashes_exact_model_bytes(synthetic_mlp_model_path):
++    detector = mlp_engine.MLPThreatDetector(str(synthetic_mlp_model_path))
++    assert detector.model_loaded
++    assert detector.model_sha256 == hashlib.sha256(Path(synthetic_mlp_model_path).read_bytes()).hexdigest()
++
++
++def test_corrupt_model_leaves_engine_on_baseline(tmp_path, monkeypatch):
++    corrupt = tmp_path / "mlp_packet14.pkl"
++    corrupt.write_bytes(b"not a pickle")
++    monkeypatch.setattr(mlp_engine, "_detector_instance", None)
++    monkeypatch.setenv("MINIFW_MLP_MODEL", str(corrupt))
++    assert main.init_mlp_detector(True) == (None, False)
++    monkeypatch.setattr(mlp_engine, "_detector_instance", None)
++    monkeypatch.setenv("MINIFW_MLP_MODEL", str(tmp_path / "missing.pkl"))
++    assert main.init_mlp_detector(True) == (None, False)
++
++
++def test_ai_score_alone_cannot_block_but_can_escalate_rule_evidence():
++    policy = Policy(str(ROOT / "config/modes/minifw_school/policy.json"))
++    student = policy.thresholds("student")
++    weights = policy.features()
++    # AI alone: at most mlp_weight (30) points, below every block threshold.
++    assert main.score_and_decide("x.example", False, False, False, 0, weights, student, mlp_score=100)[2] != "block"
++    # Rule evidence without AI stays below block; the same evidence with AI crosses it.
++    rules = dict(asn_denied=True, burst_hit=1, ip_denied=True)
++    without = main.score_and_decide("x.example", False, False, rules["asn_denied"], rules["burst_hit"], weights, student,
++                                    ip_denied=rules["ip_denied"])
++    with_ai = main.score_and_decide("x.example", False, False, rules["asn_denied"], rules["burst_hit"], weights, student,
++                                    mlp_score=100, ip_denied=rules["ip_denied"])
++    assert without[2] != "block" and with_ai[2] == "block"
++    assert any(reason.startswith("mlp_threat_score_") for reason in with_ai[1])

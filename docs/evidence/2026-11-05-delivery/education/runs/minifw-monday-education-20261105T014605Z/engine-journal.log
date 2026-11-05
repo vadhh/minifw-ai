@@ -1,0 +1,136 @@
+Nov 05 08:46:09 minifw-monday-education systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 08:46:10 minifw-monday-education python[58467]: 2026-11-05 08:46:10,418 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Nov 05 08:46:10 minifw-monday-education python[58467]: 2026-11-05 08:46:10,422 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Nov 05 08:46:10 minifw-monday-education python[58467]: 2026-11-05 08:46:10,422 - INFO - [STATE] Restored state from /opt/minifw_ai/logs/deployment_state.json: BASELINE_PROTECTION
+Nov 05 08:46:10 minifw-monday-education python[58467]: 2026-11-05 08:46:10,422 - INFO - [STATE] Initial protection state: BASELINE_PROTECTION
+Nov 05 08:46:10 minifw-monday-education python[58467]: 2026-11-05 08:46:10,429 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_school: sector=education
+Nov 05 08:46:10 minifw-monday-education python[58467]: 2026-11-05 08:46:10,429 - INFO - [SECTOR_LOCK] Loaded config for education: ['description', 'force_safesearch', 'safesearch_domains', 'block_vpns', 'block_proxies', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_student_activity']
+Nov 05 08:46:10 minifw-monday-education python[58467]: 2026-11-05 08:46:10,429 - INFO - [SECTOR_LOCK] Device sector: education (LOCKED)
+Nov 05 08:46:10 minifw-monday-education python[58467]: 2026-11-05 08:46:10,429 - INFO - [SECTOR_LOCK] Config: Education: domain policies; restricted DNS configuration and optional WireGuard metadata.
+Nov 05 08:46:10 minifw-monday-education python[58467]: 2026-11-05 08:46:10,429 - INFO - [FEEDS] Loaded 14 patterns from school_blacklist.txt
+Nov 05 08:46:10 minifw-monday-education python[58467]: 2026-11-05 08:46:10,429 - INFO - [SECTOR_LOCK] Loaded 14 sector-specific feed patterns
+Nov 05 08:46:10 minifw-monday-education python[58467]: 2026-11-05 08:46:10,429 - INFO - [SECTOR_LOCK] Search-domain allowlist: 8 patterns; restricted search requires the generated dnsmasq overrides
+Nov 05 08:46:10 minifw-monday-education python[58467]: 2026-11-05 08:46:10,429 - INFO - [SECTOR_LOCK] VPN/proxy provider domain matching enabled; optional packet metadata detects WireGuard patterns
+Nov 05 08:46:10 minifw-monday-education python[58467]: 2026-11-05 08:46:10,480 - INFO - [TELEMETRY] Packet metadata on mfcg; packet14 model required; no TLS decryption
+Nov 05 08:46:10 minifw-monday-education python[58467]: 2026-11-05 08:46:10,480 - WARNING - [DNS] Disabled; flow decisions continue independently
+Nov 05 08:46:10 minifw-monday-education python[58483]: Capturing on 'mfcg'
+Nov 05 08:46:10 minifw-monday-education python[58483]: File: -
+Nov 05 08:46:13 minifw-monday-education python[58483]: [59B blob data]
+Nov 05 08:46:13 minifw-monday-education python[58483]: Packets received/dropped on interface 'mfcg': 25/0 (pcap:0/dumpcap:0/flushed:0/ps_ifdrop:0) (100.0%)
+Nov 05 08:46:13 minifw-monday-education python[58467]: 2026-11-05 08:46:13,137 - INFO - Caught SIGTERM, shutting down.
+Nov 05 08:46:13 minifw-monday-education systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 05 08:46:13 minifw-monday-education python[58467]: 2026-11-05 08:46:13,216 - ERROR - [packet] Collector failed; retrying independently
+Nov 05 08:46:13 minifw-monday-education python[58467]: Traceback (most recent call last):
+Nov 05 08:46:13 minifw-monday-education python[58467]:   File "/opt/minifw_ai/app/minifw_ai/collector_runtime.py", line 16, in collect
+Nov 05 08:46:13 minifw-monday-education python[58467]:     for event in factory():
+Nov 05 08:46:13 minifw-monday-education python[58467]:   File "/opt/minifw_ai/app/minifw_ai/collector_packets.py", line 87, in stream_packet_events
+Nov 05 08:46:13 minifw-monday-education python[58467]:     raise RuntimeError(f"Packet metadata sensor stopped: exit={decoder.wait()}")
+Nov 05 08:46:13 minifw-monday-education python[58467]: RuntimeError: Packet metadata sensor stopped: exit=0
+Nov 05 08:46:13 minifw-monday-education systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 05 08:46:13 minifw-monday-education systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 08:46:13 minifw-monday-education systemd[1]: minifw-ai.service: Consumed 2.138s CPU time.
+Nov 05 08:46:13 minifw-monday-education systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 08:46:14 minifw-monday-education python[58529]: 2026-11-05 08:46:14,797 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Nov 05 08:46:14 minifw-monday-education python[58529]: 2026-11-05 08:46:14,801 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Nov 05 08:46:14 minifw-monday-education python[58529]: 2026-11-05 08:46:14,801 - INFO - [STATE] Restored state from /opt/minifw_ai/logs/deployment_state.json: BASELINE_PROTECTION
+Nov 05 08:46:14 minifw-monday-education python[58529]: 2026-11-05 08:46:14,801 - INFO - [STATE] Initial protection state: BASELINE_PROTECTION
+Nov 05 08:46:14 minifw-monday-education python[58529]: 2026-11-05 08:46:14,808 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_school: sector=education
+Nov 05 08:46:14 minifw-monday-education python[58529]: 2026-11-05 08:46:14,809 - INFO - [SECTOR_LOCK] Loaded config for education: ['description', 'force_safesearch', 'safesearch_domains', 'block_vpns', 'block_proxies', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_student_activity']
+Nov 05 08:46:14 minifw-monday-education python[58529]: 2026-11-05 08:46:14,809 - INFO - [SECTOR_LOCK] Device sector: education (LOCKED)
+Nov 05 08:46:14 minifw-monday-education python[58529]: 2026-11-05 08:46:14,809 - INFO - [SECTOR_LOCK] Config: Education: domain policies; restricted DNS configuration and optional WireGuard metadata.
+Nov 05 08:46:14 minifw-monday-education python[58529]: 2026-11-05 08:46:14,809 - INFO - [FEEDS] Loaded 14 patterns from school_blacklist.txt
+Nov 05 08:46:14 minifw-monday-education python[58529]: 2026-11-05 08:46:14,810 - INFO - [SECTOR_LOCK] Loaded 14 sector-specific feed patterns
+Nov 05 08:46:14 minifw-monday-education python[58529]: 2026-11-05 08:46:14,810 - INFO - [SECTOR_LOCK] Search-domain allowlist: 8 patterns; restricted search requires the generated dnsmasq overrides
+Nov 05 08:46:14 minifw-monday-education python[58529]: 2026-11-05 08:46:14,810 - INFO - [SECTOR_LOCK] VPN/proxy provider domain matching enabled; optional packet metadata detects WireGuard patterns
+Nov 05 08:46:14 minifw-monday-education python[58529]: 2026-11-05 08:46:14,877 - INFO - [TELEMETRY] Packet metadata on mfcg; packet14 model required; no TLS decryption
+Nov 05 08:46:14 minifw-monday-education python[58529]: 2026-11-05 08:46:14,877 - WARNING - [DNS] Disabled; flow decisions continue independently
+Nov 05 08:46:14 minifw-monday-education python[58545]: Capturing on 'mfcg'
+Nov 05 08:46:14 minifw-monday-education python[58545]: File: -
+Nov 05 08:46:20 minifw-monday-education python[58545]: [64B blob data]
+Nov 05 08:46:20 minifw-monday-education python[58529]: 2026-11-05 08:46:20,075 - INFO - Caught SIGTERM, shutting down.
+Nov 05 08:46:20 minifw-monday-education systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 05 08:46:20 minifw-monday-education python[58545]: [36B blob data]
+Nov 05 08:46:20 minifw-monday-education python[58545]: Packets received/dropped on interface 'mfcg': 121/0 (pcap:0/dumpcap:0/flushed:0/ps_ifdrop:0) (100.0%)
+Nov 05 08:46:20 minifw-monday-education python[58529]: 2026-11-05 08:46:20,127 - ERROR - [packet] Collector failed; retrying independently
+Nov 05 08:46:20 minifw-monday-education python[58529]: Traceback (most recent call last):
+Nov 05 08:46:20 minifw-monday-education python[58529]:   File "/opt/minifw_ai/app/minifw_ai/collector_runtime.py", line 16, in collect
+Nov 05 08:46:20 minifw-monday-education python[58529]:     for event in factory():
+Nov 05 08:46:20 minifw-monday-education python[58529]:   File "/opt/minifw_ai/app/minifw_ai/collector_packets.py", line 87, in stream_packet_events
+Nov 05 08:46:20 minifw-monday-education python[58529]:     raise RuntimeError(f"Packet metadata sensor stopped: exit={decoder.wait()}")
+Nov 05 08:46:20 minifw-monday-education python[58529]: RuntimeError: Packet metadata sensor stopped: exit=0
+Nov 05 08:46:20 minifw-monday-education python[58529]: [FlowCollector] Exported 9 flows, cleaned 0 old flows
+Nov 05 08:46:20 minifw-monday-education systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 05 08:46:20 minifw-monday-education systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 08:46:20 minifw-monday-education systemd[1]: minifw-ai.service: Consumed 2.086s CPU time.
+Nov 05 08:46:20 minifw-monday-education systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 08:46:21 minifw-monday-education python[58605]: 2026-11-05 08:46:21,678 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Nov 05 08:46:21 minifw-monday-education python[58605]: 2026-11-05 08:46:21,681 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Nov 05 08:46:21 minifw-monday-education python[58605]: 2026-11-05 08:46:21,682 - INFO - [STATE] Restored state from /opt/minifw_ai/logs/deployment_state.json: BASELINE_PROTECTION
+Nov 05 08:46:21 minifw-monday-education python[58605]: 2026-11-05 08:46:21,682 - INFO - [STATE] Initial protection state: BASELINE_PROTECTION
+Nov 05 08:46:21 minifw-monday-education python[58605]: 2026-11-05 08:46:21,688 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_school: sector=education
+Nov 05 08:46:21 minifw-monday-education python[58605]: 2026-11-05 08:46:21,688 - INFO - [SECTOR_LOCK] Loaded config for education: ['description', 'force_safesearch', 'safesearch_domains', 'block_vpns', 'block_proxies', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_student_activity']
+Nov 05 08:46:21 minifw-monday-education python[58605]: 2026-11-05 08:46:21,689 - INFO - [SECTOR_LOCK] Device sector: education (LOCKED)
+Nov 05 08:46:21 minifw-monday-education python[58605]: 2026-11-05 08:46:21,689 - INFO - [SECTOR_LOCK] Config: Education: domain policies; restricted DNS configuration and optional WireGuard metadata.
+Nov 05 08:46:21 minifw-monday-education python[58605]: 2026-11-05 08:46:21,689 - INFO - [FEEDS] Loaded 14 patterns from school_blacklist.txt
+Nov 05 08:46:21 minifw-monday-education python[58605]: 2026-11-05 08:46:21,689 - INFO - [SECTOR_LOCK] Loaded 14 sector-specific feed patterns
+Nov 05 08:46:21 minifw-monday-education python[58605]: 2026-11-05 08:46:21,689 - INFO - [SECTOR_LOCK] Search-domain allowlist: 8 patterns; restricted search requires the generated dnsmasq overrides
+Nov 05 08:46:21 minifw-monday-education python[58605]: 2026-11-05 08:46:21,689 - INFO - [SECTOR_LOCK] VPN/proxy provider domain matching enabled; optional packet metadata detects WireGuard patterns
+Nov 05 08:46:21 minifw-monday-education python[58605]: 2026-11-05 08:46:21,739 - INFO - [TELEMETRY] Packet metadata on mfcg; packet14 model required; no TLS decryption
+Nov 05 08:46:21 minifw-monday-education python[58605]: 2026-11-05 08:46:21,739 - WARNING - [DNS] Disabled; flow decisions continue independently
+Nov 05 08:46:21 minifw-monday-education python[58631]: Capturing on 'mfcg'
+Nov 05 08:46:21 minifw-monday-education python[58631]: File: -
+Nov 05 08:46:41 minifw-monday-education python[58631]: [552B blob data]
+Nov 05 08:46:41 minifw-monday-education python[58631]: Packets received/dropped on interface 'mfcg': 1022/0 (pcap:0/dumpcap:0/flushed:0/ps_ifdrop:0) (100.0%)
+Nov 05 08:46:41 minifw-monday-education systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 05 08:46:41 minifw-monday-education python[58605]: 2026-11-05 08:46:41,725 - INFO - Caught SIGTERM, shutting down.
+Nov 05 08:46:41 minifw-monday-education python[58605]: 2026-11-05 08:46:41,760 - ERROR - [packet] Collector failed; retrying independently
+Nov 05 08:46:41 minifw-monday-education python[58605]: Traceback (most recent call last):
+Nov 05 08:46:41 minifw-monday-education python[58605]:   File "/opt/minifw_ai/app/minifw_ai/collector_runtime.py", line 16, in collect
+Nov 05 08:46:41 minifw-monday-education python[58605]:     for event in factory():
+Nov 05 08:46:41 minifw-monday-education python[58605]:   File "/opt/minifw_ai/app/minifw_ai/collector_packets.py", line 87, in stream_packet_events
+Nov 05 08:46:41 minifw-monday-education python[58605]:     raise RuntimeError(f"Packet metadata sensor stopped: exit={decoder.wait()}")
+Nov 05 08:46:41 minifw-monday-education python[58605]: RuntimeError: Packet metadata sensor stopped: exit=0
+Nov 05 08:46:41 minifw-monday-education python[58605]: [FlowCollector] Exported 9 flows, cleaned 0 old flows
+Nov 05 08:46:41 minifw-monday-education python[58605]: [FlowCollector] Exported 17 flows, cleaned 0 old flows
+Nov 05 08:46:41 minifw-monday-education python[58605]: [FlowCollector] Exported 25 flows, cleaned 0 old flows
+Nov 05 08:46:41 minifw-monday-education python[58605]: [FlowCollector] Exported 34 flows, cleaned 0 old flows
+Nov 05 08:46:41 minifw-monday-education python[58605]: [FlowCollector] Exported 42 flows, cleaned 0 old flows
+Nov 05 08:46:41 minifw-monday-education python[58605]: [FlowCollector] Exported 50 flows, cleaned 0 old flows
+Nov 05 08:46:41 minifw-monday-education python[58605]: [FlowCollector] Exported 59 flows, cleaned 0 old flows
+Nov 05 08:46:41 minifw-monday-education python[58605]: [FlowCollector] Exported 67 flows, cleaned 0 old flows
+Nov 05 08:46:41 minifw-monday-education python[58605]: [FlowCollector] Exported 75 flows, cleaned 0 old flows
+Nov 05 08:46:41 minifw-monday-education python[58605]: [FlowCollector] Exported 84 flows, cleaned 0 old flows
+Nov 05 08:46:42 minifw-monday-education systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 05 08:46:42 minifw-monday-education systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 08:46:42 minifw-monday-education systemd[1]: minifw-ai.service: Consumed 2.911s CPU time.
+Nov 05 08:46:42 minifw-monday-education systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 08:46:43 minifw-monday-education python[58844]: 2026-11-05 08:46:43,545 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Nov 05 08:46:43 minifw-monday-education python[58844]: 2026-11-05 08:46:43,549 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Nov 05 08:46:43 minifw-monday-education python[58844]: 2026-11-05 08:46:43,550 - INFO - [STATE] Restored state from /opt/minifw_ai/logs/deployment_state.json: BASELINE_PROTECTION
+Nov 05 08:46:43 minifw-monday-education python[58844]: 2026-11-05 08:46:43,550 - INFO - [STATE] Initial protection state: BASELINE_PROTECTION
+Nov 05 08:46:43 minifw-monday-education python[58844]: 2026-11-05 08:46:43,557 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_school: sector=education
+Nov 05 08:46:43 minifw-monday-education python[58844]: 2026-11-05 08:46:43,558 - INFO - [SECTOR_LOCK] Loaded config for education: ['description', 'force_safesearch', 'safesearch_domains', 'block_vpns', 'block_proxies', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_student_activity']
+Nov 05 08:46:43 minifw-monday-education python[58844]: 2026-11-05 08:46:43,558 - INFO - [SECTOR_LOCK] Device sector: education (LOCKED)
+Nov 05 08:46:43 minifw-monday-education python[58844]: 2026-11-05 08:46:43,558 - INFO - [SECTOR_LOCK] Config: Education: domain policies; restricted DNS configuration and optional WireGuard metadata.
+Nov 05 08:46:43 minifw-monday-education python[58844]: 2026-11-05 08:46:43,558 - INFO - [FEEDS] Loaded 14 patterns from school_blacklist.txt
+Nov 05 08:46:43 minifw-monday-education python[58844]: 2026-11-05 08:46:43,558 - INFO - [SECTOR_LOCK] Loaded 14 sector-specific feed patterns
+Nov 05 08:46:43 minifw-monday-education python[58844]: 2026-11-05 08:46:43,558 - INFO - [SECTOR_LOCK] Search-domain allowlist: 8 patterns; restricted search requires the generated dnsmasq overrides
+Nov 05 08:46:43 minifw-monday-education python[58844]: 2026-11-05 08:46:43,558 - INFO - [SECTOR_LOCK] VPN/proxy provider domain matching enabled; optional packet metadata detects WireGuard patterns
+Nov 05 08:46:43 minifw-monday-education python[58844]: 2026-11-05 08:46:43,613 - INFO - [TELEMETRY] Packet metadata on mfcg; packet14 model required; no TLS decryption
+Nov 05 08:46:43 minifw-monday-education python[58844]: 2026-11-05 08:46:43,613 - WARNING - [DNS] Disabled; flow decisions continue independently
+Nov 05 08:46:43 minifw-monday-education python[58872]: Capturing on 'mfcg'
+Nov 05 08:46:43 minifw-monday-education python[58872]: File: -
+Nov 05 08:46:45 minifw-monday-education systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 05 08:46:45 minifw-monday-education python[58872]: [60B blob data]
+Nov 05 08:46:45 minifw-monday-education python[58872]: Packets received/dropped on interface 'mfcg': 60/0 (pcap:0/dumpcap:0/flushed:0/ps_ifdrop:0) (100.0%)
+Nov 05 08:46:45 minifw-monday-education python[58844]: 2026-11-05 08:46:45,378 - INFO - Caught SIGTERM, shutting down.
+Nov 05 08:46:45 minifw-monday-education python[58844]: 2026-11-05 08:46:45,409 - ERROR - [packet] Collector failed; retrying independently
+Nov 05 08:46:45 minifw-monday-education python[58844]: Traceback (most recent call last):
+Nov 05 08:46:45 minifw-monday-education python[58844]:   File "/opt/minifw_ai/app/minifw_ai/collector_runtime.py", line 16, in collect
+Nov 05 08:46:45 minifw-monday-education python[58844]:     for event in factory():
+Nov 05 08:46:45 minifw-monday-education python[58844]:   File "/opt/minifw_ai/app/minifw_ai/collector_packets.py", line 87, in stream_packet_events
+Nov 05 08:46:45 minifw-monday-education python[58844]:     raise RuntimeError(f"Packet metadata sensor stopped: exit={decoder.wait()}")
+Nov 05 08:46:45 minifw-monday-education python[58844]: RuntimeError: Packet metadata sensor stopped: exit=0
+Nov 05 08:46:45 minifw-monday-education systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 05 08:46:45 minifw-monday-education systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 08:46:45 minifw-monday-education systemd[1]: minifw-ai.service: Consumed 2.269s CPU time.

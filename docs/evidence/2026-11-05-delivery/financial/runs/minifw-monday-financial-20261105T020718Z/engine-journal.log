@@ -1,0 +1,98 @@
+Nov 05 09:07:21 minifw-monday-financial systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 09:07:22 minifw-monday-financial python[56753]: 2026-11-05 09:07:22,236 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Nov 05 09:07:22 minifw-monday-financial python[56753]: 2026-11-05 09:07:22,239 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Nov 05 09:07:22 minifw-monday-financial python[56753]: 2026-11-05 09:07:22,240 - INFO - [STATE] Restored state from /opt/minifw_ai/logs/deployment_state.json: BASELINE_PROTECTION
+Nov 05 09:07:22 minifw-monday-financial python[56753]: 2026-11-05 09:07:22,240 - INFO - [STATE] Initial protection state: BASELINE_PROTECTION
+Nov 05 09:07:22 minifw-monday-financial python[56753]: 2026-11-05 09:07:22,246 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_financial: sector=finance
+Nov 05 09:07:22 minifw-monday-financial python[56753]: 2026-11-05 09:07:22,247 - INFO - [SECTOR_LOCK] Loaded config for finance: ['description', 'block_tor', 'block_anonymizers', 'strict_tls', 'minimum_tls_version', 'pci_compliance_mode', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_retention_days']
+Nov 05 09:07:22 minifw-monday-financial python[56753]: 2026-11-05 09:07:22,247 - INFO - [SECTOR_LOCK] Device sector: finance (LOCKED)
+Nov 05 09:07:22 minifw-monday-financial python[56753]: 2026-11-05 09:07:22,247 - INFO - [SECTOR_LOCK] Config: Finance: metadata policies; TLS version control requires packet metadata; no compliance certification.
+Nov 05 09:07:22 minifw-monday-financial python[56753]: 2026-11-05 09:07:22,247 - INFO - [FEEDS] Loaded 10 patterns from financial_fraud.txt
+Nov 05 09:07:22 minifw-monday-financial python[56753]: 2026-11-05 09:07:22,247 - INFO - [FEEDS] Loaded 9 patterns from crypto_scams.txt
+Nov 05 09:07:22 minifw-monday-financial python[56753]: 2026-11-05 09:07:22,247 - INFO - [SECTOR_LOCK] Loaded 19 sector-specific feed patterns
+Nov 05 09:07:22 minifw-monday-financial python[56753]: 2026-11-05 09:07:22,247 - INFO - [FEEDS] Loaded 0 Tor exit node IPs from /opt/minifw_ai/config/feeds/tor_exit_nodes.txt
+Nov 05 09:07:22 minifw-monday-financial python[56753]: 2026-11-05 09:07:22,247 - INFO - [SECTOR_LOCK] Tor/anonymizer blocking enabled: loaded 0 exit IPs
+Nov 05 09:07:22 minifw-monday-financial python[56753]: 2026-11-05 09:07:22,297 - INFO - [TELEMETRY] Packet metadata on mfcg; packet14 model required; no TLS decryption
+Nov 05 09:07:22 minifw-monday-financial python[56768]: Capturing on 'mfcg'
+Nov 05 09:07:22 minifw-monday-financial python[56768]: File: -
+Nov 05 09:07:29 minifw-monday-financial python[56768]: [24B blob data]
+Nov 05 09:07:29 minifw-monday-financial python[56753]: 2026-11-05 09:07:29,952 - INFO - Caught SIGTERM, shutting down.
+Nov 05 09:07:29 minifw-monday-financial systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 05 09:07:29 minifw-monday-financial python[56768]: [21B blob data]
+Nov 05 09:07:29 minifw-monday-financial python[56768]: Packets received/dropped on interface 'mfcg': 15/0 (pcap:0/dumpcap:0/flushed:0/ps_ifdrop:0) (100.0%)
+Nov 05 09:07:29 minifw-monday-financial python[56753]: 2026-11-05 09:07:29,982 - ERROR - [packet] Collector failed; retrying independently
+Nov 05 09:07:29 minifw-monday-financial python[56753]: Traceback (most recent call last):
+Nov 05 09:07:29 minifw-monday-financial python[56753]:   File "/opt/minifw_ai/app/minifw_ai/collector_runtime.py", line 16, in collect
+Nov 05 09:07:29 minifw-monday-financial python[56753]:     for event in factory():
+Nov 05 09:07:29 minifw-monday-financial python[56753]:   File "/opt/minifw_ai/app/minifw_ai/collector_packets.py", line 87, in stream_packet_events
+Nov 05 09:07:29 minifw-monday-financial python[56753]:     raise RuntimeError(f"Packet metadata sensor stopped: exit={decoder.wait()}")
+Nov 05 09:07:29 minifw-monday-financial python[56753]: RuntimeError: Packet metadata sensor stopped: exit=0
+Nov 05 09:07:30 minifw-monday-financial python[56753]: [*] DNS Collector reading from /var/tmp/minifw-monday-financial-20261105T020718Z/dns.log
+Nov 05 09:07:30 minifw-monday-financial systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 05 09:07:30 minifw-monday-financial systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 09:07:30 minifw-monday-financial systemd[1]: minifw-ai.service: Consumed 2.093s CPU time.
+Nov 05 09:07:30 minifw-monday-financial systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 09:07:31 minifw-monday-financial python[56826]: 2026-11-05 09:07:31,726 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Nov 05 09:07:31 minifw-monday-financial python[56826]: 2026-11-05 09:07:31,729 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Nov 05 09:07:31 minifw-monday-financial python[56826]: 2026-11-05 09:07:31,730 - INFO - [STATE] Restored state from /opt/minifw_ai/logs/deployment_state.json: BASELINE_PROTECTION
+Nov 05 09:07:31 minifw-monday-financial python[56826]: 2026-11-05 09:07:31,730 - INFO - [STATE] Initial protection state: BASELINE_PROTECTION
+Nov 05 09:07:31 minifw-monday-financial python[56826]: 2026-11-05 09:07:31,737 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_financial: sector=finance
+Nov 05 09:07:31 minifw-monday-financial python[56826]: 2026-11-05 09:07:31,737 - INFO - [SECTOR_LOCK] Loaded config for finance: ['description', 'block_tor', 'block_anonymizers', 'strict_tls', 'minimum_tls_version', 'pci_compliance_mode', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_retention_days']
+Nov 05 09:07:31 minifw-monday-financial python[56826]: 2026-11-05 09:07:31,737 - INFO - [SECTOR_LOCK] Device sector: finance (LOCKED)
+Nov 05 09:07:31 minifw-monday-financial python[56826]: 2026-11-05 09:07:31,737 - INFO - [SECTOR_LOCK] Config: Finance: metadata policies; TLS version control requires packet metadata; no compliance certification.
+Nov 05 09:07:31 minifw-monday-financial python[56826]: 2026-11-05 09:07:31,737 - INFO - [FEEDS] Loaded 10 patterns from financial_fraud.txt
+Nov 05 09:07:31 minifw-monday-financial python[56826]: 2026-11-05 09:07:31,737 - INFO - [FEEDS] Loaded 9 patterns from crypto_scams.txt
+Nov 05 09:07:31 minifw-monday-financial python[56826]: 2026-11-05 09:07:31,737 - INFO - [SECTOR_LOCK] Loaded 19 sector-specific feed patterns
+Nov 05 09:07:31 minifw-monday-financial python[56826]: 2026-11-05 09:07:31,738 - INFO - [FEEDS] Loaded 0 Tor exit node IPs from /opt/minifw_ai/config/feeds/tor_exit_nodes.txt
+Nov 05 09:07:31 minifw-monday-financial python[56826]: 2026-11-05 09:07:31,738 - INFO - [SECTOR_LOCK] Tor/anonymizer blocking enabled: loaded 0 exit IPs
+Nov 05 09:07:31 minifw-monday-financial python[56826]: 2026-11-05 09:07:31,791 - INFO - [TELEMETRY] Packet metadata on mfcg; packet14 model required; no TLS decryption
+Nov 05 09:07:31 minifw-monday-financial python[56841]: Capturing on 'mfcg'
+Nov 05 09:07:31 minifw-monday-financial python[56841]: File: -
+Nov 05 09:07:32 minifw-monday-financial python[56841]: [32B blob data]
+Nov 05 09:07:32 minifw-monday-financial python[56841]: Packets received/dropped on interface 'mfcg': 1/0 (pcap:0/dumpcap:0/flushed:0/ps_ifdrop:0) (100.0%)
+Nov 05 09:07:32 minifw-monday-financial systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 05 09:07:32 minifw-monday-financial python[56826]: 2026-11-05 09:07:32,874 - INFO - Caught SIGTERM, shutting down.
+Nov 05 09:07:32 minifw-monday-financial python[56826]: 2026-11-05 09:07:32,920 - ERROR - [packet] Collector failed; retrying independently
+Nov 05 09:07:32 minifw-monday-financial python[56826]: Traceback (most recent call last):
+Nov 05 09:07:32 minifw-monday-financial python[56826]:   File "/opt/minifw_ai/app/minifw_ai/collector_runtime.py", line 16, in collect
+Nov 05 09:07:32 minifw-monday-financial python[56826]:     for event in factory():
+Nov 05 09:07:32 minifw-monday-financial python[56826]:   File "/opt/minifw_ai/app/minifw_ai/collector_packets.py", line 87, in stream_packet_events
+Nov 05 09:07:32 minifw-monday-financial python[56826]:     raise RuntimeError(f"Packet metadata sensor stopped: exit={decoder.wait()}")
+Nov 05 09:07:32 minifw-monday-financial python[56826]: RuntimeError: Packet metadata sensor stopped: exit=0
+Nov 05 09:07:33 minifw-monday-financial python[56826]: [*] DNS Collector reading from /var/tmp/minifw-monday-financial-20261105T020718Z/dns.log
+Nov 05 09:07:33 minifw-monday-financial systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 05 09:07:33 minifw-monday-financial systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 09:07:33 minifw-monday-financial systemd[1]: minifw-ai.service: Consumed 2.095s CPU time.
+Nov 05 09:07:33 minifw-monday-financial systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 09:07:34 minifw-monday-financial python[56857]: 2026-11-05 09:07:34,687 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Nov 05 09:07:34 minifw-monday-financial python[56857]: 2026-11-05 09:07:34,691 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Nov 05 09:07:34 minifw-monday-financial python[56857]: 2026-11-05 09:07:34,691 - INFO - [STATE] Restored state from /opt/minifw_ai/logs/deployment_state.json: BASELINE_PROTECTION
+Nov 05 09:07:34 minifw-monday-financial python[56857]: 2026-11-05 09:07:34,691 - INFO - [STATE] Initial protection state: BASELINE_PROTECTION
+Nov 05 09:07:34 minifw-monday-financial python[56857]: 2026-11-05 09:07:34,698 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_financial: sector=finance
+Nov 05 09:07:34 minifw-monday-financial python[56857]: 2026-11-05 09:07:34,698 - INFO - [SECTOR_LOCK] Loaded config for finance: ['description', 'block_tor', 'block_anonymizers', 'strict_tls', 'minimum_tls_version', 'pci_compliance_mode', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_retention_days']
+Nov 05 09:07:34 minifw-monday-financial python[56857]: 2026-11-05 09:07:34,698 - INFO - [SECTOR_LOCK] Device sector: finance (LOCKED)
+Nov 05 09:07:34 minifw-monday-financial python[56857]: 2026-11-05 09:07:34,698 - INFO - [SECTOR_LOCK] Config: Finance: metadata policies; TLS version control requires packet metadata; no compliance certification.
+Nov 05 09:07:34 minifw-monday-financial python[56857]: 2026-11-05 09:07:34,699 - INFO - [FEEDS] Loaded 10 patterns from financial_fraud.txt
+Nov 05 09:07:34 minifw-monday-financial python[56857]: 2026-11-05 09:07:34,699 - INFO - [FEEDS] Loaded 9 patterns from crypto_scams.txt
+Nov 05 09:07:34 minifw-monday-financial python[56857]: 2026-11-05 09:07:34,699 - INFO - [SECTOR_LOCK] Loaded 19 sector-specific feed patterns
+Nov 05 09:07:34 minifw-monday-financial python[56857]: 2026-11-05 09:07:34,699 - INFO - [FEEDS] Loaded 0 Tor exit node IPs from /opt/minifw_ai/config/feeds/tor_exit_nodes.txt
+Nov 05 09:07:34 minifw-monday-financial python[56857]: 2026-11-05 09:07:34,699 - INFO - [SECTOR_LOCK] Tor/anonymizer blocking enabled: loaded 0 exit IPs
+Nov 05 09:07:34 minifw-monday-financial python[56857]: 2026-11-05 09:07:34,740 - INFO - [TELEMETRY] Packet metadata on mfcg; packet14 model required; no TLS decryption
+Nov 05 09:07:34 minifw-monday-financial python[56872]: Capturing on 'mfcg'
+Nov 05 09:07:34 minifw-monday-financial python[56872]: File: -
+Nov 05 09:07:38 minifw-monday-financial python[56872]: [38B blob data]
+Nov 05 09:07:38 minifw-monday-financial python[56857]: 2026-11-05 09:07:38,992 - INFO - Caught SIGTERM, shutting down.
+Nov 05 09:07:38 minifw-monday-financial python[56872]: [21B blob data]
+Nov 05 09:07:38 minifw-monday-financial python[56872]: Packets received/dropped on interface 'mfcg': 16/0 (pcap:0/dumpcap:0/flushed:0/ps_ifdrop:0) (100.0%)
+Nov 05 09:07:38 minifw-monday-financial systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 05 09:07:39 minifw-monday-financial python[56857]: 2026-11-05 09:07:39,039 - ERROR - [packet] Collector failed; retrying independently
+Nov 05 09:07:39 minifw-monday-financial python[56857]: Traceback (most recent call last):
+Nov 05 09:07:39 minifw-monday-financial python[56857]:   File "/opt/minifw_ai/app/minifw_ai/collector_runtime.py", line 16, in collect
+Nov 05 09:07:39 minifw-monday-financial python[56857]:     for event in factory():
+Nov 05 09:07:39 minifw-monday-financial python[56857]:   File "/opt/minifw_ai/app/minifw_ai/collector_packets.py", line 87, in stream_packet_events
+Nov 05 09:07:39 minifw-monday-financial python[56857]:     raise RuntimeError(f"Packet metadata sensor stopped: exit={decoder.wait()}")
+Nov 05 09:07:39 minifw-monday-financial python[56857]: RuntimeError: Packet metadata sensor stopped: exit=0
+Nov 05 09:07:39 minifw-monday-financial python[56857]: [*] DNS Collector reading from /var/tmp/minifw-monday-financial-20261105T020718Z/dns.log
+Nov 05 09:07:39 minifw-monday-financial systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 05 09:07:39 minifw-monday-financial systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 09:07:39 minifw-monday-financial systemd[1]: minifw-ai.service: Consumed 2.069s CPU time.

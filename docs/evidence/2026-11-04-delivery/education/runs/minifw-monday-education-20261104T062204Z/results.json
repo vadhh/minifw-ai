@@ -1,0 +1,55 @@
+[
+  {
+    "test": "bounded_load",
+    "actual": {
+      "duration_seconds": 61.28996513900347,
+      "offered_rate_rps": 5,
+      "success": 202,
+      "failures": 10,
+      "legitimate_not_isolated": false,
+      "qualification": "60 seconds only, not prolonged load"
+    },
+    "time": "2026-11-04T06:23:15.295915+00:00"
+  },
+  {
+    "test": "bounded_load_acceptance",
+    "actual": {
+      "result": "failed legitimate traffic control"
+    },
+    "time": "2026-11-04T06:23:15.296474+00:00"
+  },
+  {
+    "test": "fault_diagnostics",
+    "actual": {
+      "dns_log": "Nov  4 13:22:04 dnsmasq[48059]: started, version 2.90 cachesize 150\nNov  4 13:22:04 dnsmasq[48059]: compile time options: IPv6 GNU-getopt DBus no-UBus i18n IDN2 DHCP DHCPv6 no-Lua TFTP conntrack ipset nftset auth cryptohash DNSSEC loop-detect inotify dumpfile\nNov  4 13:22:04 dnsmasq[48059]: warning: no upstream servers configured\nNov  4 13:22:04 dnsmasq[48059]: cleared cache\nNov  4 13:23:19 dnsmasq[48059]: query[A] 4chan.org from 10.10.0.20\nNov  4 13:23:19 dnsmasq[48059]: config 4chan.org is 198.18.0.2\n",
+      "dns_process_log": "",
+      "engine": "MainPID=48514\nNRestarts=0\nExecMainStatus=0\n"
+    },
+    "time": "2026-11-04T06:23:23.830629+00:00"
+  },
+  {
+    "test": "isolated_disk_full",
+    "actual": {
+      "filesystem_bytes": 65536,
+      "kernel_block_present": false,
+      "free_bytes": 0,
+      "event_log_bytes": 0,
+      "routed_http_exit": 0,
+      "services": "NRestarts=0\nMemoryCurrent=189476864\nCPUUsageNSec=1759981000\nActiveState=active\n\nNRestarts=0\nMemoryCurrent=122535936\nCPUUsageNSec=2331751000\nActiveState=active\n",
+      "dashboard_http": {
+        "/auth/login": 200,
+        "/health/": 503
+      },
+      "acceptance": "failed enforcement under full log filesystem"
+    },
+    "time": "2026-11-04T06:23:24.328640+00:00"
+  },
+  {
+    "test": "disk_full_recovery",
+    "actual": {
+      "legitimate_http": "200",
+      "engine": "restarted with normal log path"
+    },
+    "time": "2026-11-04T06:23:29.576571+00:00"
+  }
+]

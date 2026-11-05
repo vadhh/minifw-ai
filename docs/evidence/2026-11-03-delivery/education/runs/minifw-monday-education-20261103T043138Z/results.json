@@ -1,0 +1,17 @@
+[
+  {
+    "test": "dashboard_to_engine_enforcement",
+    "actual": {
+      "authenticated_save": true,
+      "packaged_policy": "/opt/minifw_ai/config/modes/minifw_school/policy.json",
+      "restart_required": true,
+      "timeout_seconds": 11,
+      "added_domain": "tuesday-policy.lab.test",
+      "fixture_setup": "collector paths supplied directly by lab root; enforcement timeout and deny domain saved through dashboard",
+      "actual_kernel": "table inet minifw {\n\tset minifw_block_v4 {\n\t\ttype ipv4_addr\n\t\ttimeout 1h\n\t\telements = { 10.10.0.20 timeout 11s expires 10s780ms }\n\t}\n}\n",
+      "routed_before": "HTTP 200",
+      "routed_after": "blocked"
+    },
+    "time": "2026-11-03T04:31:53.540495+00:00"
+  }
+]

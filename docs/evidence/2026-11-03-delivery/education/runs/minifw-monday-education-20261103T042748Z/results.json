@@ -1,0 +1,101 @@
+[
+  {
+    "test": "runtime_health_observed_ready",
+    "actual": {
+      "status": "ready",
+      "heartbeat_age_seconds": 0.6736026279977523,
+      "kernel_rule_present": true,
+      "source_age_seconds": {
+        "packet": 1.275472882000031
+      },
+      "coverage": "Progress and IPv4 rule presence only; quiet sources remain unverified; not traffic enforcement or AI quality acceptance"
+    },
+    "time": "2026-11-03T04:27:56.750165+00:00"
+  },
+  {
+    "test": "runtime_health_stopped_engine",
+    "actual": {
+      "http_status": 503,
+      "status": "not_ready",
+      "reason": "missing, stale or invalid engine evidence"
+    },
+    "time": "2026-11-03T04:27:57.058253+00:00"
+  },
+  {
+    "test": "runtime_health_missing_rule",
+    "actual": {
+      "http_status": 503,
+      "status": "not_ready",
+      "heartbeat_age_seconds": 0.68229839700507,
+      "kernel_rule_present": false,
+      "source_age_seconds": {
+        "packet": 3.145229557005223
+      },
+      "coverage": "Progress and IPv4 rule presence only; quiet sources remain unverified; not traffic enforcement or AI quality acceptance"
+    },
+    "time": "2026-11-03T04:28:04.464739+00:00"
+  },
+  {
+    "test": "runtime_health_quiet_sensor",
+    "actual": {
+      "http_status": 503,
+      "status": "not_ready",
+      "heartbeat_age_seconds": 0.18706966600439046,
+      "kernel_rule_present": true,
+      "source_age_seconds": {
+        "packet": 31.997155189004843
+      },
+      "coverage": "Progress and IPv4 rule presence only; quiet sources remain unverified; not traffic enforcement or AI quality acceptance"
+    },
+    "time": "2026-11-03T04:28:41.603677+00:00"
+  },
+  {
+    "test": "private_backup_restore_rehearsal",
+    "actual": {
+      "file_and_database": "restored",
+      "sqlite_integrity": "ok",
+      "archive_mode": "0600",
+      "directory_mode": "0700",
+      "unprivileged_read": "denied",
+      "dynamic_blocks": "not restored",
+      "package_rollback": "not tested"
+    },
+    "time": "2026-11-03T04:28:49.715534+00:00"
+  },
+  {
+    "test": "web_service_restrictions",
+    "actual": {
+      "properties": "CapabilityBoundingSet=\nUser=minifw-web\nPrivateTmp=yes\nProtectHome=yes\nProtectSystem=strict\nNoNewPrivileges=yes\n",
+      "no_new_privileges": true,
+      "uid": "105",
+      "capabilities": "none (CapBnd=0, CapEff=0)",
+      "remaining": "Dashboard can still edit policy/feeds by design; engine remains root"
+    },
+    "time": "2026-11-03T04:28:52.414733+00:00"
+  },
+  {
+    "test": "dashboard_unprivileged_smoke",
+    "actual": {
+      "forced_password_change": "enforced, then completed (database write as minifw-web)",
+      "login": "303 to /admin/",
+      "GET /admin/": 200,
+      "GET /admin/api/events": 200,
+      "GET /admin/policy": 200,
+      "GET /admin/license": 200,
+      "kernel_proof": "Blocked at kernel level (nftables)",
+      "feed_add_delete": "deny_domains.txt written by minifw-web",
+      "policy_save": "/opt/minifw_ai/config/modes/minifw_school/policy.json (same file as engine MINIFW_POLICY); original bytes restored",
+      "admin_password": "restored to the installer value; must_change_password now false"
+    },
+    "time": "2026-11-03T04:28:56.003630+00:00"
+  },
+  {
+    "test": "actual_log_rotation",
+    "actual": {
+      "append_log": "rotated and truncated",
+      "state_json": "preserved",
+      "remaining": "copytruncate has a possible concurrent-write loss window; disk-full/load behavior unverified"
+    },
+    "time": "2026-11-03T04:28:56.312471+00:00"
+  }
+]

@@ -1,0 +1,312 @@
+$ dpkg-query -W minifw-ai
+minifw-ai	2.2.10-finance
+$ ip -j netns list
+[]
+$ systemctl stop minifw-ai minifw-ai-web dnsmasq
+$ nft -a list table inet minifw
+table inet minifw { # handle 51
+	set minifw_block_v4 { # handle 1
+		type ipv4_addr
+		timeout 1h
+	}
+
+	chain forward { # handle 2
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 224 bytes 13440 comment "MiniFW-AI-Conntrack" # handle 3
+		ip saddr @minifw_block_v4 counter packets 21 bytes 1260 drop comment "MiniFW-AI-Blocklist" # handle 4
+	}
+}
+$ nft delete table inet minifw
+$ modprobe nf_conntrack
+$ sysctl -w net.ipv4.ip_forward=1 net.ipv6.conf.all.forwarding=1 net.netfilter.nf_conntrack_acct=0
+net.ipv4.ip_forward = 1
+net.ipv6.conf.all.forwarding = 1
+net.netfilter.nf_conntrack_acct = 0
+$ ip netns add mf-client
+$ ip -n mf-client link set lo up
+$ ip netns add mf-server
+$ ip -n mf-server link set lo up
+$ ip link add mfcg type veth peer name mfc0
+$ ip link set mfc0 netns mf-client
+$ ip addr add 10.10.0.1/24 dev mfcg
+$ ip addr add fd42:10::1/64 dev mfcg
+$ ip link set mfcg up
+$ ip -n mf-client addr add 10.10.0.20/24 dev mfc0
+$ ip -n mf-client addr add fd42:10::20/64 dev mfc0
+$ ip -n mf-client link set mfc0 up
+$ ip -n mf-client route add default via 10.10.0.1
+$ ip -n mf-client -6 route add default via fd42:10::1
+$ ip link add mfsg type veth peer name mfs0
+$ ip link set mfs0 netns mf-server
+$ ip addr add 198.18.0.1/24 dev mfsg
+$ ip addr add fd42:18::1/64 dev mfsg
+$ ip link set mfsg up
+$ ip -n mf-server addr add 198.18.0.2/24 dev mfs0
+$ ip -n mf-server addr add fd42:18::2/64 dev mfs0
+$ ip -n mf-server link set mfs0 up
+$ ip -n mf-server route add default via 198.18.0.1
+$ ip -n mf-server -6 route add default via fd42:18::1
+$ ip -br address
+lo               UNKNOWN        127.0.0.1/8 ::1/128 
+ens3             UP             10.231.0.15/24 metric 100 fec0::5054:ff:fe22:1002/64 fe80::5054:ff:fe22:1002/64 
+mfcg@if139       UP             10.10.0.1/24 fd42:10::1/64 fe80::8494:6dff:fe33:f74/64 
+mfsg@if141       UP             198.18.0.1/24 fd42:18::1/64 fe80::f060:cbff:fed4:659/64
+$ ip -n mf-client route
+default via 10.10.0.1 dev mfc0 
+10.10.0.0/24 dev mfc0 proto kernel scope link src 10.10.0.20
+$ ip -n mf-server route
+default via 198.18.0.1 dev mfs0 
+198.18.0.0/24 dev mfs0 proto kernel scope link src 198.18.0.2
+$ openssl req -x509 -newkey rsa:2048 -nodes -days 1 -subj /CN=lab.test -keyout /var/tmp/minifw-monday-financial-20261103T043317Z/server.key -out /var/tmp/minifw-monday-financial-20261103T043317Z/server.crt
+.+..+..........+..+...+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*..+.......+..+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*...+..+................+.....+.......+......+.....+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+......+...+...+...+......+..............+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*.......+......+.....+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*.+......+..........+.....+............................+.....+.+......+.....+.........+.+........+...+..........+..+.+.....+......+.+...+.....+......+.+.....+....+...+......+.....+....+..+...+.+.........+.....+...+...+.......+..+...+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+-----
+$ systemctl stop minifw-ai
+$ nft flush set inet minifw minifw_block_v4
+Error: No such file or directory
+flush set inet minifw minifw_block_v4
+               ^^^^^^
+$ conntrack -D -s 10.10.0.20
+tcp      6 10 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50732 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=50732 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 6 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50564 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=50564 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 37 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=33552 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=33552 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 1 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=37298 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=37298 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 11 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50778 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=50778 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 16 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42194 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=42194 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 3 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50444 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=50444 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 12 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42026 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=42026 packets=5 bytes=577 [ASSURED] mark=0 use=1
+tcp      6 2 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50388 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=50388 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 37 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=33558 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=33558 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 14 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42104 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=42104 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 9 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50692 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=50692 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 4 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50486 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=50486 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 14 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42126 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=42126 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 21 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42462 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=42462 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 3 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50452 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=50452 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 9 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50728 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=50728 packets=5 bytes=577 [ASSURED] mark=0 use=1
+tcp      6 1 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=37294 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=37294 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 13 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42092 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=42092 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 11 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50766 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=50766 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 21 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42496 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=42496 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 13 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42074 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=42074 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 5 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50504 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=50504 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 10 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50736 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=50736 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 13 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42076 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=42076 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 7 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50612 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=50612 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 1 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=37284 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=37284 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 4 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50464 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=50464 packets=5 bytes=577 [ASSURED] mark=0 use=1
+tcp      6 20 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42438 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=42438 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 18 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42306 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=42306 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 16 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42210 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=42210 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 16 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42236 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=42236 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 4 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50456 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=50456 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 18 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42322 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=42322 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 11 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50758 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=50758 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 3 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50410 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=50410 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 11 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50776 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=50776 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 6 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50546 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=50546 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 21 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42488 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=42488 packets=5 bytes=577 [ASSURED] mark=0 use=1
+tcp      6 4 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50478 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=50478 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 6 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50572 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=50572 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 15 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42174 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=42174 packets=5 bytes=577 [ASSURED] mark=0 use=1
+tcp      6 16 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42222 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=42222 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 8 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50670 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=50670 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 0 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=37238 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=37238 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 11 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50756 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=50756 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 20 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42400 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=42400 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 18 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42296 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=42296 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 21 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42498 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=42498 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 0 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=37226 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=37226 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 18 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42328 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=42328 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 14 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42122 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=42122 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 13 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42052 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=42052 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 20 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42414 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=42414 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 12 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42040 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=42040 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 17 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42260 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=42260 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 19 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42354 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=42354 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 20 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42426 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=42426 packets=5 bytes=577 [ASSURED] mark=0 use=1
+tcp      6 10 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50752 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=50752 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 19 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42392 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=42392 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 12 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42016 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=42016 packets=5 bytes=577 [ASSURED] mark=0 use=1
+tcp      6 10 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50740 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=50740 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 4 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50490 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=50490 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 15 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42164 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=42164 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 14 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42120 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=42120 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 5 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50520 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=50520 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 20 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42454 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=42454 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 1 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=37300 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=37300 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 17 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42280 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=42280 packets=5 bytes=577 [ASSURED] mark=0 use=1
+tcp      6 9 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50718 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=50718 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 12 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42010 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=42010 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 8 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50654 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=50654 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 3 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50432 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=50432 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 7 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50600 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=50600 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 10 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50754 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=50754 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 9 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50696 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=50696 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 13 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42066 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=42066 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 37 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=33542 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=33542 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 5 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50536 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=50536 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 19 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42358 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=42358 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 6 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50554 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=50554 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 19 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42380 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=42380 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 2 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50408 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=50408 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 0 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=37264 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=37264 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 18 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42344 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=42344 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 0 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=37270 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=37270 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 14 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42128 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=42128 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 5 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50528 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=50528 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 7 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50594 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=50594 packets=5 bytes=577 [ASSURED] mark=0 use=1
+tcp      6 15 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42146 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=42146 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 1 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=37308 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=37308 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 14 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42130 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=42130 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 6 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50584 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=50584 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 0 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=37248 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=37248 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 21 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42478 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=42478 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 17 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42268 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=42268 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 7 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50628 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=50628 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 7 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50622 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=50622 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 2 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50394 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=50394 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 16 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42238 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=42238 packets=5 bytes=577 [ASSURED] mark=0 use=1
+tcp      6 15 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42152 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=42152 packets=5 bytes=577 [ASSURED] mark=0 use=1
+tcp      6 15 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42182 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=42182 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 2 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50400 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=50400 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 8 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50676 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=50676 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 5 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50496 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=50496 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 3 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50422 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=50422 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 8 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50646 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=50646 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 19 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42374 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=42374 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 8 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50636 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=50636 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 9 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50710 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=50710 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 2 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50386 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=50386 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 17 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42250 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=42250 packets=6 bytes=629 [ASSURED] mark=0 use=1
+conntrack v1.4.7 (conntrack-tools): 112 flow entries have been deleted.
+$ systemctl daemon-reload
+$ systemctl start minifw-ai
+$ systemctl show minifw-ai -p ActiveState -p MainPID -p ExecMainStatus
+MainPID=40047
+ExecMainStatus=0
+ActiveState=active
+$ ip netns exec mf-client /usr/bin/python3 /home/lab/tuesday-c16/testing/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+$ systemctl start minifw-ai-web
+$ systemctl daemon-reload
+$ systemctl restart minifw-ai
+$ ip netns exec mf-client /usr/bin/python3 /home/lab/tuesday-c16/testing/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+$ ip netns exec mf-client /usr/bin/python3 /home/lab/tuesday-c16/testing/lab_gateway_acceptance.py client dns 10.10.0.1 tuesday-policy.lab.test
+{"ok": true, "resolver": "10.10.0.1", "domain": "tuesday-policy.lab.test", "answer": "198.18.0.2"}
+$ nft get element inet minifw minifw_block_v4 '{' 10.10.0.20 '}'
+table inet minifw {
+	set minifw_block_v4 {
+		type ipv4_addr
+		timeout 1h
+		elements = { 10.10.0.20 timeout 13s expires 12s824ms }
+	}
+}
+$ nft -a list table inet minifw
+table inet minifw { # handle 52
+	set minifw_block_v4 { # handle 1
+		type ipv4_addr
+		timeout 1h
+		elements = { 10.10.0.20 timeout 13s expires 12s816ms }
+	}
+
+	chain forward { # handle 2
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 2 bytes 120 comment "MiniFW-AI-Conntrack" # handle 3
+		ip saddr @minifw_block_v4 counter packets 0 bytes 0 drop comment "MiniFW-AI-Blocklist" # handle 4
+	}
+}
+$ ip netns exec mf-client /usr/bin/python3 /home/lab/tuesday-c16/testing/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": false, "error": "TimeoutError"}
+VERIFIED {"test": "dashboard_to_engine_enforcement", "actual": {"authenticated_save": true, "packaged_policy": "/opt/minifw_ai/config/modes/minifw_financial/policy.json", "restart_required": true, "previous_timeout_seconds": 11, "timeout_seconds": 13, "added_domain": "tuesday-policy.lab.test", "fixture_setup": "collector paths supplied directly by lab root; enforcement timeout and deny domain saved through dashboard", "actual_kernel": "table inet minifw {\n\tset minifw_block_v4 {\n\t\ttype ipv4_addr\n\t\ttimeout 1h\n\t\telements = { 10.10.0.20 timeout 13s expires 12s824ms }\n\t}\n}\n", "routed_before": "HTTP 200", "routed_after": "blocked"}, "time": "2026-11-03T04:33:31.258845+00:00"}
+$ systemctl stop minifw-ai-web
+$ systemctl daemon-reload
+$ systemctl stop minifw-ai
+$ journalctl -u minifw-ai --no-pager --since '2026-11-03 04:33:17 UTC'
+Nov 03 11:33:19 minifw-monday-financial systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 03 11:33:21 minifw-monday-financial python[40047]: 2026-11-03 11:33:21,001 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Nov 03 11:33:21 minifw-monday-financial python[40047]: 2026-11-03 11:33:21,005 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Nov 03 11:33:21 minifw-monday-financial python[40047]: 2026-11-03 11:33:21,005 - INFO - [STATE] Restored state from /opt/minifw_ai/logs/deployment_state.json: BASELINE_PROTECTION
+Nov 03 11:33:21 minifw-monday-financial python[40047]: 2026-11-03 11:33:21,005 - INFO - [STATE] Initial protection state: BASELINE_PROTECTION
+Nov 03 11:33:21 minifw-monday-financial python[40047]: 2026-11-03 11:33:21,012 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_financial: sector=finance
+Nov 03 11:33:21 minifw-monday-financial python[40047]: 2026-11-03 11:33:21,012 - INFO - [SECTOR_LOCK] Loaded config for finance: ['description', 'block_tor', 'block_anonymizers', 'strict_tls', 'minimum_tls_version', 'pci_compliance_mode', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_retention_days']
+Nov 03 11:33:21 minifw-monday-financial python[40047]: 2026-11-03 11:33:21,012 - INFO - [SECTOR_LOCK] Device sector: finance (LOCKED)
+Nov 03 11:33:21 minifw-monday-financial python[40047]: 2026-11-03 11:33:21,012 - INFO - [SECTOR_LOCK] Config: Finance: metadata policies; TLS version control requires packet metadata; no compliance certification.
+Nov 03 11:33:21 minifw-monday-financial python[40047]: 2026-11-03 11:33:21,012 - INFO - [FEEDS] Loaded 10 patterns from financial_fraud.txt
+Nov 03 11:33:21 minifw-monday-financial python[40047]: 2026-11-03 11:33:21,012 - INFO - [FEEDS] Loaded 9 patterns from crypto_scams.txt
+Nov 03 11:33:21 minifw-monday-financial python[40047]: 2026-11-03 11:33:21,012 - INFO - [SECTOR_LOCK] Loaded 19 sector-specific feed patterns
+Nov 03 11:33:21 minifw-monday-financial python[40047]: 2026-11-03 11:33:21,013 - INFO - [FEEDS] Loaded 0 Tor exit node IPs from /opt/minifw_ai/config/feeds/tor_exit_nodes.txt
+Nov 03 11:33:21 minifw-monday-financial python[40047]: 2026-11-03 11:33:21,013 - INFO - [SECTOR_LOCK] Tor/anonymizer blocking enabled: loaded 0 exit IPs
+Nov 03 11:33:21 minifw-monday-financial python[40047]: 2026-11-03 11:33:21,062 - INFO - [TELEMETRY] Packet metadata on mfcg; packet14 model required; no TLS decryption
+Nov 03 11:33:21 minifw-monday-financial python[40063]: Capturing on 'mfcg'
+Nov 03 11:33:21 minifw-monday-financial python[40063]: File: -
+Nov 03 11:33:26 minifw-monday-financial systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 03 11:33:26 minifw-monday-financial python[40063]: [37B blob data]
+Nov 03 11:33:26 minifw-monday-financial python[40047]: 2026-11-03 11:33:26,063 - INFO - Caught SIGTERM, shutting down.
+Nov 03 11:33:26 minifw-monday-financial python[40063]: [21B blob data]
+Nov 03 11:33:26 minifw-monday-financial python[40063]: Packets received/dropped on interface 'mfcg': 15/0 (pcap:0/dumpcap:0/flushed:0/ps_ifdrop:0) (100.0%)
+Nov 03 11:33:26 minifw-monday-financial python[40047]: 2026-11-03 11:33:26,110 - ERROR - [packet] Collector failed; retrying independently
+Nov 03 11:33:26 minifw-monday-financial python[40047]: Traceback (most recent call last):
+Nov 03 11:33:26 minifw-monday-financial python[40047]:   File "/opt/minifw_ai/app/minifw_ai/collector_runtime.py", line 16, in collect
+Nov 03 11:33:26 minifw-monday-financial python[40047]:     for event in factory():
+Nov 03 11:33:26 minifw-monday-financial python[40047]:   File "/opt/minifw_ai/app/minifw_ai/collector_packets.py", line 87, in stream_packet_events
+Nov 03 11:33:26 minifw-monday-financial python[40047]:     raise RuntimeError(f"Packet metadata sensor stopped: exit={decoder.wait()}")
+Nov 03 11:33:26 minifw-monday-financial python[40047]: RuntimeError: Packet metadata sensor stopped: exit=0
+Nov 03 11:33:26 minifw-monday-financial python[40047]: [*] DNS Collector reading from /var/tmp/minifw-monday-financial-20261103T043317Z/dns.log
+Nov 03 11:33:26 minifw-monday-financial systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 03 11:33:26 minifw-monday-financial systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 03 11:33:26 minifw-monday-financial systemd[1]: minifw-ai.service: Consumed 2.103s CPU time.
+Nov 03 11:33:26 minifw-monday-financial systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 03 11:33:27 minifw-monday-financial python[40113]: 2026-11-03 11:33:27,838 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Nov 03 11:33:27 minifw-monday-financial python[40113]: 2026-11-03 11:33:27,841 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Nov 03 11:33:27 minifw-monday-financial python[40113]: 2026-11-03 11:33:27,841 - INFO - [STATE] Restored state from /opt/minifw_ai/logs/deployment_state.json: BASELINE_PROTECTION
+Nov 03 11:33:27 minifw-monday-financial python[40113]: 2026-11-03 11:33:27,842 - INFO - [STATE] Initial protection state: BASELINE_PROTECTION
+Nov 03 11:33:27 minifw-monday-financial python[40113]: 2026-11-03 11:33:27,848 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_financial: sector=finance
+Nov 03 11:33:27 minifw-monday-financial python[40113]: 2026-11-03 11:33:27,848 - INFO - [SECTOR_LOCK] Loaded config for finance: ['description', 'block_tor', 'block_anonymizers', 'strict_tls', 'minimum_tls_version', 'pci_compliance_mode', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_retention_days']
+Nov 03 11:33:27 minifw-monday-financial python[40113]: 2026-11-03 11:33:27,848 - INFO - [SECTOR_LOCK] Device sector: finance (LOCKED)
+Nov 03 11:33:27 minifw-monday-financial python[40113]: 2026-11-03 11:33:27,848 - INFO - [SECTOR_LOCK] Config: Finance: metadata policies; TLS version control requires packet metadata; no compliance certification.
+Nov 03 11:33:27 minifw-monday-financial python[40113]: 2026-11-03 11:33:27,849 - INFO - [FEEDS] Loaded 10 patterns from financial_fraud.txt
+Nov 03 11:33:27 minifw-monday-financial python[40113]: 2026-11-03 11:33:27,849 - INFO - [FEEDS] Loaded 9 patterns from crypto_scams.txt
+Nov 03 11:33:27 minifw-monday-financial python[40113]: 2026-11-03 11:33:27,849 - INFO - [SECTOR_LOCK] Loaded 19 sector-specific feed patterns
+Nov 03 11:33:27 minifw-monday-financial python[40113]: 2026-11-03 11:33:27,849 - INFO - [FEEDS] Loaded 0 Tor exit node IPs from /opt/minifw_ai/config/feeds/tor_exit_nodes.txt
+Nov 03 11:33:27 minifw-monday-financial python[40113]: 2026-11-03 11:33:27,849 - INFO - [SECTOR_LOCK] Tor/anonymizer blocking enabled: loaded 0 exit IPs
+Nov 03 11:33:27 minifw-monday-financial python[40113]: 2026-11-03 11:33:27,908 - INFO - [TELEMETRY] Packet metadata on mfcg; packet14 model required; no TLS decryption
+Nov 03 11:33:27 minifw-monday-financial python[40128]: Capturing on 'mfcg'
+Nov 03 11:33:27 minifw-monday-financial python[40128]: File: -
+Nov 03 11:33:31 minifw-monday-financial python[40128]: [38B blob data]
+Nov 03 11:33:31 minifw-monday-financial python[40113]: 2026-11-03 11:33:31,886 - INFO - Caught SIGTERM, shutting down.
+Nov 03 11:33:31 minifw-monday-financial systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 03 11:33:31 minifw-monday-financial python[40128]: [21B blob data]
+Nov 03 11:33:31 minifw-monday-financial python[40128]: Packets received/dropped on interface 'mfcg': 16/0 (pcap:0/dumpcap:0/flushed:0/ps_ifdrop:0) (100.0%)
+Nov 03 11:33:31 minifw-monday-financial python[40113]: 2026-11-03 11:33:31,934 - ERROR - [packet] Collector failed; retrying independently
+Nov 03 11:33:31 minifw-monday-financial python[40113]: Traceback (most recent call last):
+Nov 03 11:33:31 minifw-monday-financial python[40113]:   File "/opt/minifw_ai/app/minifw_ai/collector_runtime.py", line 16, in collect
+Nov 03 11:33:31 minifw-monday-financial python[40113]:     for event in factory():
+Nov 03 11:33:31 minifw-monday-financial python[40113]:   File "/opt/minifw_ai/app/minifw_ai/collector_packets.py", line 87, in stream_packet_events
+Nov 03 11:33:31 minifw-monday-financial python[40113]:     raise RuntimeError(f"Packet metadata sensor stopped: exit={decoder.wait()}")
+Nov 03 11:33:31 minifw-monday-financial python[40113]: RuntimeError: Packet metadata sensor stopped: exit=0
+Nov 03 11:33:32 minifw-monday-financial python[40113]: [*] DNS Collector reading from /var/tmp/minifw-monday-financial-20261103T043317Z/dns.log
+Nov 03 11:33:32 minifw-monday-financial systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 03 11:33:32 minifw-monday-financial systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 03 11:33:32 minifw-monday-financial systemd[1]: minifw-ai.service: Consumed 2.079s CPU time.
+$ nft -a list table inet minifw
+table inet minifw { # handle 52
+	set minifw_block_v4 { # handle 1
+		type ipv4_addr
+		timeout 1h
+		elements = { 10.10.0.20 timeout 13s expires 9s528ms }
+	}
+
+	chain forward { # handle 2
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 4 bytes 240 comment "MiniFW-AI-Conntrack" # handle 3
+		ip saddr @minifw_block_v4 counter packets 2 bytes 120 drop comment "MiniFW-AI-Blocklist" # handle 4
+	}
+}
+$ systemctl daemon-reload
+$ ip netns delete mf-client
+$ ip netns delete mf-server
+$ ip link delete mfcg
+$ ip link delete mfsg
+EVIDENCE_DIRECTORY /var/tmp/minifw-monday-financial-20261103T043317Z

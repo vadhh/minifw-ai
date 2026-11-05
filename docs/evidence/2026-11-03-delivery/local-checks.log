@@ -1,0 +1,19 @@
+$ python3 -m unittest testing.test_installer_ownership -v
+test_existing_writable_code_and_venv_are_locked (testing.test_installer_ownership.OwnershipTests.test_existing_writable_code_and_venv_are_locked) ... ok
+test_guard_precedes_installed_python (testing.test_installer_ownership.OwnershipTests.test_guard_precedes_installed_python) ... ok
+test_linked_code_is_rejected_without_touching_target (testing.test_installer_ownership.OwnershipTests.test_linked_code_is_rejected_without_touching_target) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.093s
+
+OK
+
+exit=0
+$ .venv/bin/python -m pytest -q testing/test_packaged_units.py testing/test_dashboard_unprivileged.py
+......                                                                   [100%]
+6 passed in 0.18s
+
+exit=0
+$ bash -n scripts/build_deb.sh scripts/install_systemd.sh
+
+exit=0
