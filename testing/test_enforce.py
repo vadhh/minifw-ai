@@ -130,6 +130,30 @@ def test_ipset_add_raises_on_subprocess_error(mock_run):
 
 # ---------------------------------------------------------------------------
 # nft_apply_forward_drop()
+
+@patch("minifw_ai.enforce.subprocess.run")
+def test_explicit_deny_renews_existing_block_in_one_transaction(mock_run):
+    mock_run.return_value = MagicMock(returncode=0)
+    assert ipset_add("minifw_block_v4", "192.168.1.100", 15, refresh=True)
+    assert mock_run.call_args.args == (["nft", "-f", "-"],)
+    assert mock_run.call_args.kwargs["input"] == (
+        "delete element inet minifw minifw_block_v4 { 192.168.1.100 }\n"
+        "add element inet minifw minifw_block_v4 { 192.168.1.100 timeout 15s }\n")
+
+
+@patch("minifw_ai.enforce.subprocess.run")
+def test_deny_renewal_handles_expiry_race(mock_run):
+    mock_run.side_effect = [MagicMock(returncode=0),
+                            subprocess.CalledProcessError(1, "nft", stderr="No such file or directory"),
+                            MagicMock(returncode=0)]
+    assert ipset_add("minifw_block_v4", "192.168.1.100", 15, refresh=True)
+    assert mock_run.call_args.args[0][1:3] == ["add", "element"]
+
+
+@pytest.mark.parametrize("timeout", [-1, "15; flush ruleset"])
+def test_deny_renewal_rejects_invalid_timeout(timeout):
+    with pytest.raises(ValueError):
+        ipset_add("minifw_block_v4", "192.168.1.100", timeout, refresh=True)
 # ---------------------------------------------------------------------------
 
 @patch("minifw_ai.enforce.subprocess.run")

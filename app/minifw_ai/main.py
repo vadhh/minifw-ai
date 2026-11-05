@@ -227,13 +227,9 @@ def _build_sector_flow(
 
 def evaluate_hard_threat(
     flows: list,
-    flow_freq: int,
-    flow_freq_threshold: int,
     port_scan_detected: bool = False,
 ) -> tuple[bool, str | None]:
-    if flow_freq >= flow_freq_threshold:
-        return True, "flow_frequency"
-
+    # Connection volume alone cannot distinguish ordinary HTTP from an attack.
     # Rule 0: Port scan detection (many unique dst ports)
     if port_scan_detected:
         return True, "port_scan"
@@ -542,7 +538,6 @@ def run():
     elif os.environ.get("MINIFW_DISABLE_FLOWS", "0") != "1":
         sources["flow"] = lambda: stream_conntrack_flows(conntrack_path)
     flow_freq_window = _safe_int_cast(os.environ.get("MINIFW_FLOW_FREQ_WINDOW_SEC"), 60)
-    flow_freq_threshold = _safe_int_cast(os.environ.get("MINIFW_FLOW_FREQ_THRESHOLD"), 200)
     flow_freq_tracker = BurstTracker(window_seconds=flow_freq_window, max_size=20000)
     if packet_interface:
         logging.info("[TELEMETRY] Packet metadata on %s; packet14 model required; no TLS decryption", packet_interface)
@@ -687,7 +682,7 @@ def run():
             flows_for_client = flow_tracker.get_flows_for_client(client_ip)
             flow_freq = flow_freq_tracker.get_rate(client_ip)
             hard_threat, hard_threat_reason = evaluate_hard_threat(
-                flows_for_client, flow_freq, flow_freq_threshold,
+                flows_for_client,
                 port_scan_detected=port_scan_hit,
             )
             if hard_threat:
@@ -803,7 +798,8 @@ def run():
                 action = "monitor"
                 reasons.append("ipv6_enforcement_unsupported")
             if action == "block":
-                added = ipset_add(set_name, client_ip, timeout, family=table, table_name=table_name)
+                added = ipset_add(set_name, client_ip, timeout, family=table, table_name=table_name,
+                                  refresh=bool(denied or sni_denied))
                 if added is False:
                     continue
                 audit_ip_block(client_ip, score, reasons, domain, sector_name)
@@ -897,77 +893,83 @@ def run():
             # Export active flows with features
             active_flows = flow_tracker.get_all_active_flows()
 
-            with flow_records_file.open("a", encoding="utf-8") as f:
-                for flow in active_flows:
-                    # Only export flows with reasonable data
-                    if flow.pkt_count < 5:  # Skip very small flows
-                        continue
+            try:
+                with flow_records_file.open("a", encoding="utf-8") as f:
+                    for flow in active_flows:
+                        # Only export flows with reasonable data
+                        if flow.pkt_count < 5:  # Skip very small flows
+                            continue
 
-                    features = (build_packet_features_14(flow) if flow.packet_metadata_only else
-                                build_feature_vector_24(flow, tracker=flow_tracker)) if flow.packet_timing_available and flow.last_seen > flow.first_seen else None
+                        features = (build_packet_features_14(flow) if flow.packet_metadata_only else
+                                    build_feature_vector_24(flow, tracker=flow_tracker)) if flow.packet_timing_available and flow.last_seen > flow.first_seen else None
 
-                    # HIPAA: Redact domain/SNI from flow records when sector requires it
-                    _redact = sector_config.get("redact_payloads", False)
+                        # HIPAA: Redact domain/SNI from flow records when sector requires it
+                        _redact = sector_config.get("redact_payloads", False)
 
-                    record = {
-                        "timestamp": flow.first_seen,
-                        "client_ip": flow.client_ip,
-                        "dst_ip": flow.dst_ip,
-                        "dst_port": flow.dst_port,
-                        "proto": flow.proto,
-                        "domain": "[REDACTED]" if _redact else flow.domain,
-                        "sni": "[REDACTED]" if _redact else flow.sni,
-                        "segment": segment_for_ip(flow.client_ip, seg_map),
-                        "features": None if flow.packet_metadata_only else features,
-                        "packet_features": features if flow.packet_metadata_only else None,
-                        "packet_feature_schema": "packet14-v1" if flow.packet_metadata_only else "",
-                        "src_port": flow.src_port,
-                        "packet_timing_available": flow.packet_timing_available,
-                        "mlp_status": ("eligible_packet14_only" if flow.packet_metadata_only else "eligible") if features is not None else "disabled_unsupported_packet_features",
-                        "duration": flow.get_duration(),
-                        "packets": flow.pkt_count,
-                        "bytes": flow.get_total_bytes(),
-                        # Include decision info if available
-                        "action": action if flow is flow_for_event else None,
-                        "score": score if flow is flow_for_event else None,
-                        # NEW: AI Verdict (auditability)
-                        "ai_verdict": (
-                            ("threat" if mlp_proba >= mlp_detector.threshold else "normal")
-                            if mlp_ran and flow is flow_for_event else None
-                        ),
-                        "ai_confidence": (
-                            mlp_proba
-                            if mlp_ran and flow is flow_for_event
-                            else None
-                        ),
-                        "hard_threat_override": (
-                            hard_threat if flow is flow_for_event else None
-                        ),
-                        "hard_threat_reason": (
-                            hard_threat_reason
-                            if (flow is flow_for_event and hard_threat)
-                            else None
-                        ),
-                        # NEW: Include MLP prediction if available
-                        "mlp_enabled": mlp_enabled,
-                        "mlp_mode": ("shadow_only" if flow.packet_metadata_only else "scoring") if mlp_ran and flow is flow_for_event else "not_run",
-                        "mlp_proba": mlp_proba if flow is flow_for_event else None,
-                        "mlp_score": mlp_score if flow is flow_for_event else None,
-                        # NEW: Include YARA matches if available
-                        "yara_enabled": yara_enabled,
-                        "yara_score": (
-                            yara_score if flow is flow_for_event else None
-                        ),
-                        "yara_matches": (
-                            [m.to_dict() for m in yara_matches]
-                            if (flow is flow_for_event and yara_matches)
-                            else []
-                        ),
-                        "label": None,  # To be labeled later for training
-                        "label_reason": None,
-                    }
+                        record = {
+                            "timestamp": flow.first_seen,
+                            "client_ip": flow.client_ip,
+                            "dst_ip": flow.dst_ip,
+                            "dst_port": flow.dst_port,
+                            "proto": flow.proto,
+                            "domain": "[REDACTED]" if _redact else flow.domain,
+                            "sni": "[REDACTED]" if _redact else flow.sni,
+                            "segment": segment_for_ip(flow.client_ip, seg_map),
+                            "features": None if flow.packet_metadata_only else features,
+                            "packet_features": features if flow.packet_metadata_only else None,
+                            "packet_feature_schema": "packet14-v1" if flow.packet_metadata_only else "",
+                            "src_port": flow.src_port,
+                            "packet_timing_available": flow.packet_timing_available,
+                            "mlp_status": ("eligible_packet14_only" if flow.packet_metadata_only else "eligible") if features is not None else "disabled_unsupported_packet_features",
+                            "duration": flow.get_duration(),
+                            "packets": flow.pkt_count,
+                            "bytes": flow.get_total_bytes(),
+                            # Include decision info if available
+                            "action": action if flow is flow_for_event else None,
+                            "score": score if flow is flow_for_event else None,
+                            # NEW: AI Verdict (auditability)
+                            "ai_verdict": (
+                                ("threat" if mlp_proba >= mlp_detector.threshold else "normal")
+                                if mlp_ran and flow is flow_for_event else None
+                            ),
+                            "ai_confidence": (
+                                mlp_proba
+                                if mlp_ran and flow is flow_for_event
+                                else None
+                            ),
+                            "hard_threat_override": (
+                                hard_threat if flow is flow_for_event else None
+                            ),
+                            "hard_threat_reason": (
+                                hard_threat_reason
+                                if (flow is flow_for_event and hard_threat)
+                                else None
+                            ),
+                            # NEW: Include MLP prediction if available
+                            "mlp_enabled": mlp_enabled,
+                            "mlp_mode": ("shadow_only" if flow.packet_metadata_only else "scoring") if mlp_ran and flow is flow_for_event else "not_run",
+                            "mlp_proba": mlp_proba if flow is flow_for_event else None,
+                            "mlp_score": mlp_score if flow is flow_for_event else None,
+                            # NEW: Include YARA matches if available
+                            "yara_enabled": yara_enabled,
+                            "yara_score": (
+                                yara_score if flow is flow_for_event else None
+                            ),
+                            "yara_matches": (
+                                [m.to_dict() for m in yara_matches]
+                                if (flow is flow_for_event and yara_matches)
+                                else []
+                            ),
+                            "label": None,  # To be labeled later for training
+                            "label_reason": None,
+                        }
 
-                    f.write(json.dumps(record, ensure_ascii=False) + "\n")
+                        f.write(json.dumps(record, ensure_ascii=False) + "\n")
+
+            except OSError:
+                logging.error("Flow export unavailable; enforcement continues", exc_info=True)
+                flow_export_counter = 0
+                continue
 
             # Reset counter
             flow_export_counter = 0

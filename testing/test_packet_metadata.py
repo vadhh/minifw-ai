@@ -59,8 +59,8 @@ def test_packet_rate_gates_require_a_complete_second_without_threshold_changes()
     for index in range(5):
         flow, _ = observe_packet(tracker, packet(observed_at=100 + index * .001), NETS)
     assert flow.pkts_per_sec > 200
-    assert evaluate_hard_threat([flow], 1, 200) == (False, None)
-    assert evaluate_hard_threat([flow], 1, 200, port_scan_detected=True) == (True, "port_scan")
+    assert evaluate_hard_threat([flow]) == (False, None)
+    assert evaluate_hard_threat([flow], port_scan_detected=True) == (True, "port_scan")
 
 
 @pytest.mark.parametrize("field,value", [(1,"0"), (2,"invalid"), (6,"65536"), (11,"bad")])

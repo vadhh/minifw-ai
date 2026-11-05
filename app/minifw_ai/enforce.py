@@ -8,7 +8,7 @@ from pathlib import Path
 
 def is_valid_nft_object_name(name: str) -> bool:
     """Only allows alphanumeric chars and underscores, max 32 chars."""
-    return re.match(r"^[a-zA-Z0-9_]{1,32}$", name) is not None
+    return re.fullmatch(r"[a-zA-Z0-9_]{1,32}", name) is not None
 
 
 def ipset_create(
@@ -64,6 +64,7 @@ def ipset_add(
     timeout: int,
     family: str = "inet",
     table_name: str = "minifw",
+    refresh: bool = False,
 ) -> bool:
     """
     Adds an IP to the native nftables set.
@@ -71,6 +72,8 @@ def ipset_add(
     if not is_valid_nft_object_name(set_name):
         raise ValueError(f"Invalid nftables set name: {set_name}")
     ipaddress.IPv4Address(ip)
+    if not isinstance(timeout, int) or timeout < 0:
+        raise ValueError("Invalid block timeout")
     if not all(is_valid_nft_object_name(name) for name in (family, table_name)):
         raise ValueError("Invalid nftables family/table")
 
@@ -79,7 +82,19 @@ def ipset_add(
         capture_output=True, text=True,
     )
     if present.returncode == 0:
-        return False
+        if not refresh:
+            return False
+        # Renew explicit denies atomically: an older, almost-expired block is insufficient.
+        target = f"{family} {table_name} {set_name}"
+        try:
+            subprocess.run(["nft", "-f", "-"], input=(
+                f"delete element {target} {{ {ip} }}\n"
+                f"add element {target} {{ {ip} timeout {timeout}s }}\n"
+            ), check=True, capture_output=True, text=True)
+            return True
+        except subprocess.CalledProcessError:
+            # The old element may have expired between the membership check and transaction.
+            pass
 
     try:
         cmd = [

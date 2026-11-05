@@ -1,0 +1,8 @@
+[Unit]
+Description=Apply saved MiniFW policy by restarting the engine
+
+[Service]
+Type=oneshot
+ExecStartPre=/usr/bin/rm -f /var/lib/minifw-ai/apply-policy
+ExecStart=/usr/bin/systemctl restart minifw-ai.service
+NoNewPrivileges=yes

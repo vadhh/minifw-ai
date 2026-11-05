@@ -1,0 +1,53 @@
+{% extends "admin/base.html" %}
+
+{% block title %}License - MiniFW AI{% endblock %}
+
+{% block content %}
+<div class="app-content">
+  <div class="container-fluid">
+    <div class="card">
+      <div class="card-header"><h3 class="card-title">Annual License</h3></div>
+      <div class="card-body">
+        <div class="alert {% if license.status == 'valid' %}alert-success{% elif license.status == 'grace' %}alert-warning{% else %}alert-danger{% endif %}" role="status">
+          <strong>{{ license.status | replace('_', ' ') | title }}</strong>
+          {% if license.reason %}<span> — {{ license.reason }}</span>{% endif %}
+        </div>
+        <dl class="row">
+          <dt class="col-sm-3">Customer</dt><dd class="col-sm-9">{{ license.customer_id or '—' }}</dd>
+          <dt class="col-sm-3">Product mode</dt><dd class="col-sm-9">{{ mode_ui.product_mode or 'Unconfigured' }}</dd>
+          <dt class="col-sm-3">Deployment ID</dt><dd class="col-sm-9"><code>{{ deployment_id }}</code></dd>
+          <dt class="col-sm-3">Expires</dt><dd class="col-sm-9">{{ license.expires_at or '—' }}</dd>
+        </dl>
+        <p class="text-muted">License status never stops firewall enforcement. Renewal files must be signed for this deployment and product mode.</p>
+        <form id="licenseForm" enctype="multipart/form-data">
+          <label class="form-label" for="licenseFile">Install or renew license</label>
+          <div class="input-group">
+            <input class="form-control" type="file" id="licenseFile" name="license_file" accept="application/json,.json" required>
+            <button class="btn btn-primary" type="submit">Install license</button>
+          </div>
+          <div id="licenseMessage" class="mt-2" role="status"></div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('licenseForm').addEventListener('submit', async function(event) {
+  event.preventDefault();
+  const message = document.getElementById('licenseMessage');
+  const response = await fetch('/admin/api/license', { method: 'POST', body: new FormData(this) });
+  const body = await response.json().catch(() => ({}));
+  if (response.ok) {
+    message.className = 'mt-2 text-success';
+    message.textContent = 'License installed. Refreshing status…';
+    location.reload();
+  } else {
+    message.className = 'mt-2 text-danger';
+    message.textContent = body.detail || 'License installation failed.';
+  }
+});
+</script>
+{% endblock %}

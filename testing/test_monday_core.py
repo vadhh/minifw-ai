@@ -191,6 +191,8 @@ def test_numeric_model_reason_retains_model_attribution():
     ("finance", "minifw_financial", "destination_asn"),
     ("finance", "minifw_financial", "destination_ip"),
     ("finance", "minifw_financial", "packet_source_precedence"),
+    ("education", "minifw_school", "full_log_volume"),
+    ("finance", "minifw_financial", "full_log_volume"),
 ])
 def test_engine_enforces_flow_threat_without_dns(tmp_path, monkeypatch, sector, mode, scenario):
     from pathlib import Path
@@ -222,7 +224,20 @@ def test_engine_enforces_flow_threat_without_dns(tmp_path, monkeypatch, sector, 
     for name in ["audit_config_loaded", "audit_firewall_init", "audit_daemon_start", "audit_ip_block"]:
         monkeypatch.setattr(main, name, Mock())
     samples = [ConntrackFlow("10.10.0.20", "198.18.0.2", 10000 + i, "tcp", 51000 + i)
-               for i in range(15 if scenario == "port_scan" else 1)]
+               for i in range(15 if scenario in {"port_scan", "full_log_volume"} else 1)]
+    export_attempts = []
+    if scenario == "full_log_volume":
+        samples = [samples[0]] * 110 + samples
+        original_open = Path.open
+
+        def full_export(path, *args, **kwargs):
+            if path == tmp_path / "flows.jsonl":
+                export_attempts.append(path)
+                raise OSError(28, "No space left on device")
+            return original_open(path, *args, **kwargs)
+
+        monkeypatch.setattr(Path, "open", full_export)
+        monkeypatch.setattr(main.EventWriter, "write", Mock(side_effect=OSError(28, "No space left on device")))
     monkeypatch.setattr(main, "stream_collector_events", lambda sources: iter(("flow", s) for s in samples))
     if scenario == "packet_source_precedence":
         monkeypatch.setenv("MINIFW_PACKET_INTERFACE", "mfcg")
@@ -238,13 +253,17 @@ def test_engine_enforces_flow_threat_without_dns(tmp_path, monkeypatch, sector, 
     if scenario == "packet_source_precedence":
         enforce.assert_not_called()
         return
+    if scenario == "full_log_volume":
+        assert export_attempts, "The failed export must precede the later threat decision"
+        enforce.assert_called_once_with("minifw_block_v4", "10.10.0.20", 86400, family="inet", table_name="minifw", refresh=False)
+        return
     events = [json.loads(line) for line in (tmp_path / "events.jsonl").read_text().splitlines()]
     if scenario == "destination_ip":
         enforce.assert_not_called()
         assert "ip_denied_tor_anonymizer" in events[-1]["reasons"]
         assert events[-1]["client_ip"] == "10.10.0.20"
         return
-    enforce.assert_called_once_with("minifw_block_v4", "10.10.0.20", 86400, family="inet", table_name="minifw")
+    enforce.assert_called_once_with("minifw_block_v4", "10.10.0.20", 86400, family="inet", table_name="minifw", refresh=False)
     assert events[-1]["action"] == "block"
     assert events[-1]["dst_ip"] == "198.18.0.2"
     assert events[-1]["telemetry_source"] == "flow"

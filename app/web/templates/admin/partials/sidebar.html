@@ -109,6 +109,14 @@
         <li class="nav-header">ADMINISTRATION</li>
 
         <!-- User Management (Super Admin Only) -->
+        <li class="nav-item" data-rbac-min="admin">
+          <a href="/admin/license" class="nav-link {% if request.url.path == '/admin/license' %}active{% endif %}">
+            <i class="nav-icon bi bi-patch-check"></i>
+            <p>License</p>
+          </a>
+        </li>
+
+        <!-- User Management (Super Admin Only) -->
         <li class="nav-item" data-rbac-min="super_admin">
           <a href="/admin/users" class="nav-link {% if request.url.path == '/admin/users' %}active{% endif %}">
             <i class="nav-icon bi bi-people"></i>

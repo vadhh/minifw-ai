@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-BASE_VERSION="${2:-2.2.9}"
+BASE_VERSION="${2:-2.2.10}"
 PKG_NAME="minifw-ai"
 ARCH="amd64"
 SECTOR="${1:-establishment}"
@@ -66,6 +66,7 @@ find "${BUILD_DIR}" -name "*.pyc" -delete 2>/dev/null || true
 # --- Copy config ---
 echo "[2/7] Copying configuration..."
 cp "${REPO_DIR}/config/policy.json" "${BUILD_DIR}/opt/minifw_ai/config/"
+cp "${REPO_DIR}/config/license_public_keys.json" "${BUILD_DIR}/opt/minifw_ai/config/"
 cp "${REPO_DIR}"/config/feeds/*.txt "${BUILD_DIR}/opt/minifw_ai/config/feeds/"
 
 # Sector-specific: copy modes/minifw_<product_mode>/ policy.
@@ -113,6 +114,7 @@ install -m 644 "${REPO_DIR}/scripts/minifw-ai.logrotate" "${BUILD_DIR}/etc/logro
 echo "[6/7] Installing systemd units..."
 cp "${REPO_DIR}/systemd/minifw-ai.service" "${BUILD_DIR}/etc/systemd/system/"
 cp "${REPO_DIR}/systemd/minifw-ai-web.service" "${BUILD_DIR}/etc/systemd/system/"
+cp "${REPO_DIR}/systemd/minifw-ai-apply.path" "${REPO_DIR}/systemd/minifw-ai-apply.service" "${BUILD_DIR}/etc/systemd/system/"
 # Bake the target sector and product mode into the service unit
 sed -i "s/^Environment=MINIFW_SECTOR=.*/Environment=MINIFW_SECTOR=${SECTOR}/" \
     "${BUILD_DIR}/etc/systemd/system/minifw-ai.service"
@@ -123,6 +125,8 @@ case "${SECTOR}" in
     education)  PRODUCT_MODE="minifw_school" ;;
     *)          PRODUCT_MODE="minifw_${SECTOR}" ;;
 esac
+sed -i "/^Environment=PYTHONPATH=/a Environment=MINIFW_SECTOR=${SECTOR}\nEnvironment=PRODUCT_MODE=${PRODUCT_MODE}" \
+    "${BUILD_DIR}/etc/systemd/system/minifw-ai-web.service"
 SECTOR_POLICY_PATH="/opt/minifw_ai/config/modes/${PRODUCT_MODE}/policy.json"
 if [ -f "${REPO_DIR}/config/modes/${PRODUCT_MODE}/policy.json" ]; then
     # Engine and dashboard must read and edit the same sector policy.
@@ -173,6 +177,24 @@ echo ""
 echo "============================================"
 echo " MiniFW-AI: Post-install setup"
 echo "============================================"
+
+# --- Protect executable inputs before invoking the installed Python ---
+# dpkg preserves ownership of pre-existing directories on upgrade.
+[ ! -L "${APP_ROOT}" ] || { echo "Refusing symlinked ${APP_ROOT}" >&2; exit 1; }
+chown root:root "${APP_ROOT}"
+chmod 755 "${APP_ROOT}"
+for protected_path in app prometheus scheduler models yara_rules scripts venv config requirements.txt; do
+    target="${APP_ROOT}/${protected_path}"
+    [ ! -L "${target}" ] || { echo "Refusing symlinked ${target}" >&2; exit 1; }
+    [ -e "${target}" ] || continue
+    # The venv legitimately links its Python binary to the system interpreter.
+    if [ "${protected_path}" != venv ] && [ -n "$(find -P "${target}" -type l -print -quit)" ]; then
+        echo "Refusing symlink inside ${target}" >&2; exit 1
+    fi
+    chown -hR root:root "${target}"
+    find -P "${target}" -type d -exec chmod go-w {} +
+    find -P "${target}" -type f -exec chmod go-w {} +
+done
 
 # --- 1. Python virtual environment ---
 echo "[1/10] Python environment..."
@@ -376,6 +398,7 @@ echo "[10/10] Starting services..."
 systemctl daemon-reload
 systemctl enable --now minifw-ai
 systemctl enable --now minifw-ai-web
+systemctl enable --now minifw-ai-apply.path
 
 echo ""
 echo "============================================"
@@ -394,6 +417,8 @@ cat > "${BUILD_DIR}/DEBIAN/prerm" <<'PRERM'
 set -e
 
 echo "MiniFW-AI: Stopping services..."
+systemctl disable --now minifw-ai-apply.path 2>/dev/null || true
+systemctl stop minifw-ai-apply.service 2>/dev/null || true
 systemctl stop minifw-ai-web 2>/dev/null || true
 systemctl stop minifw-ai 2>/dev/null || true
 systemctl disable minifw-ai-web 2>/dev/null || true
@@ -465,7 +490,7 @@ CONFFILES_ESTABLISHMENT="/opt/minifw_ai/config/modes/minifw_establishment/policy
 } > "${BUILD_DIR}/DEBIAN/conffiles"
 
 # --- Build the .deb ---
-dpkg-deb --build "${BUILD_DIR}" "${DEB_OUTPUT}"
+dpkg-deb --root-owner-group --build "${BUILD_DIR}" "${DEB_OUTPUT}"
 
 # --- Checksum ---
 SHA256=$(sha256sum "${DEB_OUTPUT}" | awk '{print $1}')

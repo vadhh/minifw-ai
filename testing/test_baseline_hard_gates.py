@@ -30,7 +30,7 @@ class TestBaselineHardGates(unittest.TestCase):
         self.assertIsNone(yara_scanner)
         self.assertFalse(yara_enabled)
 
-        hard_threat, reason = evaluate_hard_threat(flows_for_client, flow_freq=0, flow_freq_threshold=200)
+        hard_threat, reason = evaluate_hard_threat(flows_for_client)
         self.assertTrue(hard_threat)
         self.assertEqual(reason, "pps_saturation")
 
@@ -47,7 +47,7 @@ class TestBaselineHardGates(unittest.TestCase):
         # Inject a burst window exceeding threshold
         flow.burst_windows = deque([{"pkts": 301, "bytes": 30100}])
 
-        hit, reason = evaluate_hard_threat([flow], flow_freq=0, flow_freq_threshold=200)
+        hit, reason = evaluate_hard_threat([flow])
         self.assertTrue(hit)
         self.assertEqual(reason, "burst_flood")
 
@@ -59,7 +59,7 @@ class TestBaselineHardGates(unittest.TestCase):
         flow.last_seen = time.time()
         flow.burst_windows = deque([{"pkts": 300, "bytes": 30000}])
 
-        hit, reason = evaluate_hard_threat([flow], flow_freq=0, flow_freq_threshold=200)
+        hit, reason = evaluate_hard_threat([flow])
         self.assertFalse(hit)
         self.assertIsNone(reason)
 
@@ -76,7 +76,7 @@ class TestBaselineHardGates(unittest.TestCase):
         # 97 small packets (< 120 bytes) + 3 large → ratio = 0.97
         flow.pkt_sizes = deque([50] * 97 + [1500] * 3)
 
-        hit, reason = evaluate_hard_threat([flow], flow_freq=0, flow_freq_threshold=200)
+        hit, reason = evaluate_hard_threat([flow])
         self.assertTrue(hit)
         self.assertEqual(reason, "bot_like_small_packets")
 
@@ -88,7 +88,7 @@ class TestBaselineHardGates(unittest.TestCase):
         flow.pkt_count = 10
         flow.pkt_sizes = deque([50] * 10)  # 100% small
 
-        hit, reason = evaluate_hard_threat([flow], flow_freq=0, flow_freq_threshold=200)
+        hit, reason = evaluate_hard_threat([flow])
         self.assertFalse(hit)
         self.assertIsNone(reason)
 
@@ -105,7 +105,7 @@ class TestBaselineHardGates(unittest.TestCase):
         # Very regular interarrival: all ~4ms → std ≈ 0
         flow.interarrival_times = deque([4.0] * 100)
 
-        hit, reason = evaluate_hard_threat([flow], flow_freq=0, flow_freq_threshold=200)
+        hit, reason = evaluate_hard_threat([flow])
         self.assertTrue(hit)
         self.assertEqual(reason, "bot_regular_timing")
 
@@ -117,7 +117,7 @@ class TestBaselineHardGates(unittest.TestCase):
         flow.pkt_count = 50  # 50 / 10s = 5 pps (< 100)
         flow.interarrival_times = deque([4.0] * 50)
 
-        hit, reason = evaluate_hard_threat([flow], flow_freq=0, flow_freq_threshold=200)
+        hit, reason = evaluate_hard_threat([flow])
         self.assertFalse(hit)
         self.assertIsNone(reason)
 
@@ -134,7 +134,7 @@ class TestBaselineHardGates(unittest.TestCase):
         flow.pkt_sizes = deque([1200] * 50)  # all large packets
         flow.interarrival_times = deque([500.0 + i * 10 for i in range(50)])  # irregular
 
-        hit, reason = evaluate_hard_threat([flow], flow_freq=0, flow_freq_threshold=200)
+        hit, reason = evaluate_hard_threat([flow])
         self.assertFalse(hit)
         self.assertIsNone(reason)
 
@@ -142,11 +142,12 @@ class TestBaselineHardGates(unittest.TestCase):
     # Flow frequency gate
     # -------------------------------------------------------------------
 
-    def test_flow_frequency_gate(self):
-        """flow_freq >= flow_freq_threshold triggers flow_frequency gate."""
-        hit, reason = evaluate_hard_threat([], flow_freq=200, flow_freq_threshold=200)
-        self.assertTrue(hit)
-        self.assertEqual(reason, "flow_frequency")
+    def test_repeated_ordinary_connections_do_not_isolate_client(self):
+        flows = [FlowStats(client_ip="10.0.0.5", dst_ip="8.8.4.4", dst_port=80,
+                           proto="tcp", src_port=40000 + i) for i in range(300)]
+        self.assertEqual(evaluate_hard_threat(flows), (False, None))
+        self.assertEqual(evaluate_hard_threat(flows, port_scan_detected=True),
+                         (True, "port_scan"))
 
     # -------------------------------------------------------------------
     # Flows with < 5 packets are skipped
@@ -160,7 +161,7 @@ class TestBaselineHardGates(unittest.TestCase):
         flow.pkt_count = 4  # below threshold
         # Would trigger PPS if not skipped: 4 / 0.01 = 400
 
-        hit, reason = evaluate_hard_threat([flow], flow_freq=0, flow_freq_threshold=200)
+        hit, reason = evaluate_hard_threat([flow])
         self.assertFalse(hit)
         self.assertIsNone(reason)
 

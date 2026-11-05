@@ -590,9 +590,9 @@ def acceptance(edition, package, metadata=False, extended=False, provider_only=F
         before = (root / "events.jsonl").read_text().count('"action": "block"')
         ns("dns", "10.10.0.1", denied)
         time.sleep(0.5)
-        assert (root / "events.jsonl").read_text().count('"action": "block"') == before
+        assert (root / "events.jsonl").read_text().count('"action": "block"') == before + 1
         nft("blocked-after-duplicate")
-        record("duplicate_block", added_events=0, expiry_refresh=False)
+        record("repeated_explicit_deny", added_events=1, expiry_refresh=True)
         run("systemctl", "restart", "minifw-ai")
         wait_for(member, 3)
         ns("http", SERVER, "8080", "/", allowed=False)

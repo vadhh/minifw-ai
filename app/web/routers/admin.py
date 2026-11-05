@@ -3,14 +3,14 @@ import re
 import threading
 import time as _time
 
-from fastapi import APIRouter, Request, Depends, HTTPException
+from fastapi import APIRouter, Request, Depends, HTTPException, File, UploadFile
 try:
     from pydantic import BaseModel, field_validator
 except ImportError:
     from pydantic import BaseModel, validator as field_validator
 
 from app.middleware.auth_middleware import get_current_user
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.controllers.admin.dashboard_controller import dashboard_controller
 from app.controllers.admin.allow_domain_controller import (
     allow_domain_controller,
@@ -70,6 +70,12 @@ from typing import Optional
 from sqlalchemy.orm import Session
 from app.database import get_db
 from minifw_ai.audit import audit_policy_change, audit_user_mgmt
+from minifw_ai.licensing import (
+    MAX_LICENSE_BYTES,
+    get_deployment_id,
+    get_license_status,
+    install_license,
+)
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 from app.web.templates_config import templates
@@ -739,6 +745,23 @@ def get_policy(request: Request, current_user: User = Depends(get_current_user))
     return policy_controller(request)
 
 
+@router.post("/policy/apply")
+def apply_policy(request: Request, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    from app.services.rbac_service import RBACService
+    from app.services.policy.apply_policy_service import apply_saved_policy
+    RBACService(db).check_permission(current_user, UserRole.ADMIN, "apply saved policy")
+    if request.headers.get("origin") != str(request.base_url).rstrip("/"):
+        raise HTTPException(status_code=403, detail="Apply changes from this dashboard only")
+    try:
+        result = apply_saved_policy()
+    except FileExistsError:
+        raise HTTPException(status_code=409, detail="An apply request is pending. Check protection status before retrying.")
+    except (OSError, TimeoutError) as error:
+        raise HTTPException(status_code=503, detail=str(error))
+    audit_policy_change("apply_policy", "policy", "explicit engine restart", current_user.username)
+    return result
+
+
 @router.post("/policy/segment")
 def post_segment(
     payload: AddSegmentRequest,
@@ -1211,3 +1234,32 @@ def get_sector_lock_status(current_user: User = Depends(get_current_user)):
             "error": "Sector lock module not available",
             "message": "Sector lock system not installed",
         }
+
+
+@router.get("/license")
+def license_page(request: Request, current_user: User = Depends(get_current_user)):
+    if not current_user.has_permission(UserRole.ADMIN):
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return templates.TemplateResponse(
+        request,
+        "admin/license.html",
+        {"license": get_license_status(), "deployment_id": get_deployment_id()},
+    )
+
+
+@router.post("/api/license")
+def upload_license(
+    license_file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+):
+    if not current_user.has_permission(UserRole.ADMIN):
+        raise HTTPException(status_code=403, detail="Admin access required")
+    try:
+        raw = license_file.file.read(MAX_LICENSE_BYTES + 1)
+        if len(raw) > MAX_LICENSE_BYTES:
+            raise HTTPException(status_code=413, detail="License file exceeds the 64 KiB limit")
+        return {"success": True, "license": install_license(raw)}
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    finally:
+        license_file.file.close()

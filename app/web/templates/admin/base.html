@@ -11,6 +11,9 @@
   {% include "admin/partials/sidebar.html" %}
 
   <main class="app-main">
+    <div id="runtime-health-warning" class="alert alert-warning m-3" role="status" aria-live="polite">
+      Checking protection and recording status…
+    </div>
     {% block content %}{% endblock %}
   </main>
 
@@ -21,6 +24,28 @@
 {% block modals %}{% endblock %}
 
 {% include "admin/partials/scripts.html" %}
+<script>
+  (function () {
+    var warning = document.getElementById('runtime-health-warning');
+    async function checkHealth() {
+      var controller = new AbortController();
+      var timeout = setTimeout(function () { controller.abort(); }, 4000);
+      try {
+        var response = await fetch('/health/', { cache: 'no-store', signal: controller.signal });
+        var health = await response.json();
+        warning.hidden = response.ok && health.status === 'ready';
+      } catch (error) {
+        warning.hidden = false;
+      } finally {
+        clearTimeout(timeout);
+        var message = 'Protection checks unavailable. New detections and reliable event recording are not confirmed. Existing blocks may remain. Check available log storage and contact your administrator if this continues.';
+        if (warning.textContent !== message) warning.textContent = message;
+        setTimeout(checkHealth, 5000);
+      }
+    }
+    checkHealth();
+  })();
+</script>
 {% block extra_js %}{% endblock %}
 </body>
 </html>

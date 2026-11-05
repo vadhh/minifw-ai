@@ -21,7 +21,7 @@ fi
 # ── 1. Stop and disable services ──
 echo ""
 echo "[1/6] Stopping services..."
-for svc in minifw-ai minifw-ai-web; do
+for svc in minifw-ai-apply.path minifw-ai-apply.service minifw-ai minifw-ai-web; do
     if systemctl is-active --quiet "${svc}" 2>/dev/null; then
         systemctl stop "${svc}"
         echo "  Stopped ${svc}."
@@ -35,6 +35,7 @@ done
 # Remove systemd unit files
 rm -f /etc/systemd/system/minifw-ai.service
 rm -f /etc/systemd/system/minifw-ai-web.service
+rm -f /etc/systemd/system/minifw-ai-apply.path /etc/systemd/system/minifw-ai-apply.service
 systemctl daemon-reload
 echo "  Systemd units removed."
 

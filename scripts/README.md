@@ -40,7 +40,8 @@ sudo bash scripts/install.sh
 ### install_systemd.sh
 **Systemd Service Installation**
 
-Installs MiniFW-AI as a systemd service.
+Unsupported for standalone Financial/Education v2.2.10; this script exits without changes.
+Use the edition-specific Debian package, which provisions the unprivileged dashboard account.
 
 ```bash
 sudo bash scripts/install_systemd.sh

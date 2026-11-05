@@ -5,7 +5,6 @@
 #   bash build_usb.sh hospital              # → dist/minifw-usb-hospital-v2.2.0/
 #   bash build_usb.sh establishment         # → dist/minifw-usb-establishment-v2.2.0/
 #   bash build_usb.sh financial             # → dist/minifw-usb-financial-v2.2.0/
-#   bash build_usb.sh gambling              # → dist/minifw-usb-gambling-v2.2.0/
 #   bash build_usb.sh education             # → dist/minifw-usb-education-v2.2.0/
 #   bash build_usb.sh legal                 # → dist/minifw-usb-legal-v2.2.0/
 #   bash build_usb.sh government            # → dist/minifw-usb-government-v2.2.0/
@@ -74,18 +73,6 @@ case "$SECTOR" in
     DASHBOARD_PORT="8447"
     ADMIN_PASS="Education1!"
     ;;
-  gambling)
-    SOURCE_COMPOSE="docker/docker-compose.gambling.yml"
-    USB_COMPOSE="docker/docker-compose.usb-gambling.yml"
-    INJECTOR_DIR="docker/demo-injector-gambling"
-    IMAGE_TAG="minifw-ai-demo/gambling:latest"
-    INJECTOR_TAG="minifw-ai-demo/gambling-injector:latest"
-    IMAGE_TAR_NAME="minifw-gambling.tar"
-    CONFIG_MODE="minifw_gambling"
-    COMPOSE_PROJECT="minifw-gambling"
-    DASHBOARD_PORT="8446"
-    ADMIN_PASS="Gambling1!"
-    ;;
   government)
     SOURCE_COMPOSE="docker/docker-compose.government.yml"
     USB_COMPOSE="docker/docker-compose.usb-government.yml"
@@ -112,7 +99,7 @@ case "$SECTOR" in
     ;;
   *)
     echo "Usage: bash build_usb.sh <sector> [version]"
-    echo "       sector: hospital | establishment | financial | gambling | education | legal | government"
+    echo "       sector: hospital | establishment | financial | education | legal | government"
     exit 1
     ;;
 esac
@@ -134,6 +121,8 @@ cd "$SCRIPT_DIR"
 [[ -f "$SOURCE_COMPOSE"  ]] || die "${SOURCE_COMPOSE} not found"
 [[ -f "$USB_COMPOSE"     ]] || die "${USB_COMPOSE} not found"
 [[ -d "$INJECTOR_DIR"    ]] || die "${INJECTOR_DIR}/ not found"
+[[ -d "config/modes/${CONFIG_MODE}" ]] || die "config/modes/${CONFIG_MODE}/ not found"
+[[ -d config/feeds ]] || die "config/feeds/ not found"
 
 # ── Build images ──────────────────────────────────────────────────────────────
 
@@ -266,28 +255,10 @@ cp -r "${INJECTOR_DIR}/"                 "${STAGE_DIR}/docker/$(basename "$INJEC
 
 # Config — sector mode only
 mkdir -p "${STAGE_DIR}/config/modes"
-if [[ -d "config/modes/${CONFIG_MODE}" ]]; then
-    cp -r "config/modes/${CONFIG_MODE}" "${STAGE_DIR}/config/modes/${CONFIG_MODE}"
-else
-    log "WARNING: config/modes/${CONFIG_MODE} not found — skipping"
-fi
+cp -r "config/modes/${CONFIG_MODE}" "${STAGE_DIR}/config/modes/${CONFIG_MODE}"
 
-# Feeds
-mkdir -p "${STAGE_DIR}/config/feeds"
-for feed in \
-    allow_domains.txt \
-    deny_domains.txt \
-    deny_asn.txt \
-    deny_ips.txt \
-    asn_prefixes.txt \
-    tor_exit_nodes.txt; do
-    src="config/feeds/${feed}"
-    if [[ -f "$src" ]]; then
-        cp "$src" "${STAGE_DIR}/config/feeds/${feed}"
-    else
-        log "WARNING: ${src} not found — skipping"
-    fi
-done
+# Include common and sector-specific feeds; the engine loads only the feeds configured for its sector.
+cp -r config/feeds/. "${STAGE_DIR}/config/feeds/"
 
 # YARA rules
 if [[ -d yara_rules ]]; then
