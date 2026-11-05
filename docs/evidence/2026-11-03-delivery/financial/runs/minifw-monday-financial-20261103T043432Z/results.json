@@ -1,0 +1,40 @@
+[
+  {
+    "test": "bounded_load",
+    "actual": {
+      "duration_seconds": 61.48667228399427,
+      "offered_rate_rps": 5,
+      "success": 203,
+      "failures": 10,
+      "legitimate_not_isolated": false,
+      "qualification": "60 seconds only, not prolonged load"
+    },
+    "time": "2026-11-03T04:35:43.510782+00:00"
+  },
+  {
+    "test": "bounded_load_acceptance",
+    "actual": {
+      "result": "failed legitimate traffic control"
+    },
+    "time": "2026-11-03T04:35:43.511355+00:00"
+  },
+  {
+    "test": "isolated_disk_full",
+    "actual": {
+      "filesystem_bytes": 65536,
+      "kernel_block_present": false,
+      "routed_http_exit": 0,
+      "services": "NRestarts=0\nMemoryCurrent=190435328\nCPUUsageNSec=1779570000\nActiveState=active\n\nNRestarts=0\nMemoryCurrent=122515456\nCPUUsageNSec=2311742000\nActiveState=active\n",
+      "acceptance": "failed enforcement under full log filesystem"
+    },
+    "time": "2026-11-03T04:35:50.992314+00:00"
+  },
+  {
+    "test": "disk_full_recovery",
+    "actual": {
+      "legitimate_http": "200",
+      "engine": "restarted with normal log path"
+    },
+    "time": "2026-11-03T04:35:56.051617+00:00"
+  }
+]

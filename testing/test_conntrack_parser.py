@@ -17,6 +17,7 @@ from minifw_ai.collector_flow import (
     parse_conntrack_line,
     stream_conntrack_flows,
     FlowStats,
+    ConntrackFlow,
     FlowTracker,
     build_feature_vector_24,
 )
@@ -26,22 +27,19 @@ from minifw_ai.collector_flow import (
 # parse_conntrack_line()
 # ---------------------------------------------------------------------------
 
-# Note: conntrack lines contain BOTH original and reply direction fields.
-# parse_conntrack_line() iterates all fields and takes the LAST src=/dst=/dport=
-# match, which is the reply direction. The returned tuple is therefore
-# (reply_src, reply_dst, reply_dport, proto).
+# Both directions are present; the original client/destination tuple must win.
 SAMPLE_LINES = [
     (
         "ipv4     2 tcp      6 117 ESTABLISHED src=192.168.1.100 dst=8.8.8.8 sport=54321 dport=443 src=8.8.8.8 dst=192.168.1.100 sport=443 dport=54321 [ASSURED] mark=0 use=2",
-        ("8.8.8.8", "192.168.1.100", 54321, "tcp"),
+        ("192.168.1.100", "8.8.8.8", 443, "tcp"),
     ),
     (
         "ipv4     2 udp      17 30 src=10.0.0.5 dst=1.1.1.1 sport=12345 dport=53 src=1.1.1.1 dst=10.0.0.5 sport=53 dport=12345 mark=0 use=2",
-        ("1.1.1.1", "10.0.0.5", 12345, "udp"),
+        ("10.0.0.5", "1.1.1.1", 53, "udp"),
     ),
     (
         "ipv4     2 tcp      6 299 ESTABLISHED src=172.16.0.10 dst=93.184.216.34 sport=41000 dport=80 src=93.184.216.34 dst=172.16.0.10 sport=80 dport=41000 [ASSURED] mark=0 use=2",
-        ("93.184.216.34", "172.16.0.10", 41000, "tcp"),
+        ("172.16.0.10", "93.184.216.34", 80, "tcp"),
     ),
 ]
 
@@ -49,7 +47,7 @@ SAMPLE_LINES = [
 @pytest.mark.parametrize("line,expected", SAMPLE_LINES)
 def test_parse_conntrack_line_extracts_tuple(line, expected):
     result = parse_conntrack_line(line)
-    assert result == expected
+    assert (result.client_ip, result.dst_ip, result.dst_port, result.proto) == expected
 
 
 def test_parse_conntrack_line_returns_none_for_short_line():
@@ -202,10 +200,11 @@ def test_feature_vector_domain_repeat_zero_without_tracker():
 def test_flow_tracker_enrich_with_sni_populates_tls_fields():
     """FlowTracker.enrich_with_sni stores all Zeek TLS fields on the flow."""
     tracker = FlowTracker()
-    tracker.update_flow("10.0.0.1", "8.8.8.8", 443, "tcp", pkt_size=100)
+    tracker.update_flow("10.0.0.1", "8.8.8.8", 443, "tcp", pkt_size=100, src_port=51000)
     tracker.enrich_with_sni(
         "10.0.0.1", "example.com",
-        handshake_ms=32.5, alpn_h2=1.0, cert_self_signed=0.0
+        handshake_ms=32.5, alpn_h2=1.0, cert_self_signed=0.0,
+        dst_ip="8.8.8.8", dst_port=443, src_port=51000
     )
     flows = tracker.get_flows_for_client("10.0.0.1")
     assert flows
@@ -239,10 +238,10 @@ def test_feature_vector_no_domain_no_tls():
 # ---------------------------------------------------------------------------
 
 _CLI_OUTPUT = (
-    "ipv4     2 tcp      6 299 ESTABLISHED src=192.168.1.5 dst=8.8.8.8 "
+    "tcp      6 299 ESTABLISHED src=192.168.1.5 dst=8.8.8.8 "
     "sport=50001 dport=443 src=8.8.8.8 dst=192.168.1.5 sport=443 dport=50001 "
     "[ASSURED] mark=0 use=2\n"
-    "ipv4     2 udp      17 30 src=10.0.0.1 dst=1.1.1.1 sport=55555 dport=53 "
+    "udp      17 30 src=10.0.0.1 dst=1.1.1.1 sport=55555 dport=53 "
     "src=1.1.1.1 dst=10.0.0.1 sport=53 dport=55555 mark=0 use=1\n"
     "conntrack v1.4.8 (conntrack-tools): 2 flow entries have been shown.\n"
 )
@@ -258,13 +257,14 @@ def test_stream_conntrack_via_cli_yields_parsed_tuples():
             gen = _stream_conntrack_via_cli(poll_interval=0)
             tuples = [next(gen), next(gen)]
 
-    assert tuples[0] == ("8.8.8.8", "192.168.1.5", 50001, "tcp")
-    assert tuples[1] == ("1.1.1.1", "10.0.0.1", 55555, "udp")
+    assert tuples[0] == ConntrackFlow("192.168.1.5", "8.8.8.8", 443, "tcp", 50001)
+    assert tuples[1] == ConntrackFlow("10.0.0.1", "1.1.1.1", 53, "udp", 55555)
     mock_run.assert_called_once_with(
-        ["conntrack", "-L"],
+        ["conntrack", "-L", "-o", "extended"],
         capture_output=True,
         text=True,
         timeout=10,
+        check=True,
     )
 
 
@@ -304,4 +304,4 @@ def test_stream_conntrack_flows_uses_cli_when_procfs_absent(tmp_path):
             gen = stream_conntrack_flows(conntrack_path=absent_path)
             first = next(gen)
 
-    assert first == ("8.8.8.8", "192.168.1.5", 50001, "tcp")
+    assert first == ConntrackFlow("192.168.1.5", "8.8.8.8", 443, "tcp", 50001)

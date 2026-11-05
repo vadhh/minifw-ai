@@ -1,0 +1,233 @@
+[
+  {
+    "test": "engine_activates_kernel_accounting",
+    "actual": {
+      "result": "enabled"
+    },
+    "time": "2026-11-02T04:04:12.286767+00:00"
+  },
+  {
+    "test": "policy_selection_student",
+    "actual": {
+      "client": "10.10.0.20",
+      "segment": "student",
+      "topology": "Routed source aliases in the isolated client namespace; not VLAN-isolation acceptance"
+    },
+    "time": "2026-11-02T04:04:12.595819+00:00"
+  },
+  {
+    "test": "policy_selection_staff",
+    "actual": {
+      "client": "192.168.1.20",
+      "segment": "staff",
+      "topology": "Routed source aliases in the isolated client namespace; not VLAN-isolation acceptance"
+    },
+    "time": "2026-11-02T04:04:12.922060+00:00"
+  },
+  {
+    "test": "policy_selection_guest",
+    "actual": {
+      "client": "192.168.100.20",
+      "segment": "guest",
+      "topology": "Routed source aliases in the isolated client namespace; not VLAN-isolation acceptance"
+    },
+    "time": "2026-11-02T04:04:13.247823+00:00"
+  },
+  {
+    "test": "policy_selection_admin",
+    "actual": {
+      "client": "10.0.0.20",
+      "segment": "admin",
+      "topology": "Routed source aliases in the isolated client namespace; not VLAN-isolation acceptance"
+    },
+    "time": "2026-11-02T04:04:13.573852+00:00"
+  },
+  {
+    "test": "legitimate_sandbox_workflows",
+    "actual": {
+      "login": "passed",
+      "api": "passed",
+      "payment_credits": 1250,
+      "transfer_credits": 2500,
+      "alice_credits": 96250,
+      "bob_credits": 52500,
+      "overdraft_rejected": true,
+      "statement_sha256": "af86a44302fed2f6533fd1e1734c5618ac9258c60917c0514c48d55a89202435",
+      "lesson": "passed",
+      "search": "passed",
+      "student_staff_access": "rejected",
+      "staff_service": "passed",
+      "staff_source_ip": "192.168.1.20",
+      "video_bytes": 14723,
+      "video_sha256": "836f294b179103aa3d90ee58618435ce91e019c9a767b5994752d8eff947aacd",
+      "video_range": "passed",
+      "scope": "Fictional local sandbox; external institutions and browser playback are not validated"
+    },
+    "time": "2026-11-02T04:04:13.864623+00:00"
+  },
+  {
+    "test": "kernel_counter_deltas",
+    "actual": {
+      "first": [
+        7,
+        410,
+        6,
+        3507
+      ],
+      "second": [
+        15,
+        826,
+        14,
+        12115
+      ],
+      "measured_packets": 16,
+      "measured_bytes_out": 416,
+      "measured_bytes_in": 8608,
+      "repeated_snapshot_increments": 0,
+      "packet_timing_available": false
+    },
+    "time": "2026-11-02T04:04:16.712500+00:00"
+  },
+  {
+    "test": "bypass_alternate_DNS",
+    "actual": {
+      "result": "allowed",
+      "coverage": "outside current name/IPv4 coverage"
+    },
+    "time": "2026-11-02T04:04:16.802134+00:00"
+  },
+  {
+    "test": "bypass_DoH",
+    "actual": {
+      "result": "allowed",
+      "coverage": "outside current name/IPv4 coverage"
+    },
+    "time": "2026-11-02T04:04:16.896987+00:00"
+  },
+  {
+    "test": "bypass_DoT",
+    "actual": {
+      "result": "allowed",
+      "coverage": "outside current name/IPv4 coverage"
+    },
+    "time": "2026-11-02T04:04:16.991921+00:00"
+  },
+  {
+    "test": "bypass_direct_IP",
+    "actual": {
+      "result": "allowed",
+      "coverage": "outside current name/IPv4 coverage"
+    },
+    "time": "2026-11-02T04:04:17.082839+00:00"
+  },
+  {
+    "test": "bypass_IPv6",
+    "actual": {
+      "result": "allowed",
+      "coverage": "outside current name/IPv4 coverage"
+    },
+    "time": "2026-11-02T04:04:17.172966+00:00"
+  },
+  {
+    "test": "DNS_decision_with_flow_quiet",
+    "actual": {
+      "client": "10.10.0.20",
+      "domain": "4chan.org",
+      "elapsed_seconds": 0.326329880999765,
+      "forwarded": "blocked"
+    },
+    "time": "2026-11-02T04:04:22.411228+00:00"
+  },
+  {
+    "test": "DNS_decision_with_flow_missing",
+    "actual": {
+      "client": "10.10.0.20",
+      "domain": "www.4chan.org",
+      "elapsed_seconds": 0.32510872000057134,
+      "forwarded": "blocked"
+    },
+    "time": "2026-11-02T04:04:27.672739+00:00"
+  },
+  {
+    "test": "VPN_provider_domain",
+    "actual": {
+      "domain": "nordvpn.com",
+      "forwarded": "blocked",
+      "limitation": "Not a VPN tunnel detection test"
+    },
+    "time": "2026-11-02T04:04:32.937882+00:00"
+  },
+  {
+    "test": "duplicate_block",
+    "actual": {
+      "added_events": 0,
+      "expiry_refresh": false
+    },
+    "time": "2026-11-02T04:04:36.800308+00:00"
+  },
+  {
+    "test": "restart_preserves_kernel_block",
+    "actual": {
+      "result": "blocked"
+    },
+    "time": "2026-11-02T04:04:39.627977+00:00"
+  },
+  {
+    "test": "expiry_recovery",
+    "actual": {
+      "result": "allowed",
+      "lab_timeout_seconds": 15
+    },
+    "time": "2026-11-02T04:04:51.329464+00:00"
+  },
+  {
+    "test": "IPv6_during_IPv4_isolation",
+    "actual": {
+      "result": "allowed",
+      "limitation": "IPv6 is not enforced"
+    },
+    "time": "2026-11-02T04:04:51.768789+00:00"
+  },
+  {
+    "test": "manual_unblock_recovery",
+    "actual": {
+      "result": "allowed"
+    },
+    "time": "2026-11-02T04:04:51.921687+00:00"
+  },
+  {
+    "test": "flow_only_with_DNS_none",
+    "actual": {
+      "client": "10.10.0.20",
+      "destination": "198.18.0.2",
+      "decision": [
+        "port_scan",
+        "hard_threat_gate_override"
+      ],
+      "forwarded": "blocked"
+    },
+    "time": "2026-11-02T04:05:01.709112+00:00"
+  },
+  {
+    "test": "flow_only_with_DNS_missing",
+    "actual": {
+      "client": "10.10.0.20",
+      "destination": "198.18.0.2",
+      "decision": [
+        "port_scan",
+        "hard_threat_gate_override"
+      ],
+      "forwarded": "blocked"
+    },
+    "time": "2026-11-02T04:05:07.194622+00:00"
+  },
+  {
+    "test": "acceptance_scope",
+    "actual": {
+      "shared_core": "verified by controlled routed traffic",
+      "production_ready": false,
+      "remaining": "real sector applications, SafeSearch, VPN tunnel detection, measured-feature model validation"
+    },
+    "time": "2026-11-02T04:05:07.695394+00:00"
+  }
+]

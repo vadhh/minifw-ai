@@ -1,0 +1,235 @@
+[
+  {
+    "test": "TLS10_fixture_before_enforcement",
+    "actual": {
+      "application": "allowed",
+      "meaning": "The lab server genuinely accepts TLS 1.0"
+    },
+    "time": "2026-11-02T09:25:30.402596+00:00"
+  },
+  {
+    "test": "measured_packet_model_inference",
+    "actual": {
+      "schema": "packet14-v1",
+      "features": [
+        0.001383066177368164,
+        12.0,
+        1185.0,
+        856791.9737976211,
+        8676.374418203757,
+        98.75,
+        57.56608521227292,
+        1.507399577167019,
+        12.0,
+        1185.0,
+        0.12573328885165128,
+        0.22988792022806528,
+        0.8139610290527344,
+        0.75
+      ],
+      "probability": 0.9999956689725049,
+      "telemetry": "packet",
+      "training": "synthetic; no real-world sector accuracy",
+      "DNS": "disabled",
+      "mode": "shadow_only",
+      "enforcement_score": 0
+    },
+    "time": "2026-11-02T09:25:35.123522+00:00"
+  },
+  {
+    "test": "measured_AI_legitimate_workflows",
+    "actual": {
+      "login": "passed",
+      "api": "passed",
+      "payment_credits": 1250,
+      "transfer_credits": 2500,
+      "alice_credits": 96250,
+      "bob_credits": 52500,
+      "overdraft_rejected": true,
+      "statement_sha256": "af86a44302fed2f6533fd1e1734c5618ac9258c60917c0514c48d55a89202435",
+      "lesson": "passed",
+      "search": "passed",
+      "student_staff_access": "rejected",
+      "staff_service": "passed",
+      "staff_source_ip": "10.10.0.20",
+      "video_bytes": 14723,
+      "video_sha256": "836f294b179103aa3d90ee58618435ce91e019c9a767b5994752d8eff947aacd",
+      "video_range": "passed",
+      "scope": "Fictional local sandbox; external institutions and browser playback are not validated"
+    },
+    "time": "2026-11-02T09:25:35.384280+00:00"
+  },
+  {
+    "test": "packet_schema_export",
+    "actual": {
+      "legacy24_features": null,
+      "packet_schema": "packet14-v1"
+    },
+    "time": "2026-11-02T09:25:35.786060+00:00"
+  },
+  {
+    "test": "allowed_TLSv1.2",
+    "actual": {
+      "application": "allowed",
+      "selected_version": "TLSv1.2"
+    },
+    "time": "2026-11-02T09:25:36.892539+00:00"
+  },
+  {
+    "test": "allowed_TLSv1.3",
+    "actual": {
+      "application": "allowed",
+      "selected_version": "TLSv1.3"
+    },
+    "time": "2026-11-02T09:25:38.016612+00:00"
+  },
+  {
+    "test": "TLS10_enforcement",
+    "actual": {
+      "client": "10.10.0.20",
+      "forwarded": "blocked",
+      "scope": "After visible ServerHello; no TLS decryption"
+    },
+    "time": "2026-11-02T09:25:48.866004+00:00"
+  },
+  {
+    "test": "ordinary_UDP_not_a_tunnel",
+    "actual": {
+      "detected": false
+    },
+    "time": "2026-11-02T09:25:54.001269+00:00"
+  },
+  {
+    "test": "WireGuard_monitor",
+    "actual": {
+      "tunnel": "actual kernel WireGuard",
+      "inner_ping": "allowed",
+      "action": "monitor"
+    },
+    "time": "2026-11-02T09:25:55.098090+00:00"
+  },
+  {
+    "test": "WireGuard_enforcement",
+    "actual": {
+      "client": "10.10.0.20",
+      "inner_ping": "blocked",
+      "forwarded": "blocked",
+      "limitation": "Handshake/transport pattern, not cryptographic authentication or all VPN protocols"
+    },
+    "time": "2026-11-02T09:26:05.013484+00:00"
+  },
+  {
+    "test": "restricted_DNS_google.com",
+    "actual": {
+      "cname": "forcesafesearch.google.com",
+      "answer": "google.com.\t\t0\tIN\tCNAME\tforcesafesearch.google.com.\nforcesafesearch.google.com. 0\tIN\tA\t216.239.38.120"
+    },
+    "time": "2026-11-02T09:26:08.192420+00:00"
+  },
+  {
+    "test": "restricted_DNS_www.google.com",
+    "actual": {
+      "cname": "forcesafesearch.google.com",
+      "answer": "www.google.com.\t\t0\tIN\tCNAME\tforcesafesearch.google.com.\nforcesafesearch.google.com. 0\tIN\tA\t216.239.38.120"
+    },
+    "time": "2026-11-02T09:26:08.234026+00:00"
+  },
+  {
+    "test": "restricted_DNS_google.co.id",
+    "actual": {
+      "cname": "forcesafesearch.google.com",
+      "answer": "google.co.id.\t\t0\tIN\tCNAME\tforcesafesearch.google.com.\nforcesafesearch.google.com. 0\tIN\tA\t216.239.38.120"
+    },
+    "time": "2026-11-02T09:26:08.275728+00:00"
+  },
+  {
+    "test": "restricted_DNS_www.google.co.id",
+    "actual": {
+      "cname": "forcesafesearch.google.com",
+      "answer": "www.google.co.id.\t0\tIN\tCNAME\tforcesafesearch.google.com.\nforcesafesearch.google.com. 0\tIN\tA\t216.239.38.120"
+    },
+    "time": "2026-11-02T09:26:08.317221+00:00"
+  },
+  {
+    "test": "restricted_DNS_bing.com",
+    "actual": {
+      "cname": "strict.bing.com",
+      "answer": "bing.com.\t\t0\tIN\tCNAME\tstrict.bing.com.\nstrict.bing.com.\t0\tIN\tA\t150.171.27.16\nstrict.bing.com.\t0\tIN\tA\t150.171.28.16"
+    },
+    "time": "2026-11-02T09:26:08.359147+00:00"
+  },
+  {
+    "test": "restricted_DNS_www.bing.com",
+    "actual": {
+      "cname": "strict.bing.com",
+      "answer": "www.bing.com.\t\t0\tIN\tCNAME\tstrict.bing.com.\nstrict.bing.com.\t0\tIN\tA\t150.171.28.16\nstrict.bing.com.\t0\tIN\tA\t150.171.27.16"
+    },
+    "time": "2026-11-02T09:26:08.401164+00:00"
+  },
+  {
+    "test": "restricted_DNS_edgeservices.bing.com",
+    "actual": {
+      "cname": "strict.bing.com",
+      "answer": "edgeservices.bing.com.\t0\tIN\tCNAME\tstrict.bing.com.\nstrict.bing.com.\t0\tIN\tA\t150.171.27.16\nstrict.bing.com.\t0\tIN\tA\t150.171.28.16"
+    },
+    "time": "2026-11-02T09:26:08.442529+00:00"
+  },
+  {
+    "test": "restricted_DNS_www.youtube.com",
+    "actual": {
+      "cname": "restrict.youtube.com",
+      "answer": "www.youtube.com.\t0\tIN\tCNAME\trestrict.youtube.com.\nrestrict.youtube.com.\t0\tIN\tA\t216.239.38.120"
+    },
+    "time": "2026-11-02T09:26:08.483688+00:00"
+  },
+  {
+    "test": "restricted_DNS_m.youtube.com",
+    "actual": {
+      "cname": "restrict.youtube.com",
+      "answer": "m.youtube.com.\t\t0\tIN\tCNAME\trestrict.youtube.com.\nrestrict.youtube.com.\t0\tIN\tA\t216.239.38.120"
+    },
+    "time": "2026-11-02T09:26:08.526026+00:00"
+  },
+  {
+    "test": "restricted_DNS_youtubei.googleapis.com",
+    "actual": {
+      "cname": "restrict.youtube.com",
+      "answer": "youtubei.googleapis.com. 0\tIN\tCNAME\trestrict.youtube.com.\nrestrict.youtube.com.\t0\tIN\tA\t216.239.38.120"
+    },
+    "time": "2026-11-02T09:26:08.567614+00:00"
+  },
+  {
+    "test": "restricted_DNS_youtube.googleapis.com",
+    "actual": {
+      "cname": "restrict.youtube.com",
+      "answer": "youtube.googleapis.com.\t0\tIN\tCNAME\trestrict.youtube.com.\nrestrict.youtube.com.\t0\tIN\tA\t216.239.38.120"
+    },
+    "time": "2026-11-02T09:26:08.609883+00:00"
+  },
+  {
+    "test": "restricted_DNS_www.youtube-nocookie.com",
+    "actual": {
+      "cname": "restrict.youtube.com",
+      "answer": "www.youtube-nocookie.com. 0\tIN\tCNAME\trestrict.youtube.com.\nrestrict.youtube.com.\t0\tIN\tA\t216.239.38.120"
+    },
+    "time": "2026-11-02T09:26:08.650615+00:00"
+  },
+  {
+    "test": "firefox_doh_canary",
+    "actual": {
+      "query": "use-application-dns.net A",
+      "status": "NXDOMAIN",
+      "meaning": "Firefox keeps default DoH off on this resolver; explicit user DoH and other browsers unaffected"
+    },
+    "time": "2026-11-02T09:26:08.766725+00:00"
+  },
+  {
+    "test": "SafeSearch_scope",
+    "actual": {
+      "accounts_unmodified": true,
+      "forwarding": "allowed",
+      "remaining": "Alternate/encrypted DNS, unlisted domains and browser results require separate acceptance"
+    },
+    "time": "2026-11-02T09:26:08.872242+00:00"
+  }
+]

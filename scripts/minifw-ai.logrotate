@@ -1,0 +1,15 @@
+# Bounded retention for MiniFW-AI append-only JSONL logs (events, audit, flows).
+# copytruncate: the engine keeps no rotation hook, so truncate in place.
+# ponytail: a line written between copy and truncate can be lost; add a reopen signal if that matters.
+# State files (*.json, e.g. deployment_state.json, runtime-health.json) are not rotated.
+/opt/minifw_ai/logs/*.jsonl {
+    daily
+    maxsize 100M
+    rotate 14
+    compress
+    delaycompress
+    missingok
+    notifempty
+    copytruncate
+    su root root
+}

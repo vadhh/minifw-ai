@@ -1,0 +1,31 @@
+{
+  "before": [
+    503,
+    "not_ready"
+  ],
+  "during_invalid_policy": {
+    "response": [
+      503,
+      "not_ready"
+    ],
+    "banner": "shown",
+    "seconds": 0.0
+  },
+  "during_invalid_policy_after_10s": {
+    "response": [
+      503,
+      "not_ready"
+    ],
+    "banner": "shown"
+  },
+  "after_correction": {
+    "response": [
+      503,
+      "not_ready"
+    ],
+    "banner": "shown",
+    "seconds": 30.2,
+    "policy_restored_identical": true
+  },
+  "interpretation": "Inconclusive: /health/ was 503 not_ready before the fault because the fresh guest has no DNS source (no dnsmasq; dns source never seen). Banner showed throughout; not attributable to the invalid policy."
+}

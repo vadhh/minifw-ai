@@ -49,10 +49,22 @@ class FeedMatcher:
         return loaded_count
 
     def domain_allowed(self, domain: str) -> bool:
-        return any(fnmatch.fnmatch(domain, pat) for pat in self.allow_domains)
+        domain = domain.lower().rstrip(".")
+        return bool(domain) and any(fnmatch.fnmatchcase(domain, pat.lower().rstrip(".")) for pat in self.allow_domains)
 
     def domain_denied(self, domain: str) -> bool:
-        return any(fnmatch.fnmatch(domain, pat) for pat in self.deny_domains)
+        domain = domain.lower().rstrip(".")
+        if not domain:
+            return False
+        for pattern in self.deny_domains:
+            pattern = pattern.lower().rstrip(".")
+            if fnmatch.fnmatchcase(domain, pattern):
+                return True
+            if pattern.startswith("*.") and domain == pattern[2:]:
+                return True
+            if not any(char in pattern for char in "*?[") and domain.endswith("." + pattern):
+                return True
+        return False
 
     def ip_denied(self, ip: str) -> bool:
         return ip in self.deny_ips

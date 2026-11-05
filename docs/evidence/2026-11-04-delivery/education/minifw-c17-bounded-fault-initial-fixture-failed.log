@@ -1,0 +1,82 @@
+$ dpkg-query -W minifw-ai
+minifw-ai	2.2.10-education
+$ ip -j netns list
+[]
+$ systemctl stop minifw-ai minifw-ai-web dnsmasq
+$ nft -a list table inet minifw
+table inet minifw { # handle 60
+	set minifw_block_v4 { # handle 1
+		type ipv4_addr
+		timeout 1h
+	}
+
+	chain forward { # handle 2
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 228 bytes 13680 comment "MiniFW-AI-Conntrack" # handle 3
+		ip saddr @minifw_block_v4 counter packets 21 bytes 1260 drop comment "MiniFW-AI-Blocklist" # handle 4
+	}
+}
+$ nft delete table inet minifw
+$ modprobe nf_conntrack
+$ sysctl -w net.ipv4.ip_forward=1 net.ipv6.conf.all.forwarding=1 net.netfilter.nf_conntrack_acct=0
+net.ipv4.ip_forward = 1
+net.ipv6.conf.all.forwarding = 1
+net.netfilter.nf_conntrack_acct = 0
+$ ip netns add mf-client
+$ ip -n mf-client link set lo up
+$ ip netns add mf-server
+$ ip -n mf-server link set lo up
+$ ip link add mfcg type veth peer name mfc0
+$ ip link set mfc0 netns mf-client
+$ ip addr add 10.10.0.1/24 dev mfcg
+$ ip addr add fd42:10::1/64 dev mfcg
+$ ip link set mfcg up
+$ ip -n mf-client addr add 10.10.0.20/24 dev mfc0
+$ ip -n mf-client addr add fd42:10::20/64 dev mfc0
+$ ip -n mf-client link set mfc0 up
+$ ip -n mf-client route add default via 10.10.0.1
+$ ip -n mf-client -6 route add default via fd42:10::1
+$ ip link add mfsg type veth peer name mfs0
+$ ip link set mfs0 netns mf-server
+$ ip addr add 198.18.0.1/24 dev mfsg
+$ ip addr add fd42:18::1/64 dev mfsg
+$ ip link set mfsg up
+$ ip -n mf-server addr add 198.18.0.2/24 dev mfs0
+$ ip -n mf-server addr add fd42:18::2/64 dev mfs0
+$ ip -n mf-server link set mfs0 up
+$ ip -n mf-server route add default via 198.18.0.1
+$ ip -n mf-server -6 route add default via fd42:18::1
+$ ip -br address
+lo               UNKNOWN        127.0.0.1/8 ::1/128 
+ens3             UP             10.231.0.15/24 metric 100 fec0::5054:ff:fe22:1001/64 fe80::5054:ff:fe22:1001/64 
+mfcg@if175       UP             10.10.0.1/24 fd42:10::1/64 fe80::8494:6dff:fe33:f74/64 
+mfsg@if177       UP             198.18.0.1/24 fd42:18::1/64 fe80::f060:cbff:fed4:659/64
+$ ip -n mf-client route
+default via 10.10.0.1 dev mfc0 
+10.10.0.0/24 dev mfc0 proto kernel scope link src 10.10.0.20
+$ ip -n mf-server route
+default via 198.18.0.1 dev mfs0 
+198.18.0.0/24 dev mfs0 proto kernel scope link src 198.18.0.2
+$ openssl req -x509 -newkey rsa:2048 -nodes -days 1 -subj /CN=lab.test -keyout /var/tmp/minifw-monday-education-20261104T062912Z/server.key -out /var/tmp/minifw-monday-education-20261104T062912Z/server.crt
+.+.....+....+...+...+...+...........+....+..+...+......+...+...+...+.+...+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*.+.+..+.+...........+...+.+..+.......+......+.........+..+.........+......+.+.....+...+.+...+...+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*..+.........+.....+....+..+...+......+...............+....+............+...+......+......+...+...+...+..+...+.......+..+.+...........+.+..+.......+....................+......+.......+..+......+....+...+.....+......+....+...+..............+...+.............+...+..+...+.+.....+................+........+............+.......+......+.................+............+.......+........+.+.....+.+.....+......+...+.......+...+..+.........+...+.......+........+......+.+.....................+..............+.+............+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+..+..........+...+.....+......+...............+....+..+.......+.....+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*...+.....+....+.....+.+..+.......+...........+....+.....+..........+............+.....+.+..+......+.+........+.......+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*.+......+...+..+...+......+.+..+...+.......+..+..................+.+......+.....+......+..........+..+......+....+......+...........+......+..........+..+...+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+-----
+$ systemctl stop minifw-ai
+$ journalctl -u minifw-ai --no-pager --since '2026-11-04 06:29:12 UTC'
+-- No entries --
+$ nft -a list table inet minifw
+Error: No such file or directory
+list table inet minifw
+                ^^^^^^
+$ systemctl daemon-reload
+$ ip netns delete mf-client
+$ ip netns delete mf-server
+$ ip link delete mfcg
+$ ip link delete mfsg
+EVIDENCE_DIRECTORY /var/tmp/minifw-monday-education-20261104T062912Z
+Traceback (most recent call last):
+  File "/var/tmp/minifw-c17-fault.py", line 125, in <module>
+    gateway.acceptance(edition, package, extended=True)
+  File "/home/lab/wednesday-c17/testing/lab_gateway_acceptance.py", line 371, in acceptance
+    assert all(process.poll() is None for process in children), "Lab fixtures failed to start"
+AssertionError: Lab fixtures failed to start

@@ -64,6 +64,7 @@ find "${BUILD_DIR}" -name "*.pyc" -delete 2>/dev/null || true
 # --- Copy config ---
 echo "[2/7] Copying configuration..."
 cp "${REPO_DIR}/config/policy.json" "${BUILD_DIR}/opt/minifw_ai/config/"
+cp "${REPO_DIR}/config/license_public_keys.json" "${BUILD_DIR}/opt/minifw_ai/config/"
 cp "${REPO_DIR}"/config/feeds/*.txt "${BUILD_DIR}/opt/minifw_ai/config/feeds/"
 
 # Sector-specific: copy modes/minifw_<product_mode>/ policy.
@@ -84,6 +85,9 @@ fi
 # --- Copy models ---
 echo "[3/7] Copying ML models..."
 cp "${REPO_DIR}/models/mlp_model.pkl" "${BUILD_DIR}/opt/minifw_ai/models/"
+if [ -f "${REPO_DIR}/models/mlp_packet14.pkl" ]; then
+    cp "${REPO_DIR}/models/mlp_packet14.pkl" "${BUILD_DIR}/opt/minifw_ai/models/"
+fi
 
 # --- Copy YARA rules ---
 echo "[4/7] Copying YARA rules..."
@@ -101,11 +105,14 @@ cp "${REPO_DIR}/scripts/train_mlp.py" "${BUILD_DIR}/opt/minifw_ai/scripts/"
 cp "${REPO_DIR}/scripts/enable_dnsmasq_logging.sh" "${BUILD_DIR}/opt/minifw_ai/scripts/"
 cp "${REPO_DIR}/scripts/uninstall.sh" "${BUILD_DIR}/opt/minifw_ai/scripts/"
 chmod +x "${BUILD_DIR}/opt/minifw_ai/scripts/"*.sh
+mkdir -p "${BUILD_DIR}/etc/logrotate.d"
+install -m 644 "${REPO_DIR}/scripts/minifw-ai.logrotate" "${BUILD_DIR}/etc/logrotate.d/minifw-ai"
 
 # --- Systemd units ---
 echo "[6/7] Installing systemd units..."
 cp "${REPO_DIR}/systemd/minifw-ai.service" "${BUILD_DIR}/etc/systemd/system/"
 cp "${REPO_DIR}/systemd/minifw-ai-web.service" "${BUILD_DIR}/etc/systemd/system/"
+cp "${REPO_DIR}/systemd/minifw-ai-apply.path" "${REPO_DIR}/systemd/minifw-ai-apply.service" "${BUILD_DIR}/etc/systemd/system/"
 # Bake the target sector and product mode into the service unit
 sed -i "s/^Environment=MINIFW_SECTOR=.*/Environment=MINIFW_SECTOR=${SECTOR}/" \
     "${BUILD_DIR}/etc/systemd/system/minifw-ai.service"
@@ -116,10 +123,14 @@ case "${SECTOR}" in
     education)  PRODUCT_MODE="minifw_school" ;;
     *)          PRODUCT_MODE="minifw_${SECTOR}" ;;
 esac
+sed -i "/^Environment=PYTHONPATH=/a Environment=MINIFW_SECTOR=${SECTOR}\nEnvironment=PRODUCT_MODE=${PRODUCT_MODE}" \
+    "${BUILD_DIR}/etc/systemd/system/minifw-ai-web.service"
 SECTOR_POLICY_PATH="/opt/minifw_ai/config/modes/${PRODUCT_MODE}/policy.json"
 if [ -f "${REPO_DIR}/config/modes/${PRODUCT_MODE}/policy.json" ]; then
+    # Engine and dashboard must read and edit the same sector policy.
     sed -i "s|^Environment=MINIFW_POLICY=.*|Environment=MINIFW_POLICY=${SECTOR_POLICY_PATH}|" \
-        "${BUILD_DIR}/etc/systemd/system/minifw-ai.service"
+        "${BUILD_DIR}/etc/systemd/system/minifw-ai.service" \
+        "${BUILD_DIR}/etc/systemd/system/minifw-ai-web.service"
     # Insert PRODUCT_MODE after MINIFW_SECTOR line if not already present
     if ! grep -q "^Environment=PRODUCT_MODE=" "${BUILD_DIR}/etc/systemd/system/minifw-ai.service"; then
         sed -i "/^Environment=MINIFW_SECTOR=/a Environment=PRODUCT_MODE=${PRODUCT_MODE}" \
@@ -139,7 +150,7 @@ Version: ${VERSION}
 Section: net
 Priority: optional
 Architecture: ${ARCH}
-Depends: python3 (>= 3.10), python3-venv, nftables, openssl, conntrack
+Depends: python3 (>= 3.10), python3-venv, nftables, openssl, conntrack, logrotate, adduser
 Recommends: dnsmasq, zeek
 Maintainer: Afridho Ikhsan <afridho@minifw.local>
 Description: MiniFW-AI Behavioral Firewall Engine (ARCHANGEL 2.0) [${SECTOR}]
@@ -163,6 +174,24 @@ TLS_DIR="${ENV_DIR}/tls"
 echo ""
 echo " MiniFW-AI: Post-install setup"
 
+# --- Protect executable inputs before invoking the installed Python ---
+# dpkg preserves ownership of pre-existing directories on upgrade.
+[ ! -L "${APP_ROOT}" ] || { echo "Refusing symlinked ${APP_ROOT}" >&2; exit 1; }
+chown root:root "${APP_ROOT}"
+chmod 755 "${APP_ROOT}"
+for protected_path in app prometheus scheduler models yara_rules scripts venv config requirements.txt; do
+    target="${APP_ROOT}/${protected_path}"
+    [ ! -L "${target}" ] || { echo "Refusing symlinked ${target}" >&2; exit 1; }
+    [ -e "${target}" ] || continue
+    # The venv legitimately links its Python binary to the system interpreter.
+    if [ "${protected_path}" != venv ] && [ -n "$(find -P "${target}" -type l -print -quit)" ]; then
+        echo "Refusing symlink inside ${target}" >&2; exit 1
+    fi
+    chown -hR root:root "${target}"
+    find -P "${target}" -type d -exec chmod go-w {} +
+    find -P "${target}" -type f -exec chmod go-w {} +
+done
+
 # --- 1. Python virtual environment ---
 echo "[1/10] Python environment..."
 if [ ! -d "${APP_ROOT}/venv" ]; then
@@ -172,6 +201,25 @@ fi
 echo "  Installing dependencies..."
 "${APP_ROOT}/venv/bin/python" -m pip install --upgrade pip -q 2>/dev/null || true
 "${APP_ROOT}/venv/bin/pip" install -r "${APP_ROOT}/requirements.txt" -q
+
+# --- Dashboard service account (no login, no capabilities) ---
+WEB_USER="minifw-web"
+STATE_DIR="/var/lib/minifw-ai"
+if ! getent passwd "${WEB_USER}" >/dev/null; then
+    adduser --system --group --no-create-home --home /nonexistent --shell /usr/sbin/nologin "${WEB_USER}" >/dev/null
+fi
+install -d -m 0750 -o "${WEB_USER}" -g "${WEB_USER}" "${STATE_DIR}"
+# Move dashboard state written by earlier root-run versions.
+if [ -f "${APP_ROOT}/minifw.db" ] && [ ! -e "${STATE_DIR}/minifw.db" ]; then
+    # Services are stopped by prerm; move WAL companions too so committed writes are kept.
+    for suffix in "" -wal -shm; do
+        [ ! -e "${APP_ROOT}/minifw.db${suffix}" ] || mv "${APP_ROOT}/minifw.db${suffix}" "${STATE_DIR}/minifw.db${suffix}"
+    done
+fi
+if [ -f /etc/minifw/license.json ] && [ ! -e "${STATE_DIR}/license.json" ]; then
+    mv /etc/minifw/license.json "${STATE_DIR}/license.json"
+fi
+export MINIFW_DB_PATH="${STATE_DIR}/minifw.db"
 
 # --- 2. Generate secrets ---
 echo "[2/10] Secrets..."
@@ -195,13 +243,6 @@ else
     echo "  Secrets exist: ${ENV_FILE}"
 fi
 
-# Inject EnvironmentFile into daemon unit if not present
-if [ -f /etc/systemd/system/minifw-ai.service ]; then
-    if ! grep -q "EnvironmentFile=" /etc/systemd/system/minifw-ai.service; then
-        sed -i '/^\[Service\]/a EnvironmentFile=/etc/minifw/minifw.env' \
-            /etc/systemd/system/minifw-ai.service
-    fi
-fi
 
 # --- 3. Generate TLS certificate ---
 echo "[3/10] TLS certificate..."
@@ -212,12 +253,14 @@ if [ ! -f "${TLS_DIR}/server.crt" ]; then
         -out "${TLS_DIR}/server.crt" \
         -days 365 -nodes \
         -subj "/CN=minifw-ai/O=MiniFW-AI/C=ID" 2>/dev/null
-    chmod 600 "${TLS_DIR}/server.key"
     chmod 644 "${TLS_DIR}/server.crt"
     echo "  Self-signed certificate generated (365 days)."
 else
     echo "  Certificate exists: ${TLS_DIR}/server.crt"
 fi
+# uvicorn reads the key as the dashboard user; minifw.env stays root-only (read by systemd).
+chgrp "${WEB_USER}" "${TLS_DIR}/server.key"
+chmod 640 "${TLS_DIR}/server.key"
 
 # --- 4. Create admin user ---
 echo "[4/10] Admin user..."
@@ -225,6 +268,9 @@ export PYTHONPATH="${APP_ROOT}/app"
 # shellcheck disable=SC2046
 export $(grep -v '^#' "${ENV_FILE}" | xargs)
 cd "${APP_ROOT}"
+# Run as the dashboard user: root must never open a database in a directory that user controls.
+chown -R "${WEB_USER}:${WEB_USER}" "${STATE_DIR}"  # -R never follows symlinks (physical walk)
+setpriv --reuid="${WEB_USER}" --regid="${WEB_USER}" --clear-groups \
 "${APP_ROOT}/venv/bin/python" -c "
 import os, sys
 sys.path.insert(0, '${APP_ROOT}')
@@ -255,15 +301,36 @@ finally:
     db.close()
 " 2>&1 || echo "  Warning: Admin user creation failed (non-fatal)."
 
-# Fix SQLite database permissions
-chmod 664 "${APP_ROOT}/minifw.db" 2>/dev/null || true
-chmod 775 "${APP_ROOT}" 2>/dev/null || true
-
 # --- 5. Set permissions ---
 echo "[5/10] Permissions..."
+# Root owns code; the dashboard user owns only its state, logs group and editable config.
+chmod 755 "${APP_ROOT}"
 chmod -R 755 "${APP_ROOT}/app"
 chmod 644 "${APP_ROOT}/config/policy.json"
-chmod 755 "${APP_ROOT}/logs"
+chown -R "${WEB_USER}:${WEB_USER}" "${STATE_DIR}"
+chgrp -R "${WEB_USER}" "${APP_ROOT}/logs"
+chmod -R g+rX,o-rwx "${APP_ROOT}/logs"
+chmod 2750 "${APP_ROOT}/logs"
+touch "${APP_ROOT}/logs/audit.jsonl"
+chmod 660 "${APP_ROOT}/logs/audit.jsonl"
+# Dashboard edits feeds in place and replaces the sector policy by rename.
+chgrp "${WEB_USER}" "${APP_ROOT}"/config/feeds/*.txt
+chmod 664 "${APP_ROOT}"/config/feeds/*.txt
+# The dashboard can create entries inside each mode directory, so never follow a link there:
+# the web service is stopped (prerm) while this runs, and policy.json must be a regular file.
+for mode_dir in "${APP_ROOT}"/config/modes/*/; do
+    [ ! -L "${mode_dir%/}" ] || { echo "  Refusing symlinked mode directory ${mode_dir}" >&2; exit 1; }
+    chgrp -h "${WEB_USER}" "${mode_dir}"
+    chmod 2775 "${mode_dir}"
+    policy_file="${mode_dir}policy.json"
+    if [ -L "${policy_file}" ] || { [ -e "${policy_file}" ] && [ ! -f "${policy_file}" ]; }; then
+        echo "  Refusing non-regular ${policy_file}" >&2; exit 1
+    fi
+    if [ -f "${policy_file}" ]; then
+        chgrp -h "${WEB_USER}" "${policy_file}"
+        chmod 664 "${policy_file}"
+    fi
+done
 
 # --- 6. Load nf_conntrack kernel module ---
 echo "[6/10] Flow tracking (nf_conntrack)..."
@@ -311,7 +378,8 @@ if command -v zeek >/dev/null 2>&1 || command -v zeekctl >/dev/null 2>&1; then
     fi
     echo "  Zeek TLS collector active — SNI scoring and TLS features enabled."
 else
-    echo "  Zeek not installed — TLS/SNI scoring disabled (DNS-only mode)."
+    echo "  Zeek not installed — Zeek TLS/SNI collection disabled."
+    echo "  Optional packet metadata requires tshark and an explicit client interface."
     echo "  Install with: apt install zeek   then re-run: dpkg-reconfigure minifw-ai"
 fi
 
@@ -326,6 +394,7 @@ echo "[10/10] Starting services..."
 systemctl daemon-reload
 systemctl enable --now minifw-ai
 systemctl enable --now minifw-ai-web
+systemctl enable --now minifw-ai-apply.path
 
 echo ""
 echo " MiniFW-AI installed and running"
@@ -342,6 +411,8 @@ cat > "${BUILD_DIR}/DEBIAN/prerm" <<'PRERM'
 set -e
 
 echo "MiniFW-AI: Stopping services..."
+systemctl disable --now minifw-ai-apply.path 2>/dev/null || true
+systemctl stop minifw-ai-apply.service 2>/dev/null || true
 systemctl stop minifw-ai-web 2>/dev/null || true
 systemctl stop minifw-ai 2>/dev/null || true
 systemctl disable minifw-ai-web 2>/dev/null || true
@@ -360,6 +431,7 @@ if [ "$1" = "purge" ]; then
     rm -rf /opt/minifw_ai/venv
     rm -rf /opt/minifw_ai/logs
     rm -f /opt/minifw_ai/minifw.db
+    rm -rf /var/lib/minifw-ai
     rm -rf /etc/minifw
     echo "MiniFW-AI: Purged. Config feeds and models preserved in /opt/minifw_ai/"
 fi
@@ -412,7 +484,7 @@ CONFFILES_ESTABLISHMENT="/opt/minifw_ai/config/modes/minifw_establishment/policy
 } > "${BUILD_DIR}/DEBIAN/conffiles"
 
 # --- Build the .deb ---
-dpkg-deb --build "${BUILD_DIR}" "${DEB_OUTPUT}"
+dpkg-deb --root-owner-group --build "${BUILD_DIR}" "${DEB_OUTPUT}"
 
 # --- Checksum ---
 SHA256=$(sha256sum "${DEB_OUTPUT}" | awk '{print $1}')

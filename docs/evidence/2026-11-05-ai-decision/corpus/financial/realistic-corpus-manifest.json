@@ -1,0 +1,70 @@
+{
+  "edition": "financial",
+  "package_sha256": "ead9c4a376c4680c8cfdbbf97e303e8a8361a4bad47ae3a48094c12db8819744",
+  "plan": [
+    [
+      "human",
+      "10.10.0.31",
+      60,
+      0
+    ],
+    [
+      "human",
+      "10.10.0.32",
+      60,
+      5
+    ],
+    [
+      "human",
+      "10.10.0.33",
+      60,
+      10
+    ],
+    [
+      "human",
+      "10.10.0.34",
+      60,
+      15
+    ],
+    [
+      "tool",
+      "10.10.0.41",
+      60,
+      60
+    ],
+    [
+      "tool",
+      "10.10.0.42",
+      60,
+      200
+    ],
+    [
+      "slow",
+      "10.10.0.43",
+      20,
+      30
+    ],
+    [
+      "slow",
+      "10.10.0.44",
+      20,
+      250
+    ]
+  ],
+  "capture": "financial-realistic.pcap",
+  "capture_sha256": "1ad3ead1e7ac52b961572aa2911dc01e627a399a7d9173e08b83d49a7307fc4f",
+  "connections": {
+    "human": 413,
+    "slow": 40,
+    "tool": 120
+  },
+  "isolated_by_baseline": {},
+  "AI": "C19 shadow only",
+  "label_source": "per-connection actor logs (kind/ip/port/start); human=benign, tool/slow=malicious",
+  "representative": false,
+  "limitations": [
+    "Fictional sandbox server and one lab network",
+    "Lab server is HTTP/1.0: one TLS connection per request",
+    "Scripted human pacing is an approximation of people, not observed users"
+  ]
+}

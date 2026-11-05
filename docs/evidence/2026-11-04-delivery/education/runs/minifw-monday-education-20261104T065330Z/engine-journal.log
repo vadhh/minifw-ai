@@ -1,0 +1,1082 @@
+Nov 04 13:53:32 minifw-monday-education systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 04 13:53:33 minifw-monday-education python[52754]: 2026-11-04 13:53:33,702 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Nov 04 13:53:33 minifw-monday-education python[52754]: 2026-11-04 13:53:33,706 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Nov 04 13:53:33 minifw-monday-education python[52754]: 2026-11-04 13:53:33,706 - INFO - [STATE] Restored state from /opt/minifw_ai/logs/deployment_state.json: BASELINE_PROTECTION
+Nov 04 13:53:33 minifw-monday-education python[52754]: 2026-11-04 13:53:33,706 - INFO - [STATE] Initial protection state: BASELINE_PROTECTION
+Nov 04 13:53:33 minifw-monday-education python[52754]: 2026-11-04 13:53:33,713 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_school: sector=education
+Nov 04 13:53:33 minifw-monday-education python[52754]: 2026-11-04 13:53:33,713 - INFO - [SECTOR_LOCK] Loaded config for education: ['description', 'force_safesearch', 'safesearch_domains', 'block_vpns', 'block_proxies', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_student_activity']
+Nov 04 13:53:33 minifw-monday-education python[52754]: 2026-11-04 13:53:33,713 - INFO - [SECTOR_LOCK] Device sector: education (LOCKED)
+Nov 04 13:53:33 minifw-monday-education python[52754]: 2026-11-04 13:53:33,713 - INFO - [SECTOR_LOCK] Config: Education: domain policies; restricted DNS configuration and optional WireGuard metadata.
+Nov 04 13:53:33 minifw-monday-education python[52754]: 2026-11-04 13:53:33,713 - INFO - [FEEDS] Loaded 14 patterns from school_blacklist.txt
+Nov 04 13:53:33 minifw-monday-education python[52754]: 2026-11-04 13:53:33,713 - INFO - [SECTOR_LOCK] Loaded 14 sector-specific feed patterns
+Nov 04 13:53:33 minifw-monday-education python[52754]: 2026-11-04 13:53:33,713 - INFO - [SECTOR_LOCK] Search-domain allowlist: 8 patterns; restricted search requires the generated dnsmasq overrides
+Nov 04 13:53:33 minifw-monday-education python[52754]: 2026-11-04 13:53:33,713 - INFO - [SECTOR_LOCK] VPN/proxy provider domain matching enabled; optional packet metadata detects WireGuard patterns
+Nov 04 13:53:33 minifw-monday-education python[52754]: 2026-11-04 13:53:33,763 - INFO - [TELEMETRY] Packet metadata on mfcg; packet14 model required; no TLS decryption
+Nov 04 13:53:33 minifw-monday-education python[52771]: Capturing on 'mfcg'
+Nov 04 13:53:33 minifw-monday-education python[52771]: File: -
+Nov 04 13:53:42 minifw-monday-education python[52771]: [115B blob data]
+Nov 04 13:53:42 minifw-monday-education python[52771]: Packets received/dropped on interface 'mfcg': 147/0 (pcap:0/dumpcap:0/flushed:0/ps_ifdrop:0) (100.0%)
+Nov 04 13:53:42 minifw-monday-education python[52754]: 2026-11-04 13:53:42,597 - INFO - Caught SIGTERM, shutting down.
+Nov 04 13:53:42 minifw-monday-education systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 04 13:53:42 minifw-monday-education python[52754]: 2026-11-04 13:53:42,653 - ERROR - [packet] Collector failed; retrying independently
+Nov 04 13:53:42 minifw-monday-education python[52754]: Traceback (most recent call last):
+Nov 04 13:53:42 minifw-monday-education python[52754]:   File "/opt/minifw_ai/app/minifw_ai/collector_runtime.py", line 16, in collect
+Nov 04 13:53:42 minifw-monday-education python[52754]:     for event in factory():
+Nov 04 13:53:42 minifw-monday-education python[52754]:   File "/opt/minifw_ai/app/minifw_ai/collector_packets.py", line 87, in stream_packet_events
+Nov 04 13:53:42 minifw-monday-education python[52754]:     raise RuntimeError(f"Packet metadata sensor stopped: exit={decoder.wait()}")
+Nov 04 13:53:42 minifw-monday-education python[52754]: RuntimeError: Packet metadata sensor stopped: exit=0
+Nov 04 13:53:42 minifw-monday-education python[52754]: [*] DNS Collector reading from /var/tmp/minifw-monday-education-20261104T065330Z/dns.log
+Nov 04 13:53:42 minifw-monday-education python[52754]: [FlowCollector] Exported 10 flows, cleaned 0 old flows
+Nov 04 13:53:43 minifw-monday-education systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 04 13:53:43 minifw-monday-education systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 04 13:53:43 minifw-monday-education systemd[1]: minifw-ai.service: Consumed 2.222s CPU time.
+Nov 04 13:53:43 minifw-monday-education systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 04 13:53:44 minifw-monday-education python[52844]: 2026-11-04 13:53:44,936 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Nov 04 13:53:44 minifw-monday-education python[52844]: 2026-11-04 13:53:44,940 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Nov 04 13:53:44 minifw-monday-education python[52844]: 2026-11-04 13:53:44,941 - INFO - [STATE] Restored state from /opt/minifw_ai/logs/deployment_state.json: BASELINE_PROTECTION
+Nov 04 13:53:44 minifw-monday-education python[52844]: 2026-11-04 13:53:44,941 - INFO - [STATE] Initial protection state: BASELINE_PROTECTION
+Nov 04 13:53:44 minifw-monday-education python[52844]: 2026-11-04 13:53:44,947 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_school: sector=education
+Nov 04 13:53:44 minifw-monday-education python[52844]: 2026-11-04 13:53:44,948 - INFO - [SECTOR_LOCK] Loaded config for education: ['description', 'force_safesearch', 'safesearch_domains', 'block_vpns', 'block_proxies', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_student_activity']
+Nov 04 13:53:44 minifw-monday-education python[52844]: 2026-11-04 13:53:44,948 - INFO - [SECTOR_LOCK] Device sector: education (LOCKED)
+Nov 04 13:53:44 minifw-monday-education python[52844]: 2026-11-04 13:53:44,948 - INFO - [SECTOR_LOCK] Config: Education: domain policies; restricted DNS configuration and optional WireGuard metadata.
+Nov 04 13:53:44 minifw-monday-education python[52844]: 2026-11-04 13:53:44,948 - INFO - [FEEDS] Loaded 14 patterns from school_blacklist.txt
+Nov 04 13:53:44 minifw-monday-education python[52844]: 2026-11-04 13:53:44,948 - INFO - [SECTOR_LOCK] Loaded 14 sector-specific feed patterns
+Nov 04 13:53:44 minifw-monday-education python[52844]: 2026-11-04 13:53:44,948 - INFO - [SECTOR_LOCK] Search-domain allowlist: 8 patterns; restricted search requires the generated dnsmasq overrides
+Nov 04 13:53:44 minifw-monday-education python[52844]: 2026-11-04 13:53:44,948 - INFO - [SECTOR_LOCK] VPN/proxy provider domain matching enabled; optional packet metadata detects WireGuard patterns
+Nov 04 13:53:45 minifw-monday-education python[52844]: 2026-11-04 13:53:45,003 - INFO - [TELEMETRY] Packet metadata on mfcg; packet14 model required; no TLS decryption
+Nov 04 13:53:45 minifw-monday-education python[52844]: 2026-11-04 13:53:45,023 - ERROR - Failed to publish runtime health; readiness must remain unavailable
+Nov 04 13:53:45 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:45 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:45 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:45 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/runtime_health.py", line 96, in observe
+Nov 04 13:53:45 minifw-monday-education python[52844]:     with tempfile.NamedTemporaryFile(mode="w", dir=self.path.parent, prefix=".runtime-health-", delete=False) as stream:
+Nov 04 13:53:45 minifw-monday-education python[52844]:   File "/usr/lib/python3.11/tempfile.py", line 656, in __exit__
+Nov 04 13:53:45 minifw-monday-education python[52844]:     result = self.file.__exit__(exc, value, tb)
+Nov 04 13:53:45 minifw-monday-education python[52844]:              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Nov 04 13:53:45 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:45 minifw-monday-education python[52859]: Capturing on 'mfcg'
+Nov 04 13:53:45 minifw-monday-education python[52859]: File: -
+Nov 04 13:53:46 minifw-monday-education python[52859]: [11B blob data]
+Nov 04 13:53:46 minifw-monday-education python[52844]: 2026-11-04 13:53:46,032 - ERROR - Failed to publish runtime health; readiness must remain unavailable
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:46 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/runtime_health.py", line 96, in observe
+Nov 04 13:53:46 minifw-monday-education python[52844]:     with tempfile.NamedTemporaryFile(mode="w", dir=self.path.parent, prefix=".runtime-health-", delete=False) as stream:
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/usr/lib/python3.11/tempfile.py", line 656, in __exit__
+Nov 04 13:53:46 minifw-monday-education python[52844]:     result = self.file.__exit__(exc, value, tb)
+Nov 04 13:53:46 minifw-monday-education python[52844]:              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: 2026-11-04 13:53:46,637 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:46 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:46 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:46 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: 2026-11-04 13:53:46,639 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:46 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:46 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:46 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: 2026-11-04 13:53:46,640 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:46 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:46 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:46 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: 2026-11-04 13:53:46,642 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:46 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:46 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:46 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: 2026-11-04 13:53:46,644 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:46 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:46 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:46 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: 2026-11-04 13:53:46,647 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:46 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:46 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:46 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: 2026-11-04 13:53:46,650 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:46 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:46 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:46 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: 2026-11-04 13:53:46,653 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:46 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:46 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:46 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: 2026-11-04 13:53:46,656 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:46 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:46 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:46 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: 2026-11-04 13:53:46,658 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:46 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:46 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:46 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: 2026-11-04 13:53:46,661 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:46 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:46 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:46 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: 2026-11-04 13:53:46,663 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:46 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:46 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:46 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52859]: [12B blob data]
+Nov 04 13:53:46 minifw-monday-education python[52844]: 2026-11-04 13:53:46,917 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:46 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:46 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:46 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: 2026-11-04 13:53:46,921 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:46 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:46 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:46 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: 2026-11-04 13:53:46,925 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:46 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:46 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:46 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: 2026-11-04 13:53:46,928 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:46 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:46 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:46 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: 2026-11-04 13:53:46,931 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:46 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:46 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:46 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: 2026-11-04 13:53:46,934 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:46 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:46 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:46 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: 2026-11-04 13:53:46,937 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:46 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:46 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:46 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: 2026-11-04 13:53:46,940 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:46 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:46 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:46 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: 2026-11-04 13:53:46,942 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:46 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:46 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:46 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: 2026-11-04 13:53:46,945 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:46 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:46 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:46 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: 2026-11-04 13:53:46,948 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:46 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:46 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:46 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: 2026-11-04 13:53:46,950 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:46 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:46 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:46 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: 2026-11-04 13:53:46,952 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:46 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:46 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:46 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: 2026-11-04 13:53:46,954 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:46 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:46 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:46 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: 2026-11-04 13:53:46,956 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:46 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:46 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:46 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: 2026-11-04 13:53:46,959 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:46 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:46 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:46 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: 2026-11-04 13:53:46,961 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:46 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:46 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:46 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: 2026-11-04 13:53:46,963 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:46 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:46 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:46 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: 2026-11-04 13:53:46,965 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:46 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:46 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:46 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: 2026-11-04 13:53:46,966 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:46 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:46 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:46 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: 2026-11-04 13:53:46,968 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:46 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:46 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:46 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: 2026-11-04 13:53:46,970 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:46 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:46 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:46 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: 2026-11-04 13:53:46,972 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:46 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:46 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:46 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: 2026-11-04 13:53:46,974 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:46 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:46 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:46 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: 2026-11-04 13:53:46,976 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:46 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:46 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:46 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: 2026-11-04 13:53:46,977 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:46 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:46 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:46 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: 2026-11-04 13:53:46,979 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:46 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:46 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:46 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: 2026-11-04 13:53:46,981 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:46 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:46 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:46 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: 2026-11-04 13:53:46,983 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:46 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:46 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:46 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: 2026-11-04 13:53:46,984 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:46 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:46 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:46 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: 2026-11-04 13:53:46,986 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:46 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:46 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:46 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: 2026-11-04 13:53:46,988 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:46 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:46 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:46 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: 2026-11-04 13:53:46,990 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:46 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:46 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:46 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: 2026-11-04 13:53:46,992 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:46 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:46 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:46 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: 2026-11-04 13:53:46,993 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:46 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:46 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:46 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: 2026-11-04 13:53:46,995 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:46 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:46 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:46 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:46 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:46 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:46 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: 2026-11-04 13:53:47,097 - ERROR - Failed to publish runtime health; readiness must remain unavailable
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:47 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/runtime_health.py", line 96, in observe
+Nov 04 13:53:47 minifw-monday-education python[52844]:     with tempfile.NamedTemporaryFile(mode="w", dir=self.path.parent, prefix=".runtime-health-", delete=False) as stream:
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/usr/lib/python3.11/tempfile.py", line 656, in __exit__
+Nov 04 13:53:47 minifw-monday-education python[52844]:     result = self.file.__exit__(exc, value, tb)
+Nov 04 13:53:47 minifw-monday-education python[52844]:              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: 2026-11-04 13:53:47,149 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:47 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:47 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:47 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: 2026-11-04 13:53:47,152 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:47 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:47 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:47 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: 2026-11-04 13:53:47,155 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:47 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:47 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:47 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: 2026-11-04 13:53:47,157 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:47 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:47 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:47 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: 2026-11-04 13:53:47,160 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:47 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:47 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:47 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: 2026-11-04 13:53:47,163 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:47 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:47 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:47 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: 2026-11-04 13:53:47,165 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:47 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:47 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:47 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: 2026-11-04 13:53:47,168 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:47 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:47 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:47 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: 2026-11-04 13:53:47,170 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:47 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:47 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:47 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: 2026-11-04 13:53:47,173 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:47 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:47 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:47 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: 2026-11-04 13:53:47,175 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:47 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:47 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:47 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: 2026-11-04 13:53:47,177 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:47 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:47 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:47 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: 2026-11-04 13:53:47,179 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:47 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:47 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:47 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: 2026-11-04 13:53:47,182 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:47 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:47 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:47 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: 2026-11-04 13:53:47,184 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:47 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:47 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:47 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: 2026-11-04 13:53:47,186 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:47 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:47 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:47 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: 2026-11-04 13:53:47,188 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:47 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:47 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:47 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: 2026-11-04 13:53:47,190 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:47 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:47 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:47 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: 2026-11-04 13:53:47,192 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:47 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:47 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:47 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: 2026-11-04 13:53:47,194 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:47 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:47 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:47 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: 2026-11-04 13:53:47,196 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:47 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:47 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:47 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: 2026-11-04 13:53:47,197 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:47 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:47 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:47 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: 2026-11-04 13:53:47,199 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:47 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:47 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:47 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: 2026-11-04 13:53:47,201 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:47 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:47 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:47 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52859]: [12B blob data]
+Nov 04 13:53:47 minifw-monday-education python[52844]: 2026-11-04 13:53:47,403 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:47 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:47 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:47 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: 2026-11-04 13:53:47,405 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:47 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:47 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:47 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: 2026-11-04 13:53:47,407 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:47 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:47 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:47 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: 2026-11-04 13:53:47,409 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:47 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:47 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:47 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: 2026-11-04 13:53:47,411 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:47 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:47 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:47 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: 2026-11-04 13:53:47,413 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:47 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:47 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:47 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: 2026-11-04 13:53:47,415 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:47 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:47 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:47 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: 2026-11-04 13:53:47,417 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:47 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:47 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:47 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: 2026-11-04 13:53:47,419 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:47 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:47 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:47 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: 2026-11-04 13:53:47,421 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:47 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:47 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:47 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: 2026-11-04 13:53:47,422 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:47 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:47 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:47 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: 2026-11-04 13:53:47,424 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:47 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:47 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:47 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: 2026-11-04 13:53:47,426 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:47 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:47 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:47 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: 2026-11-04 13:53:47,428 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:47 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:47 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:47 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: 2026-11-04 13:53:47,429 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:47 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:47 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:47 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: 2026-11-04 13:53:47,431 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:47 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:47 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:47 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: 2026-11-04 13:53:47,433 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:47 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:47 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:47 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: 2026-11-04 13:53:47,434 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:47 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:47 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:47 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: 2026-11-04 13:53:47,436 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:47 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:47 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:47 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: 2026-11-04 13:53:47,437 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:47 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:47 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:47 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: 2026-11-04 13:53:47,439 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:47 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:47 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:47 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: 2026-11-04 13:53:47,440 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:47 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:47 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:47 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: 2026-11-04 13:53:47,442 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:47 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:47 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:47 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: 2026-11-04 13:53:47,443 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:47 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:47 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:47 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: 2026-11-04 13:53:47,696 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:47 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:47 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:47 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: 2026-11-04 13:53:47,698 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:47 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:47 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:47 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: 2026-11-04 13:53:47,699 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:47 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:47 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:47 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: 2026-11-04 13:53:47,701 - ERROR - Unhandled exception in main event loop
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:47 minifw-monday-education python[52844]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:47 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:53:47 minifw-monday-education python[52844]:     writer.write(ev)
+Nov 04 13:53:47 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:53:47 minifw-monday-education python[52844]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:53:47 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:48 minifw-monday-education python[52859]: [13B blob data]
+Nov 04 13:53:48 minifw-monday-education python[52844]: Traceback (most recent call last):
+Nov 04 13:53:48 minifw-monday-education python[52844]:   File "<frozen runpy>", line 198, in _run_module_as_main
+Nov 04 13:53:48 minifw-monday-education python[52844]:   File "<frozen runpy>", line 88, in _run_code
+Nov 04 13:53:48 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/__main__.py", line 3, in <module>
+Nov 04 13:53:48 minifw-monday-education python[52844]:     run()
+Nov 04 13:53:48 minifw-monday-education python[52844]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 896, in run
+Nov 04 13:53:48 minifw-monday-education python[52844]:     with flow_records_file.open("a", encoding="utf-8") as f:
+Nov 04 13:53:48 minifw-monday-education python[52844]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:48 minifw-monday-education python[52844]: [*] DNS Collector reading from /var/tmp/minifw-monday-education-20261104T065330Z/dns.log
+Nov 04 13:53:48 minifw-monday-education systemd[1]: minifw-ai.service: Main process exited, code=exited, status=1/FAILURE
+Nov 04 13:53:48 minifw-monday-education python[52859]: [36B blob data]
+Nov 04 13:53:48 minifw-monday-education python[52859]: Packets received/dropped on interface 'mfcg': 169/0 (pcap:0/dumpcap:0/flushed:0/ps_ifdrop:0) (100.0%)
+Nov 04 13:53:48 minifw-monday-education systemd[1]: minifw-ai.service: Failed with result 'exit-code'.
+Nov 04 13:53:48 minifw-monday-education systemd[1]: minifw-ai.service: Consumed 2.565s CPU time.
+Nov 04 13:53:53 minifw-monday-education systemd[1]: minifw-ai.service: Scheduled restart job, restart counter is at 1.
+Nov 04 13:53:53 minifw-monday-education systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 04 13:53:53 minifw-monday-education systemd[1]: minifw-ai.service: Consumed 2.565s CPU time.
+Nov 04 13:53:53 minifw-monday-education systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 04 13:53:54 minifw-monday-education python[52936]: 2026-11-04 13:53:54,677 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Nov 04 13:53:54 minifw-monday-education python[52936]: 2026-11-04 13:53:54,680 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Nov 04 13:53:54 minifw-monday-education python[52936]: 2026-11-04 13:53:54,680 - INFO - [STATE] Restored state from /opt/minifw_ai/logs/deployment_state.json: BASELINE_PROTECTION
+Nov 04 13:53:54 minifw-monday-education python[52936]: 2026-11-04 13:53:54,681 - INFO - [STATE] Initial protection state: BASELINE_PROTECTION
+Nov 04 13:53:54 minifw-monday-education python[52936]: 2026-11-04 13:53:54,687 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_school: sector=education
+Nov 04 13:53:54 minifw-monday-education python[52936]: 2026-11-04 13:53:54,688 - INFO - [SECTOR_LOCK] Loaded config for education: ['description', 'force_safesearch', 'safesearch_domains', 'block_vpns', 'block_proxies', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_student_activity']
+Nov 04 13:53:54 minifw-monday-education python[52936]: 2026-11-04 13:53:54,688 - INFO - [SECTOR_LOCK] Device sector: education (LOCKED)
+Nov 04 13:53:54 minifw-monday-education python[52936]: 2026-11-04 13:53:54,688 - INFO - [SECTOR_LOCK] Config: Education: domain policies; restricted DNS configuration and optional WireGuard metadata.
+Nov 04 13:53:54 minifw-monday-education python[52936]: 2026-11-04 13:53:54,688 - INFO - [FEEDS] Loaded 14 patterns from school_blacklist.txt
+Nov 04 13:53:54 minifw-monday-education python[52936]: 2026-11-04 13:53:54,688 - INFO - [SECTOR_LOCK] Loaded 14 sector-specific feed patterns
+Nov 04 13:53:54 minifw-monday-education python[52936]: 2026-11-04 13:53:54,688 - INFO - [SECTOR_LOCK] Search-domain allowlist: 8 patterns; restricted search requires the generated dnsmasq overrides
+Nov 04 13:53:54 minifw-monday-education python[52936]: 2026-11-04 13:53:54,688 - INFO - [SECTOR_LOCK] VPN/proxy provider domain matching enabled; optional packet metadata detects WireGuard patterns
+Nov 04 13:53:54 minifw-monday-education python[52936]: 2026-11-04 13:53:54,730 - INFO - [TELEMETRY] Packet metadata on mfcg; packet14 model required; no TLS decryption
+Nov 04 13:53:54 minifw-monday-education python[52936]: 2026-11-04 13:53:54,742 - ERROR - Failed to publish runtime health; readiness must remain unavailable
+Nov 04 13:53:54 minifw-monday-education python[52936]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:54 minifw-monday-education python[52936]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:54 minifw-monday-education python[52936]: Traceback (most recent call last):
+Nov 04 13:53:54 minifw-monday-education python[52936]:   File "/opt/minifw_ai/app/minifw_ai/runtime_health.py", line 96, in observe
+Nov 04 13:53:54 minifw-monday-education python[52936]:     with tempfile.NamedTemporaryFile(mode="w", dir=self.path.parent, prefix=".runtime-health-", delete=False) as stream:
+Nov 04 13:53:54 minifw-monday-education python[52936]:   File "/usr/lib/python3.11/tempfile.py", line 656, in __exit__
+Nov 04 13:53:54 minifw-monday-education python[52936]:     result = self.file.__exit__(exc, value, tb)
+Nov 04 13:53:54 minifw-monday-education python[52936]:              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Nov 04 13:53:54 minifw-monday-education python[52936]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:54 minifw-monday-education python[52951]: Capturing on 'mfcg'
+Nov 04 13:53:54 minifw-monday-education python[52951]: File: -
+Nov 04 13:53:55 minifw-monday-education python[52936]: 2026-11-04 13:53:55,750 - ERROR - Failed to publish runtime health; readiness must remain unavailable
+Nov 04 13:53:55 minifw-monday-education python[52936]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:55 minifw-monday-education python[52936]: During handling of the above exception, another exception occurred:
+Nov 04 13:53:55 minifw-monday-education python[52936]: Traceback (most recent call last):
+Nov 04 13:53:55 minifw-monday-education python[52936]:   File "/opt/minifw_ai/app/minifw_ai/runtime_health.py", line 96, in observe
+Nov 04 13:53:55 minifw-monday-education python[52936]:     with tempfile.NamedTemporaryFile(mode="w", dir=self.path.parent, prefix=".runtime-health-", delete=False) as stream:
+Nov 04 13:53:55 minifw-monday-education python[52936]:   File "/usr/lib/python3.11/tempfile.py", line 656, in __exit__
+Nov 04 13:53:55 minifw-monday-education python[52936]:     result = self.file.__exit__(exc, value, tb)
+Nov 04 13:53:55 minifw-monday-education python[52936]:              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Nov 04 13:53:55 minifw-monday-education python[52936]: OSError: [Errno 28] No space left on device
+Nov 04 13:53:56 minifw-monday-education python[52936]: 2026-11-04 13:53:56,050 - INFO - Caught SIGTERM, shutting down.
+Nov 04 13:53:56 minifw-monday-education python[52951]: [20B blob data]
+Nov 04 13:53:56 minifw-monday-education python[52951]: Packets received/dropped on interface 'mfcg': 0/0 (pcap:0/dumpcap:0/flushed:0/ps_ifdrop:0) (0.0%)
+Nov 04 13:53:56 minifw-monday-education systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 04 13:53:56 minifw-monday-education python[52936]: 2026-11-04 13:53:56,084 - ERROR - [packet] Collector failed; retrying independently
+Nov 04 13:53:56 minifw-monday-education python[52936]: Traceback (most recent call last):
+Nov 04 13:53:56 minifw-monday-education python[52936]:   File "/opt/minifw_ai/app/minifw_ai/collector_runtime.py", line 16, in collect
+Nov 04 13:53:56 minifw-monday-education python[52936]:     for event in factory():
+Nov 04 13:53:56 minifw-monday-education python[52936]:   File "/opt/minifw_ai/app/minifw_ai/collector_packets.py", line 87, in stream_packet_events
+Nov 04 13:53:56 minifw-monday-education python[52936]:     raise RuntimeError(f"Packet metadata sensor stopped: exit={decoder.wait()}")
+Nov 04 13:53:56 minifw-monday-education python[52936]: RuntimeError: Packet metadata sensor stopped: exit=0
+Nov 04 13:53:56 minifw-monday-education python[52936]: [*] DNS Collector reading from /var/tmp/minifw-monday-education-20261104T065330Z/dns.log
+Nov 04 13:53:56 minifw-monday-education systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 04 13:53:56 minifw-monday-education systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 04 13:53:56 minifw-monday-education systemd[1]: minifw-ai.service: Consumed 2.013s CPU time.
+Nov 04 13:53:57 minifw-monday-education systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 04 13:53:58 minifw-monday-education python[53023]: 2026-11-04 13:53:58,534 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Nov 04 13:53:58 minifw-monday-education python[53023]: 2026-11-04 13:53:58,539 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Nov 04 13:53:58 minifw-monday-education python[53023]: 2026-11-04 13:53:58,540 - INFO - [STATE] Restored state from /opt/minifw_ai/logs/deployment_state.json: BASELINE_PROTECTION
+Nov 04 13:53:58 minifw-monday-education python[53023]: 2026-11-04 13:53:58,540 - INFO - [STATE] Initial protection state: BASELINE_PROTECTION
+Nov 04 13:53:58 minifw-monday-education python[53023]: 2026-11-04 13:53:58,547 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_school: sector=education
+Nov 04 13:53:58 minifw-monday-education python[53023]: 2026-11-04 13:53:58,547 - INFO - [SECTOR_LOCK] Loaded config for education: ['description', 'force_safesearch', 'safesearch_domains', 'block_vpns', 'block_proxies', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_student_activity']
+Nov 04 13:53:58 minifw-monday-education python[53023]: 2026-11-04 13:53:58,547 - INFO - [SECTOR_LOCK] Device sector: education (LOCKED)
+Nov 04 13:53:58 minifw-monday-education python[53023]: 2026-11-04 13:53:58,547 - INFO - [SECTOR_LOCK] Config: Education: domain policies; restricted DNS configuration and optional WireGuard metadata.
+Nov 04 13:53:58 minifw-monday-education python[53023]: 2026-11-04 13:53:58,548 - INFO - [FEEDS] Loaded 14 patterns from school_blacklist.txt
+Nov 04 13:53:58 minifw-monday-education python[53023]: 2026-11-04 13:53:58,548 - INFO - [SECTOR_LOCK] Loaded 14 sector-specific feed patterns
+Nov 04 13:53:58 minifw-monday-education python[53023]: 2026-11-04 13:53:58,548 - INFO - [SECTOR_LOCK] Search-domain allowlist: 8 patterns; restricted search requires the generated dnsmasq overrides
+Nov 04 13:53:58 minifw-monday-education python[53023]: 2026-11-04 13:53:58,548 - INFO - [SECTOR_LOCK] VPN/proxy provider domain matching enabled; optional packet metadata detects WireGuard patterns
+Nov 04 13:53:58 minifw-monday-education python[53023]: 2026-11-04 13:53:58,586 - INFO - [TELEMETRY] Packet metadata on mfcg; packet14 model required; no TLS decryption
+Nov 04 13:53:58 minifw-monday-education python[53111]: Capturing on 'mfcg'
+Nov 04 13:53:58 minifw-monday-education python[53111]: File: -
+Nov 04 13:54:03 minifw-monday-education python[53111]: [25B blob data]
+Nov 04 13:54:03 minifw-monday-education python[53023]: 2026-11-04 13:54:03,330 - INFO - Caught SIGTERM, shutting down.
+Nov 04 13:54:03 minifw-monday-education python[53111]: [34B blob data]
+Nov 04 13:54:03 minifw-monday-education python[53111]: Packets received/dropped on interface 'mfcg': 37/0 (pcap:0/dumpcap:0/flushed:0/ps_ifdrop:0) (100.0%)
+Nov 04 13:54:03 minifw-monday-education systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 04 13:54:03 minifw-monday-education python[53023]: 2026-11-04 13:54:03,369 - ERROR - [packet] Collector failed; retrying independently
+Nov 04 13:54:03 minifw-monday-education python[53023]: Traceback (most recent call last):
+Nov 04 13:54:03 minifw-monday-education python[53023]:   File "/opt/minifw_ai/app/minifw_ai/collector_runtime.py", line 16, in collect
+Nov 04 13:54:03 minifw-monday-education python[53023]:     for event in factory():
+Nov 04 13:54:03 minifw-monday-education python[53023]:   File "/opt/minifw_ai/app/minifw_ai/collector_packets.py", line 87, in stream_packet_events
+Nov 04 13:54:03 minifw-monday-education python[53023]:     raise RuntimeError(f"Packet metadata sensor stopped: exit={decoder.wait()}")
+Nov 04 13:54:03 minifw-monday-education python[53023]: RuntimeError: Packet metadata sensor stopped: exit=0
+Nov 04 13:54:03 minifw-monday-education python[53023]: [*] DNS Collector reading from /var/tmp/minifw-monday-education-20261104T065330Z/dns.log
+Nov 04 13:54:06 minifw-monday-education systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 04 13:54:06 minifw-monday-education systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 04 13:54:06 minifw-monday-education systemd[1]: minifw-ai.service: Consumed 4.280s CPU time.

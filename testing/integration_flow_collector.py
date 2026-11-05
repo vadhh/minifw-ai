@@ -38,15 +38,8 @@ def test_basic_flow_tracking(duration: int = 60):
     flow_count = 0
     
     try:
-        for src_ip, dst_ip, dst_port, proto in stream_conntrack_flows():
-            # Update flow dengan packet size estimate (default 1500 bytes)
-            flow = tracker.update_flow(
-                client_ip=src_ip,
-                dst_ip=dst_ip,
-                dst_port=dst_port,
-                proto=proto,
-                pkt_size=1500  # Simplified: real packet size from pcap/accounting
-            )
+        for sample in stream_conntrack_flows():
+            flow, _ = tracker.observe_conntrack(sample)
             
             flow_count += 1
             
@@ -96,6 +89,9 @@ def test_feature_vector_extraction(tracker: FlowTracker):
     
     for i, flow in enumerate(flows[:5]):  # Show first 5
         print(f"[Flow {i+1}] {flow.client_ip} -> {flow.dst_ip}:{flow.dst_port}")
+        if not flow.packet_timing_available:
+            print("  MLP disabled: conntrack does not measure packet timing/size distributions")
+            continue
         
         vector = build_feature_vector_24(flow)
         feature_vectors.append({
@@ -149,13 +145,13 @@ def test_dns_enrichment(tracker: FlowTracker, duration: int = 30):
         return
     
     print(f"Reading DNS queries from: {dns_log}")
-    print("Enriching flows with domain information...\n")
+    print("Recording query frequency; query-only logs do not identify a connection.\n")
     
     start_time = time.time()
     dns_count = 0
     
     try:
-        for client_ip, domain in stream_dns_events(dns_log):
+        for client_ip, domain in stream_dns_events(source="file", log_path=dns_log):
             tracker.enrich_with_dns(client_ip, domain)
             dns_count += 1
             

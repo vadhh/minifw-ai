@@ -1,0 +1,810 @@
+diff --git a/app/web/routers/admin.py b/app/web/routers/admin.py
+index 7a647219..199da615 100644
+--- a/app/web/routers/admin.py
++++ b/app/web/routers/admin.py
+@@ -3,14 +3,14 @@ import re
+ import threading
+ import time as _time
+ 
+-from fastapi import APIRouter, Request, Depends, HTTPException
++from fastapi import APIRouter, Request, Depends, HTTPException, File, UploadFile
+ try:
+     from pydantic import BaseModel, field_validator
+ except ImportError:
+     from pydantic import BaseModel, validator as field_validator
+ 
+ from app.middleware.auth_middleware import get_current_user
+-from app.models.user import User
++from app.models.user import User, UserRole
+ from app.controllers.admin.dashboard_controller import dashboard_controller
+ from app.controllers.admin.allow_domain_controller import (
+     allow_domain_controller,
+@@ -70,6 +70,12 @@ from typing import Optional
+ from sqlalchemy.orm import Session
+ from app.database import get_db
+ from minifw_ai.audit import audit_policy_change, audit_user_mgmt
++from minifw_ai.licensing import (
++    MAX_LICENSE_BYTES,
++    get_deployment_id,
++    get_license_status,
++    install_license,
++)
+ 
+ router = APIRouter(prefix="/admin", tags=["Admin"])
+ from app.web.templates_config import templates
+@@ -1211,3 +1217,32 @@ def get_sector_lock_status(current_user: User = Depends(get_current_user)):
+             "error": "Sector lock module not available",
+             "message": "Sector lock system not installed",
+         }
++
++
++@router.get("/license")
++def license_page(request: Request, current_user: User = Depends(get_current_user)):
++    if not current_user.has_permission(UserRole.ADMIN):
++        raise HTTPException(status_code=403, detail="Admin access required")
++    return templates.TemplateResponse(
++        request,
++        "admin/license.html",
++        {"license": get_license_status(), "deployment_id": get_deployment_id()},
++    )
++
++
++@router.post("/api/license")
++def upload_license(
++    license_file: UploadFile = File(...),
++    current_user: User = Depends(get_current_user),
++):
++    if not current_user.has_permission(UserRole.ADMIN):
++        raise HTTPException(status_code=403, detail="Admin access required")
++    try:
++        raw = license_file.file.read(MAX_LICENSE_BYTES + 1)
++        if len(raw) > MAX_LICENSE_BYTES:
++            raise HTTPException(status_code=413, detail="License file exceeds the 64 KiB limit")
++        return {"success": True, "license": install_license(raw)}
++    except ValueError as exc:
++        raise HTTPException(status_code=400, detail=str(exc)) from exc
++    finally:
++        license_file.file.close()
+diff --git a/app/web/templates/admin/partials/sidebar.html b/app/web/templates/admin/partials/sidebar.html
+index 19d8fa85..ddd017fc 100644
+--- a/app/web/templates/admin/partials/sidebar.html
++++ b/app/web/templates/admin/partials/sidebar.html
+@@ -108,6 +108,14 @@
+         <!-- Divider -->
+         <li class="nav-header">ADMINISTRATION</li>
+ 
++        <!-- User Management (Super Admin Only) -->
++        <li class="nav-item" data-rbac-min="admin">
++          <a href="/admin/license" class="nav-link {% if request.url.path == '/admin/license' %}active{% endif %}">
++            <i class="nav-icon bi bi-patch-check"></i>
++            <p>License</p>
++          </a>
++        </li>
++
+         <!-- User Management (Super Admin Only) -->
+         <li class="nav-item" data-rbac-min="super_admin">
+           <a href="/admin/users" class="nav-link {% if request.url.path == '/admin/users' %}active{% endif %}">
+@@ -137,4 +145,4 @@
+       </ul>
+     </nav>
+   </div>
+-</aside>
+\ No newline at end of file
++</aside>
+diff --git a/pyproject.toml b/pyproject.toml
+index b3a0dfae..b7731f21 100644
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
+ 
+ [project]
+ name = "minifw-ai"
+-version = "2.2.9"
++version = "2.2.10"
+ description = "MiniFW-AI Firewall with AI detection"
+ authors = [{name = "MiniFW-AI Team"}]
+ dependencies = [
+@@ -18,6 +18,7 @@ dependencies = [
+     "pydantic-settings",
+     "bcrypt",
+     "pyjwt",
++    "cryptography>=41,<47",
+     "apscheduler",
+     "prometheus-client",
+     "scikit-learn",
+diff --git a/requirements.txt b/requirements.txt
+index b74eb88c..cc8fff70 100644
+--- a/requirements.txt
++++ b/requirements.txt
+@@ -16,6 +16,7 @@ scipy==1.13.1
+ 
+ # Security & Auth
+ PyJWT==2.12.1
++cryptography>=41,<47
+ passlib==1.7.4
+ bcrypt==4.0.1
+ pyotp==2.9.0
+diff --git a/scripts/README.md b/scripts/README.md
+index 572324dc..ff9852ad 100644
+--- a/scripts/README.md
++++ b/scripts/README.md
+@@ -40,7 +40,8 @@ sudo bash scripts/install.sh
+ ### install_systemd.sh
+ **Systemd Service Installation**
+ 
+-Installs MiniFW-AI as a systemd service.
++Unsupported for standalone Financial/Education v2.2.10; this script exits without changes.
++Use the edition-specific Debian package, which provisions the unprivileged dashboard account.
+ 
+ ```bash
+ sudo bash scripts/install_systemd.sh
+diff --git a/scripts/build_deb.sh b/scripts/build_deb.sh
+index 0ca8234e..9b654010 100755
+--- a/scripts/build_deb.sh
++++ b/scripts/build_deb.sh
+@@ -1,7 +1,7 @@
+ #!/usr/bin/env bash
+ set -euo pipefail
+ 
+-BASE_VERSION="${2:-2.2.9}"
++BASE_VERSION="${2:-2.2.10}"
+ PKG_NAME="minifw-ai"
+ ARCH="amd64"
+ SECTOR="${1:-establishment}"
+@@ -66,6 +66,7 @@ find "${BUILD_DIR}" -name "*.pyc" -delete 2>/dev/null || true
+ # --- Copy config ---
+ echo "[2/7] Copying configuration..."
+ cp "${REPO_DIR}/config/policy.json" "${BUILD_DIR}/opt/minifw_ai/config/"
++cp "${REPO_DIR}/config/license_public_keys.json" "${BUILD_DIR}/opt/minifw_ai/config/"
+ cp "${REPO_DIR}"/config/feeds/*.txt "${BUILD_DIR}/opt/minifw_ai/config/feeds/"
+ 
+ # Sector-specific: copy modes/minifw_<product_mode>/ policy.
+@@ -123,6 +124,8 @@ case "${SECTOR}" in
+     education)  PRODUCT_MODE="minifw_school" ;;
+     *)          PRODUCT_MODE="minifw_${SECTOR}" ;;
+ esac
++sed -i "/^Environment=PYTHONPATH=/a Environment=MINIFW_SECTOR=${SECTOR}\nEnvironment=PRODUCT_MODE=${PRODUCT_MODE}" \
++    "${BUILD_DIR}/etc/systemd/system/minifw-ai-web.service"
+ SECTOR_POLICY_PATH="/opt/minifw_ai/config/modes/${PRODUCT_MODE}/policy.json"
+ if [ -f "${REPO_DIR}/config/modes/${PRODUCT_MODE}/policy.json" ]; then
+     # Engine and dashboard must read and edit the same sector policy.
+@@ -174,6 +177,24 @@ echo "============================================"
+ echo " MiniFW-AI: Post-install setup"
+ echo "============================================"
+ 
++# --- Protect executable inputs before invoking the installed Python ---
++# dpkg preserves ownership of pre-existing directories on upgrade.
++[ ! -L "${APP_ROOT}" ] || { echo "Refusing symlinked ${APP_ROOT}" >&2; exit 1; }
++chown root:root "${APP_ROOT}"
++chmod 755 "${APP_ROOT}"
++for protected_path in app prometheus scheduler models yara_rules scripts venv config requirements.txt; do
++    target="${APP_ROOT}/${protected_path}"
++    [ ! -L "${target}" ] || { echo "Refusing symlinked ${target}" >&2; exit 1; }
++    [ -e "${target}" ] || continue
++    # The venv legitimately links its Python binary to the system interpreter.
++    if [ "${protected_path}" != venv ] && [ -n "$(find -P "${target}" -type l -print -quit)" ]; then
++        echo "Refusing symlink inside ${target}" >&2; exit 1
++    fi
++    chown -hR root:root "${target}"
++    find -P "${target}" -type d -exec chmod go-w {} +
++    find -P "${target}" -type f -exec chmod go-w {} +
++done
++
+ # --- 1. Python virtual environment ---
+ echo "[1/10] Python environment..."
+ if [ ! -d "${APP_ROOT}/venv" ]; then
+@@ -465,7 +486,7 @@ CONFFILES_ESTABLISHMENT="/opt/minifw_ai/config/modes/minifw_establishment/policy
+ } > "${BUILD_DIR}/DEBIAN/conffiles"
+ 
+ # --- Build the .deb ---
+-dpkg-deb --build "${BUILD_DIR}" "${DEB_OUTPUT}"
++dpkg-deb --root-owner-group --build "${BUILD_DIR}" "${DEB_OUTPUT}"
+ 
+ # --- Checksum ---
+ SHA256=$(sha256sum "${DEB_OUTPUT}" | awk '{print $1}')
+diff --git a/scripts/install_systemd.sh b/scripts/install_systemd.sh
+index 0aeee8fc..667d94e0 100644
+--- a/scripts/install_systemd.sh
++++ b/scripts/install_systemd.sh
+@@ -1,4 +1,6 @@
+ #!/usr/bin/env bash
++echo "Unsupported for standalone Financial/Education v2.2.10; use the edition-specific Debian package." >&2
++exit 1
+ set -euo pipefail
+ if [[ $EUID -ne 0 ]]; then echo "Run as root: sudo $0"; exit 1; fi
+ 
+diff --git a/app/minifw_ai/licensing.py b/app/minifw_ai/licensing.py
+new file mode 100644
+index 00000000..2828b550
+--- /dev/null
++++ b/app/minifw_ai/licensing.py
+@@ -0,0 +1,166 @@
++"""Offline signed-license verification for the admin interface."""
++
++from __future__ import annotations
++
++import base64
++import binascii
++import json
++import os
++import tempfile
++import uuid
++from datetime import datetime, timedelta, timezone
++from pathlib import Path
++
++from cryptography.exceptions import InvalidSignature
++from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
++
++from minifw_ai.mode_context import get_mode_ui
++
++GRACE_PERIOD = timedelta(days=14)
++MAX_LICENSE_BYTES = 64 * 1024
++
++
++def _license_path() -> Path:
++    return Path(os.environ.get("MINIFW_LICENSE_FILE", "/etc/minifw/license.json"))
++
++
++def _keyring_path() -> Path:
++    return Path(os.environ.get(
++        "MINIFW_LICENSE_PUBLIC_KEYS_FILE",
++        "/opt/minifw_ai/config/license_public_keys.json",
++    ))
++
++
++def get_deployment_id() -> str:
++    path = Path(os.environ.get(
++        "MINIFW_INSTALLATION_ID_FILE", "/var/lib/minifw-ai/installation-id"
++    ))
++    path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
++    try:
++        fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
++    except FileExistsError:
++        return path.read_text(encoding="ascii").strip()
++    deployment_id = str(uuid.uuid4())
++    with os.fdopen(fd, "w", encoding="ascii") as f:
++        f.write(deployment_id + "\n")
++    return deployment_id
++
++
++def _parse_time(value: object) -> datetime:
++    if not isinstance(value, str):
++        raise ValueError("License timestamps must be ISO 8601 strings")
++    parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
++    if parsed.tzinfo is None:
++        raise ValueError("License timestamps must include a timezone")
++    return parsed.astimezone(timezone.utc)
++
++
++def _invalid(reason: str, **details: object) -> dict:
++    return {"status": "invalid", "reason": reason, **details}
++
++
++def verify_license(raw: bytes) -> dict:
++    """Verify signed license contents and return UI-safe status metadata."""
++    try:
++        envelope = json.loads(raw)
++        if not isinstance(envelope, dict):
++            return _invalid("License file must contain a JSON object")
++        key_id = envelope["key_id"]
++        payload = envelope["payload"]
++        if not isinstance(key_id, str) or not isinstance(payload, dict):
++            return _invalid("License envelope is malformed")
++        if payload.get("schema_version") != 1:
++            return _invalid("Unsupported license schema")
++        required = (
++            "license_id", "customer_id", "deployment_id", "product_mode",
++            "issued_at", "starts_at", "expires_at",
++        )
++        if any(not isinstance(payload.get(k), str) or not payload[k] for k in required):
++            return _invalid("License is missing required fields")
++        issued = _parse_time(payload["issued_at"])
++        starts = _parse_time(payload["starts_at"])
++        expires = _parse_time(payload["expires_at"])
++        if starts >= expires or issued > expires:
++            return _invalid("License date range is invalid")
++
++        keyring = json.loads(_keyring_path().read_text(encoding="utf-8"))
++        keys = keyring.get("keys", {}) if isinstance(keyring, dict) else {}
++        encoded_key = keys.get(key_id) if isinstance(keys, dict) else None
++        if not encoded_key:
++            return {"status": "not_configured", "reason": "No trusted signing key is configured"}
++        public_key = Ed25519PublicKey.from_public_bytes(base64.b64decode(encoded_key, validate=True))
++        signature = base64.b64decode(envelope["signature"], validate=True)
++        signed = json.dumps(
++            {"key_id": key_id, "payload": payload},
++            sort_keys=True, separators=(",", ":"), ensure_ascii=False,
++        ).encode("utf-8")
++        public_key.verify(signature, signed)
++
++        mode = get_mode_ui().product_mode
++        if not mode:
++            return _invalid("Product mode is not configured")
++        if payload["deployment_id"] != get_deployment_id():
++            return _invalid("License is issued for a different deployment")
++        if payload["product_mode"] != mode:
++            return _invalid("License is issued for a different product mode")
++
++        now = datetime.now(timezone.utc)
++        if now < starts:
++            state = "not_yet_valid"
++        elif now <= expires:
++            state = "valid"
++        elif now <= expires + GRACE_PERIOD:
++            state = "grace"
++        else:
++            state = "expired"
++        return {
++            "status": state,
++            "license_id": payload["license_id"],
++            "customer_id": payload["customer_id"],
++            "deployment_id": payload["deployment_id"],
++            "product_mode": payload["product_mode"],
++            "starts_at": payload["starts_at"],
++            "expires_at": payload["expires_at"],
++        }
++    except (OSError, KeyError, TypeError, ValueError, UnicodeError, json.JSONDecodeError,
++            binascii.Error, InvalidSignature) as exc:
++        return _invalid(str(exc) or "License verification failed")
++
++
++def get_license_status() -> dict:
++    path = _license_path()
++    try:
++        raw = path.read_bytes()
++    except FileNotFoundError:
++        return {"status": "unlicensed", "reason": "No license file is installed"}
++    except OSError as exc:
++        return _invalid(f"Could not read license file: {exc}")
++    if len(raw) > MAX_LICENSE_BYTES:
++        return _invalid("License file exceeds the 64 KiB limit")
++    return verify_license(raw)
++
++
++def install_license(raw: bytes) -> dict:
++    if not raw or len(raw) > MAX_LICENSE_BYTES:
++        raise ValueError("License file must be between 1 byte and 64 KiB")
++    status = verify_license(raw)
++    if status["status"] not in ("valid", "grace"):
++        raise ValueError(status.get("reason", f"License status is {status['status']}"))
++
++    path = _license_path()
++    path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
++    fd, temp_path = tempfile.mkstemp(prefix=".license-", dir=path.parent)
++    try:
++        os.fchmod(fd, 0o600)
++        with os.fdopen(fd, "wb") as f:
++            f.write(raw)
++            f.flush()
++            os.fsync(f.fileno())
++        os.replace(temp_path, path)
++    except Exception:
++        try:
++            os.unlink(temp_path)
++        except FileNotFoundError:
++            pass
++        raise
++    return status
+diff --git a/app/web/templates/admin/license.html b/app/web/templates/admin/license.html
+new file mode 100644
+index 00000000..b7568ffc
+--- /dev/null
++++ b/app/web/templates/admin/license.html
+@@ -0,0 +1,53 @@
++{% extends "admin/base.html" %}
++
++{% block title %}License - MiniFW AI{% endblock %}
++
++{% block content %}
++<div class="app-content">
++  <div class="container-fluid">
++    <div class="card">
++      <div class="card-header"><h3 class="card-title">Annual License</h3></div>
++      <div class="card-body">
++        <div class="alert {% if license.status == 'valid' %}alert-success{% elif license.status == 'grace' %}alert-warning{% else %}alert-danger{% endif %}" role="status">
++          <strong>{{ license.status | replace('_', ' ') | title }}</strong>
++          {% if license.reason %}<span> — {{ license.reason }}</span>{% endif %}
++        </div>
++        <dl class="row">
++          <dt class="col-sm-3">Customer</dt><dd class="col-sm-9">{{ license.customer_id or '—' }}</dd>
++          <dt class="col-sm-3">Product mode</dt><dd class="col-sm-9">{{ mode_ui.product_mode or 'Unconfigured' }}</dd>
++          <dt class="col-sm-3">Deployment ID</dt><dd class="col-sm-9"><code>{{ deployment_id }}</code></dd>
++          <dt class="col-sm-3">Expires</dt><dd class="col-sm-9">{{ license.expires_at or '—' }}</dd>
++        </dl>
++        <p class="text-muted">License status never stops firewall enforcement. Renewal files must be signed for this deployment and product mode.</p>
++        <form id="licenseForm" enctype="multipart/form-data">
++          <label class="form-label" for="licenseFile">Install or renew license</label>
++          <div class="input-group">
++            <input class="form-control" type="file" id="licenseFile" name="license_file" accept="application/json,.json" required>
++            <button class="btn btn-primary" type="submit">Install license</button>
++          </div>
++          <div id="licenseMessage" class="mt-2" role="status"></div>
++        </form>
++      </div>
++    </div>
++  </div>
++</div>
++{% endblock %}
++
++{% block extra_js %}
++<script>
++document.getElementById('licenseForm').addEventListener('submit', async function(event) {
++  event.preventDefault();
++  const message = document.getElementById('licenseMessage');
++  const response = await fetch('/admin/api/license', { method: 'POST', body: new FormData(this) });
++  const body = await response.json().catch(() => ({}));
++  if (response.ok) {
++    message.className = 'mt-2 text-success';
++    message.textContent = 'License installed. Refreshing status…';
++    location.reload();
++  } else {
++    message.className = 'mt-2 text-danger';
++    message.textContent = body.detail || 'License installation failed.';
++  }
++});
++</script>
++{% endblock %}
+diff --git a/config/license_public_keys.json b/config/license_public_keys.json
+new file mode 100644
+index 00000000..06a00e9e
+--- /dev/null
++++ b/config/license_public_keys.json
+@@ -0,0 +1,5 @@
++{
++  "keys": {
++    "minifw-vendor-2026": "nybX3nMrRoTsl690mDOyI/mhicz5ydCvMIrOvyRCoPQ="
++  }
++}
+diff --git a/scripts/license_tool.py b/scripts/license_tool.py
+new file mode 100644
+index 00000000..f588250b
+--- /dev/null
++++ b/scripts/license_tool.py
+@@ -0,0 +1,110 @@
++#!/usr/bin/env python3
++"""Vendor-side helper for generating an Ed25519 keypair and issuing licenses."""
++
++import argparse
++import base64
++import json
++import os
++import uuid
++from datetime import datetime, timedelta, timezone
++from pathlib import Path
++
++from cryptography.hazmat.primitives import serialization
++from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
++
++
++def utc_now() -> str:
++    return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
++
++
++def generate(args) -> None:
++    private_key = Ed25519PrivateKey.generate()
++    private_bytes = private_key.private_bytes(
++        serialization.Encoding.PEM,
++        serialization.PrivateFormat.PKCS8,
++        serialization.NoEncryption(),
++    )
++    public_bytes = private_key.public_key().public_bytes(
++        serialization.Encoding.Raw, serialization.PublicFormat.Raw
++    )
++    private_path = Path(args.private_key)
++    private_path.parent.mkdir(parents=True, exist_ok=True)
++    fd = os.open(private_path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
++    with os.fdopen(fd, "wb") as f:
++        f.write(private_bytes)
++    keyring_path = Path(args.keyring)
++    keyring = json.loads(keyring_path.read_text(encoding="utf-8")) if keyring_path.exists() else {"keys": {}}
++    keys = keyring.setdefault("keys", {})
++    if args.key_id in keys:
++        raise SystemExit(f"Key ID already exists in keyring: {args.key_id}")
++    keys[args.key_id] = base64.b64encode(public_bytes).decode("ascii")
++    keyring_path.write_text(json.dumps(keyring, indent=2) + "\n", encoding="utf-8")
++    print(f"Private key: {private_path} (keep offline; never package it)")
++    print(f"Public keyring: {args.keyring} (package this with the product)")
++
++
++def issue(args) -> None:
++    private_key = serialization.load_pem_private_key(
++        Path(args.private_key).read_bytes(), password=None
++    )
++    issued_at = utc_now()
++    starts_at = args.starts_at or issued_at
++    start_time = datetime.fromisoformat(starts_at.replace("Z", "+00:00"))
++    if start_time.tzinfo is None:
++        raise SystemExit("--starts-at must include a timezone")
++    expires_at = args.expires_at
++    if expires_at:
++        end_time = datetime.fromisoformat(expires_at.replace("Z", "+00:00"))
++        if end_time.tzinfo is None or end_time <= start_time:
++            raise SystemExit("--expires-at must include a timezone and follow --starts-at")
++    else:
++        try:
++            end_time = start_time.replace(year=start_time.year + 1)
++        except ValueError:
++            end_time = start_time.replace(year=start_time.year + 1, day=28)
++        expires_at = end_time.isoformat().replace("+00:00", "Z")
++    payload = {
++        "schema_version": 1,
++        "license_id": str(uuid.uuid4()),
++        "customer_id": args.customer_id,
++        "deployment_id": args.deployment_id,
++        "product_mode": args.product_mode,
++        "issued_at": issued_at,
++        "starts_at": starts_at,
++        "expires_at": expires_at,
++    }
++    signed = json.dumps(
++        {"key_id": args.key_id, "payload": payload},
++        sort_keys=True, separators=(",", ":"), ensure_ascii=False,
++    ).encode("utf-8")
++    envelope = {
++        "key_id": args.key_id,
++        "payload": payload,
++        "signature": base64.b64encode(private_key.sign(signed)).decode("ascii"),
++    }
++    Path(args.output).write_text(json.dumps(envelope, indent=2) + "\n", encoding="utf-8")
++    print(f"License written: {args.output}")
++
++
++parser = argparse.ArgumentParser(description=__doc__)
++subparsers = parser.add_subparsers(required=True)
++keygen = subparsers.add_parser("keygen", help="Generate a vendor signing key and public keyring")
++keygen.add_argument("--key-id", required=True)
++keygen.add_argument("--private-key", required=True)
++keygen.add_argument("--keyring", required=True)
++keygen.set_defaults(func=generate)
++license_parser = subparsers.add_parser("issue", help="Issue a signed per-deployment license")
++license_parser.add_argument("--private-key", required=True)
++license_parser.add_argument("--key-id", required=True)
++license_parser.add_argument("--customer-id", required=True)
++license_parser.add_argument("--deployment-id", required=True)
++license_parser.add_argument("--product-mode", required=True, choices=(
++    "minifw_hospital", "minifw_school", "minifw_financial",
++    "minifw_establishment", "minifw_legal", "minifw_government",
++))
++license_parser.add_argument("--expires-at", help="Timezone-aware ISO 8601 timestamp (default: one calendar year after start)")
++license_parser.add_argument("--starts-at", help="Timezone-aware ISO 8601 timestamp; defaults to now")
++license_parser.add_argument("--output", required=True)
++license_parser.set_defaults(func=issue)
++args = parser.parse_args()
++args.func(args)
+diff --git a/scripts/build_assessment_zips.py b/scripts/build_assessment_zips.py
+new file mode 100644
+index 00000000..a01bb44b
+--- /dev/null
++++ b/scripts/build_assessment_zips.py
+@@ -0,0 +1,171 @@
++#!/usr/bin/env python3
++"""Create the Education and Financial source kits without local runtime data."""
++
++import ast
++import hashlib
++import json
++import re
++import stat
++import subprocess
++import zipfile
++from datetime import datetime, timezone
++from pathlib import Path
++
++
++ROOT = Path(__file__).resolve().parents[1]
++OUTPUT = ROOT / "dist" / "production-assessment"
++SECTORS = {"education": "minifw_school", "financial": "minifw_financial"}
++
++
++def git(*args):
++    return subprocess.check_output(["git", *args], cwd=ROOT).decode().strip()
++
++
++def digest(data):
++    return hashlib.sha256(data).hexdigest()
++
++
++def build():
++    version = re.search(r'^version = "([0-9.]+)"', (ROOT / "pyproject.toml").read_text(), re.M)[1]
++    tracked = set(git("ls-files", "-z").split("\0"))
++    paths = {
++        p for p in tracked
++        if p.startswith(("app/", "prometheus/", "scheduler/", "config/feeds/", "yara_rules/"))
++    }
++    paths.update({
++        "requirements.txt", "models/mlp_model.pkl", "config/policy.json",
++        "config/license_public_keys.json", "app/minifw_ai/licensing.py",
++        "app/web/templates/admin/license.html", "docs/licensing.md",
++        "systemd/minifw-ai.service", "systemd/minifw-ai-web.service",
++        "scripts/build_deb.sh", "scripts/backup.sh", "scripts/restore.sh",
++        "scripts/create_admin.py", "scripts/train_mlp.py",
++        "scripts/enable_dnsmasq_logging.sh", "scripts/uninstall.sh",
++    })
++    # Include only the dashboard's built AdminLTE runtime and its license.
++    paths = {
++        p for p in paths if not p.startswith("app/web/static/adminLTE/")
++        or p.startswith("app/web/static/adminLTE/src/html/public/")
++        or p == "app/web/static/adminLTE/LICENSE"
++    }
++    source = {}
++    normalized = []
++    for name in sorted(paths):
++        path = ROOT / name
++        assert path.is_file() and not path.is_symlink(), f"Missing or symlinked input: {name}"
++        assert not any(part.startswith(".") or part in {"__pycache__", "node_modules", "logs"} for part in path.relative_to(ROOT).parts)
++        assert path.suffix.lower() not in {".db", ".sqlite3", ".pem", ".key", ".pyc", ".jsonl"}
++        data = path.read_bytes()
++        assert not re.search(rb"-----BEGIN [A-Z ]*PRIVATE KEY-----", data), f"Private key in {name}"
++        if path.suffix in {".sh", ".service"} and b"\r\n" in data:
++            data = data.replace(b"\r\n", b"\n")
++            normalized.append(name)
++        if path.suffix == ".py":
++            ast.parse(data, filename=name)
++        if path.suffix == ".sh":
++            subprocess.run(["bash", "-n"], input=data, check=True)
++        if path.suffix == ".json":
++            json.loads(data)
++        source[name] = data
++
++    # Verify local static paths used by the templates are all included.
++    for name, data in source.items():
++        if name.endswith(".html"):
++            for asset in re.findall(r"url_for\(['\"]static['\"],\s*path=['\"]([^'\"]+)", data.decode()):
++                assert "app/web/static/" + asset in source, f"Missing static asset: {asset}"
++
++    OUTPUT.mkdir(parents=True, exist_ok=True)
++    hashes = []
++    changed = set(git("diff", "HEAD", "--name-only").splitlines())
++    for label, mode in SECTORS.items():
++        sector = "finance" if label == "financial" else label
++        name = f"minifw-ai-{label}-v{version}-source-assessment"
++        policy_path = f"config/modes/{mode}/policy.json"
++        policy = (ROOT / policy_path).read_bytes()
++        assert json.loads(policy)["_mode"] == mode
++        assert json.loads(policy)["_sector"] == sector
++        payload = {**source, policy_path: policy}
++        payload["ASSESSMENT.md"] = (ROOT / "docs/deployment-assessment.md").read_bytes()
++        payload["START_HERE.md"] = f"""# MiniFW-AI {label.title()} deployment assessment
++
++Version: {version} working-tree snapshot. Sector: `{sector}`.
++Product mode: `{mode}`. Target: Linux amd64.
++
++Start with [ASSESSMENT.md](ASSESSMENT.md) for the CEO decision brief,
++deployment effects, installation, acceptance checklist and rollback.
++This source kit requires a Linux build. It contains no prebuilt `.deb`, Python
++environment, offline dependencies or simulated event data.
++
++## Verify and build
++
++From this extracted directory on Ubuntu 22.04 / Debian 12 amd64:
++
++```bash
++sha256sum -c SHA256SUMS
++sudo apt update
++sudo apt install -y dpkg-dev coreutils sed
++bash scripts/build_deb.sh {sector} {version}
++(cd build && sha256sum -c minifw-ai_{version}-{sector}_amd64.deb.sha256)
++```
++
++The output is `build/minifw-ai_{version}-{sector}_amd64.deb`.
++Continue with the install and verification steps in `ASSESSMENT.md`.
++Never install both sector packages on the same gateway for comparison.
++
++## Source provenance
++
++Base Git commit: `{git('rev-parse', 'HEAD')}`.
++Included local changes and file hashes are recorded in `MANIFEST.json`.
++This snapshot includes local licensing changes and is not a signed release.
++Only the vendor public license verification key is included. A customer license
++must be issued for this installation's deployment ID and `{mode}`.
++
++The core engine and shared detection rules are common to the two kits.
++The selected policy and the build command choose this sector.
++Sample subnets, feeds, broad baseline YARA rules and thresholds need review
++against the deployment network before live use.
++
++## Contents
++
++- `app/`, `prometheus/`, `scheduler/`: engine, admin UI and supporting modules.
++- `config/`: base config, feeds, public license keys and this sector's policy.
++- `models/`, `yara_rules/`: bundled MLP model and shared detection rules.
++- `scripts/`, `systemd/`: native package builder, operational helpers and units.
++- `docs/licensing.md`: offline licensing and renewal procedure.
++- `MANIFEST.json`, `SHA256SUMS`: provenance and file integrity checks.
++
++Checksums detect corruption; they do not authenticate the publisher.
++""".encode()
++        included_changes = sorted(p for p in payload if p in changed or (p in paths and p not in tracked))
++        manifest = {
++            "version": version, "sector": sector, "product_mode": mode,
++            "artifact_type": "source-deployment-assessment",
++            "base_commit": git("rev-parse", "HEAD"),
++            "created_at": datetime.now(timezone.utc).isoformat(),
++            "included_local_changes": included_changes,
++            "normalized_lf_files": normalized,
++            "checks": ["python_ast", "bash_syntax", "json_parse", "required_inputs", "sector_mapping", "template_static_assets", "zip_crc", "sha256"],
++            "not_verified": ["linux_deb_build", "linux_install", "live_enforcement", "browser", "performance", "full_security_audit"],
++            "files": {p: digest(data) for p, data in sorted(payload.items())},
++        }
++        payload["MANIFEST.json"] = (json.dumps(manifest, indent=2) + "\n").encode()
++        payload["SHA256SUMS"] = "".join(f"{digest(data)}  {p}\n" for p, data in sorted(payload.items())).encode()
++        target = OUTPUT / f"{name}.zip"
++        with zipfile.ZipFile(target, "w", zipfile.ZIP_DEFLATED) as archive:
++            for p, data in sorted(payload.items()):
++                info = zipfile.ZipInfo(f"{name}/{p}")
++                info.create_system = 3
++                info.external_attr = (stat.S_IFREG | (0o755 if p.endswith(".sh") else 0o644)) << 16
++                info.compress_type = zipfile.ZIP_DEFLATED
++                archive.writestr(info, data)
++        with zipfile.ZipFile(target) as archive:
++            assert archive.testzip() is None
++            assert len(archive.namelist()) == len(payload)
++            for p, data in payload.items():
++                assert digest(archive.read(f"{name}/{p}")) == digest(data), p
++        hashes.append(f"{digest(target.read_bytes())}  {target.name}\n")
++        print(f"PASS {target.relative_to(ROOT)}: {len(payload)} files, {target.stat().st_size:,} bytes")
++    (OUTPUT / "SHA256SUMS").write_text("".join(hashes))
++
++
++if __name__ == "__main__":
++    build()
+diff --git a/testing/test_installer_ownership.py b/testing/test_installer_ownership.py
+new file mode 100644
+index 00000000..6737c021
+--- /dev/null
++++ b/testing/test_installer_ownership.py
+@@ -0,0 +1,54 @@
++"""Exercise the postinst permission block without installing on the workstation."""
++from pathlib import Path
++import stat
++import subprocess
++import tempfile
++import unittest
++
++ROOT = Path(__file__).resolve().parents[1]
++BUILD = (ROOT / "scripts/build_deb.sh").read_text()
++BLOCK = BUILD.split('# --- Protect executable inputs', 1)[1].split('# --- 1. Python', 1)[0]
++BLOCK = '# --- Protect executable inputs' + BLOCK
++
++
++class OwnershipTests(unittest.TestCase):
++    def run_block(self, root):
++        # Ownership requires Linux/root acceptance; exercise real chmod/find locally.
++        return subprocess.run(['bash', '-c', 'set -e\nAPP_ROOT="$1"\nchown() { :; }\n' + BLOCK,
++                               'test', str(root)], capture_output=True, text=True)
++
++    def test_existing_writable_code_and_venv_are_locked(self):
++        with tempfile.TemporaryDirectory() as directory:
++            root = Path(directory)
++            for name in ('app', 'models', 'scripts', 'venv', 'config'):
++                folder = root / name
++                folder.mkdir(mode=0o777)
++                folder.chmod(0o777)
++                code = folder / 'input'
++                code.write_text('fixture')
++                code.chmod(0o666)
++            (root / 'venv/python').symlink_to('/usr/bin/python3')
++            result = self.run_block(root)
++            self.assertEqual(result.returncode, 0, result.stderr)
++            for path in root.rglob('*'):
++                if not path.is_symlink():
++                    self.assertEqual(stat.S_IMODE(path.stat().st_mode) & 0o022, 0, str(path))
++
++    def test_linked_code_is_rejected_without_touching_target(self):
++        with tempfile.TemporaryDirectory() as directory:
++            root = Path(directory) / 'install'
++            (root / 'app').mkdir(parents=True)
++            outside = Path(directory) / 'outside'
++            outside.write_text('unchanged')
++            outside.chmod(0o666)
++            (root / 'app/code.py').symlink_to(outside)
++            self.assertNotEqual(self.run_block(root).returncode, 0)
++            self.assertEqual(stat.S_IMODE(outside.stat().st_mode), 0o666)
++
++    def test_guard_precedes_installed_python(self):
++        self.assertLess(BUILD.index('# --- Protect executable inputs'), BUILD.index('python3 -m venv'))
++        self.assertIn('chown -hR root:root', BLOCK)
++
++
++if __name__ == '__main__':
++    unittest.main()

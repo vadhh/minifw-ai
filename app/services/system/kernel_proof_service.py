@@ -1,30 +1,31 @@
-import os
-import subprocess
 import json
+import os
 from pathlib import Path
 
 
 def compute_kernel_proof() -> dict:
+    """Kernel-rule status without nftables privileges.
+
+    Stage 1 reads the engine's runtime-health snapshot, which the root engine refreshes
+    from its own `nft -j list table` probe (same boot, same process, at most 10 s old).
+    Stage 2 falls back to the engine's firewall_init audit record.
+    """
     result = {"active": False, "label": "Not active", "detail": "", "table": "minifw"}
 
-    # Stage 1 — direct nft probe (same network namespace)
+    from minifw_ai.runtime_health import assess
+    health_file = Path(os.environ.get("MINIFW_HEALTH_FILE", "/opt/minifw_ai/logs/runtime-health.json"))
     try:
-        out = subprocess.run(
-            ["nft", "list", "table", "inet", "minifw"],
-            capture_output=True, text=True, timeout=3
-        )
-        if out.returncode == 0 and "MiniFW-AI-Blocklist" in out.stdout:
-            result.update(active=True, label="Blocked at kernel level (nftables)",
-                          detail="inet/minifw table active with drop rule")
-            return result
-        if out.returncode == 0:
-            result.update(active=True, label="nftables table active",
-                          detail="inet/minifw table present (drop rule pending first block)")
-            return result
-    except (FileNotFoundError, Exception):
-        pass
+        health = assess(json.loads(health_file.read_text()))
+    except (OSError, ValueError):
+        health = {}
+    if health.get("kernel_rule_present") is True:
+        result.update(active=True, label="Blocked at kernel level (nftables)",
+                      detail="Engine-verified inet/minifw drop rule (runtime health, <=10 s old)")
+        return result
+    if "kernel_rule_present" in health:
+        result["detail"] = "Engine running but the inet/minifw drop rule is missing"
+        return result
 
-    # Stage 2 — audit.jsonl sentinel (Docker shared-volume)
     audit_log = os.environ.get("MINIFW_AUDIT_LOG", "/opt/minifw_ai/logs/audit.jsonl")
     try:
         audit_path = Path(audit_log)
@@ -36,8 +37,8 @@ def compute_kernel_proof() -> dict:
                 try:
                     if json.loads(line).get("action") == "firewall_init":
                         result.update(active=True,
-                                      label="Blocked at kernel level (nftables)",
-                                      detail="Confirmed via engine audit log (Docker deployment)")
+                                      label="nftables initialised (not currently verified)",
+                                      detail="Engine audit log records firewall_init; live health unavailable")
                         return result
                 except json.JSONDecodeError:
                     continue

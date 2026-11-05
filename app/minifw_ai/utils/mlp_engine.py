@@ -32,7 +32,7 @@ except ImportError:
 
 # Try to import FlowStats and build_feature_vector_24
 try:
-    from ..collector_flow import FlowStats, build_feature_vector_24
+    from ..collector_flow import FlowStats, build_feature_vector_24, build_packet_features_14
 except ImportError:
     # Fallback for testing
     FlowStats = None
@@ -115,37 +115,9 @@ class MLPThreatDetector:
 
         self.model_path = Path(model_path)
 
-        # Feature metadata
-        self.feature_names = [
-            # Basic flow (8)
-            "duration_sec",
-            "pkt_count_total",
-            "bytes_total",
-            "bytes_per_sec",
-            "pkts_per_sec",
-            "avg_pkt_size",
-            "pkt_size_std",
-            "inbound_outbound_ratio",
-            # Burst & periodicity (6)
-            "max_burst_pkts_1s",
-            "max_burst_bytes_1s",
-            "interarrival_mean_ms",
-            "interarrival_std_ms",
-            "interarrival_p95_ms",
-            "small_pkt_ratio",
-            # TLS (6)
-            "tls_seen",
-            "tls_handshake_time_ms",
-            "ja3_hash_bucket",
-            "sni_len",
-            "alpn_h2",
-            "cert_self_signed_suspect",
-            # DNS (4)
-            "dns_seen",
-            "fqdn_len",
-            "subdomain_depth",
-            "domain_repeat_5min",
-        ]
+        self.feature_schema = "legacy24"
+        self.feature_names = list(FEATURE_NAMES)
+        self.last_features = []
 
         # Stats
         self.total_inferences = 0
@@ -172,6 +144,7 @@ class MLPThreatDetector:
             FileNotFoundError: If model file doesn't exist
             Exception: If model loading fails
         """
+        self.model_loaded = False
         path = Path(model_path)
 
         if not path.exists():
@@ -198,13 +171,30 @@ class MLPThreatDetector:
                         f"Training samples: {metadata.get('n_samples', 'unknown')}"
                     )
                     logger.info(
-                        f"Model accuracy: {metadata.get('accuracy', 'unknown')}"
+                        f"Training-data accuracy: {metadata.get('accuracy', 'unknown')}; provenance: {metadata.get('training_data', 'unknown')}"
                     )
             else:
                 # Assume it's just the model
                 self.model = model_data
                 self.scaler = None
                 logger.warning("No scaler found in model file, using raw features")
+
+            metadata = model_data.get("metadata", {}) if isinstance(model_data, dict) else {}
+            schema = metadata.get("feature_schema", "legacy24")
+            if schema not in {"legacy24", "packet14-v1"}:
+                raise ValueError("Unknown model feature schema")
+            names = FEATURE_NAMES[:14] if schema == "packet14-v1" else FEATURE_NAMES
+            if schema == "packet14-v1":
+                import sklearn
+                if metadata.get("sklearn_version") != sklearn.__version__:
+                    raise ValueError("Packet model requires matching scikit-learn version")
+                if metadata.get("feature_names") != names or self.model.n_features_in_ != 14:
+                    raise ValueError("Packet model feature order/dimension mismatch")
+                if self.scaler is None or self.scaler.n_features_in_ != 14 or list(self.scaler.feature_names_in_) != names:
+                    raise ValueError("Packet model scaler schema mismatch")
+                if list(self.model.classes_) != [0, 1]:
+                    raise ValueError("Packet model requires benign=0/threat=1 labels")
+            self.feature_schema, self.feature_names = schema, list(names)
 
             if self.model is None:
                 raise ValueError("Model is None after loading")
@@ -218,6 +208,14 @@ class MLPThreatDetector:
         except Exception as e:
             logger.error(f"Failed to load model: {e}")
             raise
+
+    def can_infer(self, flow) -> bool:
+        if self.feature_schema == "packet14-v1":
+            return flow.packet_timing_available and flow.packet_metadata_only and flow.last_seen > flow.first_seen
+        return flow.packet_timing_available and not flow.packet_metadata_only
+
+    def extract_features(self, flow):
+        return build_packet_features_14(flow) if self.feature_schema == "packet14-v1" else build_feature_vector_24(flow)
 
     def is_suspicious(
         self, flow: "FlowStats", return_probability: bool = False
@@ -239,12 +237,13 @@ class MLPThreatDetector:
 
         try:
             # Extract features
-            features = build_feature_vector_24(flow)
+            features = self.extract_features(flow)
+            self.last_features = list(features)
 
             # CRITICAL FIX: Use DataFrame with explicit feature names
             # This prevents feature misalignment warnings and ensures
             # features are in the correct order
-            X = pd.DataFrame([features], columns=FEATURE_NAMES)
+            X = pd.DataFrame([features], columns=self.feature_names)
 
             # Normalize if scaler available
             if self.scaler is not None:
@@ -260,7 +259,7 @@ class MLPThreatDetector:
             self.total_inferences += 1
 
             # Threshold decision
-            is_threat = threat_proba >= self.threshold
+            is_threat = bool(threat_proba >= self.threshold)
 
             if is_threat:
                 self.total_threats_detected += 1
@@ -303,10 +302,10 @@ class MLPThreatDetector:
 
         try:
             # Extract all features
-            features_list = [build_feature_vector_24(flow) for flow in flows]
+            features_list = [self.extract_features(flow) for flow in flows]
 
             # CRITICAL FIX: Use DataFrame with explicit feature names
-            X = pd.DataFrame(features_list, columns=FEATURE_NAMES)
+            X = pd.DataFrame(features_list, columns=self.feature_names)
 
             # Normalize
             if self.scaler is not None:
@@ -324,7 +323,7 @@ class MLPThreatDetector:
             # Apply threshold
             results = []
             for proba in threat_probas:
-                is_threat = proba >= self.threshold
+                is_threat = bool(proba >= self.threshold)
                 if is_threat:
                     self.total_threats_detected += 1
                 results.append((is_threat, float(proba)))

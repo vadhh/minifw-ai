@@ -1,0 +1,616 @@
+$ dpkg-query -W minifw-ai
+minifw-ai	2.2.10-finance
+$ ip -j netns list
+[]
+$ systemctl stop minifw-ai minifw-ai-web dnsmasq
+$ nft -a list table inet minifw
+table inet minifw { # handle 62
+	set minifw_block_v4 { # handle 1
+		type ipv4_addr
+		timeout 1h
+	}
+
+	chain forward { # handle 2
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 71 bytes 4196 comment "MiniFW-AI-Conntrack" # handle 3
+		ip saddr @minifw_block_v4 counter packets 72 bytes 3840 drop comment "MiniFW-AI-Blocklist" # handle 4
+	}
+}
+$ nft delete table inet minifw
+$ modprobe nf_conntrack
+$ sysctl -w net.ipv4.ip_forward=1 net.ipv6.conf.all.forwarding=1 net.netfilter.nf_conntrack_acct=0
+net.ipv4.ip_forward = 1
+net.ipv6.conf.all.forwarding = 1
+net.netfilter.nf_conntrack_acct = 0
+$ ip netns add mf-client
+$ ip -n mf-client link set lo up
+$ ip netns add mf-server
+$ ip -n mf-server link set lo up
+$ ip link add mfcg type veth peer name mfc0
+$ ip link set mfc0 netns mf-client
+$ ip addr add 10.10.0.1/24 dev mfcg
+$ ip addr add fd42:10::1/64 dev mfcg
+$ ip link set mfcg up
+$ ip -n mf-client addr add 10.10.0.20/24 dev mfc0
+$ ip -n mf-client addr add fd42:10::20/64 dev mfc0
+$ ip -n mf-client link set mfc0 up
+$ ip -n mf-client route add default via 10.10.0.1
+$ ip -n mf-client -6 route add default via fd42:10::1
+$ ip link add mfsg type veth peer name mfs0
+$ ip link set mfs0 netns mf-server
+$ ip addr add 198.18.0.1/24 dev mfsg
+$ ip addr add fd42:18::1/64 dev mfsg
+$ ip link set mfsg up
+$ ip -n mf-server addr add 198.18.0.2/24 dev mfs0
+$ ip -n mf-server addr add fd42:18::2/64 dev mfs0
+$ ip -n mf-server link set mfs0 up
+$ ip -n mf-server route add default via 198.18.0.1
+$ ip -n mf-server -6 route add default via fd42:18::1
+$ ip -br address
+lo               UNKNOWN        127.0.0.1/8 ::1/128 
+ens3             UP             10.231.0.15/24 metric 100 fec0::5054:ff:fe22:1002/64 fe80::5054:ff:fe22:1002/64 
+mfcg@if183       UP             10.10.0.1/24 fd42:10::1/64 fe80::8494:6dff:fe33:f74/64 
+mfsg@if185       UP             198.18.0.1/24 fd42:18::1/64 fe80::f060:cbff:fed4:659/64
+$ ip -n mf-client route
+default via 10.10.0.1 dev mfc0 
+10.10.0.0/24 dev mfc0 proto kernel scope link src 10.10.0.20
+$ ip -n mf-server route
+default via 198.18.0.1 dev mfs0 
+198.18.0.0/24 dev mfs0 proto kernel scope link src 198.18.0.2
+$ openssl req -x509 -newkey rsa:2048 -nodes -days 1 -subj /CN=lab.test -keyout /var/tmp/minifw-monday-financial-20261105T014054Z/server.key -out /var/tmp/minifw-monday-financial-20261105T014054Z/server.crt
+..+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*.............+..........+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*....+..............+................+..........................+...+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+.........+..+......+...+.......+........+.......+..+...+.............+.....+.+......+.....+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*....+......+...+.+...+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*....+.......+..+.+.........+..+......+...+......................+..+......+.+.....+................+.....+.........+................+...+......+...+..+..........+...+........+....+.........+...............+..............+...+...+.+.....+...................+......+.....+...+......+....+..........................+.+...........+...+.+.....+......+.......+..+.+...+..+.........+.+.....+.............+...............+...............+...........+.........+....+..+......+..........+............+..+.+..+.......+...+.....+...+...+.......+.....+...+....+............+......+.....+...................+...+..+.+...............+..+...+.......+..+......+...+....+.....+.+.....+.+...+.....+.......+......+........+............+.........+.+...+.....+....+..+..........+........+.+............+..+.+......+......+..+............+...............+...+......+....+........+.......+..+....+..+....+...+............+......+..+......+....+..+....+...............+..+...+...............+......+.........+.......+..+.+...............+......+......+..............+....+......+..................+..+.+..+.......+...+...+...+..+...+.........+...+...................+...+......+..+...+......+...+.......+..............+.......+..+..........+......+..+...+....+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+-----
+$ systemctl stop minifw-ai
+$ nft flush set inet minifw minifw_block_v4
+Error: No such file or directory
+flush set inet minifw minifw_block_v4
+               ^^^^^^
+$ conntrack -D -s 10.10.0.20
+conntrack v1.4.7 (conntrack-tools): 0 flow entries have been deleted.
+$ systemctl daemon-reload
+$ systemctl start minifw-ai
+$ systemctl show minifw-ai -p ActiveState -p MainPID -p ExecMainStatus
+MainPID=49904
+ExecMainStatus=0
+ActiveState=active
+$ ip netns exec mf-client /usr/bin/python3 /home/lab/wednesday-c18/testing/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+$ ip netns exec mf-client /usr/bin/python3 /home/lab/wednesday-c18/testing/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+$ ip netns exec mf-client /usr/bin/python3 -c 'import http.client,json,ssl,time
+context=ssl._create_unverified_context()
+rows=[]
+for i in range(30):
+ c=http.client.HTTPSConnection('"'"'198.18.0.2'"'"',443,context=context,timeout=3)
+ if '"'"'benign'"'"'=='"'"'malicious'"'"':
+  method,path,body='"'"'POST'"'"','"'"'/login'"'"',json.dumps({'"'"'username'"'"':'"'"'alice'"'"','"'"'password'"'"':'"'"'guess-'"'"'+str(i)})
+  expected=401
+ else:
+  method,path,body,expected=[('"'"'GET'"'"','"'"'/'"'"',None,200),('"'"'GET'"'"','"'"'/lessons/intro'"'"',None,200),('"'"'GET'"'"','"'"'/search?q=fractions'"'"',None,200),('"'"'GET'"'"','"'"'/media/lesson.webm'"'"',None,200),('"'"'POST'"'"','"'"'/login'"'"',json.dumps({'"'"'username'"'"':'"'"'alice'"'"','"'"'password'"'"':'"'"'typo'"'"'}),401)][i%5]
+ started=time.time()
+ c.request(method,path,body,{'"'"'Content-Type'"'"':'"'"'application/json'"'"'} if body else {})
+ r=c.getresponse(); data=r.read(); status=r.status; c.close()
+ rows.append({'"'"'index'"'"':i,'"'"'method'"'"':method,'"'"'path'"'"':path,'"'"'status'"'"':status,'"'"'expected'"'"':expected,'"'"'bytes'"'"':len(data),'"'"'start'"'"':started,'"'"'end'"'"':time.time()})
+ assert status==expected
+ time.sleep(0.02)
+print(json.dumps(rows))
+'
+[{"index": 0, "method": "GET", "path": "/", "status": 200, "expected": 200, "bytes": 146, "start": 1793842862.8442214, "end": 1793842862.8565714}, {"index": 1, "method": "GET", "path": "/lessons/intro", "status": 200, "expected": 200, "bytes": 188, "start": 1793842862.8770545, "end": 1793842862.8866143}, {"index": 2, "method": "GET", "path": "/search?q=fractions", "status": 200, "expected": 200, "bytes": 85, "start": 1793842862.9068742, "end": 1793842862.9156718}, {"index": 3, "method": "GET", "path": "/media/lesson.webm", "status": 200, "expected": 200, "bytes": 14723, "start": 1793842862.935901, "end": 1793842862.9419715}, {"index": 4, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842862.9622917, "end": 1793842862.9714043}, {"index": 5, "method": "GET", "path": "/", "status": 200, "expected": 200, "bytes": 146, "start": 1793842862.9919646, "end": 1793842863.0036228}, {"index": 6, "method": "GET", "path": "/lessons/intro", "status": 200, "expected": 200, "bytes": 188, "start": 1793842863.025291, "end": 1793842863.0310977}, {"index": 7, "method": "GET", "path": "/search?q=fractions", "status": 200, "expected": 200, "bytes": 85, "start": 1793842863.0512857, "end": 1793842863.0573828}, {"index": 8, "method": "GET", "path": "/media/lesson.webm", "status": 200, "expected": 200, "bytes": 14723, "start": 1793842863.0776203, "end": 1793842863.0835564}, {"index": 9, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842863.1039126, "end": 1793842863.109998}, {"index": 10, "method": "GET", "path": "/", "status": 200, "expected": 200, "bytes": 146, "start": 1793842863.1302714, "end": 1793842863.1371906}, {"index": 11, "method": "GET", "path": "/lessons/intro", "status": 200, "expected": 200, "bytes": 188, "start": 1793842863.157405, "end": 1793842863.1649516}, {"index": 12, "method": "GET", "path": "/search?q=fractions", "status": 200, "expected": 200, "bytes": 85, "start": 1793842863.185171, "end": 1793842863.1908622}, {"index": 13, "method": "GET", "path": "/media/lesson.webm", "status": 200, "expected": 200, "bytes": 14723, "start": 1793842863.2111251, "end": 1793842863.2195406}, {"index": 14, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842863.2397885, "end": 1793842863.2491393}, {"index": 15, "method": "GET", "path": "/", "status": 200, "expected": 200, "bytes": 146, "start": 1793842863.2693274, "end": 1793842863.2782438}, {"index": 16, "method": "GET", "path": "/lessons/intro", "status": 200, "expected": 200, "bytes": 188, "start": 1793842863.2984197, "end": 1793842863.3054016}, {"index": 17, "method": "GET", "path": "/search?q=fractions", "status": 200, "expected": 200, "bytes": 85, "start": 1793842863.3255763, "end": 1793842863.3309205}, {"index": 18, "method": "GET", "path": "/media/lesson.webm", "status": 200, "expected": 200, "bytes": 14723, "start": 1793842863.3510742, "end": 1793842863.3558705}, {"index": 19, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842863.3761232, "end": 1793842863.3839233}, {"index": 20, "method": "GET", "path": "/", "status": 200, "expected": 200, "bytes": 146, "start": 1793842863.4042313, "end": 1793842863.411307}, {"index": 21, "method": "GET", "path": "/lessons/intro", "status": 200, "expected": 200, "bytes": 188, "start": 1793842863.4315622, "end": 1793842863.440135}, {"index": 22, "method": "GET", "path": "/search?q=fractions", "status": 200, "expected": 200, "bytes": 85, "start": 1793842863.4603226, "end": 1793842863.4659693}, {"index": 23, "method": "GET", "path": "/media/lesson.webm", "status": 200, "expected": 200, "bytes": 14723, "start": 1793842863.486277, "end": 1793842863.4942362}, {"index": 24, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842863.514401, "end": 1793842863.5216897}, {"index": 25, "method": "GET", "path": "/", "status": 200, "expected": 200, "bytes": 146, "start": 1793842863.5418968, "end": 1793842863.548035}, {"index": 26, "method": "GET", "path": "/lessons/intro", "status": 200, "expected": 200, "bytes": 188, "start": 1793842863.5682106, "end": 1793842863.5730374}, {"index": 27, "method": "GET", "path": "/search?q=fractions", "status": 200, "expected": 200, "bytes": 85, "start": 1793842863.5932, "end": 1793842863.5983982}, {"index": 28, "method": "GET", "path": "/media/lesson.webm", "status": 200, "expected": 200, "bytes": 14723, "start": 1793842863.618606, "end": 1793842863.6251314}, {"index": 29, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842863.6453536, "end": 1793842863.6532207}]
+$ ip netns exec mf-client /usr/bin/python3 -c 'import http.client,json,ssl,time
+context=ssl._create_unverified_context()
+rows=[]
+for i in range(30):
+ c=http.client.HTTPSConnection('"'"'198.18.0.2'"'"',443,context=context,timeout=3)
+ if '"'"'malicious'"'"'=='"'"'malicious'"'"':
+  method,path,body='"'"'POST'"'"','"'"'/login'"'"',json.dumps({'"'"'username'"'"':'"'"'alice'"'"','"'"'password'"'"':'"'"'guess-'"'"'+str(i)})
+  expected=401
+ else:
+  method,path,body,expected=[('"'"'GET'"'"','"'"'/'"'"',None,200),('"'"'GET'"'"','"'"'/lessons/intro'"'"',None,200),('"'"'GET'"'"','"'"'/search?q=fractions'"'"',None,200),('"'"'GET'"'"','"'"'/media/lesson.webm'"'"',None,200),('"'"'POST'"'"','"'"'/login'"'"',json.dumps({'"'"'username'"'"':'"'"'alice'"'"','"'"'password'"'"':'"'"'typo'"'"'}),401)][i%5]
+ started=time.time()
+ c.request(method,path,body,{'"'"'Content-Type'"'"':'"'"'application/json'"'"'} if body else {})
+ r=c.getresponse(); data=r.read(); status=r.status; c.close()
+ rows.append({'"'"'index'"'"':i,'"'"'method'"'"':method,'"'"'path'"'"':path,'"'"'status'"'"':status,'"'"'expected'"'"':expected,'"'"'bytes'"'"':len(data),'"'"'start'"'"':started,'"'"'end'"'"':time.time()})
+ assert status==expected
+ time.sleep(0.02)
+print(json.dumps(rows))
+'
+[{"index": 0, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842864.2588322, "end": 1793842864.2693858}, {"index": 1, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842864.2896378, "end": 1793842864.2983713}, {"index": 2, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842864.3185744, "end": 1793842864.3281574}, {"index": 3, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842864.3484545, "end": 1793842864.3574302}, {"index": 4, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842864.377683, "end": 1793842864.3873408}, {"index": 5, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842864.4076357, "end": 1793842864.4165912}, {"index": 6, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842864.4368417, "end": 1793842864.4442253}, {"index": 7, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842864.4644423, "end": 1793842864.4699132}, {"index": 8, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842864.490142, "end": 1793842864.494963}, {"index": 9, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842864.5152657, "end": 1793842864.534988}, {"index": 10, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842864.5553083, "end": 1793842864.5641882}, {"index": 11, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842864.5844555, "end": 1793842864.5934687}, {"index": 12, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842864.613674, "end": 1793842864.6208668}, {"index": 13, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842864.6410291, "end": 1793842864.646286}, {"index": 14, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842864.6664612, "end": 1793842864.6716151}, {"index": 15, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842864.691844, "end": 1793842864.698438}, {"index": 16, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842864.718653, "end": 1793842864.7268662}, {"index": 17, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842864.7471051, "end": 1793842864.7539241}, {"index": 18, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842864.7741816, "end": 1793842864.79092}, {"index": 19, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842864.8139508, "end": 1793842864.8209286}, {"index": 20, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842864.8411212, "end": 1793842864.8464832}, {"index": 21, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842864.866624, "end": 1793842864.8713634}, {"index": 22, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842864.8915296, "end": 1793842864.8963423}, {"index": 23, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842864.9165862, "end": 1793842864.9232712}, {"index": 24, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842864.9435496, "end": 1793842864.9517438}, {"index": 25, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842864.9720032, "end": 1793842864.981167}, {"index": 26, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842865.0014353, "end": 1793842865.0096712}, {"index": 27, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842865.0298896, "end": 1793842865.036754}, {"index": 28, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842865.0569868, "end": 1793842865.0655336}, {"index": 29, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842865.0857244, "end": 1793842865.0947456}]
+$ ip netns exec mf-client /usr/bin/python3 -c 'import http.client,json,ssl,time
+context=ssl._create_unverified_context()
+rows=[]
+for i in range(30):
+ c=http.client.HTTPSConnection('"'"'198.18.0.2'"'"',443,context=context,timeout=3)
+ if '"'"'benign'"'"'=='"'"'malicious'"'"':
+  method,path,body='"'"'POST'"'"','"'"'/login'"'"',json.dumps({'"'"'username'"'"':'"'"'alice'"'"','"'"'password'"'"':'"'"'guess-'"'"'+str(i)})
+  expected=401
+ else:
+  method,path,body,expected=[('"'"'GET'"'"','"'"'/'"'"',None,200),('"'"'GET'"'"','"'"'/lessons/intro'"'"',None,200),('"'"'GET'"'"','"'"'/search?q=fractions'"'"',None,200),('"'"'GET'"'"','"'"'/media/lesson.webm'"'"',None,200),('"'"'POST'"'"','"'"'/login'"'"',json.dumps({'"'"'username'"'"':'"'"'alice'"'"','"'"'password'"'"':'"'"'typo'"'"'}),401)][i%5]
+ started=time.time()
+ c.request(method,path,body,{'"'"'Content-Type'"'"':'"'"'application/json'"'"'} if body else {})
+ r=c.getresponse(); data=r.read(); status=r.status; c.close()
+ rows.append({'"'"'index'"'"':i,'"'"'method'"'"':method,'"'"'path'"'"':path,'"'"'status'"'"':status,'"'"'expected'"'"':expected,'"'"'bytes'"'"':len(data),'"'"'start'"'"':started,'"'"'end'"'"':time.time()})
+ assert status==expected
+ time.sleep(0.04)
+print(json.dumps(rows))
+'
+[{"index": 0, "method": "GET", "path": "/", "status": 200, "expected": 200, "bytes": 146, "start": 1793842865.6572764, "end": 1793842865.666504}, {"index": 1, "method": "GET", "path": "/lessons/intro", "status": 200, "expected": 200, "bytes": 188, "start": 1793842865.7067292, "end": 1793842865.7153218}, {"index": 2, "method": "GET", "path": "/search?q=fractions", "status": 200, "expected": 200, "bytes": 85, "start": 1793842865.7556, "end": 1793842865.7654858}, {"index": 3, "method": "GET", "path": "/media/lesson.webm", "status": 200, "expected": 200, "bytes": 14723, "start": 1793842865.805717, "end": 1793842865.8109064}, {"index": 4, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842865.8511384, "end": 1793842865.858882}, {"index": 5, "method": "GET", "path": "/", "status": 200, "expected": 200, "bytes": 146, "start": 1793842865.899149, "end": 1793842865.904812}, {"index": 6, "method": "GET", "path": "/lessons/intro", "status": 200, "expected": 200, "bytes": 188, "start": 1793842865.9451602, "end": 1793842865.9538357}, {"index": 7, "method": "GET", "path": "/search?q=fractions", "status": 200, "expected": 200, "bytes": 85, "start": 1793842865.9941778, "end": 1793842866.0027785}, {"index": 8, "method": "GET", "path": "/media/lesson.webm", "status": 200, "expected": 200, "bytes": 14723, "start": 1793842866.0430684, "end": 1793842866.0519638}, {"index": 9, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842866.0922632, "end": 1793842866.099823}, {"index": 10, "method": "GET", "path": "/", "status": 200, "expected": 200, "bytes": 146, "start": 1793842866.140072, "end": 1793842866.148397}, {"index": 11, "method": "GET", "path": "/lessons/intro", "status": 200, "expected": 200, "bytes": 188, "start": 1793842866.1885555, "end": 1793842866.1932256}, {"index": 12, "method": "GET", "path": "/search?q=fractions", "status": 200, "expected": 200, "bytes": 85, "start": 1793842866.2334497, "end": 1793842866.24182}, {"index": 13, "method": "GET", "path": "/media/lesson.webm", "status": 200, "expected": 200, "bytes": 14723, "start": 1793842866.2820451, "end": 1793842866.290394}, {"index": 14, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842866.330606, "end": 1793842866.3387353}, {"index": 15, "method": "GET", "path": "/", "status": 200, "expected": 200, "bytes": 146, "start": 1793842866.3790147, "end": 1793842866.3872213}, {"index": 16, "method": "GET", "path": "/lessons/intro", "status": 200, "expected": 200, "bytes": 188, "start": 1793842866.4273875, "end": 1793842866.4323578}, {"index": 17, "method": "GET", "path": "/search?q=fractions", "status": 200, "expected": 200, "bytes": 85, "start": 1793842866.4725685, "end": 1793842866.4788995}, {"index": 18, "method": "GET", "path": "/media/lesson.webm", "status": 200, "expected": 200, "bytes": 14723, "start": 1793842866.5192, "end": 1793842866.5279067}, {"index": 19, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842866.5681744, "end": 1793842866.5771484}, {"index": 20, "method": "GET", "path": "/", "status": 200, "expected": 200, "bytes": 146, "start": 1793842866.6173854, "end": 1793842866.6257393}, {"index": 21, "method": "GET", "path": "/lessons/intro", "status": 200, "expected": 200, "bytes": 188, "start": 1793842866.6659908, "end": 1793842866.674603}, {"index": 22, "method": "GET", "path": "/search?q=fractions", "status": 200, "expected": 200, "bytes": 85, "start": 1793842866.7147634, "end": 1793842866.7214718}, {"index": 23, "method": "GET", "path": "/media/lesson.webm", "status": 200, "expected": 200, "bytes": 14723, "start": 1793842866.7617786, "end": 1793842866.770505}, {"index": 24, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842866.810762, "end": 1793842866.819596}, {"index": 25, "method": "GET", "path": "/", "status": 200, "expected": 200, "bytes": 146, "start": 1793842866.8598175, "end": 1793842866.8685079}, {"index": 26, "method": "GET", "path": "/lessons/intro", "status": 200, "expected": 200, "bytes": 188, "start": 1793842866.908786, "end": 1793842866.9167807}, {"index": 27, "method": "GET", "path": "/search?q=fractions", "status": 200, "expected": 200, "bytes": 85, "start": 1793842866.9569287, "end": 1793842866.961596}, {"index": 28, "method": "GET", "path": "/media/lesson.webm", "status": 200, "expected": 200, "bytes": 14723, "start": 1793842867.0018888, "end": 1793842867.0109103}, {"index": 29, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842867.0512319, "end": 1793842867.0599508}]
+$ ip netns exec mf-client /usr/bin/python3 -c 'import http.client,json,ssl,time
+context=ssl._create_unverified_context()
+rows=[]
+for i in range(30):
+ c=http.client.HTTPSConnection('"'"'198.18.0.2'"'"',443,context=context,timeout=3)
+ if '"'"'malicious'"'"'=='"'"'malicious'"'"':
+  method,path,body='"'"'POST'"'"','"'"'/login'"'"',json.dumps({'"'"'username'"'"':'"'"'alice'"'"','"'"'password'"'"':'"'"'guess-'"'"'+str(i)})
+  expected=401
+ else:
+  method,path,body,expected=[('"'"'GET'"'"','"'"'/'"'"',None,200),('"'"'GET'"'"','"'"'/lessons/intro'"'"',None,200),('"'"'GET'"'"','"'"'/search?q=fractions'"'"',None,200),('"'"'GET'"'"','"'"'/media/lesson.webm'"'"',None,200),('"'"'POST'"'"','"'"'/login'"'"',json.dumps({'"'"'username'"'"':'"'"'alice'"'"','"'"'password'"'"':'"'"'typo'"'"'}),401)][i%5]
+ started=time.time()
+ c.request(method,path,body,{'"'"'Content-Type'"'"':'"'"'application/json'"'"'} if body else {})
+ r=c.getresponse(); data=r.read(); status=r.status; c.close()
+ rows.append({'"'"'index'"'"':i,'"'"'method'"'"':method,'"'"'path'"'"':path,'"'"'status'"'"':status,'"'"'expected'"'"':expected,'"'"'bytes'"'"':len(data),'"'"'start'"'"':started,'"'"'end'"'"':time.time()})
+ assert status==expected
+ time.sleep(0.04)
+print(json.dumps(rows))
+'
+[{"index": 0, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842867.6803434, "end": 1793842867.6891415}, {"index": 1, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842867.729398, "end": 1793842867.7375913}, {"index": 2, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842867.7778819, "end": 1793842867.786939}, {"index": 3, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842867.8272867, "end": 1793842867.836742}, {"index": 4, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842867.877038, "end": 1793842867.8942497}, {"index": 5, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842867.9344304, "end": 1793842867.9404185}, {"index": 6, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842867.9806814, "end": 1793842867.989354}, {"index": 7, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842868.029571, "end": 1793842868.0357065}, {"index": 8, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842868.0759997, "end": 1793842868.0833616}, {"index": 9, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842868.1235864, "end": 1793842868.1309779}, {"index": 10, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842868.1713305, "end": 1793842868.1804821}, {"index": 11, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842868.2207081, "end": 1793842868.2287295}, {"index": 12, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842868.2689486, "end": 1793842868.273529}, {"index": 13, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842868.3137572, "end": 1793842868.3209038}, {"index": 14, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842868.3612034, "end": 1793842868.3694835}, {"index": 15, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842868.4097195, "end": 1793842868.4199271}, {"index": 16, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842868.460174, "end": 1793842868.4663434}, {"index": 17, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842868.5065632, "end": 1793842868.5139503}, {"index": 18, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842868.5543208, "end": 1793842868.5632374}, {"index": 19, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842868.6035082, "end": 1793842868.6126666}, {"index": 20, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842868.6528597, "end": 1793842868.662203}, {"index": 21, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842868.7025113, "end": 1793842868.7110693}, {"index": 22, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842868.7513225, "end": 1793842868.7653883}, {"index": 23, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842868.805642, "end": 1793842868.8134394}, {"index": 24, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842868.8536632, "end": 1793842868.8623765}, {"index": 25, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842868.9025958, "end": 1793842868.9133298}, {"index": 26, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842868.953589, "end": 1793842868.9625654}, {"index": 27, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842869.002759, "end": 1793842869.0094876}, {"index": 28, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842869.0497265, "end": 1793842869.0556242}, {"index": 29, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842869.095839, "end": 1793842869.1022034}]
+$ ip netns exec mf-client /usr/bin/python3 -c 'import http.client,json,ssl,time
+context=ssl._create_unverified_context()
+rows=[]
+for i in range(30):
+ c=http.client.HTTPSConnection('"'"'198.18.0.2'"'"',443,context=context,timeout=3)
+ if '"'"'benign'"'"'=='"'"'malicious'"'"':
+  method,path,body='"'"'POST'"'"','"'"'/login'"'"',json.dumps({'"'"'username'"'"':'"'"'alice'"'"','"'"'password'"'"':'"'"'guess-'"'"'+str(i)})
+  expected=401
+ else:
+  method,path,body,expected=[('"'"'GET'"'"','"'"'/'"'"',None,200),('"'"'GET'"'"','"'"'/lessons/intro'"'"',None,200),('"'"'GET'"'"','"'"'/search?q=fractions'"'"',None,200),('"'"'GET'"'"','"'"'/media/lesson.webm'"'"',None,200),('"'"'POST'"'"','"'"'/login'"'"',json.dumps({'"'"'username'"'"':'"'"'alice'"'"','"'"'password'"'"':'"'"'typo'"'"'}),401)][i%5]
+ started=time.time()
+ c.request(method,path,body,{'"'"'Content-Type'"'"':'"'"'application/json'"'"'} if body else {})
+ r=c.getresponse(); data=r.read(); status=r.status; c.close()
+ rows.append({'"'"'index'"'"':i,'"'"'method'"'"':method,'"'"'path'"'"':path,'"'"'status'"'"':status,'"'"'expected'"'"':expected,'"'"'bytes'"'"':len(data),'"'"'start'"'"':started,'"'"'end'"'"':time.time()})
+ assert status==expected
+ time.sleep(0.06)
+print(json.dumps(rows))
+'
+[{"index": 0, "method": "GET", "path": "/", "status": 200, "expected": 200, "bytes": 146, "start": 1793842869.7187746, "end": 1793842869.7264447}, {"index": 1, "method": "GET", "path": "/lessons/intro", "status": 200, "expected": 200, "bytes": 188, "start": 1793842869.7866347, "end": 1793842869.7914157}, {"index": 2, "method": "GET", "path": "/search?q=fractions", "status": 200, "expected": 200, "bytes": 85, "start": 1793842869.8516235, "end": 1793842869.8564157}, {"index": 3, "method": "GET", "path": "/media/lesson.webm", "status": 200, "expected": 200, "bytes": 14723, "start": 1793842869.9166229, "end": 1793842869.9215972}, {"index": 4, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842869.9817922, "end": 1793842869.9867997}, {"index": 5, "method": "GET", "path": "/", "status": 200, "expected": 200, "bytes": 146, "start": 1793842870.047022, "end": 1793842870.0518336}, {"index": 6, "method": "GET", "path": "/lessons/intro", "status": 200, "expected": 200, "bytes": 188, "start": 1793842870.1120582, "end": 1793842870.1168985}, {"index": 7, "method": "GET", "path": "/search?q=fractions", "status": 200, "expected": 200, "bytes": 85, "start": 1793842870.1771262, "end": 1793842870.18201}, {"index": 8, "method": "GET", "path": "/media/lesson.webm", "status": 200, "expected": 200, "bytes": 14723, "start": 1793842870.2422254, "end": 1793842870.2479608}, {"index": 9, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842870.3081524, "end": 1793842870.3131077}, {"index": 10, "method": "GET", "path": "/", "status": 200, "expected": 200, "bytes": 146, "start": 1793842870.3733232, "end": 1793842870.3779893}, {"index": 11, "method": "GET", "path": "/lessons/intro", "status": 200, "expected": 200, "bytes": 188, "start": 1793842870.4382124, "end": 1793842870.4427454}, {"index": 12, "method": "GET", "path": "/search?q=fractions", "status": 200, "expected": 200, "bytes": 85, "start": 1793842870.5029132, "end": 1793842870.5074365}, {"index": 13, "method": "GET", "path": "/media/lesson.webm", "status": 200, "expected": 200, "bytes": 14723, "start": 1793842870.5676324, "end": 1793842870.5725002}, {"index": 14, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842870.6326861, "end": 1793842870.6375093}, {"index": 15, "method": "GET", "path": "/", "status": 200, "expected": 200, "bytes": 146, "start": 1793842870.6976943, "end": 1793842870.7038102}, {"index": 16, "method": "GET", "path": "/lessons/intro", "status": 200, "expected": 200, "bytes": 188, "start": 1793842870.7640247, "end": 1793842870.7690783}, {"index": 17, "method": "GET", "path": "/search?q=fractions", "status": 200, "expected": 200, "bytes": 85, "start": 1793842870.829259, "end": 1793842870.8338432}, {"index": 18, "method": "GET", "path": "/media/lesson.webm", "status": 200, "expected": 200, "bytes": 14723, "start": 1793842870.894043, "end": 1793842870.8988843}, {"index": 19, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842870.9590418, "end": 1793842870.96379}, {"index": 20, "method": "GET", "path": "/", "status": 200, "expected": 200, "bytes": 146, "start": 1793842871.0239575, "end": 1793842871.0286546}, {"index": 21, "method": "GET", "path": "/lessons/intro", "status": 200, "expected": 200, "bytes": 188, "start": 1793842871.088837, "end": 1793842871.0961392}, {"index": 22, "method": "GET", "path": "/search?q=fractions", "status": 200, "expected": 200, "bytes": 85, "start": 1793842871.1564467, "end": 1793842871.1651316}, {"index": 23, "method": "GET", "path": "/media/lesson.webm", "status": 200, "expected": 200, "bytes": 14723, "start": 1793842871.2254739, "end": 1793842871.2337399}, {"index": 24, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842871.2940018, "end": 1793842871.3023248}, {"index": 25, "method": "GET", "path": "/", "status": 200, "expected": 200, "bytes": 146, "start": 1793842871.3625603, "end": 1793842871.370635}, {"index": 26, "method": "GET", "path": "/lessons/intro", "status": 200, "expected": 200, "bytes": 188, "start": 1793842871.4308672, "end": 1793842871.4390657}, {"index": 27, "method": "GET", "path": "/search?q=fractions", "status": 200, "expected": 200, "bytes": 85, "start": 1793842871.4993029, "end": 1793842871.5079904}, {"index": 28, "method": "GET", "path": "/media/lesson.webm", "status": 200, "expected": 200, "bytes": 14723, "start": 1793842871.5682464, "end": 1793842871.5745137}, {"index": 29, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842871.6347916, "end": 1793842871.643614}]
+$ ip netns exec mf-client /usr/bin/python3 -c 'import http.client,json,ssl,time
+context=ssl._create_unverified_context()
+rows=[]
+for i in range(30):
+ c=http.client.HTTPSConnection('"'"'198.18.0.2'"'"',443,context=context,timeout=3)
+ if '"'"'malicious'"'"'=='"'"'malicious'"'"':
+  method,path,body='"'"'POST'"'"','"'"'/login'"'"',json.dumps({'"'"'username'"'"':'"'"'alice'"'"','"'"'password'"'"':'"'"'guess-'"'"'+str(i)})
+  expected=401
+ else:
+  method,path,body,expected=[('"'"'GET'"'"','"'"'/'"'"',None,200),('"'"'GET'"'"','"'"'/lessons/intro'"'"',None,200),('"'"'GET'"'"','"'"'/search?q=fractions'"'"',None,200),('"'"'GET'"'"','"'"'/media/lesson.webm'"'"',None,200),('"'"'POST'"'"','"'"'/login'"'"',json.dumps({'"'"'username'"'"':'"'"'alice'"'"','"'"'password'"'"':'"'"'typo'"'"'}),401)][i%5]
+ started=time.time()
+ c.request(method,path,body,{'"'"'Content-Type'"'"':'"'"'application/json'"'"'} if body else {})
+ r=c.getresponse(); data=r.read(); status=r.status; c.close()
+ rows.append({'"'"'index'"'"':i,'"'"'method'"'"':method,'"'"'path'"'"':path,'"'"'status'"'"':status,'"'"'expected'"'"':expected,'"'"'bytes'"'"':len(data),'"'"'start'"'"':started,'"'"'end'"'"':time.time()})
+ assert status==expected
+ time.sleep(0.06)
+print(json.dumps(rows))
+'
+[{"index": 0, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842872.279008, "end": 1793842872.2860687}, {"index": 1, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842872.3463714, "end": 1793842872.3551414}, {"index": 2, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842872.415393, "end": 1793842872.4244075}, {"index": 3, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842872.4846742, "end": 1793842872.493308}, {"index": 4, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842872.5535817, "end": 1793842872.567567}, {"index": 5, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842872.627833, "end": 1793842872.636539}, {"index": 6, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842872.6968153, "end": 1793842872.70561}, {"index": 7, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842872.765941, "end": 1793842872.7746434}, {"index": 8, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842872.834931, "end": 1793842872.8432896}, {"index": 9, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842872.9034898, "end": 1793842872.910299}, {"index": 10, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842872.970567, "end": 1793842872.9802818}, {"index": 11, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842873.0405455, "end": 1793842873.0487783}, {"index": 12, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842873.1090636, "end": 1793842873.116958}, {"index": 13, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842873.1772354, "end": 1793842873.1858094}, {"index": 14, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842873.2461922, "end": 1793842873.2542326}, {"index": 15, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842873.3144674, "end": 1793842873.3196576}, {"index": 16, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842873.3799002, "end": 1793842873.3865342}, {"index": 17, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842873.4467728, "end": 1793842873.453988}, {"index": 18, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842873.5143077, "end": 1793842873.522847}, {"index": 19, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842873.583113, "end": 1793842873.590366}, {"index": 20, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842873.6506488, "end": 1793842873.6603007}, {"index": 21, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842873.7205546, "end": 1793842873.7284229}, {"index": 22, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842873.7886884, "end": 1793842873.7972388}, {"index": 23, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842873.857488, "end": 1793842873.8653142}, {"index": 24, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842873.9255164, "end": 1793842873.9318619}, {"index": 25, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842873.992131, "end": 1793842874.0006797}, {"index": 26, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842874.0609505, "end": 1793842874.0695713}, {"index": 27, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842874.1297736, "end": 1793842874.135474}, {"index": 28, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842874.1956944, "end": 1793842874.2047372}, {"index": 29, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842874.2649832, "end": 1793842874.273487}]
+$ ip netns exec mf-client /usr/bin/python3 -c 'import http.client,json,ssl,time
+context=ssl._create_unverified_context()
+rows=[]
+for i in range(30):
+ c=http.client.HTTPSConnection('"'"'198.18.0.2'"'"',443,context=context,timeout=3)
+ if '"'"'benign'"'"'=='"'"'malicious'"'"':
+  method,path,body='"'"'POST'"'"','"'"'/login'"'"',json.dumps({'"'"'username'"'"':'"'"'alice'"'"','"'"'password'"'"':'"'"'guess-'"'"'+str(i)})
+  expected=401
+ else:
+  method,path,body,expected=[('"'"'GET'"'"','"'"'/'"'"',None,200),('"'"'GET'"'"','"'"'/lessons/intro'"'"',None,200),('"'"'GET'"'"','"'"'/search?q=fractions'"'"',None,200),('"'"'GET'"'"','"'"'/media/lesson.webm'"'"',None,200),('"'"'POST'"'"','"'"'/login'"'"',json.dumps({'"'"'username'"'"':'"'"'alice'"'"','"'"'password'"'"':'"'"'typo'"'"'}),401)][i%5]
+ started=time.time()
+ c.request(method,path,body,{'"'"'Content-Type'"'"':'"'"'application/json'"'"'} if body else {})
+ r=c.getresponse(); data=r.read(); status=r.status; c.close()
+ rows.append({'"'"'index'"'"':i,'"'"'method'"'"':method,'"'"'path'"'"':path,'"'"'status'"'"':status,'"'"'expected'"'"':expected,'"'"'bytes'"'"':len(data),'"'"'start'"'"':started,'"'"'end'"'"':time.time()})
+ assert status==expected
+ time.sleep(0.08)
+print(json.dumps(rows))
+'
+[{"index": 0, "method": "GET", "path": "/", "status": 200, "expected": 200, "bytes": 146, "start": 1793842874.912151, "end": 1793842874.919649}, {"index": 1, "method": "GET", "path": "/lessons/intro", "status": 200, "expected": 200, "bytes": 188, "start": 1793842874.9999526, "end": 1793842875.0083919}, {"index": 2, "method": "GET", "path": "/search?q=fractions", "status": 200, "expected": 200, "bytes": 85, "start": 1793842875.088675, "end": 1793842875.0971463}, {"index": 3, "method": "GET", "path": "/media/lesson.webm", "status": 200, "expected": 200, "bytes": 14723, "start": 1793842875.1774256, "end": 1793842875.1863449}, {"index": 4, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842875.2666438, "end": 1793842875.2753236}, {"index": 5, "method": "GET", "path": "/", "status": 200, "expected": 200, "bytes": 146, "start": 1793842875.355608, "end": 1793842875.3642037}, {"index": 6, "method": "GET", "path": "/lessons/intro", "status": 200, "expected": 200, "bytes": 188, "start": 1793842875.4445078, "end": 1793842875.4523063}, {"index": 7, "method": "GET", "path": "/search?q=fractions", "status": 200, "expected": 200, "bytes": 85, "start": 1793842875.532576, "end": 1793842875.5379076}, {"index": 8, "method": "GET", "path": "/media/lesson.webm", "status": 200, "expected": 200, "bytes": 14723, "start": 1793842875.6182427, "end": 1793842875.6271207}, {"index": 9, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842875.7073667, "end": 1793842875.7164187}, {"index": 10, "method": "GET", "path": "/", "status": 200, "expected": 200, "bytes": 146, "start": 1793842875.7966714, "end": 1793842875.8052168}, {"index": 11, "method": "GET", "path": "/lessons/intro", "status": 200, "expected": 200, "bytes": 188, "start": 1793842875.8854764, "end": 1793842875.894189}, {"index": 12, "method": "GET", "path": "/search?q=fractions", "status": 200, "expected": 200, "bytes": 85, "start": 1793842875.9744062, "end": 1793842875.9842207}, {"index": 13, "method": "GET", "path": "/media/lesson.webm", "status": 200, "expected": 200, "bytes": 14723, "start": 1793842876.0644314, "end": 1793842876.0727122}, {"index": 14, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842876.1529763, "end": 1793842876.1615992}, {"index": 15, "method": "GET", "path": "/", "status": 200, "expected": 200, "bytes": 146, "start": 1793842876.2418668, "end": 1793842876.2503293}, {"index": 16, "method": "GET", "path": "/lessons/intro", "status": 200, "expected": 200, "bytes": 188, "start": 1793842876.3305457, "end": 1793842876.339044}, {"index": 17, "method": "GET", "path": "/search?q=fractions", "status": 200, "expected": 200, "bytes": 85, "start": 1793842876.4193044, "end": 1793842876.4278018}, {"index": 18, "method": "GET", "path": "/media/lesson.webm", "status": 200, "expected": 200, "bytes": 14723, "start": 1793842876.5080395, "end": 1793842876.5146437}, {"index": 19, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842876.5948932, "end": 1793842876.603485}, {"index": 20, "method": "GET", "path": "/", "status": 200, "expected": 200, "bytes": 146, "start": 1793842876.683786, "end": 1793842876.6928942}, {"index": 21, "method": "GET", "path": "/lessons/intro", "status": 200, "expected": 200, "bytes": 188, "start": 1793842876.7731817, "end": 1793842876.7822695}, {"index": 22, "method": "GET", "path": "/search?q=fractions", "status": 200, "expected": 200, "bytes": 85, "start": 1793842876.8625965, "end": 1793842876.8713088}, {"index": 23, "method": "GET", "path": "/media/lesson.webm", "status": 200, "expected": 200, "bytes": 14723, "start": 1793842876.9515336, "end": 1793842876.9576535}, {"index": 24, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842877.0379403, "end": 1793842877.0467308}, {"index": 25, "method": "GET", "path": "/", "status": 200, "expected": 200, "bytes": 146, "start": 1793842877.12701, "end": 1793842877.136294}, {"index": 26, "method": "GET", "path": "/lessons/intro", "status": 200, "expected": 200, "bytes": 188, "start": 1793842877.216584, "end": 1793842877.2251863}, {"index": 27, "method": "GET", "path": "/search?q=fractions", "status": 200, "expected": 200, "bytes": 85, "start": 1793842877.3054388, "end": 1793842877.3142378}, {"index": 28, "method": "GET", "path": "/media/lesson.webm", "status": 200, "expected": 200, "bytes": 14723, "start": 1793842877.3944802, "end": 1793842877.4033275}, {"index": 29, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842877.483593, "end": 1793842877.4922166}]
+$ ip netns exec mf-client /usr/bin/python3 -c 'import http.client,json,ssl,time
+context=ssl._create_unverified_context()
+rows=[]
+for i in range(30):
+ c=http.client.HTTPSConnection('"'"'198.18.0.2'"'"',443,context=context,timeout=3)
+ if '"'"'malicious'"'"'=='"'"'malicious'"'"':
+  method,path,body='"'"'POST'"'"','"'"'/login'"'"',json.dumps({'"'"'username'"'"':'"'"'alice'"'"','"'"'password'"'"':'"'"'guess-'"'"'+str(i)})
+  expected=401
+ else:
+  method,path,body,expected=[('"'"'GET'"'"','"'"'/'"'"',None,200),('"'"'GET'"'"','"'"'/lessons/intro'"'"',None,200),('"'"'GET'"'"','"'"'/search?q=fractions'"'"',None,200),('"'"'GET'"'"','"'"'/media/lesson.webm'"'"',None,200),('"'"'POST'"'"','"'"'/login'"'"',json.dumps({'"'"'username'"'"':'"'"'alice'"'"','"'"'password'"'"':'"'"'typo'"'"'}),401)][i%5]
+ started=time.time()
+ c.request(method,path,body,{'"'"'Content-Type'"'"':'"'"'application/json'"'"'} if body else {})
+ r=c.getresponse(); data=r.read(); status=r.status; c.close()
+ rows.append({'"'"'index'"'"':i,'"'"'method'"'"':method,'"'"'path'"'"':path,'"'"'status'"'"':status,'"'"'expected'"'"':expected,'"'"'bytes'"'"':len(data),'"'"'start'"'"':started,'"'"'end'"'"':time.time()})
+ assert status==expected
+ time.sleep(0.08)
+print(json.dumps(rows))
+'
+[{"index": 0, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842878.1192794, "end": 1793842878.1263885}, {"index": 1, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842878.2066355, "end": 1793842878.2138162}, {"index": 2, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842878.2940028, "end": 1793842878.2989945}, {"index": 3, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842878.3792622, "end": 1793842878.3866692}, {"index": 4, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842878.4669244, "end": 1793842878.4721403}, {"index": 5, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842878.5523431, "end": 1793842878.5580747}, {"index": 6, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842878.6383297, "end": 1793842878.643707}, {"index": 7, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842878.7240398, "end": 1793842878.7328339}, {"index": 8, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842878.8130322, "end": 1793842878.818298}, {"index": 9, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842878.898461, "end": 1793842878.9031231}, {"index": 10, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842878.983357, "end": 1793842878.989024}, {"index": 11, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842879.069255, "end": 1793842879.0740266}, {"index": 12, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842879.154226, "end": 1793842879.1590734}, {"index": 13, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842879.2392862, "end": 1793842879.2446685}, {"index": 14, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842879.3248508, "end": 1793842879.3307333}, {"index": 15, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842879.4109118, "end": 1793842879.415496}, {"index": 16, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842879.4957159, "end": 1793842879.5012548}, {"index": 17, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842879.5814664, "end": 1793842879.5860534}, {"index": 18, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842879.6712184, "end": 1793842879.6823165}, {"index": 19, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842879.7625074, "end": 1793842879.7682486}, {"index": 20, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842879.8484175, "end": 1793842879.8567412}, {"index": 21, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842879.936991, "end": 1793842879.9431224}, {"index": 22, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842880.0233448, "end": 1793842880.0282905}, {"index": 23, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842880.1084762, "end": 1793842880.114009}, {"index": 24, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842880.1942823, "end": 1793842880.1996126}, {"index": 25, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842880.2798817, "end": 1793842880.2855787}, {"index": 26, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842880.3657682, "end": 1793842880.3705611}, {"index": 27, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842880.4508164, "end": 1793842880.458399}, {"index": 28, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842880.538601, "end": 1793842880.54682}, {"index": 29, "method": "POST", "path": "/login", "status": 401, "expected": 401, "bytes": 40, "start": 1793842880.627047, "end": 1793842880.6354609}]
+VERIFIED {"test": "new_labelled_lab_corpus", "actual": {"captures": 8, "requests": 240, "representative": false, "AI": "C18 shadow only", "quality_gate": "not evaluated yet"}, "time": "2026-11-05T01:41:20.804822+00:00"}
+$ systemctl stop minifw-ai
+$ nft flush set inet minifw minifw_block_v4
+$ conntrack -D -s 10.10.0.20
+tcp      6 117 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41982 dport=443 packets=9 bytes=1282 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41982 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 103 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55442 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55442 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 102 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55350 dport=443 packets=9 bytes=1282 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55350 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 105 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55770 dport=443 packets=8 bytes=1124 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55770 packets=6 bytes=2463 [ASSURED] mark=0 use=1
+tcp      6 109 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56208 dport=443 packets=8 bytes=1106 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=56208 packets=6 bytes=2518 [ASSURED] mark=0 use=1
+tcp      6 104 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55736 dport=443 packets=8 bytes=1119 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55736 packets=6 bytes=2560 [ASSURED] mark=0 use=1
+tcp      6 110 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41372 dport=443 packets=9 bytes=1282 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41372 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 112 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41538 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41538 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 115 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41822 dport=443 packets=8 bytes=1119 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41822 packets=6 bytes=2560 [ASSURED] mark=0 use=1
+tcp      6 112 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41586 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41586 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 104 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55692 dport=443 packets=8 bytes=1119 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55692 packets=6 bytes=2560 [ASSURED] mark=0 use=1
+tcp      6 102 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55318 dport=443 packets=9 bytes=1175 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55318 packets=8 bytes=17308 [ASSURED] mark=0 use=1
+tcp      6 102 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55302 dport=443 packets=8 bytes=1119 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55302 packets=6 bytes=2560 [ASSURED] mark=0 use=1
+tcp      6 106 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55956 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55956 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 112 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41600 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41600 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 107 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55970 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55970 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 103 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55416 dport=443 packets=9 bytes=1282 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55416 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 103 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55488 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55488 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 116 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41882 dport=443 packets=9 bytes=1175 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41882 packets=8 bytes=17308 [ASSURED] mark=0 use=1
+tcp      6 111 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41484 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41484 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 106 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55880 dport=443 packets=9 bytes=1282 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55880 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 105 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55762 dport=443 packets=8 bytes=1119 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55762 packets=6 bytes=2560 [ASSURED] mark=0 use=1
+tcp      6 114 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41726 dport=443 packets=9 bytes=1279 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41726 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 111 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41410 dport=443 packets=9 bytes=1282 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41410 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 107 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56030 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=56030 packets=8 bytes=2532 [ASSURED] mark=0 use=1
+tcp      6 103 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55506 dport=443 packets=9 bytes=1295 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55506 packets=7 bytes=2998 [ASSURED] mark=0 use=1
+tcp      6 117 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41954 dport=443 packets=9 bytes=1282 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41954 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 115 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41798 dport=443 packets=9 bytes=1279 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41798 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 108 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56130 dport=443 packets=8 bytes=1106 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=56130 packets=6 bytes=2518 [ASSURED] mark=0 use=1
+tcp      6 115 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41868 dport=443 packets=8 bytes=1124 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41868 packets=6 bytes=2463 [ASSURED] mark=0 use=1
+tcp      6 117 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41986 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41986 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 101 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55068 dport=443 packets=8 bytes=1106 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55068 packets=6 bytes=2518 [ASSURED] mark=0 use=1
+tcp      6 106 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55902 dport=443 packets=9 bytes=1282 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55902 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 105 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55790 dport=443 packets=8 bytes=1119 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55790 packets=6 bytes=2560 [ASSURED] mark=0 use=1
+tcp      6 115 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41828 dport=443 packets=8 bytes=1124 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41828 packets=6 bytes=2463 [ASSURED] mark=0 use=1
+tcp      6 117 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42008 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=42008 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 111 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41436 dport=443 packets=9 bytes=1282 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41436 packets=8 bytes=2532 [ASSURED] mark=0 use=1
+tcp      6 114 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41752 dport=443 packets=8 bytes=1124 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41752 packets=6 bytes=2463 [ASSURED] mark=0 use=1
+tcp      6 111 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41458 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41458 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 106 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55912 dport=443 packets=9 bytes=1282 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55912 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 102 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55310 dport=443 packets=8 bytes=1124 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55310 packets=6 bytes=2463 [ASSURED] mark=0 use=1
+tcp      6 118 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42066 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=42066 packets=8 bytes=2532 [ASSURED] mark=0 use=1
+tcp      6 117 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42018 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=42018 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 101 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55158 dport=443 packets=8 bytes=1119 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55158 packets=6 bytes=2560 [ASSURED] mark=0 use=1
+tcp      6 107 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56014 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=56014 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 104 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55702 dport=443 packets=9 bytes=1175 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55702 packets=9 bytes=17360 [ASSURED] mark=0 use=1
+tcp      6 104 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55742 dport=443 packets=9 bytes=1175 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55742 packets=8 bytes=17308 [ASSURED] mark=0 use=1
+tcp      6 108 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56142 dport=443 packets=8 bytes=1124 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=56142 packets=6 bytes=2463 [ASSURED] mark=0 use=1
+tcp      6 118 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42048 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=42048 packets=7 bytes=2480 [ASSURED] mark=0 use=1
+tcp      6 110 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41350 dport=443 packets=9 bytes=1175 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41350 packets=8 bytes=17308 [ASSURED] mark=0 use=1
+tcp      6 111 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41416 dport=443 packets=9 bytes=1282 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41416 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 103 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55398 dport=443 packets=9 bytes=1282 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55398 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 105 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55826 dport=443 packets=8 bytes=1119 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55826 packets=6 bytes=2560 [ASSURED] mark=0 use=1
+tcp      6 105 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55822 dport=443 packets=8 bytes=1106 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55822 packets=6 bytes=2518 [ASSURED] mark=0 use=1
+tcp      6 103 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55568 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55568 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 110 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56282 dport=443 packets=8 bytes=1106 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=56282 packets=6 bytes=2518 [ASSURED] mark=0 use=1
+tcp      6 118 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42082 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=42082 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 103 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55382 dport=443 packets=9 bytes=1282 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55382 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 107 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56010 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=56010 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 101 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55184 dport=443 packets=9 bytes=1279 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55184 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 101 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55150 dport=443 packets=8 bytes=1106 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55150 packets=6 bytes=2518 [ASSURED] mark=0 use=1
+tcp      6 102 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55246 dport=443 packets=9 bytes=1279 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55246 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 108 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56146 dport=443 packets=10 bytes=1227 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=56146 packets=8 bytes=17308 [ASSURED] mark=0 use=1
+tcp      6 105 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55774 dport=443 packets=9 bytes=1175 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55774 packets=8 bytes=17308 [ASSURED] mark=0 use=1
+tcp      6 103 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55552 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55552 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 103 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55450 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55450 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 101 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55094 dport=443 packets=9 bytes=1279 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55094 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 111 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41432 dport=443 packets=9 bytes=1282 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41432 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 112 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41592 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41592 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 106 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55930 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55930 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 104 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55662 dport=443 packets=9 bytes=1279 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55662 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 101 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55086 dport=443 packets=8 bytes=1124 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55086 packets=6 bytes=2463 [ASSURED] mark=0 use=1
+tcp      6 114 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41712 dport=443 packets=8 bytes=1124 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41712 packets=6 bytes=2463 [ASSURED] mark=0 use=1
+tcp      6 116 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41886 dport=443 packets=9 bytes=1279 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41886 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 103 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55538 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55538 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 104 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55640 dport=443 packets=8 bytes=1124 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55640 packets=7 bytes=2515 [ASSURED] mark=0 use=1
+tcp      6 102 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55366 dport=443 packets=9 bytes=1282 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55366 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 106 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55864 dport=443 packets=9 bytes=1282 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55864 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 105 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55756 dport=443 packets=8 bytes=1106 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55756 packets=6 bytes=2518 [ASSURED] mark=0 use=1
+tcp      6 111 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41452 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41452 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 114 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41696 dport=443 packets=8 bytes=1119 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41696 packets=6 bytes=2560 [ASSURED] mark=0 use=1
+tcp      6 102 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55290 dport=443 packets=9 bytes=1175 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55290 packets=8 bytes=17308 [ASSURED] mark=0 use=1
+tcp      6 106 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55890 dport=443 packets=9 bytes=1282 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55890 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 107 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56066 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=56066 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 103 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55554 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55554 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 115 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41808 dport=443 packets=8 bytes=1106 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41808 packets=6 bytes=2518 [ASSURED] mark=0 use=1
+tcp      6 103 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55584 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55584 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 114 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41730 dport=443 packets=8 bytes=1106 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41730 packets=6 bytes=2518 [ASSURED] mark=0 use=1
+tcp      6 102 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55334 dport=443 packets=9 bytes=1279 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55334 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 100 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=49628 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=49628 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 104 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55720 dport=443 packets=8 bytes=1106 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55720 packets=6 bytes=2518 [ASSURED] mark=0 use=1
+tcp      6 109 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56214 dport=443 packets=8 bytes=1119 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=56214 packets=6 bytes=2560 [ASSURED] mark=0 use=1
+tcp      6 119 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42166 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=42166 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 105 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55844 dport=443 packets=9 bytes=1279 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55844 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 103 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55518 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55518 packets=8 bytes=2532 [ASSURED] mark=0 use=1
+tcp      6 111 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41394 dport=443 packets=9 bytes=1282 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41394 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 106 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55916 dport=443 packets=9 bytes=1282 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55916 packets=8 bytes=2532 [ASSURED] mark=0 use=1
+tcp      6 117 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41936 dport=443 packets=9 bytes=1282 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41936 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 114 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41784 dport=443 packets=8 bytes=1119 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41784 packets=6 bytes=2560 [ASSURED] mark=0 use=1
+tcp      6 109 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56228 dport=443 packets=9 bytes=1175 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=56228 packets=8 bytes=17308 [ASSURED] mark=0 use=1
+tcp      6 104 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55624 dport=443 packets=8 bytes=1106 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55624 packets=6 bytes=2518 [ASSURED] mark=0 use=1
+tcp      6 118 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42110 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=42110 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 104 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55752 dport=443 packets=9 bytes=1279 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55752 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 107 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56072 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=56072 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 103 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55524 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55524 packets=8 bytes=2532 [ASSURED] mark=0 use=1
+tcp      6 103 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55500 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55500 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 109 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56202 dport=443 packets=9 bytes=1279 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=56202 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 103 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55466 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55466 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 106 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55848 dport=443 packets=9 bytes=1282 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55848 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 109 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56236 dport=443 packets=9 bytes=1279 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=56236 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 107 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55972 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55972 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 107 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56086 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=56086 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 103 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55478 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55478 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 101 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55200 dport=443 packets=8 bytes=1106 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55200 packets=6 bytes=2518 [ASSURED] mark=0 use=1
+tcp      6 109 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56280 dport=443 packets=9 bytes=1279 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=56280 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 107 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55990 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55990 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 105 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55782 dport=443 packets=8 bytes=1106 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55782 packets=6 bytes=2518 [ASSURED] mark=0 use=1
+tcp      6 118 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42070 dport=443 packets=10 bytes=1335 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=42070 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 105 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55842 dport=443 packets=9 bytes=1175 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55842 packets=9 bytes=17360 [ASSURED] mark=0 use=1
+tcp      6 109 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56248 dport=443 packets=8 bytes=1119 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=56248 packets=6 bytes=2560 [ASSURED] mark=0 use=1
+tcp      6 103 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55408 dport=443 packets=9 bytes=1282 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55408 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 110 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41366 dport=443 packets=9 bytes=1279 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41366 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 107 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55982 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55982 packets=8 bytes=2532 [ASSURED] mark=0 use=1
+tcp      6 108 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56112 dport=443 packets=8 bytes=1124 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=56112 packets=6 bytes=2463 [ASSURED] mark=0 use=1
+tcp      6 101 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55214 dport=443 packets=8 bytes=1119 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55214 packets=6 bytes=2560 [ASSURED] mark=0 use=1
+tcp      6 104 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55676 dport=443 packets=8 bytes=1106 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55676 packets=6 bytes=2518 [ASSURED] mark=0 use=1
+tcp      6 101 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55076 dport=443 packets=8 bytes=1119 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55076 packets=6 bytes=2560 [ASSURED] mark=0 use=1
+tcp      6 114 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41756 dport=443 packets=9 bytes=1175 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41756 packets=8 bytes=17308 [ASSURED] mark=0 use=1
+tcp      6 101 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55176 dport=443 packets=9 bytes=1175 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55176 packets=8 bytes=17308 [ASSURED] mark=0 use=1
+tcp      6 116 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41900 dport=443 packets=9 bytes=1282 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41900 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 118 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42114 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=42114 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 113 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41672 dport=443 packets=9 bytes=1279 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41672 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 108 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56124 dport=443 packets=9 bytes=1175 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=56124 packets=8 bytes=17308 [ASSURED] mark=0 use=1
+tcp      6 117 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41998 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41998 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 117 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41920 dport=443 packets=9 bytes=1282 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41920 packets=8 bytes=2532 [ASSURED] mark=0 use=1
+tcp      6 111 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41440 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41440 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 115 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41788 dport=443 packets=8 bytes=1124 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41788 packets=6 bytes=2463 [ASSURED] mark=0 use=1
+tcp      6 112 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41620 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41620 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 111 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41390 dport=443 packets=9 bytes=1282 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41390 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 104 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55626 dport=443 packets=8 bytes=1119 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55626 packets=6 bytes=2560 [ASSURED] mark=0 use=1
+tcp      6 101 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55090 dport=443 packets=9 bytes=1175 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55090 packets=8 bytes=17308 [ASSURED] mark=0 use=1
+tcp      6 100 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=49614 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=49614 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 112 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41566 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41566 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 115 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41858 dport=443 packets=8 bytes=1119 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41858 packets=6 bytes=2560 [ASSURED] mark=0 use=1
+tcp      6 118 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42038 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=42038 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 109 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56196 dport=443 packets=9 bytes=1175 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=56196 packets=8 bytes=17308 [ASSURED] mark=0 use=1
+tcp      6 107 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56052 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=56052 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 104 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55694 dport=443 packets=8 bytes=1124 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55694 packets=6 bytes=2463 [ASSURED] mark=0 use=1
+tcp      6 106 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55928 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55928 packets=8 bytes=2532 [ASSURED] mark=0 use=1
+tcp      6 102 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55294 dport=443 packets=9 bytes=1279 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55294 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 102 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55278 dport=443 packets=8 bytes=1124 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55278 packets=6 bytes=2463 [ASSURED] mark=0 use=1
+tcp      6 103 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55622 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55622 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 114 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41774 dport=443 packets=8 bytes=1106 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41774 packets=6 bytes=2518 [ASSURED] mark=0 use=1
+tcp      6 107 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56004 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=56004 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 109 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56270 dport=443 packets=10 bytes=1227 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=56270 packets=8 bytes=17308 [ASSURED] mark=0 use=1
+tcp      6 104 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55738 dport=443 packets=8 bytes=1124 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55738 packets=6 bytes=2463 [ASSURED] mark=0 use=1
+tcp      6 101 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55228 dport=443 packets=8 bytes=1124 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55228 packets=6 bytes=2463 [ASSURED] mark=0 use=1
+tcp      6 115 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41850 dport=443 packets=9 bytes=1279 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41850 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 113 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41646 dport=443 packets=8 bytes=1119 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41646 packets=6 bytes=2560 [ASSURED] mark=0 use=1
+tcp      6 103 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55596 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55596 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 103 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55386 dport=443 packets=9 bytes=1282 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55386 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 103 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55436 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55436 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 105 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55796 dport=443 packets=8 bytes=1124 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55796 packets=6 bytes=2463 [ASSURED] mark=0 use=1
+tcp      6 114 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41688 dport=443 packets=8 bytes=1106 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41688 packets=6 bytes=2518 [ASSURED] mark=0 use=1
+tcp      6 109 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56164 dport=443 packets=8 bytes=1106 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=56164 packets=6 bytes=2518 [ASSURED] mark=0 use=1
+tcp      6 104 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55652 dport=443 packets=10 bytes=1227 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55652 packets=8 bytes=17308 [ASSURED] mark=0 use=1
+tcp      6 105 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55780 dport=443 packets=9 bytes=1279 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55780 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 117 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41944 dport=443 packets=9 bytes=1282 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41944 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 102 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55238 dport=443 packets=10 bytes=1227 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55238 packets=8 bytes=17308 [ASSURED] mark=0 use=1
+tcp      6 108 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56126 dport=443 packets=9 bytes=1279 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=56126 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 115 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41842 dport=443 packets=9 bytes=1175 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41842 packets=8 bytes=17308 [ASSURED] mark=0 use=1
+tcp      6 117 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41924 dport=443 packets=9 bytes=1282 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41924 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 114 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41744 dport=443 packets=8 bytes=1119 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41744 packets=6 bytes=2560 [ASSURED] mark=0 use=1
+tcp      6 114 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41724 dport=443 packets=9 bytes=1175 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41724 packets=9 bytes=17360 [ASSURED] mark=0 use=1
+tcp      6 103 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55372 dport=443 packets=9 bytes=1282 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55372 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 102 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55354 dport=443 packets=9 bytes=1282 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55354 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 101 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55114 dport=443 packets=8 bytes=1119 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55114 packets=6 bytes=2560 [ASSURED] mark=0 use=1
+tcp      6 101 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55128 dport=443 packets=10 bytes=1252 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55128 packets=8 bytes=2822 [ASSURED] mark=0 use=1
+tcp      6 118 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42032 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=42032 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 115 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41856 dport=443 packets=8 bytes=1106 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41856 packets=6 bytes=2518 [ASSURED] mark=0 use=1
+tcp      6 102 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55254 dport=443 packets=8 bytes=1106 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55254 packets=6 bytes=2518 [ASSURED] mark=0 use=1
+tcp      6 108 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56132 dport=443 packets=8 bytes=1119 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=56132 packets=6 bytes=2560 [ASSURED] mark=0 use=1
+tcp      6 113 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41668 dport=443 packets=10 bytes=1227 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41668 packets=8 bytes=17308 [ASSURED] mark=0 use=1
+tcp      6 103 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55428 dport=443 packets=9 bytes=1294 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55428 packets=7 bytes=2998 [ASSURED] mark=0 use=1
+tcp      6 102 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55270 dport=443 packets=8 bytes=1119 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55270 packets=6 bytes=2560 [ASSURED] mark=0 use=1
+tcp      6 116 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41910 dport=443 packets=9 bytes=1282 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41910 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 111 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41380 dport=443 packets=9 bytes=1282 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41380 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 115 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41794 dport=443 packets=10 bytes=1227 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41794 packets=8 bytes=17308 [ASSURED] mark=0 use=1
+tcp      6 107 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55994 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55994 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 101 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55170 dport=443 packets=8 bytes=1124 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55170 packets=6 bytes=2463 [ASSURED] mark=0 use=1
+tcp      6 108 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56156 dport=443 packets=9 bytes=1279 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=56156 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 105 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55834 dport=443 packets=8 bytes=1124 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55834 packets=6 bytes=2463 [ASSURED] mark=0 use=1
+tcp      6 113 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41630 dport=443 packets=8 bytes=1106 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41630 packets=6 bytes=2518 [ASSURED] mark=0 use=1
+tcp      6 114 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41758 dport=443 packets=9 bytes=1279 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41758 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 109 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56178 dport=443 packets=8 bytes=1119 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=56178 packets=6 bytes=2560 [ASSURED] mark=0 use=1
+tcp      6 112 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41624 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41624 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 112 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41616 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41616 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 101 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55110 dport=443 packets=8 bytes=1106 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55110 packets=6 bytes=2518 [ASSURED] mark=0 use=1
+tcp      6 105 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55800 dport=443 packets=9 bytes=1175 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55800 packets=8 bytes=17308 [ASSURED] mark=0 use=1
+tcp      6 107 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56062 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=56062 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 118 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42060 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=42060 packets=7 bytes=2480 [ASSURED] mark=0 use=1
+tcp      6 111 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41472 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41472 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 104 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55710 dport=443 packets=9 bytes=1279 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55710 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 109 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56264 dport=443 packets=8 bytes=1124 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=56264 packets=6 bytes=2463 [ASSURED] mark=0 use=1
+tcp      6 119 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42152 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=42152 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 106 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55944 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55944 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 107 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56050 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=56050 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 110 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56296 dport=443 packets=8 bytes=1119 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=56296 packets=6 bytes=2560 [ASSURED] mark=0 use=1
+tcp      6 112 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41564 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41564 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 106 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55922 dport=443 packets=9 bytes=1282 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55922 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 105 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55814 dport=443 packets=9 bytes=1279 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55814 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 117 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42026 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=42026 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 112 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41512 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41512 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 119 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42130 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=42130 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 119 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42146 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=42146 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 118 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42046 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=42046 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 111 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41382 dport=443 packets=9 bytes=1282 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41382 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 113 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41652 dport=443 packets=8 bytes=1124 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41652 packets=6 bytes=2463 [ASSURED] mark=0 use=1
+tcp      6 110 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56310 dport=443 packets=8 bytes=1124 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=56310 packets=6 bytes=2463 [ASSURED] mark=0 use=1
+tcp      6 101 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55140 dport=443 packets=9 bytes=1279 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55140 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 112 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41548 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41548 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 111 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41500 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41500 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 109 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56188 dport=443 packets=8 bytes=1124 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=56188 packets=6 bytes=2463 [ASSURED] mark=0 use=1
+tcp      6 103 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55606 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55606 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 118 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=42098 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=42098 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 117 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41966 dport=443 packets=9 bytes=1282 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41966 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 109 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56224 dport=443 packets=8 bytes=1124 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=56224 packets=6 bytes=2463 [ASSURED] mark=0 use=1
+tcp      6 112 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41528 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41528 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 106 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55846 dport=443 packets=9 bytes=1282 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55846 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 116 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41904 dport=443 packets=9 bytes=1282 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41904 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 112 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41628 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41628 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 102 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55298 dport=443 packets=8 bytes=1106 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55298 packets=7 bytes=2570 [ASSURED] mark=0 use=1
+tcp      6 101 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55130 dport=443 packets=9 bytes=1175 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55130 packets=9 bytes=17360 [ASSURED] mark=0 use=1
+tcp      6 112 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41580 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41580 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 107 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56046 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=56046 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 103 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55558 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55558 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 108 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56102 dport=443 packets=8 bytes=1106 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=56102 packets=6 bytes=2518 [ASSURED] mark=0 use=1
+tcp      6 111 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41388 dport=443 packets=9 bytes=1282 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41388 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 108 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56106 dport=443 packets=8 bytes=1119 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=56106 packets=6 bytes=2560 [ASSURED] mark=0 use=1
+tcp      6 109 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56244 dport=443 packets=8 bytes=1106 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=56244 packets=6 bytes=2518 [ASSURED] mark=0 use=1
+tcp      6 103 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55444 dport=443 packets=9 bytes=1283 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55444 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+tcp      6 106 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=55918 dport=443 packets=9 bytes=1282 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=55918 packets=6 bytes=2428 [ASSURED] mark=0 use=1
+conntrack v1.4.7 (conntrack-tools): 242 flow entries have been deleted.
+$ systemctl daemon-reload
+$ systemctl start minifw-ai
+$ systemctl show minifw-ai -p ActiveState -p MainPID -p ExecMainStatus
+MainPID=50247
+ExecMainStatus=0
+ActiveState=active
+$ nft -a list table inet minifw
+table inet minifw { # handle 64
+	set minifw_block_v4 { # handle 1
+		type ipv4_addr
+		timeout 1h
+		elements = { 10.10.0.20 timeout 15s expires 14s980ms }
+	}
+
+	chain forward { # handle 2
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 257 bytes 15420 comment "MiniFW-AI-Conntrack" # handle 3
+		ip saddr @minifw_block_v4 counter packets 0 bytes 0 drop comment "MiniFW-AI-Blocklist" # handle 4
+	}
+}
+$ ip netns exec mf-client /usr/bin/python3 /home/lab/wednesday-c18/testing/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": false, "error": "TimeoutError"}
+VERIFIED {"test": "F1_remaining_scan_control", "actual": {"reasons": ["port_scan", "hard_threat_gate_override"], "routed_HTTP": "blocked", "limitation": "Does not establish same-port flood or encrypted password-guessing detection"}, "time": "2026-11-05T01:41:32.087160+00:00"}
+$ systemctl stop minifw-ai
+$ journalctl -u minifw-ai --no-pager --since '2026-11-05 01:40:54 UTC'
+Nov 05 08:40:57 minifw-monday-financial systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 08:40:59 minifw-monday-financial python[49904]: 2026-11-05 08:40:59,785 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Nov 05 08:40:59 minifw-monday-financial python[49904]: 2026-11-05 08:40:59,789 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Nov 05 08:40:59 minifw-monday-financial python[49904]: 2026-11-05 08:40:59,789 - INFO - [STATE] Restored state from /opt/minifw_ai/logs/deployment_state.json: BASELINE_PROTECTION
+Nov 05 08:40:59 minifw-monday-financial python[49904]: 2026-11-05 08:40:59,789 - INFO - [STATE] Initial protection state: BASELINE_PROTECTION
+Nov 05 08:40:59 minifw-monday-financial python[49904]: 2026-11-05 08:40:59,797 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_financial: sector=finance
+Nov 05 08:40:59 minifw-monday-financial python[49904]: 2026-11-05 08:40:59,797 - INFO - [SECTOR_LOCK] Loaded config for finance: ['description', 'block_tor', 'block_anonymizers', 'strict_tls', 'minimum_tls_version', 'pci_compliance_mode', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_retention_days']
+Nov 05 08:40:59 minifw-monday-financial python[49904]: 2026-11-05 08:40:59,797 - INFO - [SECTOR_LOCK] Device sector: finance (LOCKED)
+Nov 05 08:40:59 minifw-monday-financial python[49904]: 2026-11-05 08:40:59,797 - INFO - [SECTOR_LOCK] Config: Finance: metadata policies; TLS version control requires packet metadata; no compliance certification.
+Nov 05 08:40:59 minifw-monday-financial python[49904]: 2026-11-05 08:40:59,797 - INFO - [FEEDS] Loaded 10 patterns from financial_fraud.txt
+Nov 05 08:40:59 minifw-monday-financial python[49904]: 2026-11-05 08:40:59,797 - INFO - [FEEDS] Loaded 9 patterns from crypto_scams.txt
+Nov 05 08:40:59 minifw-monday-financial python[49904]: 2026-11-05 08:40:59,797 - INFO - [SECTOR_LOCK] Loaded 19 sector-specific feed patterns
+Nov 05 08:40:59 minifw-monday-financial python[49904]: 2026-11-05 08:40:59,797 - INFO - [FEEDS] Loaded 0 Tor exit node IPs from /opt/minifw_ai/config/feeds/tor_exit_nodes.txt
+Nov 05 08:40:59 minifw-monday-financial python[49904]: 2026-11-05 08:40:59,797 - INFO - [SECTOR_LOCK] Tor/anonymizer blocking enabled: loaded 0 exit IPs
+Nov 05 08:40:59 minifw-monday-financial python[49904]: 2026-11-05 08:40:59,945 - INFO - [TELEMETRY] Packet metadata on mfcg; packet14 model required; no TLS decryption
+Nov 05 08:41:00 minifw-monday-financial python[49921]: Capturing on 'mfcg'
+Nov 05 08:41:00 minifw-monday-financial python[49921]: File: -
+Nov 05 08:41:20 minifw-monday-financial python[49921]: [495B blob data]
+Nov 05 08:41:20 minifw-monday-financial python[49904]: 2026-11-05 08:41:20,817 - INFO - Caught SIGTERM, shutting down.
+Nov 05 08:41:20 minifw-monday-financial python[49921]: [38B blob data]
+Nov 05 08:41:20 minifw-monday-financial python[49921]: Packets received/dropped on interface 'mfcg': 3626/0 (pcap:0/dumpcap:0/flushed:0/ps_ifdrop:0) (100.0%)
+Nov 05 08:41:20 minifw-monday-financial systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 05 08:41:20 minifw-monday-financial python[49904]: 2026-11-05 08:41:20,876 - ERROR - [packet] Collector failed; retrying independently
+Nov 05 08:41:20 minifw-monday-financial python[49904]: Traceback (most recent call last):
+Nov 05 08:41:20 minifw-monday-financial python[49904]:   File "/opt/minifw_ai/app/minifw_ai/collector_runtime.py", line 16, in collect
+Nov 05 08:41:20 minifw-monday-financial python[49904]:     for event in factory():
+Nov 05 08:41:20 minifw-monday-financial python[49904]:   File "/opt/minifw_ai/app/minifw_ai/collector_packets.py", line 87, in stream_packet_events
+Nov 05 08:41:20 minifw-monday-financial python[49904]:     raise RuntimeError(f"Packet metadata sensor stopped: exit={decoder.wait()}")
+Nov 05 08:41:20 minifw-monday-financial python[49904]: RuntimeError: Packet metadata sensor stopped: exit=0
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [*] DNS Collector reading from /var/tmp/minifw-monday-financial-20261105T014054Z/dns.log
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 8 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 14 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 21 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 27 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 34 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 41 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 47 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 54 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 60 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 67 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 74 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 81 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 87 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 94 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 100 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 107 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 113 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 120 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 127 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 133 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 140 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 147 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 154 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 160 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 167 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 173 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 180 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 187 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 194 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 200 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 207 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 214 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 220 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 227 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 233 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 240 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 05 08:41:21 minifw-monday-financial systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 08:41:21 minifw-monday-financial systemd[1]: minifw-ai.service: Consumed 7.430s CPU time.
+Nov 05 08:41:23 minifw-monday-financial systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 08:41:24 minifw-monday-financial python[50247]: 2026-11-05 08:41:24,738 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Nov 05 08:41:24 minifw-monday-financial python[50247]: 2026-11-05 08:41:24,741 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Nov 05 08:41:24 minifw-monday-financial python[50247]: 2026-11-05 08:41:24,742 - INFO - [STATE] Restored state from /opt/minifw_ai/logs/deployment_state.json: BASELINE_PROTECTION
+Nov 05 08:41:24 minifw-monday-financial python[50247]: 2026-11-05 08:41:24,742 - INFO - [STATE] Initial protection state: BASELINE_PROTECTION
+Nov 05 08:41:24 minifw-monday-financial python[50247]: 2026-11-05 08:41:24,750 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_financial: sector=finance
+Nov 05 08:41:24 minifw-monday-financial python[50247]: 2026-11-05 08:41:24,750 - INFO - [SECTOR_LOCK] Loaded config for finance: ['description', 'block_tor', 'block_anonymizers', 'strict_tls', 'minimum_tls_version', 'pci_compliance_mode', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_retention_days']
+Nov 05 08:41:24 minifw-monday-financial python[50247]: 2026-11-05 08:41:24,750 - INFO - [SECTOR_LOCK] Device sector: finance (LOCKED)
+Nov 05 08:41:24 minifw-monday-financial python[50247]: 2026-11-05 08:41:24,750 - INFO - [SECTOR_LOCK] Config: Finance: metadata policies; TLS version control requires packet metadata; no compliance certification.
+Nov 05 08:41:24 minifw-monday-financial python[50247]: 2026-11-05 08:41:24,751 - INFO - [FEEDS] Loaded 10 patterns from financial_fraud.txt
+Nov 05 08:41:24 minifw-monday-financial python[50247]: 2026-11-05 08:41:24,751 - INFO - [FEEDS] Loaded 9 patterns from crypto_scams.txt
+Nov 05 08:41:24 minifw-monday-financial python[50247]: 2026-11-05 08:41:24,751 - INFO - [SECTOR_LOCK] Loaded 19 sector-specific feed patterns
+Nov 05 08:41:24 minifw-monday-financial python[50247]: 2026-11-05 08:41:24,751 - INFO - [FEEDS] Loaded 0 Tor exit node IPs from /opt/minifw_ai/config/feeds/tor_exit_nodes.txt
+Nov 05 08:41:24 minifw-monday-financial python[50247]: 2026-11-05 08:41:24,751 - INFO - [SECTOR_LOCK] Tor/anonymizer blocking enabled: loaded 0 exit IPs
+Nov 05 08:41:24 minifw-monday-financial python[50247]: 2026-11-05 08:41:24,801 - WARNING - [PROTOCOL] TLS version/WireGuard metadata unavailable without MINIFW_PACKET_INTERFACE
+Nov 05 08:41:24 minifw-monday-financial python[50247]: 2026-11-05 08:41:24,801 - WARNING - [TELEMETRY] Conntrack provides counter deltas, not packet timing/size distributions; 24-feature MLP disabled for these observations
+Nov 05 08:41:24 minifw-monday-financial python[50247]: 2026-11-05 08:41:24,801 - WARNING - [DNS] Disabled; flow decisions continue independently
+Nov 05 08:41:29 minifw-monday-financial python[50247]: 2026-11-05 08:41:29,855 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 08:41:32 minifw-monday-financial python[50247]: 2026-11-05 08:41:32,107 - INFO - Caught SIGTERM, shutting down.
+Nov 05 08:41:32 minifw-monday-financial systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 05 08:41:32 minifw-monday-financial systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 05 08:41:32 minifw-monday-financial systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 08:41:32 minifw-monday-financial systemd[1]: minifw-ai.service: Consumed 1.874s CPU time.
+$ nft -a list table inet minifw
+table inet minifw { # handle 64
+	set minifw_block_v4 { # handle 1
+		type ipv4_addr
+		timeout 1h
+		elements = { 10.10.0.20 timeout 15s expires 12s80ms }
+	}
+
+	chain forward { # handle 2
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 259 bytes 15540 comment "MiniFW-AI-Conntrack" # handle 3
+		ip saddr @minifw_block_v4 counter packets 62 bytes 3240 drop comment "MiniFW-AI-Blocklist" # handle 4
+	}
+}
+$ systemctl daemon-reload
+$ ip netns delete mf-client
+$ ip netns delete mf-server
+$ ip link delete mfcg
+$ ip link delete mfsg
+EVIDENCE_DIRECTORY /var/tmp/minifw-monday-financial-20261105T014054Z

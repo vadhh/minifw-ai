@@ -1,0 +1,741 @@
+$ dpkg-query -W minifw-ai
+minifw-ai	2.2.10-education
+$ ip -j netns list
+[]
+$ systemctl stop minifw-ai minifw-ai-web dnsmasq
+$ nft -a list table inet minifw
+table inet minifw { # handle 41
+	set minifw_block_v4 { # handle 1
+		type ipv4_addr
+		timeout 1h
+		elements = { 10.10.0.20 timeout 15s expires 10s564ms }
+	}
+
+	chain forward { # handle 2
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 73 bytes 4295 comment "MiniFW-AI-Conntrack" # handle 3
+		ip saddr @minifw_block_v4 counter packets 74 bytes 3960 drop comment "MiniFW-AI-Blocklist" # handle 4
+	}
+}
+$ nft delete table inet minifw
+$ modprobe nf_conntrack
+$ sysctl -w net.ipv4.ip_forward=1 net.ipv6.conf.all.forwarding=1 net.netfilter.nf_conntrack_acct=0
+net.ipv4.ip_forward = 1
+net.ipv6.conf.all.forwarding = 1
+net.netfilter.nf_conntrack_acct = 0
+$ ip netns add mf-client
+$ ip -n mf-client link set lo up
+$ ip netns add mf-server
+$ ip -n mf-server link set lo up
+$ ip link add mfcg type veth peer name mfc0
+$ ip link set mfc0 netns mf-client
+$ ip addr add 10.10.0.1/24 dev mfcg
+$ ip addr add fd42:10::1/64 dev mfcg
+$ ip link set mfcg up
+$ ip -n mf-client addr add 10.10.0.20/24 dev mfc0
+$ ip -n mf-client addr add fd42:10::20/64 dev mfc0
+$ ip -n mf-client link set mfc0 up
+$ ip -n mf-client route add default via 10.10.0.1
+$ ip -n mf-client -6 route add default via fd42:10::1
+$ ip link add mfsg type veth peer name mfs0
+$ ip link set mfs0 netns mf-server
+$ ip addr add 198.18.0.1/24 dev mfsg
+$ ip addr add fd42:18::1/64 dev mfsg
+$ ip link set mfsg up
+$ ip -n mf-server addr add 198.18.0.2/24 dev mfs0
+$ ip -n mf-server addr add fd42:18::2/64 dev mfs0
+$ ip -n mf-server link set mfs0 up
+$ ip -n mf-server route add default via 198.18.0.1
+$ ip -n mf-server -6 route add default via fd42:18::1
+$ ip -br address
+lo               UNKNOWN        127.0.0.1/8 ::1/128 
+ens3             UP             10.231.0.15/24 metric 100 fec0::5054:ff:fe22:1001/64 fe80::5054:ff:fe22:1001/64 
+mfcg@if111       UP             10.10.0.1/24 fd42:10::1/64 fe80::8494:6dff:fe33:f74/64 
+mfsg@if113       UP             198.18.0.1/24 fd42:18::1/64 fe80::f060:cbff:fed4:659/64
+$ ip -n mf-client route
+default via 10.10.0.1 dev mfc0 
+10.10.0.0/24 dev mfc0 proto kernel scope link src 10.10.0.20
+$ ip -n mf-server route
+default via 198.18.0.1 dev mfs0 
+198.18.0.0/24 dev mfs0 proto kernel scope link src 198.18.0.2
+$ openssl req -x509 -newkey rsa:2048 -nodes -days 1 -subj /CN=lab.test -keyout /var/tmp/minifw-monday-education-20261102T093919Z/server.key -out /var/tmp/minifw-monday-education-20261102T093919Z/server.crt
+....+.......+..+...............+......+.+......+...+.........+..+.+.....+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*...+......+.+............+..+.+.........+...+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*......+......+..........+.....+....+...+..+......+..........+..+...+....+.....................+.........+...+..+...+....+........+...+....+........+..........+.....................+..+...............+...+.+......+...+..+.........+...+.......+...+..+.........+.......+..............+.+..+......+.......+........+......+.+..+.......+.....+.+............+..+.............+......+.....+....+...........+.+..............+.+.....+.+..+.+..+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+..+....+..+..................+...+.......+......+.....+.+.........+......+.....+...+.............+..+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*....+..+.+.....+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*.+.+...........+....+......+........+..........+..+.+............+...+..+...............+.+......+....................+...+......+......+.+..+......+....+........+....+.....+....+...........+......+.......+..+......+...+.......+..+.+.....+.+......+........+.........+.+....................+.+..........................+.......+.....+......+....+.....+...+...+................+......+.........+.....+...+...+...+.+.....+.+.....+............+.......+........+......+....+...+...+..+.........+..........+.....+......+............+......+............+.........+...+..........+...............+.....+.+.....+.......+..+.......+......+.....+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+-----
+$ systemctl stop minifw-ai
+$ nft flush set inet minifw minifw_block_v4
+Error: No such file or directory
+flush set inet minifw minifw_block_v4
+               ^^^^^^
+$ conntrack -D -s 10.10.0.20
+tcp      6 291 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=39680 dport=20000 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20000 dport=39680 packets=0 bytes=0 mark=0 use=1
+tcp      6 291 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=41130 dport=20012 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20012 dport=41130 packets=0 bytes=0 mark=0 use=1
+tcp      6 291 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=59148 dport=20013 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20013 dport=59148 packets=0 bytes=0 mark=0 use=1
+tcp      6 291 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=42394 dport=20014 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20014 dport=42394 packets=0 bytes=0 mark=0 use=1
+tcp      6 291 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=51886 dport=20006 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20006 dport=51886 packets=0 bytes=0 mark=0 use=1
+tcp      6 291 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=37186 dport=20005 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20005 dport=37186 packets=0 bytes=0 mark=0 use=1
+tcp      6 291 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=50782 dport=20010 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20010 dport=50782 packets=0 bytes=0 mark=0 use=1
+tcp      6 291 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=36498 dport=20004 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20004 dport=36498 packets=0 bytes=0 mark=0 use=1
+tcp      6 291 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=56394 dport=20007 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20007 dport=56394 packets=0 bytes=0 mark=0 use=1
+tcp      6 291 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=57872 dport=20011 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20011 dport=57872 packets=0 bytes=0 mark=0 use=1
+tcp      6 291 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=60826 dport=20002 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20002 dport=60826 packets=0 bytes=0 mark=0 use=1
+tcp      6 291 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=36440 dport=20003 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20003 dport=36440 packets=0 bytes=0 mark=0 use=1
+tcp      6 291 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=55424 dport=20001 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20001 dport=55424 packets=0 bytes=0 mark=0 use=1
+tcp      6 291 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=39010 dport=20008 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20008 dport=39010 packets=0 bytes=0 mark=0 use=1
+tcp      6 291 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=36002 dport=20009 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20009 dport=36002 packets=0 bytes=0 mark=0 use=1
+conntrack v1.4.7 (conntrack-tools): 15 flow entries have been deleted.
+$ systemctl daemon-reload
+$ systemctl start minifw-ai
+$ systemctl show minifw-ai -p ActiveState -p MainPID -p ExecMainStatus
+MainPID=33461
+ExecMainStatus=0
+ActiveState=active
+$ ip netns exec mf-client /usr/bin/python3 /var/tmp/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+$ chown lab:lab /var/tmp/minifw-monday-education-20261102T093919Z/browser
+$ ip netns exec mf-client runuser -u lab -- /opt/minifw_ai/venv/bin/python /var/tmp/lab_extended_acceptance.py browser /var/tmp/minifw-monday-education-20261102T093919Z/browser
+{"browser": "156.0.8078.73", "login_payment_transfer_download_staff": "passed", "video": {"time": 2, "duration": 2, "width": 160, "height": 90, "frames": 20, "error": null}, "search": "passed", "scope": "fictional sandbox; self-signed destination certificate accepted only in this browser context"}
+VERIFIED {"test": "actual_browser_legitimate_workflows", "actual": {"browser": "156.0.8078.73", "login_payment_transfer_download_staff": "passed", "video": {"time": 2, "duration": 2, "width": 160, "height": 90, "frames": 20, "error": null}, "search": "passed", "scope": "fictional sandbox; self-signed destination certificate accepted only in this browser context"}, "time": "2026-11-02T09:39:34.916030+00:00"}
+$ ip netns exec mf-client /usr/bin/python3 /var/tmp/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+$ ip netns exec mf-client /usr/bin/python3 /var/tmp/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+$ ip netns exec mf-client /usr/bin/python3 /var/tmp/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+$ ip netns exec mf-client /usr/bin/python3 /var/tmp/lab_gateway_acceptance.py client tls 198.18.0.2 443 TLSv1_3
+{"tls": "TLSv1.3", "application_access": "allowed"}
+$ ip netns exec mf-client /usr/bin/python3 /var/tmp/lab_gateway_acceptance.py client tls 198.18.0.2 443 TLSv1_3
+{"tls": "TLSv1.3", "application_access": "allowed"}
+$ ip netns exec mf-client /usr/bin/python3 /var/tmp/lab_gateway_acceptance.py client tls 198.18.0.2 443 TLSv1_3
+{"tls": "TLSv1.3", "application_access": "allowed"}
+$ ip netns exec mf-client /usr/bin/python3 /var/tmp/lab_gateway_acceptance.py client http 198.18.0.2 443 /learning
+{"ok": true, "host": "198.18.0.2", "port": 443, "path": "/learning", "status": 200, "bytes": 188}
+$ ip netns exec mf-client /usr/bin/python3 /var/tmp/lab_gateway_acceptance.py client http 198.18.0.2 443 /learning
+{"ok": true, "host": "198.18.0.2", "port": 443, "path": "/learning", "status": 200, "bytes": 188}
+$ ip netns exec mf-client /usr/bin/python3 /var/tmp/lab_gateway_acceptance.py client http 198.18.0.2 443 /learning
+{"ok": true, "host": "198.18.0.2", "port": 443, "path": "/learning", "status": 200, "bytes": 188}
+VERIFIED {"test": "controlled_AI_quality", "actual": {"samples": 9, "false_positives": 6, "false_positive_fraction": 0.6666666666666666, "representative": false, "training_unchanged": true, "enforcement": "shadow_only; zero model score"}, "time": "2026-11-02T09:39:42.320358+00:00"}
+$ systemctl stop minifw-ai
+$ nft flush set inet minifw minifw_block_v4
+$ conntrack -D -s 10.10.0.20
+tcp      6 107 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50702 dport=443 packets=11 bytes=4038 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=50702 packets=9 bytes=16072 [ASSURED] mark=0 use=1
+tcp      6 105 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50506 dport=443 packets=8 bytes=3335 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=50506 packets=7 bytes=1147 [ASSURED] mark=0 use=1
+tcp      6 110 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=46066 dport=443 packets=8 bytes=3218 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=46066 packets=7 bytes=2515 [ASSURED] mark=0 use=1
+tcp      6 107 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50608 dport=443 packets=7 bytes=2636 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=50608 packets=4 bytes=457 [ASSURED] mark=0 use=1
+tcp      6 107 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50634 dport=443 packets=7 bytes=2572 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=50634 packets=4 bytes=457 [ASSURED] mark=0 use=1
+tcp      6 107 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50650 dport=443 packets=7 bytes=2668 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=50650 packets=4 bytes=457 [ASSURED] mark=0 use=1
+tcp      6 105 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50554 dport=443 packets=6 bytes=2584 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=50554 packets=5 bytes=509 [ASSURED] mark=0 use=1
+tcp      6 105 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50390 dport=443 packets=6 bytes=2219 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=50390 packets=4 bytes=1551 [ASSURED] mark=0 use=1
+tcp      6 105 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50432 dport=443 packets=9 bytes=3844 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=50432 packets=7 bytes=1130 [ASSURED] mark=0 use=1
+tcp      6 105 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50480 dport=443 packets=6 bytes=2584 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=50480 packets=5 bytes=509 [ASSURED] mark=0 use=1
+udp      17 18 src=10.10.0.20 dst=10.231.0.3 sport=41976 dport=53 packets=1 bytes=65 [UNREPLIED] src=10.231.0.3 dst=10.10.0.20 sport=53 dport=41976 packets=0 bytes=0 mark=0 use=1
+tcp      6 118 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=46110 dport=443 packets=8 bytes=1114 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=46110 packets=6 bytes=2560 [ASSURED] mark=0 use=1
+tcp      6 105 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50442 dport=443 packets=7 bytes=2636 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=50442 packets=4 bytes=457 [ASSURED] mark=0 use=1
+tcp      6 107 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50664 dport=443 packets=8 bytes=3333 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=50664 packets=7 bytes=1168 [ASSURED] mark=0 use=1
+udp      17 15 src=10.10.0.20 dst=10.231.0.3 sport=60453 dport=53 packets=1 bytes=67 [UNREPLIED] src=10.231.0.3 dst=10.10.0.20 sport=53 dport=60453 packets=0 bytes=0 mark=0 use=1
+udp      17 14 src=10.10.0.20 dst=10.231.0.3 sport=60285 dport=53 packets=1 bytes=67 [UNREPLIED] src=10.231.0.3 dst=10.10.0.20 sport=53 dport=60285 packets=0 bytes=0 mark=0 use=1
+tcp      6 112 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=46312 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=46312 packets=6 bytes=629 [ASSURED] mark=0 use=1
+udp      17 17 src=10.10.0.20 dst=10.231.0.3 sport=45659 dport=53 packets=2 bytes=134 [UNREPLIED] src=10.231.0.3 dst=10.10.0.20 sport=53 dport=45659 packets=0 bytes=0 mark=0 use=1
+udp      17 14 src=10.10.0.20 dst=10.231.0.3 sport=40957 dport=53 packets=1 bytes=67 [UNREPLIED] src=10.231.0.3 dst=10.10.0.20 sport=53 dport=40957 packets=0 bytes=0 mark=0 use=1
+tcp      6 107 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50684 dport=443 packets=8 bytes=3131 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=50684 packets=6 bytes=2560 [ASSURED] mark=0 use=1
+udp      17 19 src=10.10.0.20 dst=10.231.0.3 sport=59430 dport=53 packets=1 bytes=65 [UNREPLIED] src=10.231.0.3 dst=10.10.0.20 sport=53 dport=59430 packets=0 bytes=0 mark=0 use=1
+tcp      6 107 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50604 dport=443 packets=8 bytes=3349 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=50604 packets=7 bytes=1125 [ASSURED] mark=0 use=1
+tcp      6 105 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50576 dport=443 packets=7 bytes=2572 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=50576 packets=4 bytes=457 [ASSURED] mark=0 use=1
+tcp      6 105 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50530 dport=443 packets=6 bytes=2520 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=50530 packets=5 bytes=509 [ASSURED] mark=0 use=1
+tcp      6 105 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50542 dport=443 packets=8 bytes=3275 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=50542 packets=7 bytes=1152 [ASSURED] mark=0 use=1
+tcp      6 105 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50562 dport=443 packets=7 bytes=2572 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=50562 packets=4 bytes=457 [ASSURED] mark=0 use=1
+tcp      6 107 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50620 dport=443 packets=7 bytes=2604 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=50620 packets=4 bytes=457 [ASSURED] mark=0 use=1
+tcp      6 105 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50402 dport=443 packets=6 bytes=2313 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=50402 packets=5 bytes=1603 [ASSURED] mark=0 use=1
+tcp      6 107 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50644 dport=443 packets=8 bytes=3199 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=50644 packets=7 bytes=2569 [ASSURED] mark=0 use=1
+tcp      6 107 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50630 dport=443 packets=8 bytes=3301 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=50630 packets=7 bytes=1112 [ASSURED] mark=0 use=1
+tcp      6 103 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=40606 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=40606 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 105 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50518 dport=443 packets=6 bytes=2552 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=50518 packets=5 bytes=509 [ASSURED] mark=0 use=1
+tcp      6 110 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=46048 dport=443 packets=7 bytes=2604 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=46048 packets=4 bytes=457 [ASSURED] mark=0 use=1
+tcp      6 7 CLOSE src=10.10.0.20 dst=198.18.0.2 sport=46100 dport=443 packets=11 bytes=958 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=46100 packets=8 bytes=2622 [ASSURED] mark=0 use=1
+tcp      6 119 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41882 dport=443 packets=8 bytes=1114 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=41882 packets=6 bytes=2560 [ASSURED] mark=0 use=1
+tcp      6 105 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50524 dport=443 packets=8 bytes=3140 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=50524 packets=7 bytes=2491 [ASSURED] mark=0 use=1
+tcp      6 107 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50688 dport=443 packets=7 bytes=2636 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=50688 packets=4 bytes=457 [ASSURED] mark=0 use=1
+tcp      6 113 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=46320 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=46320 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 4 CLOSE src=10.10.0.20 dst=198.18.0.2 sport=46082 dport=443 packets=11 bytes=958 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=46082 packets=8 bytes=2622 [ASSURED] mark=0 use=1
+udp      17 15 src=10.10.0.20 dst=10.231.0.3 sport=54545 dport=53 packets=1 bytes=67 [UNREPLIED] src=10.231.0.3 dst=10.10.0.20 sport=53 dport=54545 packets=0 bytes=0 mark=0 use=1
+tcp      6 105 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50414 dport=443 packets=8 bytes=3161 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=50414 packets=7 bytes=2570 [ASSURED] mark=0 use=1
+tcp      6 107 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50618 dport=443 packets=8 bytes=3105 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=50618 packets=7 bytes=2573 [ASSURED] mark=0 use=1
+tcp      6 105 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50422 dport=443 packets=7 bytes=2572 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=50422 packets=4 bytes=457 [ASSURED] mark=0 use=1
+tcp      6 105 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50490 dport=443 packets=8 bytes=3004 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=50490 packets=7 bytes=2502 [ASSURED] mark=0 use=1
+udp      17 18 src=10.10.0.20 dst=10.231.0.3 sport=47140 dport=53 packets=1 bytes=65 [UNREPLIED] src=10.231.0.3 dst=10.10.0.20 sport=53 dport=47140 packets=0 bytes=0 mark=0 use=1
+udp      17 15 src=10.10.0.20 dst=10.231.0.3 sport=29632 dport=53 packets=1 bytes=67 [UNREPLIED] src=10.231.0.3 dst=10.10.0.20 sport=53 dport=29632 packets=0 bytes=0 mark=0 use=1
+udp      17 14 src=10.10.0.20 dst=10.231.0.3 sport=41704 dport=53 packets=1 bytes=67 [UNREPLIED] src=10.231.0.3 dst=10.10.0.20 sport=53 dport=41704 packets=0 bytes=0 mark=0 use=1
+tcp      6 6 CLOSE src=10.10.0.20 dst=198.18.0.2 sport=46090 dport=443 packets=11 bytes=958 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=46090 packets=8 bytes=2622 [ASSURED] mark=0 use=1
+tcp      6 107 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50592 dport=443 packets=7 bytes=2636 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=50592 packets=5 bytes=509 [ASSURED] mark=0 use=1
+tcp      6 112 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=46300 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=46300 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 110 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=46056 dport=443 packets=7 bytes=2397 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=46056 packets=4 bytes=1551 [ASSURED] mark=0 use=1
+tcp      6 105 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50458 dport=443 packets=8 bytes=3028 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=50458 packets=7 bytes=2480 [ASSURED] mark=0 use=1
+tcp      6 105 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50556 dport=443 packets=8 bytes=3146 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=50556 packets=7 bytes=2479 [ASSURED] mark=0 use=1
+tcp      6 105 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50584 dport=443 packets=8 bytes=3247 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=50584 packets=6 bytes=2480 [ASSURED] mark=0 use=1
+tcp      6 107 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50678 dport=443 packets=6 bytes=2616 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=50678 packets=5 bytes=509 [ASSURED] mark=0 use=1
+tcp      6 105 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50496 dport=443 packets=6 bytes=2552 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=50496 packets=5 bytes=509 [ASSURED] mark=0 use=1
+udp      17 19 src=10.10.0.20 dst=10.231.0.3 sport=53391 dport=53 packets=1 bytes=65 [UNREPLIED] src=10.231.0.3 dst=10.10.0.20 sport=53 dport=53391 packets=0 bytes=0 mark=0 use=1
+tcp      6 118 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=46116 dport=443 packets=8 bytes=1114 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=46116 packets=6 bytes=2560 [ASSURED] mark=0 use=1
+udp      17 18 src=10.10.0.20 dst=10.231.0.3 sport=54699 dport=53 packets=1 bytes=65 [UNREPLIED] src=10.231.0.3 dst=10.10.0.20 sport=53 dport=54699 packets=0 bytes=0 mark=0 use=1
+tcp      6 107 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50680 dport=443 packets=6 bytes=2313 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=50680 packets=5 bytes=1603 [ASSURED] mark=0 use=1
+tcp      6 105 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50464 dport=443 packets=7 bytes=2572 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=50464 packets=5 bytes=509 [ASSURED] mark=0 use=1
+tcp      6 105 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=50474 dport=443 packets=8 bytes=3412 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=50474 packets=7 bytes=1222 [ASSURED] mark=0 use=1
+udp      17 19 src=10.10.0.20 dst=10.231.0.3 sport=64534 dport=53 packets=1 bytes=65 [UNREPLIED] src=10.231.0.3 dst=10.10.0.20 sport=53 dport=64534 packets=0 bytes=0 mark=0 use=1
+conntrack v1.4.7 (conntrack-tools): 63 flow entries have been deleted.
+$ systemctl daemon-reload
+$ systemctl start minifw-ai
+$ systemctl show minifw-ai -p ActiveState -p MainPID -p ExecMainStatus
+MainPID=33730
+ExecMainStatus=0
+ActiveState=active
+$ ip netns exec mf-client /usr/bin/python3 /var/tmp/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+$ ip netns exec mf-client /usr/bin/python3 /var/tmp/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+$ openvpn --genkey secret /var/tmp/minifw-monday-education-20261102T093919Z/openvpn.key
+$ ip netns exec mf-client ping -I tun0 -c 2 -W 2 10.67.0.2
+PING 10.67.0.2 (10.67.0.2) from 10.67.0.1 tun0: 56(84) bytes of data.
+64 bytes from 10.67.0.2: icmp_seq=1 ttl=64 time=0.901 ms
+64 bytes from 10.67.0.2: icmp_seq=2 ttl=64 time=0.783 ms
+
+--- 10.67.0.2 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1001ms
+rtt min/avg/max/mdev = 0.783/0.842/0.901/0.059 ms
+$ nft -a list table inet minifw
+table inet minifw { # handle 42
+	set minifw_block_v4 { # handle 1
+		type ipv4_addr
+		timeout 1h
+	}
+
+	chain forward { # handle 2
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 69 bytes 4402 comment "MiniFW-AI-Conntrack" # handle 3
+		ip saddr @minifw_block_v4 counter packets 0 bytes 0 drop comment "MiniFW-AI-Blocklist" # handle 4
+	}
+}
+VERIFIED {"test": "actual_OpenVPN_coverage", "actual": {"result": "allowed", "detected": false, "fixture": "deprecated static-key AES-256-CBC tunnel carrying inner ping", "limitation": "WireGuard recognition does not cover OpenVPN; no generic encrypted tunnel claim"}, "time": "2026-11-02T09:39:49.779623+00:00"}
+$ systemctl stop minifw-ai
+$ nft flush set inet minifw minifw_block_v4
+$ conntrack -D -s 10.10.0.20
+udp      17 119 src=10.10.0.20 dst=198.18.0.2 sport=1194 dport=1194 packets=5 bytes=700 src=198.18.0.2 dst=10.10.0.20 sport=1194 dport=1194 packets=5 bytes=668 [ASSURED] mark=0 use=1
+tcp      6 116 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=51378 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=51378 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 115 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=51370 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=51370 packets=6 bytes=629 [ASSURED] mark=0 use=1
+conntrack v1.4.7 (conntrack-tools): 3 flow entries have been deleted.
+$ systemctl daemon-reload
+$ systemctl start minifw-ai
+$ systemctl show minifw-ai -p ActiveState -p MainPID -p ExecMainStatus
+MainPID=33800
+ExecMainStatus=0
+ActiveState=active
+$ ip netns exec mf-client /usr/bin/python3 /var/tmp/lab_gateway_acceptance.py client dns 198.18.0.2 denied.lab.test
+{"ok": true, "resolver": "198.18.0.2", "domain": "denied.lab.test", "answer": "198.18.0.2"}
+VERIFIED {"test": "extended_bypass_alternate_DNS", "actual": {"result": "allowed", "coverage": "outside current name/IPv4 policy"}, "time": "2026-11-02T09:39:52.560161+00:00"}
+$ ip netns exec mf-client /usr/bin/python3 /var/tmp/lab_gateway_acceptance.py client http 198.18.0.2 443 /dns-query denied.lab.test
+{"ok": true, "host": "198.18.0.2", "port": 443, "path": "/dns-query", "status": 200, "bytes": 49}
+VERIFIED {"test": "extended_bypass_DoH", "actual": {"result": "allowed", "coverage": "outside current name/IPv4 policy"}, "time": "2026-11-02T09:39:52.668034+00:00"}
+$ ip netns exec mf-client /usr/bin/python3 /var/tmp/lab_gateway_acceptance.py client dot 198.18.0.2 denied.lab.test
+{"ok": true, "transport": "DoT", "tls": "TLSv1.3"}
+VERIFIED {"test": "extended_bypass_DoT", "actual": {"result": "allowed", "coverage": "outside current name/IPv4 policy"}, "time": "2026-11-02T09:39:52.791680+00:00"}
+$ ip netns exec mf-client /usr/bin/python3 /var/tmp/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+VERIFIED {"test": "extended_bypass_direct_IP", "actual": {"result": "allowed", "coverage": "outside current name/IPv4 policy"}, "time": "2026-11-02T09:39:52.888975+00:00"}
+$ ip netns exec mf-client /usr/bin/python3 /var/tmp/lab_gateway_acceptance.py client http fd42:18::2 8080 /
+{"ok": true, "host": "fd42:18::2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+VERIFIED {"test": "extended_bypass_IPv6", "actual": {"result": "allowed", "coverage": "outside current name/IPv4 policy"}, "time": "2026-11-02T09:39:52.985818+00:00"}
+$ systemctl stop minifw-ai
+$ nft flush set inet minifw minifw_block_v4
+$ conntrack -D -s 10.10.0.20
+udp      17 28 src=10.10.0.20 dst=198.18.0.2 sport=56018 dport=53 packets=1 bytes=61 src=198.18.0.2 dst=10.10.0.20 sport=53 dport=56018 packets=1 bytes=77 mark=0 use=1
+tcp      6 119 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=45930 dport=443 packets=9 bytes=1243 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=45930 packets=6 bytes=2434 [ASSURED] mark=0 use=1
+tcp      6 119 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=59918 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=59918 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 119 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=49152 dport=853 packets=8 bytes=1078 src=198.18.0.2 dst=10.10.0.20 sport=853 dport=49152 packets=7 bytes=2290 [ASSURED] mark=0 use=1
+conntrack v1.4.7 (conntrack-tools): 4 flow entries have been deleted.
+$ systemctl daemon-reload
+$ systemctl start minifw-ai
+$ systemctl show minifw-ai -p ActiveState -p MainPID -p ExecMainStatus
+MainPID=33863
+ExecMainStatus=0
+ActiveState=active
+$ env PYTHONPATH=/opt/minifw_ai/app /opt/minifw_ai/venv/bin/python -m minifw_ai.egress_guard --interface mfcg --block-ipv6 --doh-list /var/tmp/minifw-monday-education-20261102T093919Z/doh-resolvers-lab.txt
+$ ip netns exec mf-client /usr/bin/python3 /var/tmp/lab_gateway_acceptance.py client dns 198.18.0.2 4chan.org
+{"ok": true, "resolver": "198.18.0.2", "domain": "4chan.org", "answer": "198.18.0.2"}
+$ nft -a list table inet minifw
+table inet minifw { # handle 42
+	set minifw_block_v4 { # handle 1
+		type ipv4_addr
+		timeout 1h
+		elements = { 10.10.0.20 timeout 15s expires 14s828ms }
+	}
+
+	chain forward { # handle 2
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 74 bytes 4723 comment "MiniFW-AI-Conntrack" # handle 3
+		ip saddr @minifw_block_v4 counter packets 0 bytes 0 drop comment "MiniFW-AI-Blocklist" # handle 4
+	}
+}
+$ ip netns exec mf-client /usr/bin/python3 /var/tmp/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": false, "error": "TimeoutError"}
+VERIFIED {"test": "guarded_alternate_DNS", "actual": {"result": "redirected_and_blocked", "client": "10.10.0.20", "requested_resolver": "198.18.0.2", "actual_resolver": "gateway", "forwarded": "blocked"}, "time": "2026-11-02T09:39:58.531451+00:00"}
+$ nft delete element inet minifw minifw_block_v4 '{' 10.10.0.20 '}'
+$ ip netns exec mf-client /usr/bin/python3 /var/tmp/lab_gateway_acceptance.py client dot 198.18.0.2 approved.test
+{"ok": false, "error": "TimeoutError"}
+$ ip netns exec mf-client /usr/bin/python3 /var/tmp/lab_gateway_acceptance.py client http fd42:18::2 8080 /
+{"ok": false, "error": "TimeoutError"}
+$ ip netns exec mf-client /usr/bin/python3 /var/tmp/lab_gateway_acceptance.py client http 198.18.0.2 443 /dns-query denied.lab.test
+{"ok": false, "error": "TimeoutError"}
+$ ip netns exec mf-client /usr/bin/python3 /var/tmp/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+VERIFIED {"test": "guarded_bypass_scope", "actual": {"DoT": "blocked", "IPv6": "blocked by explicit full IPv6 forwarding denial", "DoH": "blocked to listed resolver address on 443; unlisted/self-hosted DoH not identified", "direct_IP": "allowed (non-443 port to the same address still allowed)", "UDP_853": "configured; no DoQ protocol acceptance", "limitation": "No generic HTTPS DoH identification, IPv6 inspection or all-tunnel claim"}, "time": "2026-11-02T09:40:05.072712+00:00"}
+$ nft -a list table inet minifw_egress
+table inet minifw_egress { # handle 43
+	chain dns { # handle 1
+		type nat hook prerouting priority dstnat; policy accept;
+		iifname "mfcg" meta nfproto ipv4 meta l4proto { tcp, udp } th dport 53 counter packets 1 bytes 55 redirect to :53 # handle 4
+	}
+
+	chain forward { # handle 2
+		type filter hook forward priority filter - 5; policy accept;
+		iifname "mfcg" tcp dport 853 counter packets 2 bytes 120 drop # handle 5
+		iifname "mfcg" udp dport 853 counter packets 0 bytes 0 drop # handle 6
+		iifname "mfcg" ip daddr { 1.0.0.1, 1.0.0.2, 1.0.0.3, 1.1.1.1, 1.1.1.2, 1.1.1.3, 8.8.4.4, 8.8.8.8, 9.9.9.9, 9.9.9.11, 94.140.14.14, 94.140.15.15, 149.112.112.11, 149.112.112.112, 185.228.168.9, 185.228.168.168, 185.228.169.9, 185.228.169.168, 194.242.2.2, 198.18.0.2, 208.67.220.123, 208.67.220.220, 208.67.222.123, 208.67.222.222 } meta l4proto { tcp, udp } th dport 443 counter packets 2 bytes 120 drop # handle 9
+		iifname "mfcg" ip6 daddr { 2001:4860:4860::8844, 2001:4860:4860::8888, 2606:4700:4700::1001, 2606:4700:4700::1111, 2620:fe::9, 2620:fe::fe } meta l4proto { tcp, udp } th dport 443 counter packets 0 bytes 0 drop # handle 12
+		iifname "mfcg" meta nfproto ipv6 counter packets 2 bytes 160 drop # handle 13
+	}
+}
+$ env PYTHONPATH=/opt/minifw_ai/app /opt/minifw_ai/venv/bin/python -m minifw_ai.egress_guard --remove
+$ ip netns exec mf-client /usr/bin/python3 /var/tmp/lab_gateway_acceptance.py client http fd42:18::2 8080 /
+{"ok": true, "host": "fd42:18::2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+$ ip netns exec mf-client /usr/bin/python3 /var/tmp/lab_gateway_acceptance.py client dot 198.18.0.2 approved.test
+{"ok": true, "transport": "DoT", "tls": "TLSv1.3"}
+$ ip netns exec mf-client /usr/bin/python3 /var/tmp/lab_gateway_acceptance.py client http 198.18.0.2 443 /dns-query approved.test
+{"ok": true, "host": "198.18.0.2", "port": 443, "path": "/dns-query", "status": 200, "bytes": 47}
+VERIFIED {"test": "guard_removal_recovery", "actual": {"IPv6": "allowed", "DoT": "allowed", "DoH": "allowed"}, "time": "2026-11-02T09:40:05.521580+00:00"}
+$ systemctl stop minifw-ai
+$ nft flush set inet minifw minifw_block_v4
+$ conntrack -D -s 10.10.0.20
+tcp      6 119 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=58750 dport=853 packets=8 bytes=1076 src=198.18.0.2 dst=10.10.0.20 sport=853 dport=58750 packets=7 bytes=2288 [ASSURED] mark=0 use=1
+tcp      6 119 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=51192 dport=443 packets=9 bytes=1241 src=198.18.0.2 dst=10.10.0.20 sport=443 dport=51192 packets=6 bytes=2432 [ASSURED] mark=0 use=1
+tcp      6 118 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=37112 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=37112 packets=6 bytes=629 [ASSURED] mark=0 use=1
+udp      17 20 src=10.10.0.20 dst=198.18.0.2 sport=34216 dport=53 packets=1 bytes=55 src=10.10.0.1 dst=10.10.0.20 sport=53 dport=34216 packets=1 bytes=71 mark=0 use=1
+conntrack v1.4.7 (conntrack-tools): 4 flow entries have been deleted.
+$ systemctl daemon-reload
+$ systemctl start minifw-ai
+$ systemctl show minifw-ai -p ActiveState -p MainPID -p ExecMainStatus
+MainPID=33949
+ExecMainStatus=0
+ActiveState=active
+$ ip netns exec mf-client /usr/bin/python3 /var/tmp/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+$ ip netns exec mf-client /usr/bin/python3 /var/tmp/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+$ systemctl daemon-reload
+$ systemctl start minifw-ai-web
+$ ip netns exec mf-client /usr/bin/python3 /var/tmp/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+$ ip netns exec mf-client /usr/bin/python3 /var/tmp/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+$ ip netns exec mf-client /usr/bin/python3 /var/tmp/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+$ ip netns exec mf-client /usr/bin/python3 /var/tmp/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+$ ip netns exec mf-client /usr/bin/python3 /var/tmp/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+HEALTH_POLL 200 {"status": "ready", "heartbeat_age_seconds": 0.2870194850002008, "kernel_rule_present": true, "source_age_seconds": {"packet": 0.43761341699973855}, "coverage": "Progress and IPv4 rule presence only; quiet sources remain unverified; not traffic enforcement or AI quality acceptance"}
+VERIFIED {"test": "runtime_health_observed_ready", "actual": {"status": "ready", "heartbeat_age_seconds": 0.2870194850002008, "kernel_rule_present": true, "source_age_seconds": {"packet": 0.43761341699973855}, "coverage": "Progress and IPv4 rule presence only; quiet sources remain unverified; not traffic enforcement or AI quality acceptance"}, "time": "2026-11-02T09:40:13.251712+00:00"}
+$ systemctl stop minifw-ai
+VERIFIED {"test": "runtime_health_stopped_engine", "actual": {"http_status": 503, "status": "not_ready", "reason": "missing, stale or invalid engine evidence"}, "time": "2026-11-02T09:40:13.567181+00:00"}
+$ systemctl stop minifw-ai
+$ nft flush set inet minifw minifw_block_v4
+$ conntrack -D -s 10.10.0.20
+tcp      6 119 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=47990 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=47990 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 119 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=47982 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=47982 packets=5 bytes=577 [ASSURED] mark=0 use=1
+tcp      6 117 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=37140 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=37140 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 117 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=37146 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=37146 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 116 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=37116 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=37116 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 118 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=47976 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=47976 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 116 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=37124 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=37124 packets=6 bytes=629 [ASSURED] mark=0 use=1
+conntrack v1.4.7 (conntrack-tools): 7 flow entries have been deleted.
+$ systemctl daemon-reload
+$ systemctl start minifw-ai
+$ systemctl show minifw-ai -p ActiveState -p MainPID -p ExecMainStatus
+MainPID=34053
+ExecMainStatus=0
+ActiveState=active
+$ ip netns exec mf-client /usr/bin/python3 /var/tmp/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+$ ip netns exec mf-client /usr/bin/python3 /var/tmp/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+$ ip netns exec mf-client /usr/bin/python3 /var/tmp/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+HEALTH_POLL 200 {"status": "ready", "heartbeat_age_seconds": 0.48879488600141485, "kernel_rule_present": true, "source_age_seconds": {"packet": 0.6895611319996533}, "coverage": "Progress and IPv4 rule presence only; quiet sources remain unverified; not traffic enforcement or AI quality acceptance"}
+$ nft -a list table inet minifw
+table inet minifw { # handle 42
+	set minifw_block_v4 { # handle 1
+		type ipv4_addr
+		timeout 1h
+	}
+
+	chain forward { # handle 2
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 90 bytes 5703 comment "MiniFW-AI-Conntrack" # handle 3
+		ip saddr @minifw_block_v4 counter packets 2 bytes 120 drop comment "MiniFW-AI-Blocklist" # handle 4
+	}
+}
+$ nft flush chain inet minifw forward
+$ ip netns exec mf-client /usr/bin/python3 /var/tmp/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+$ nft -a list table inet minifw
+table inet minifw { # handle 42
+	set minifw_block_v4 { # handle 1
+		type ipv4_addr
+		timeout 1h
+	}
+
+	chain forward { # handle 2
+		type filter hook forward priority filter; policy accept;
+	}
+}
+VERIFIED {"test": "runtime_health_missing_rule", "actual": {"http_status": 503, "status": "not_ready", "heartbeat_age_seconds": 0.6230023810003331, "kernel_rule_present": false, "source_age_seconds": {"packet": 3.0851221260018065}, "coverage": "Progress and IPv4 rule presence only; quiet sources remain unverified; not traffic enforcement or AI quality acceptance"}, "time": "2026-11-02T09:40:20.857592+00:00"}
+$ systemctl stop minifw-ai
+$ nft flush set inet minifw minifw_block_v4
+$ conntrack -D -s 10.10.0.20
+tcp      6 115 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=47998 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=47998 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 116 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=48024 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=48024 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 116 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=48014 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=48014 packets=6 bytes=629 [ASSURED] mark=0 use=1
+conntrack v1.4.7 (conntrack-tools): 3 flow entries have been deleted.
+$ systemctl daemon-reload
+$ systemctl start minifw-ai
+$ systemctl show minifw-ai -p ActiveState -p MainPID -p ExecMainStatus
+MainPID=34124
+ExecMainStatus=0
+ActiveState=active
+$ ip netns exec mf-client /usr/bin/python3 /var/tmp/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+$ ip netns exec mf-client /usr/bin/python3 /var/tmp/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+$ ip netns exec mf-client /usr/bin/python3 /var/tmp/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+HEALTH_POLL 200 {"status": "ready", "heartbeat_age_seconds": 0.4617025879997527, "kernel_rule_present": true, "source_age_seconds": {"packet": 0.6124049499994726}, "coverage": "Progress and IPv4 rule presence only; quiet sources remain unverified; not traffic enforcement or AI quality acceptance"}
+VERIFIED {"test": "runtime_health_quiet_sensor", "actual": {"http_status": 503, "status": "not_ready", "heartbeat_age_seconds": 0.3038429290008935, "kernel_rule_present": true, "source_age_seconds": {"packet": 31.86267105800107}, "coverage": "Progress and IPv4 rule presence only; quiet sources remain unverified; not traffic enforcement or AI quality acceptance"}, "time": "2026-11-02T09:40:58.132591+00:00"}
+$ ip netns exec mf-client /usr/bin/python3 /var/tmp/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+HEALTH_POLL 503 {"status": "not_ready", "heartbeat_age_seconds": 0.4485550780009362, "kernel_rule_present": true, "source_age_seconds": {"packet": 32.00738320700111}, "coverage": "Progress and IPv4 rule presence only; quiet sources remain unverified; not traffic enforcement or AI quality acceptance"}
+$ ip netns exec mf-client /usr/bin/python3 /var/tmp/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+HEALTH_POLL 200 {"status": "ready", "heartbeat_age_seconds": 0.07946102699861513, "kernel_rule_present": true, "source_age_seconds": {"packet": 0.43152897199979634}, "coverage": "Progress and IPv4 rule presence only; quiet sources remain unverified; not traffic enforcement or AI quality acceptance"}
+$ bash /opt/minifw_ai/scripts/backup.sh
+BACKUP /opt/minifw_ai/backups/minifw-backup-20261102T094059197392Z.tar.gz SHA256 c8bc74684dd2c966795a991ae7c5d967ec0905408e218314fcb630df1fe3e525
+$ runuser -u lab -- test -r /opt/minifw_ai/backups/minifw-backup-20261102T094059197392Z.tar.gz
+$ bash /opt/minifw_ai/scripts/restore.sh /opt/minifw_ai/backups/minifw-backup-20261102T094059197392Z.tar.gz
+RESTORED 2.2.10-education ; dynamic nftables blocks and package code were not restored
+VERIFIED {"test": "private_backup_restore_rehearsal", "actual": {"file_and_database": "restored", "sqlite_integrity": "ok", "archive_mode": "0600", "directory_mode": "0700", "unprivileged_read": "denied", "dynamic_blocks": "not restored", "package_rollback": "not tested"}, "time": "2026-11-02T09:41:00.921966+00:00"}
+$ ip netns exec mf-client /usr/bin/python3 /var/tmp/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+$ ip netns exec mf-client /usr/bin/python3 /var/tmp/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+$ ip netns exec mf-client /usr/bin/python3 /var/tmp/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+$ ip netns exec mf-client /usr/bin/python3 /var/tmp/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+$ ip netns exec mf-client /usr/bin/python3 /var/tmp/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+HEALTH_POLL 200 {"status": "ready", "heartbeat_age_seconds": 0.04385152699978789, "kernel_rule_present": true, "source_age_seconds": {"packet": 0.44513784999981}, "coverage": "Progress and IPv4 rule presence only; quiet sources remain unverified; not traffic enforcement or AI quality acceptance"}
+$ systemctl show minifw-ai-web -p MainPID --value
+34265
+$ systemctl show minifw-ai-web -p User -p ProtectSystem -p ProtectHome -p PrivateTmp -p NoNewPrivileges -p CapabilityBoundingSet
+CapabilityBoundingSet=
+User=minifw-web
+PrivateTmp=yes
+ProtectHome=yes
+ProtectSystem=strict
+NoNewPrivileges=yes
+VERIFIED {"test": "web_service_restrictions", "actual": {"properties": "CapabilityBoundingSet=\nUser=minifw-web\nPrivateTmp=yes\nProtectHome=yes\nProtectSystem=strict\nNoNewPrivileges=yes\n", "no_new_privileges": true, "uid": "105", "capabilities": "none (CapBnd=0, CapEff=0)", "remaining": "Dashboard can still edit policy/feeds by design; engine remains root"}, "time": "2026-11-02T09:41:03.566556+00:00"}
+$ systemctl stop minifw-ai-web
+$ systemctl daemon-reload
+$ systemctl stop minifw-ai
+$ journalctl -u minifw-ai --no-pager --since '2026-11-02 09:39:19 UTC'
+Nov 02 16:39:19 minifw-monday-education python[33291]: [!] Warning: DNS log file not found at /var/tmp/minifw-monday-education-20261102T093818Z/dns.log.
+Nov 02 16:39:19 minifw-monday-education python[33291]: [BASELINE_PROTECTION] Service will continue monitoring for file creation...
+Nov 02 16:39:19 minifw-monday-education python[33291]: [BASELINE_PROTECTION] DNS telemetry unavailable; flow decisions continue independently
+Nov 02 16:39:19 minifw-monday-education systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 02 16:39:19 minifw-monday-education systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 02 16:39:19 minifw-monday-education systemd[1]: minifw-ai.service: Consumed 1.695s CPU time.
+Nov 02 16:39:22 minifw-monday-education systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 02 16:39:23 minifw-monday-education python[33461]: 2026-11-02 16:39:23,866 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Nov 02 16:39:23 minifw-monday-education python[33461]: 2026-11-02 16:39:23,870 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Nov 02 16:39:23 minifw-monday-education python[33461]: 2026-11-02 16:39:23,871 - INFO - [STATE] Initial protection state: AI_ENHANCED_PROTECTION
+Nov 02 16:39:23 minifw-monday-education python[33461]: 2026-11-02 16:39:23,877 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_school: sector=education
+Nov 02 16:39:23 minifw-monday-education python[33461]: 2026-11-02 16:39:23,878 - INFO - [SECTOR_LOCK] Loaded config for education: ['description', 'force_safesearch', 'safesearch_domains', 'block_vpns', 'block_proxies', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_student_activity']
+Nov 02 16:39:23 minifw-monday-education python[33461]: 2026-11-02 16:39:23,878 - INFO - [SECTOR_LOCK] Device sector: education (LOCKED)
+Nov 02 16:39:23 minifw-monday-education python[33461]: 2026-11-02 16:39:23,878 - INFO - [SECTOR_LOCK] Config: Education: domain policies; restricted DNS configuration and optional WireGuard metadata.
+Nov 02 16:39:23 minifw-monday-education python[33461]: 2026-11-02 16:39:23,878 - INFO - [FEEDS] Loaded 14 patterns from school_blacklist.txt
+Nov 02 16:39:23 minifw-monday-education python[33461]: 2026-11-02 16:39:23,879 - INFO - [SECTOR_LOCK] Loaded 14 sector-specific feed patterns
+Nov 02 16:39:23 minifw-monday-education python[33461]: 2026-11-02 16:39:23,879 - INFO - [SECTOR_LOCK] Search-domain allowlist: 8 patterns; restricted search requires the generated dnsmasq overrides
+Nov 02 16:39:23 minifw-monday-education python[33461]: 2026-11-02 16:39:23,879 - INFO - [SECTOR_LOCK] VPN/proxy provider domain matching enabled; optional packet metadata detects WireGuard patterns
+Nov 02 16:39:23 minifw-monday-education python[33461]: 2026-11-02 16:39:23,879 - INFO - Loading MLP model from: /opt/minifw_ai/models/mlp_packet14.pkl
+Nov 02 16:39:23 minifw-monday-education python[33461]: 2026-11-02 16:39:23,880 - INFO - Model trained on: unknown
+Nov 02 16:39:23 minifw-monday-education python[33461]: 2026-11-02 16:39:23,880 - INFO - Training samples: 2000
+Nov 02 16:39:23 minifw-monday-education python[33461]: 2026-11-02 16:39:23,880 - INFO - Training-data accuracy: unknown; provenance: synthetic (generate_pretrained_model.py; first 14 measured packet features)
+Nov 02 16:39:23 minifw-monday-education python[33461]: 2026-11-02 16:39:23,880 - INFO - ✓ MLP model loaded successfully
+Nov 02 16:39:23 minifw-monday-education python[33461]: 2026-11-02 16:39:23,880 - INFO - [MLP] Loaded model from: /opt/minifw_ai/models/mlp_packet14.pkl
+Nov 02 16:39:23 minifw-monday-education python[33461]: 2026-11-02 16:39:23,881 - INFO - [MLP] Threshold: 0.5
+Nov 02 16:39:23 minifw-monday-education python[33461]: 2026-11-02 16:39:23,881 - INFO - Compiling YARA rules from: /opt/minifw_ai/yara_rules
+Nov 02 16:39:23 minifw-monday-education python[33461]: 2026-11-02 16:39:23,891 - INFO - ✓ Compiled 6 YARA rule namespaces
+Nov 02 16:39:23 minifw-monday-education python[33461]: 2026-11-02 16:39:23,891 - INFO - [YARA] Loaded rules from: /opt/minifw_ai/yara_rules
+Nov 02 16:39:23 minifw-monday-education python[33461]: 2026-11-02 16:39:23,892 - INFO - [YARA] Rules loaded: True
+Nov 02 16:39:23 minifw-monday-education python[33461]: 2026-11-02 16:39:23,921 - INFO - [TELEMETRY] Packet metadata on mfcg; packet14 model required; no TLS decryption
+Nov 02 16:39:23 minifw-monday-education python[33461]: 2026-11-02 16:39:23,921 - WARNING - [DNS] Disabled; flow decisions continue independently
+Nov 02 16:39:23 minifw-monday-education python[33476]: Capturing on 'mfcg'
+Nov 02 16:39:23 minifw-monday-education python[33476]: File: -
+Nov 02 16:39:42 minifw-monday-education python[33476]: [353B blob data]
+Nov 02 16:39:42 minifw-monday-education python[33476]: Packets received/dropped on interface 'mfcg': 682/0 (pcap:0/dumpcap:0/flushed:0/ps_ifdrop:0) (100.0%)
+Nov 02 16:39:42 minifw-monday-education systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 02 16:39:42 minifw-monday-education python[33461]: 2026-11-02 16:39:42,333 - INFO - Caught SIGTERM, shutting down.
+Nov 02 16:39:42 minifw-monday-education python[33461]: 2026-11-02 16:39:42,392 - ERROR - [packet] Collector failed; retrying independently
+Nov 02 16:39:42 minifw-monday-education python[33461]: Traceback (most recent call last):
+Nov 02 16:39:42 minifw-monday-education python[33461]:   File "/opt/minifw_ai/app/minifw_ai/collector_runtime.py", line 16, in collect
+Nov 02 16:39:42 minifw-monday-education python[33461]:     for event in factory():
+Nov 02 16:39:42 minifw-monday-education python[33461]:   File "/opt/minifw_ai/app/minifw_ai/collector_packets.py", line 87, in stream_packet_events
+Nov 02 16:39:42 minifw-monday-education python[33461]:     raise RuntimeError(f"Packet metadata sensor stopped: exit={decoder.wait()}")
+Nov 02 16:39:42 minifw-monday-education python[33461]: RuntimeError: Packet metadata sensor stopped: exit=0
+Nov 02 16:39:42 minifw-monday-education python[33461]: [FlowCollector] Exported 15 flows, cleaned 0 old flows
+Nov 02 16:39:42 minifw-monday-education python[33461]: [FlowCollector] Exported 23 flows, cleaned 0 old flows
+Nov 02 16:39:42 minifw-monday-education python[33461]: [FlowCollector] Exported 30 flows, cleaned 0 old flows
+Nov 02 16:39:42 minifw-monday-education python[33461]: [FlowCollector] Exported 39 flows, cleaned 0 old flows
+Nov 02 16:39:42 minifw-monday-education python[33461]: [FlowCollector] Exported 46 flows, cleaned 0 old flows
+Nov 02 16:39:42 minifw-monday-education python[33461]: [FlowCollector] Exported 60 flows, cleaned 0 old flows
+Nov 02 16:39:42 minifw-monday-education systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 02 16:39:42 minifw-monday-education systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 02 16:39:42 minifw-monday-education systemd[1]: minifw-ai.service: Consumed 3.761s CPU time.
+Nov 02 16:39:43 minifw-monday-education systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 02 16:39:44 minifw-monday-education python[33730]: 2026-11-02 16:39:44,274 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Nov 02 16:39:44 minifw-monday-education python[33730]: 2026-11-02 16:39:44,277 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Nov 02 16:39:44 minifw-monday-education python[33730]: 2026-11-02 16:39:44,278 - INFO - [STATE] Initial protection state: BASELINE_PROTECTION
+Nov 02 16:39:44 minifw-monday-education python[33730]: 2026-11-02 16:39:44,284 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_school: sector=education
+Nov 02 16:39:44 minifw-monday-education python[33730]: 2026-11-02 16:39:44,285 - INFO - [SECTOR_LOCK] Loaded config for education: ['description', 'force_safesearch', 'safesearch_domains', 'block_vpns', 'block_proxies', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_student_activity']
+Nov 02 16:39:44 minifw-monday-education python[33730]: 2026-11-02 16:39:44,285 - INFO - [SECTOR_LOCK] Device sector: education (LOCKED)
+Nov 02 16:39:44 minifw-monday-education python[33730]: 2026-11-02 16:39:44,285 - INFO - [SECTOR_LOCK] Config: Education: domain policies; restricted DNS configuration and optional WireGuard metadata.
+Nov 02 16:39:44 minifw-monday-education python[33730]: 2026-11-02 16:39:44,285 - INFO - [FEEDS] Loaded 14 patterns from school_blacklist.txt
+Nov 02 16:39:44 minifw-monday-education python[33730]: 2026-11-02 16:39:44,285 - INFO - [SECTOR_LOCK] Loaded 14 sector-specific feed patterns
+Nov 02 16:39:44 minifw-monday-education python[33730]: 2026-11-02 16:39:44,285 - INFO - [SECTOR_LOCK] Search-domain allowlist: 8 patterns; restricted search requires the generated dnsmasq overrides
+Nov 02 16:39:44 minifw-monday-education python[33730]: 2026-11-02 16:39:44,285 - INFO - [SECTOR_LOCK] VPN/proxy provider domain matching enabled; optional packet metadata detects WireGuard patterns
+Nov 02 16:39:44 minifw-monday-education python[33730]: 2026-11-02 16:39:44,317 - INFO - [TELEMETRY] Packet metadata on mfcg; packet14 model required; no TLS decryption
+Nov 02 16:39:44 minifw-monday-education python[33730]: 2026-11-02 16:39:44,317 - WARNING - [DNS] Disabled; flow decisions continue independently
+Nov 02 16:39:44 minifw-monday-education python[33744]: Capturing on 'mfcg'
+Nov 02 16:39:44 minifw-monday-education python[33744]: File: -
+Nov 02 16:39:49 minifw-monday-education python[33744]: [64B blob data]
+Nov 02 16:39:49 minifw-monday-education python[33730]: 2026-11-02 16:39:49,888 - INFO - Caught SIGTERM, shutting down.
+Nov 02 16:39:49 minifw-monday-education python[33744]: [21B blob data]
+Nov 02 16:39:49 minifw-monday-education python[33744]: Packets received/dropped on interface 'mfcg': 32/0 (pcap:0/dumpcap:0/flushed:0/ps_ifdrop:0) (100.0%)
+Nov 02 16:39:49 minifw-monday-education systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 02 16:39:49 minifw-monday-education python[33730]: 2026-11-02 16:39:49,947 - ERROR - [packet] Collector failed; retrying independently
+Nov 02 16:39:49 minifw-monday-education python[33730]: Traceback (most recent call last):
+Nov 02 16:39:49 minifw-monday-education python[33730]:   File "/opt/minifw_ai/app/minifw_ai/collector_runtime.py", line 16, in collect
+Nov 02 16:39:49 minifw-monday-education python[33730]:     for event in factory():
+Nov 02 16:39:49 minifw-monday-education python[33730]:   File "/opt/minifw_ai/app/minifw_ai/collector_packets.py", line 87, in stream_packet_events
+Nov 02 16:39:49 minifw-monday-education python[33730]:     raise RuntimeError(f"Packet metadata sensor stopped: exit={decoder.wait()}")
+Nov 02 16:39:49 minifw-monday-education python[33730]: RuntimeError: Packet metadata sensor stopped: exit=0
+Nov 02 16:39:50 minifw-monday-education systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 02 16:39:50 minifw-monday-education systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 02 16:39:50 minifw-monday-education systemd[1]: minifw-ai.service: Consumed 2.049s CPU time.
+Nov 02 16:39:50 minifw-monday-education systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 02 16:39:51 minifw-monday-education python[33800]: 2026-11-02 16:39:51,840 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Nov 02 16:39:51 minifw-monday-education python[33800]: 2026-11-02 16:39:51,844 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Nov 02 16:39:51 minifw-monday-education python[33800]: 2026-11-02 16:39:51,844 - INFO - [STATE] Initial protection state: BASELINE_PROTECTION
+Nov 02 16:39:51 minifw-monday-education python[33800]: 2026-11-02 16:39:51,851 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_school: sector=education
+Nov 02 16:39:51 minifw-monday-education python[33800]: 2026-11-02 16:39:51,851 - INFO - [SECTOR_LOCK] Loaded config for education: ['description', 'force_safesearch', 'safesearch_domains', 'block_vpns', 'block_proxies', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_student_activity']
+Nov 02 16:39:51 minifw-monday-education python[33800]: 2026-11-02 16:39:51,851 - INFO - [SECTOR_LOCK] Device sector: education (LOCKED)
+Nov 02 16:39:51 minifw-monday-education python[33800]: 2026-11-02 16:39:51,852 - INFO - [SECTOR_LOCK] Config: Education: domain policies; restricted DNS configuration and optional WireGuard metadata.
+Nov 02 16:39:51 minifw-monday-education python[33800]: 2026-11-02 16:39:51,852 - INFO - [FEEDS] Loaded 14 patterns from school_blacklist.txt
+Nov 02 16:39:51 minifw-monday-education python[33800]: 2026-11-02 16:39:51,852 - INFO - [SECTOR_LOCK] Loaded 14 sector-specific feed patterns
+Nov 02 16:39:51 minifw-monday-education python[33800]: 2026-11-02 16:39:51,852 - INFO - [SECTOR_LOCK] Search-domain allowlist: 8 patterns; restricted search requires the generated dnsmasq overrides
+Nov 02 16:39:51 minifw-monday-education python[33800]: 2026-11-02 16:39:51,852 - INFO - [SECTOR_LOCK] VPN/proxy provider domain matching enabled; optional packet metadata detects WireGuard patterns
+Nov 02 16:39:51 minifw-monday-education python[33800]: 2026-11-02 16:39:51,889 - WARNING - [PROTOCOL] TLS version/WireGuard metadata unavailable without MINIFW_PACKET_INTERFACE
+Nov 02 16:39:51 minifw-monday-education python[33800]: 2026-11-02 16:39:51,889 - WARNING - [TELEMETRY] Conntrack provides counter deltas, not packet timing/size distributions; 24-feature MLP disabled for these observations
+Nov 02 16:39:52 minifw-monday-education python[33800]: 2026-11-02 16:39:52,993 - INFO - Caught SIGTERM, shutting down.
+Nov 02 16:39:52 minifw-monday-education systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 02 16:39:53 minifw-monday-education python[33800]: [*] DNS Collector reading from /var/tmp/minifw-monday-education-20261102T093919Z/dns.log
+Nov 02 16:39:53 minifw-monday-education systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 02 16:39:53 minifw-monday-education systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 02 16:39:53 minifw-monday-education systemd[1]: minifw-ai.service: Consumed 1.677s CPU time.
+Nov 02 16:39:54 minifw-monday-education systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 02 16:39:55 minifw-monday-education python[33863]: 2026-11-02 16:39:55,373 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Nov 02 16:39:55 minifw-monday-education python[33863]: 2026-11-02 16:39:55,376 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Nov 02 16:39:55 minifw-monday-education python[33863]: 2026-11-02 16:39:55,377 - INFO - [STATE] Initial protection state: BASELINE_PROTECTION
+Nov 02 16:39:55 minifw-monday-education python[33863]: 2026-11-02 16:39:55,384 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_school: sector=education
+Nov 02 16:39:55 minifw-monday-education python[33863]: 2026-11-02 16:39:55,384 - INFO - [SECTOR_LOCK] Loaded config for education: ['description', 'force_safesearch', 'safesearch_domains', 'block_vpns', 'block_proxies', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_student_activity']
+Nov 02 16:39:55 minifw-monday-education python[33863]: 2026-11-02 16:39:55,384 - INFO - [SECTOR_LOCK] Device sector: education (LOCKED)
+Nov 02 16:39:55 minifw-monday-education python[33863]: 2026-11-02 16:39:55,384 - INFO - [SECTOR_LOCK] Config: Education: domain policies; restricted DNS configuration and optional WireGuard metadata.
+Nov 02 16:39:55 minifw-monday-education python[33863]: 2026-11-02 16:39:55,384 - INFO - [FEEDS] Loaded 14 patterns from school_blacklist.txt
+Nov 02 16:39:55 minifw-monday-education python[33863]: 2026-11-02 16:39:55,384 - INFO - [SECTOR_LOCK] Loaded 14 sector-specific feed patterns
+Nov 02 16:39:55 minifw-monday-education python[33863]: 2026-11-02 16:39:55,385 - INFO - [SECTOR_LOCK] Search-domain allowlist: 8 patterns; restricted search requires the generated dnsmasq overrides
+Nov 02 16:39:55 minifw-monday-education python[33863]: 2026-11-02 16:39:55,385 - INFO - [SECTOR_LOCK] VPN/proxy provider domain matching enabled; optional packet metadata detects WireGuard patterns
+Nov 02 16:39:55 minifw-monday-education python[33863]: 2026-11-02 16:39:55,424 - WARNING - [PROTOCOL] TLS version/WireGuard metadata unavailable without MINIFW_PACKET_INTERFACE
+Nov 02 16:39:55 minifw-monday-education python[33863]: 2026-11-02 16:39:55,425 - WARNING - [TELEMETRY] Conntrack provides counter deltas, not packet timing/size distributions; 24-feature MLP disabled for these observations
+Nov 02 16:40:05 minifw-monday-education python[33863]: 2026-11-02 16:40:05,529 - INFO - Caught SIGTERM, shutting down.
+Nov 02 16:40:05 minifw-monday-education systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 02 16:40:05 minifw-monday-education python[33863]: [*] DNS Collector reading from /var/tmp/minifw-monday-education-20261102T093919Z/dns.log
+Nov 02 16:40:06 minifw-monday-education systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 02 16:40:06 minifw-monday-education systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 02 16:40:06 minifw-monday-education systemd[1]: minifw-ai.service: Consumed 1.758s CPU time.
+Nov 02 16:40:06 minifw-monday-education systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 02 16:40:07 minifw-monday-education python[33949]: 2026-11-02 16:40:07,840 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Nov 02 16:40:07 minifw-monday-education python[33949]: 2026-11-02 16:40:07,844 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Nov 02 16:40:07 minifw-monday-education python[33949]: 2026-11-02 16:40:07,844 - INFO - [STATE] Initial protection state: BASELINE_PROTECTION
+Nov 02 16:40:07 minifw-monday-education python[33949]: 2026-11-02 16:40:07,851 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_school: sector=education
+Nov 02 16:40:07 minifw-monday-education python[33949]: 2026-11-02 16:40:07,851 - INFO - [SECTOR_LOCK] Loaded config for education: ['description', 'force_safesearch', 'safesearch_domains', 'block_vpns', 'block_proxies', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_student_activity']
+Nov 02 16:40:07 minifw-monday-education python[33949]: 2026-11-02 16:40:07,851 - INFO - [SECTOR_LOCK] Device sector: education (LOCKED)
+Nov 02 16:40:07 minifw-monday-education python[33949]: 2026-11-02 16:40:07,851 - INFO - [SECTOR_LOCK] Config: Education: domain policies; restricted DNS configuration and optional WireGuard metadata.
+Nov 02 16:40:07 minifw-monday-education python[33949]: 2026-11-02 16:40:07,851 - INFO - [FEEDS] Loaded 14 patterns from school_blacklist.txt
+Nov 02 16:40:07 minifw-monday-education python[33949]: 2026-11-02 16:40:07,851 - INFO - [SECTOR_LOCK] Loaded 14 sector-specific feed patterns
+Nov 02 16:40:07 minifw-monday-education python[33949]: 2026-11-02 16:40:07,852 - INFO - [SECTOR_LOCK] Search-domain allowlist: 8 patterns; restricted search requires the generated dnsmasq overrides
+Nov 02 16:40:07 minifw-monday-education python[33949]: 2026-11-02 16:40:07,852 - INFO - [SECTOR_LOCK] VPN/proxy provider domain matching enabled; optional packet metadata detects WireGuard patterns
+Nov 02 16:40:07 minifw-monday-education python[33949]: 2026-11-02 16:40:07,893 - INFO - [TELEMETRY] Packet metadata on mfcg; packet14 model required; no TLS decryption
+Nov 02 16:40:07 minifw-monday-education python[33949]: 2026-11-02 16:40:07,893 - WARNING - [DNS] Disabled; flow decisions continue independently
+Nov 02 16:40:07 minifw-monday-education python[33963]: Capturing on 'mfcg'
+Nov 02 16:40:07 minifw-monday-education python[33963]: File: -
+Nov 02 16:40:13 minifw-monday-education python[33963]: [76B blob data]
+Nov 02 16:40:13 minifw-monday-education python[33949]: 2026-11-02 16:40:13,259 - INFO - Caught SIGTERM, shutting down.
+Nov 02 16:40:13 minifw-monday-education systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 02 16:40:13 minifw-monday-education python[33963]: [34B blob data]
+Nov 02 16:40:13 minifw-monday-education python[33963]: Packets received/dropped on interface 'mfcg': 74/0 (pcap:0/dumpcap:0/flushed:0/ps_ifdrop:0) (100.0%)
+Nov 02 16:40:13 minifw-monday-education python[33949]: 2026-11-02 16:40:13,306 - ERROR - [packet] Collector failed; retrying independently
+Nov 02 16:40:13 minifw-monday-education python[33949]: Traceback (most recent call last):
+Nov 02 16:40:13 minifw-monday-education python[33949]:   File "/opt/minifw_ai/app/minifw_ai/collector_runtime.py", line 16, in collect
+Nov 02 16:40:13 minifw-monday-education python[33949]:     for event in factory():
+Nov 02 16:40:13 minifw-monday-education python[33949]:   File "/opt/minifw_ai/app/minifw_ai/collector_packets.py", line 87, in stream_packet_events
+Nov 02 16:40:13 minifw-monday-education python[33949]:     raise RuntimeError(f"Packet metadata sensor stopped: exit={decoder.wait()}")
+Nov 02 16:40:13 minifw-monday-education python[33949]: RuntimeError: Packet metadata sensor stopped: exit=0
+Nov 02 16:40:13 minifw-monday-education systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 02 16:40:13 minifw-monday-education systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 02 16:40:13 minifw-monday-education systemd[1]: minifw-ai.service: Consumed 2.020s CPU time.
+Nov 02 16:40:13 minifw-monday-education systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 02 16:40:15 minifw-monday-education python[34053]: 2026-11-02 16:40:15,111 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Nov 02 16:40:15 minifw-monday-education python[34053]: 2026-11-02 16:40:15,115 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Nov 02 16:40:15 minifw-monday-education python[34053]: 2026-11-02 16:40:15,115 - INFO - [STATE] Initial protection state: BASELINE_PROTECTION
+Nov 02 16:40:15 minifw-monday-education python[34053]: 2026-11-02 16:40:15,122 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_school: sector=education
+Nov 02 16:40:15 minifw-monday-education python[34053]: 2026-11-02 16:40:15,122 - INFO - [SECTOR_LOCK] Loaded config for education: ['description', 'force_safesearch', 'safesearch_domains', 'block_vpns', 'block_proxies', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_student_activity']
+Nov 02 16:40:15 minifw-monday-education python[34053]: 2026-11-02 16:40:15,122 - INFO - [SECTOR_LOCK] Device sector: education (LOCKED)
+Nov 02 16:40:15 minifw-monday-education python[34053]: 2026-11-02 16:40:15,122 - INFO - [SECTOR_LOCK] Config: Education: domain policies; restricted DNS configuration and optional WireGuard metadata.
+Nov 02 16:40:15 minifw-monday-education python[34053]: 2026-11-02 16:40:15,122 - INFO - [FEEDS] Loaded 14 patterns from school_blacklist.txt
+Nov 02 16:40:15 minifw-monday-education python[34053]: 2026-11-02 16:40:15,122 - INFO - [SECTOR_LOCK] Loaded 14 sector-specific feed patterns
+Nov 02 16:40:15 minifw-monday-education python[34053]: 2026-11-02 16:40:15,122 - INFO - [SECTOR_LOCK] Search-domain allowlist: 8 patterns; restricted search requires the generated dnsmasq overrides
+Nov 02 16:40:15 minifw-monday-education python[34053]: 2026-11-02 16:40:15,122 - INFO - [SECTOR_LOCK] VPN/proxy provider domain matching enabled; optional packet metadata detects WireGuard patterns
+Nov 02 16:40:15 minifw-monday-education python[34053]: 2026-11-02 16:40:15,165 - INFO - [TELEMETRY] Packet metadata on mfcg; packet14 model required; no TLS decryption
+Nov 02 16:40:15 minifw-monday-education python[34053]: 2026-11-02 16:40:15,165 - WARNING - [DNS] Disabled; flow decisions continue independently
+Nov 02 16:40:15 minifw-monday-education python[34067]: Capturing on 'mfcg'
+Nov 02 16:40:15 minifw-monday-education python[34067]: File: -
+Nov 02 16:40:20 minifw-monday-education python[34067]: [60B blob data]
+Nov 02 16:40:20 minifw-monday-education python[34067]: Packets received/dropped on interface 'mfcg': 49/0 (pcap:0/dumpcap:0/flushed:0/ps_ifdrop:0) (100.0%)
+Nov 02 16:40:20 minifw-monday-education python[34053]: 2026-11-02 16:40:20,871 - INFO - Caught SIGTERM, shutting down.
+Nov 02 16:40:20 minifw-monday-education systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 02 16:40:20 minifw-monday-education python[34053]: 2026-11-02 16:40:20,930 - ERROR - [packet] Collector failed; retrying independently
+Nov 02 16:40:20 minifw-monday-education python[34053]: Traceback (most recent call last):
+Nov 02 16:40:20 minifw-monday-education python[34053]:   File "/opt/minifw_ai/app/minifw_ai/collector_runtime.py", line 16, in collect
+Nov 02 16:40:20 minifw-monday-education python[34053]:     for event in factory():
+Nov 02 16:40:20 minifw-monday-education python[34053]:   File "/opt/minifw_ai/app/minifw_ai/collector_packets.py", line 87, in stream_packet_events
+Nov 02 16:40:20 minifw-monday-education python[34053]:     raise RuntimeError(f"Packet metadata sensor stopped: exit={decoder.wait()}")
+Nov 02 16:40:20 minifw-monday-education python[34053]: RuntimeError: Packet metadata sensor stopped: exit=0
+Nov 02 16:40:21 minifw-monday-education systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 02 16:40:21 minifw-monday-education systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 02 16:40:21 minifw-monday-education systemd[1]: minifw-ai.service: Consumed 2.033s CPU time.
+Nov 02 16:40:22 minifw-monday-education systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 02 16:40:23 minifw-monday-education python[34124]: 2026-11-02 16:40:23,567 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Nov 02 16:40:23 minifw-monday-education python[34124]: 2026-11-02 16:40:23,570 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Nov 02 16:40:23 minifw-monday-education python[34124]: 2026-11-02 16:40:23,570 - INFO - [STATE] Initial protection state: BASELINE_PROTECTION
+Nov 02 16:40:23 minifw-monday-education python[34124]: 2026-11-02 16:40:23,577 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_school: sector=education
+Nov 02 16:40:23 minifw-monday-education python[34124]: 2026-11-02 16:40:23,577 - INFO - [SECTOR_LOCK] Loaded config for education: ['description', 'force_safesearch', 'safesearch_domains', 'block_vpns', 'block_proxies', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_student_activity']
+Nov 02 16:40:23 minifw-monday-education python[34124]: 2026-11-02 16:40:23,577 - INFO - [SECTOR_LOCK] Device sector: education (LOCKED)
+Nov 02 16:40:23 minifw-monday-education python[34124]: 2026-11-02 16:40:23,577 - INFO - [SECTOR_LOCK] Config: Education: domain policies; restricted DNS configuration and optional WireGuard metadata.
+Nov 02 16:40:23 minifw-monday-education python[34124]: 2026-11-02 16:40:23,578 - INFO - [FEEDS] Loaded 14 patterns from school_blacklist.txt
+Nov 02 16:40:23 minifw-monday-education python[34124]: 2026-11-02 16:40:23,578 - INFO - [SECTOR_LOCK] Loaded 14 sector-specific feed patterns
+Nov 02 16:40:23 minifw-monday-education python[34124]: 2026-11-02 16:40:23,578 - INFO - [SECTOR_LOCK] Search-domain allowlist: 8 patterns; restricted search requires the generated dnsmasq overrides
+Nov 02 16:40:23 minifw-monday-education python[34124]: 2026-11-02 16:40:23,578 - INFO - [SECTOR_LOCK] VPN/proxy provider domain matching enabled; optional packet metadata detects WireGuard patterns
+Nov 02 16:40:23 minifw-monday-education python[34124]: 2026-11-02 16:40:23,628 - INFO - [TELEMETRY] Packet metadata on mfcg; packet14 model required; no TLS decryption
+Nov 02 16:40:23 minifw-monday-education python[34124]: 2026-11-02 16:40:23,628 - WARNING - [DNS] Disabled; flow decisions continue independently
+Nov 02 16:40:23 minifw-monday-education python[34140]: Capturing on 'mfcg'
+Nov 02 16:40:23 minifw-monday-education python[34140]: File: -
+Nov 02 16:40:59 minifw-monday-education python[34140]: [38B blob data]
+Nov 02 16:40:59 minifw-monday-education python[34124]: 2026-11-02 16:40:59,371 - INFO - Caught SIGTERM, shutting down.
+Nov 02 16:40:59 minifw-monday-education systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 02 16:40:59 minifw-monday-education python[34140]: [34B blob data]
+Nov 02 16:40:59 minifw-monday-education python[34140]: Packets received/dropped on interface 'mfcg': 60/0 (pcap:0/dumpcap:0/flushed:0/ps_ifdrop:0) (100.0%)
+Nov 02 16:40:59 minifw-monday-education python[34124]: 2026-11-02 16:40:59,414 - ERROR - [packet] Collector failed; retrying independently
+Nov 02 16:40:59 minifw-monday-education python[34124]: Traceback (most recent call last):
+Nov 02 16:40:59 minifw-monday-education python[34124]:   File "/opt/minifw_ai/app/minifw_ai/collector_runtime.py", line 16, in collect
+Nov 02 16:40:59 minifw-monday-education python[34124]:     for event in factory():
+Nov 02 16:40:59 minifw-monday-education python[34124]:   File "/opt/minifw_ai/app/minifw_ai/collector_packets.py", line 87, in stream_packet_events
+Nov 02 16:40:59 minifw-monday-education python[34124]:     raise RuntimeError(f"Packet metadata sensor stopped: exit={decoder.wait()}")
+Nov 02 16:40:59 minifw-monday-education python[34124]: RuntimeError: Packet metadata sensor stopped: exit=0
+Nov 02 16:40:59 minifw-monday-education systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 02 16:40:59 minifw-monday-education systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 02 16:40:59 minifw-monday-education systemd[1]: minifw-ai.service: Consumed 2.294s CPU time.
+Nov 02 16:41:00 minifw-monday-education systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 02 16:41:00 minifw-monday-education systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 02 16:41:00 minifw-monday-education systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 02 16:41:00 minifw-monday-education systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 02 16:41:00 minifw-monday-education systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 02 16:41:02 minifw-monday-education python[34263]: 2026-11-02 16:41:02,394 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Nov 02 16:41:02 minifw-monday-education python[34263]: 2026-11-02 16:41:02,398 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Nov 02 16:41:02 minifw-monday-education python[34263]: 2026-11-02 16:41:02,398 - INFO - [STATE] Initial protection state: BASELINE_PROTECTION
+Nov 02 16:41:02 minifw-monday-education python[34263]: 2026-11-02 16:41:02,406 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_school: sector=education
+Nov 02 16:41:02 minifw-monday-education python[34263]: 2026-11-02 16:41:02,406 - INFO - [SECTOR_LOCK] Loaded config for education: ['description', 'force_safesearch', 'safesearch_domains', 'block_vpns', 'block_proxies', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_student_activity']
+Nov 02 16:41:02 minifw-monday-education python[34263]: 2026-11-02 16:41:02,406 - INFO - [SECTOR_LOCK] Device sector: education (LOCKED)
+Nov 02 16:41:02 minifw-monday-education python[34263]: 2026-11-02 16:41:02,406 - INFO - [SECTOR_LOCK] Config: Education: domain policies; restricted DNS configuration and optional WireGuard metadata.
+Nov 02 16:41:02 minifw-monday-education python[34263]: 2026-11-02 16:41:02,406 - INFO - [FEEDS] Loaded 14 patterns from school_blacklist.txt
+Nov 02 16:41:02 minifw-monday-education python[34263]: 2026-11-02 16:41:02,407 - INFO - [SECTOR_LOCK] Loaded 14 sector-specific feed patterns
+Nov 02 16:41:02 minifw-monday-education python[34263]: 2026-11-02 16:41:02,407 - INFO - [SECTOR_LOCK] Search-domain allowlist: 8 patterns; restricted search requires the generated dnsmasq overrides
+Nov 02 16:41:02 minifw-monday-education python[34263]: 2026-11-02 16:41:02,407 - INFO - [SECTOR_LOCK] VPN/proxy provider domain matching enabled; optional packet metadata detects WireGuard patterns
+Nov 02 16:41:02 minifw-monday-education python[34263]: 2026-11-02 16:41:02,481 - INFO - [TELEMETRY] Packet metadata on mfcg; packet14 model required; no TLS decryption
+Nov 02 16:41:02 minifw-monday-education python[34263]: 2026-11-02 16:41:02,481 - WARNING - [DNS] Disabled; flow decisions continue independently
+Nov 02 16:41:02 minifw-monday-education python[34285]: Capturing on 'mfcg'
+Nov 02 16:41:02 minifw-monday-education python[34285]: File: -
+Nov 02 16:41:04 minifw-monday-education python[34285]: [25B blob data]
+Nov 02 16:41:04 minifw-monday-education python[34263]: 2026-11-02 16:41:04,664 - INFO - Caught SIGTERM, shutting down.
+Nov 02 16:41:04 minifw-monday-education systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 02 16:41:04 minifw-monday-education python[34285]: [21B blob data]
+Nov 02 16:41:04 minifw-monday-education python[34285]: Packets received/dropped on interface 'mfcg': 24/0 (pcap:0/dumpcap:0/flushed:0/ps_ifdrop:0) (100.0%)
+Nov 02 16:41:04 minifw-monday-education python[34263]: 2026-11-02 16:41:04,744 - ERROR - [packet] Collector failed; retrying independently
+Nov 02 16:41:04 minifw-monday-education python[34263]: Traceback (most recent call last):
+Nov 02 16:41:04 minifw-monday-education python[34263]:   File "/opt/minifw_ai/app/minifw_ai/collector_runtime.py", line 16, in collect
+Nov 02 16:41:04 minifw-monday-education python[34263]:     for event in factory():
+Nov 02 16:41:04 minifw-monday-education python[34263]:   File "/opt/minifw_ai/app/minifw_ai/collector_packets.py", line 87, in stream_packet_events
+Nov 02 16:41:04 minifw-monday-education python[34263]:     raise RuntimeError(f"Packet metadata sensor stopped: exit={decoder.wait()}")
+Nov 02 16:41:04 minifw-monday-education python[34263]: RuntimeError: Packet metadata sensor stopped: exit=0
+Nov 02 16:41:05 minifw-monday-education systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 02 16:41:05 minifw-monday-education systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 02 16:41:05 minifw-monday-education systemd[1]: minifw-ai.service: Consumed 1.972s CPU time.
+$ nft -a list table inet minifw
+table inet minifw { # handle 42
+	set minifw_block_v4 { # handle 1
+		type ipv4_addr
+		timeout 1h
+	}
+
+	chain forward { # handle 2
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 10 bytes 600 comment "MiniFW-AI-Conntrack" # handle 5
+		ip saddr @minifw_block_v4 counter packets 0 bytes 0 drop comment "MiniFW-AI-Blocklist" # handle 6
+	}
+}
+$ systemctl daemon-reload
+$ ip netns delete mf-client
+$ ip netns delete mf-server
+$ ip link delete mfcg
+$ ip link delete mfsg
+EVIDENCE_DIRECTORY /var/tmp/minifw-monday-education-20261102T093919Z
+Traceback (most recent call last):
+  File "/var/tmp/lab_gateway_acceptance.py", line 678, in <module>
+    acceptance(sys.argv[1], sys.argv[2], metadata="--metadata" in sys.argv[3:], extended="--extended" in sys.argv[3:],
+  File "/var/tmp/lab_gateway_acceptance.py", line 378, in acceptance
+    exercise(root, run, start, record, nft, ns, member, children)
+  File "/var/tmp/lab_extended_acceptance.py", line 444, in exercise
+    operational_checks(root, run, start, record, nft, ns, member)
+  File "/var/tmp/lab_extended_acceptance.py", line 107, in operational_checks
+    record("dashboard_unprivileged_smoke", **dashboard_smoke(run))
+                                             ^^^^^^^^^^^^^^^^^^^^
+  File "/var/tmp/lab_extended_acceptance.py", line 154, in dashboard_smoke
+    assert status == 200, (path, status)
+           ^^^^^^^^^^^^^
+AssertionError: ('/admin/', 303)

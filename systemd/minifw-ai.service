@@ -4,8 +4,12 @@ After=network.target dnsmasq.service
 Wants=dnsmasq.service
 
 [Service]
+EnvironmentFile=/etc/minifw/minifw.env
 Type=simple
 User=root
+# 0027: new log files are group-readable by the dashboard via the setgid logs directory.
+UMask=0027
+NoNewPrivileges=yes
 WorkingDirectory=/opt/minifw_ai
 Environment=MINIFW_POLICY=/opt/minifw_ai/config/policy.json
 Environment=MINIFW_FEEDS=/opt/minifw_ai/config/feeds

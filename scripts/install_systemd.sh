@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+echo "Unsupported for standalone Financial/Education v2.2.10; use the edition-specific Debian package." >&2
+exit 1
 set -euo pipefail
 if [[ $EUID -ne 0 ]]; then echo "Run as root: sudo $0"; exit 1; fi
 

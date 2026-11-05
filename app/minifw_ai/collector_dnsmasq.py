@@ -88,7 +88,7 @@ def stream_dns_events_file(log_path: str) -> Iterator[Tuple[str, str]]:
             "[BASELINE_PROTECTION] Service will continue monitoring for file creation..."
         )
         print(
-            "[BASELINE_PROTECTION] Other security functions remain active (Fail-Closed)"
+            "[BASELINE_PROTECTION] DNS telemetry unavailable; flow decisions continue independently"
         )
         # Wait indefinitely for file to appear - NEVER EXIT
         while not os.path.exists(log_path):
@@ -129,7 +129,7 @@ def stream_dns_events_file(log_path: str) -> Iterator[Tuple[str, str]]:
                             print(f"[*] Log file recreated. Resuming...")
                             break  # Break inner loop to reopen file
 
-                        if current_pos > file_size and file_size > 0:
+                        if current_pos > file_size or os.stat(log_path).st_ino != os.fstat(f.fileno()).st_ino:
                             print(f"[!] Log file rotated. Re-opening {log_path}")
                             f.close()
                             f = open(log_path, "r")

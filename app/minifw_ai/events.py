@@ -21,6 +21,19 @@ class Event:
     student_flagged: bool = False      # education sector: client IP matched student subnet
     vpn_block_enforced: bool = False   # education sector: VPN/proxy YARA rule fired
     audit_mode: bool = False           # education/strict-logging sectors: event is audit-tagged
+    dst_ip: str = ""
+    dst_port: int = 0
+    src_port: int = 0
+    proto: str = ""
+    telemetry_source: str = ""
+    mlp_status: str = "not_run"
+    sni: str = ""
+    tls_version: str = ""
+    vpn_protocol: str = ""
+    mlp_probability: float | None = None
+    mlp_schema: str = ""
+    mlp_mode: str = "not_run"
+    mlp_features: list[float] | None = None
 
 
 def now_iso() -> str:

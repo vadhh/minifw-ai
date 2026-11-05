@@ -1,0 +1,96 @@
+⬆ trail 0.23.0 → 0.28.1 available: run `trail upgrade` (restart your agent after).
+⚠ the diff is over 400 KB; only the first 400 KB is checked
+checking 225 changed files against 13 learnings and 0 skills
+
+✗ .github/workflows/release.yml:40
+  brings back helper line bash, which St4rdhoom's learning ruled out
+  St4rdhoom · Oct 30: Existing shell helpers have CRLF line endings that
+  bash -n rejects; normalize shell scripts and systemd units inside
+  the kits without modifying the original helpers.
+✗ .github/workflows/release.yml:47
+  brings back dpkg script build, which St4rdhoom's learning ruled out
+  St4rdhoom · Oct 30: Installed native Homebrew dpkg and gnu-sed, then
+  ran the existing scripts/build_deb.sh against each refreshed clean
+  source kit.
+✗ README.md:37
+  brings back curl sudo bash, which St4rdhoom's learning ruled out
+  St4rdhoom · Nov 2: Its installer already uses the correct
+  curl-to-sudo-bash pipe.
+✗ README.md:37
+  brings back sudo bash curl, which St4rdhoom's learning ruled out
+  St4rdhoom · Oct 26: Using `sudo bash <(curl ...)` is a poor fit for
+  this installer because Bash process substitution consumes its stdin;
+  document the curl-to-sudo-bash pipe instead.
+✗ README.md:37
+  brings back sudo bash curl, which St4rdhoom's learning ruled out
+  St4rdhoom · Oct 26: Changing the supported pipeline to avoid the words
+  `sudo bash curl` would break the intended privileged stdin flow and
+  conflict with the existing installer guidance.
+✗ README.md:61
+  brings back deb docker installation, which St4rdhoom's learning ruled out
+  St4rdhoom · Oct 30: This Mac has no dpkg-deb and Docker cannot connect
+  to a daemon, so a Linux package build, installation and live packet
+  enforcement cannot be claimed.
+✗ README.md:61
+  brings back native deb kit, which St4rdhoom's learning ruled out
+  St4rdhoom · Oct 30: Installed native Homebrew dpkg and gnu-sed, then
+  ran the existing scripts/build_deb.sh against each refreshed clean
+  source kit.
+✗ app/minifw_ai/collector_flow.py:20
+  brings back conntrack packet flow, which St4rdhoom's learning ruled out
+  St4rdhoom · Nov 2: Do not count conntrack polls as 1500-byte packets,
+  flow frequency, packet interarrival or subsecond bursts.
+✗ app/minifw_ai/enforce.py:165
+  brings back conntrack packet flow, which St4rdhoom's learning ruled out
+  St4rdhoom · Nov 2: Do not count conntrack polls as 1500-byte packets,
+  flow frequency, packet interarrival or subsecond bursts.
+✗ app/minifw_ai/enforce.py:175
+  brings back measured feature, which St4rdhoom's learning ruled out
+  St4rdhoom · Nov 2: This is not measured-feature acceptance.
+✗ app/minifw_ai/main.py:248
+  brings back packet flow burst, which St4rdhoom's learning ruled out
+  St4rdhoom · Nov 2: Do not count conntrack polls as 1500-byte packets,
+  flow frequency, packet interarrival or subsecond bursts.
+✗ docs/2026-11-02_correction-minifwai-report.md:3
+  brings back packag service report, which St4rdhoom's learning ruled out
+  St4rdhoom · Nov 2: Packaging integrity, service labels, old v2.2.0
+  sales/demo reports and helper-level tests do not establish current
+  routed enforcement or real-world accuracy.
+✗ docs/2026-11-02_correction-minifwai-report.md:3
+  brings back dpkg deb cannot, which St4rdhoom's learning ruled out
+  St4rdhoom · Oct 30: This Mac has no dpkg-deb and Docker cannot connect
+  to a daemon, so a Linux package build, installation and live packet
+  enforcement cannot be claimed.
+✗ docs/2026-11-02_correction-minifwai-report.md:11
+  brings back successful packag service, which St4rdhoom's learning ruled out
+  St4rdhoom · Nov 2: Successful packaging, service startup and modprobe
+  were insufficient evidence.
+✗ docs/2026-11-02_correction-minifwai-report.md:11
+  brings back installed native dpkg, which St4rdhoom's learning ruled out
+  St4rdhoom · Oct 30: Installed native Homebrew dpkg and gnu-sed, then
+  ran the existing scripts/build_deb.sh against each refreshed clean
+  source kit.
+✗ docs/2026-11-02_correction-minifwai-report.md:11
+  brings back readme alone insufficient, which St4rdhoom's learning ruled out
+  St4rdhoom · Oct 21: README alone is insufficient for a customer
+  runbook: systemd/minifw-ai-web.service binds to 127.0.0.1:8443,
+  while install.sh prints a hostname URL.
+✗ docs/2026-11-02_correction-minifwai-report.md:17
+  brings back count conntrack poll, which St4rdhoom's learning ruled out
+  St4rdhoom · Nov 2: Do not count conntrack polls as 1500-byte packets,
+  flow frequency, packet interarrival or subsecond bursts.
+✗ docs/2026-11-02_correction-minifwai-report.md:34
+  brings back sudo bash installer, which St4rdhoom's learning ruled out
+  St4rdhoom · Oct 26: Using `sudo bash <(curl ...)` is a poor fit for
+  this installer because Bash process substitution consumes its stdin;
+  document the curl-to-sudo-bash pipe instead.
+✗ docs/2026-11-02_correction-minifwai-report.md:56
+  brings back zip alone insufficient, which St4rdhoom's learning ruled out
+  St4rdhoom · Oct 30: Renaming the ZIPs alone is insufficient: rebuild
+  the Debian control metadata, documentation, manifests and checksums.
+✗ docs/2026-11-02_readiness-minifwai-report.md:3
+  brings back successful packag service, which St4rdhoom's learning ruled out
+  St4rdhoom · Nov 2: Successful packaging, service startup and modprobe
+  were insufficient evidence.
+
+· 20 conflicts · fix them, or say why in the commit message or PR description

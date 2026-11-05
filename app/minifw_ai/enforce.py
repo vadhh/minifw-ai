@@ -2,11 +2,13 @@ from __future__ import annotations
 import subprocess
 import logging
 import re
+import ipaddress
+from pathlib import Path
 
 
 def is_valid_nft_object_name(name: str) -> bool:
     """Only allows alphanumeric chars and underscores, max 32 chars."""
-    return re.match(r"^[a-zA-Z0-9_]{1,32}$", name) is not None
+    return re.fullmatch(r"[a-zA-Z0-9_]{1,32}", name) is not None
 
 
 def ipset_create(
@@ -62,12 +64,37 @@ def ipset_add(
     timeout: int,
     family: str = "inet",
     table_name: str = "minifw",
-) -> None:
+    refresh: bool = False,
+) -> bool:
     """
     Adds an IP to the native nftables set.
     """
     if not is_valid_nft_object_name(set_name):
         raise ValueError(f"Invalid nftables set name: {set_name}")
+    ipaddress.IPv4Address(ip)
+    if not isinstance(timeout, int) or timeout < 0:
+        raise ValueError("Invalid block timeout")
+    if not all(is_valid_nft_object_name(name) for name in (family, table_name)):
+        raise ValueError("Invalid nftables family/table")
+
+    present = subprocess.run(
+        ["nft", "get", "element", family, table_name, set_name, "{", ip, "}"],
+        capture_output=True, text=True,
+    )
+    if present.returncode == 0:
+        if not refresh:
+            return False
+        # Renew explicit denies atomically: an older, almost-expired block is insufficient.
+        target = f"{family} {table_name} {set_name}"
+        try:
+            subprocess.run(["nft", "-f", "-"], input=(
+                f"delete element {target} {{ {ip} }}\n"
+                f"add element {target} {{ {ip} timeout {timeout}s }}\n"
+            ), check=True, capture_output=True, text=True)
+            return True
+        except subprocess.CalledProcessError:
+            # The old element may have expired between the membership check and transaction.
+            pass
 
     try:
         cmd = [
@@ -84,6 +111,7 @@ def ipset_add(
             "}",
         ]
         subprocess.run(cmd, check=True, capture_output=True, text=True)
+        return True
     except subprocess.CalledProcessError as e:
         logging.error(f"Failed to add IP {ip} to nft set '{set_name}': {e.stderr}")
         raise
@@ -149,6 +177,18 @@ def nft_apply_forward_drop(
         )
         out = result.stdout
 
+        # A loaded module alone does not activate conntrack hooks in a fresh network namespace.
+        if "MiniFW-AI-Conntrack" not in out:
+            subprocess.run(
+                ["nft", "add", "rule", table, table_name, chain, "ct", "state", "new",
+                 "counter", "comment", "MiniFW-AI-Conntrack"],
+                check=True, capture_output=True, text=True,
+            )
+        try:
+            Path("/proc/sys/net/netfilter/nf_conntrack_acct").write_text("1\n")
+        except OSError:
+            logging.warning("[FLOW] Conntrack accounting unavailable; packet/byte rate features require measured counters")
+
         # 4. Add the rule if missing
         if f"@{set_name}" not in out:
             subprocess.run(
@@ -162,6 +202,7 @@ def nft_apply_forward_drop(
                     "ip",
                     "saddr",
                     f"@{set_name}",
+                    "counter",
                     "drop",
                     "comment",
                     "MiniFW-AI-Blocklist",

@@ -1,0 +1,92 @@
+Nov 05 08:40:57 minifw-monday-financial systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 08:40:59 minifw-monday-financial python[49904]: 2026-11-05 08:40:59,785 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Nov 05 08:40:59 minifw-monday-financial python[49904]: 2026-11-05 08:40:59,789 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Nov 05 08:40:59 minifw-monday-financial python[49904]: 2026-11-05 08:40:59,789 - INFO - [STATE] Restored state from /opt/minifw_ai/logs/deployment_state.json: BASELINE_PROTECTION
+Nov 05 08:40:59 minifw-monday-financial python[49904]: 2026-11-05 08:40:59,789 - INFO - [STATE] Initial protection state: BASELINE_PROTECTION
+Nov 05 08:40:59 minifw-monday-financial python[49904]: 2026-11-05 08:40:59,797 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_financial: sector=finance
+Nov 05 08:40:59 minifw-monday-financial python[49904]: 2026-11-05 08:40:59,797 - INFO - [SECTOR_LOCK] Loaded config for finance: ['description', 'block_tor', 'block_anonymizers', 'strict_tls', 'minimum_tls_version', 'pci_compliance_mode', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_retention_days']
+Nov 05 08:40:59 minifw-monday-financial python[49904]: 2026-11-05 08:40:59,797 - INFO - [SECTOR_LOCK] Device sector: finance (LOCKED)
+Nov 05 08:40:59 minifw-monday-financial python[49904]: 2026-11-05 08:40:59,797 - INFO - [SECTOR_LOCK] Config: Finance: metadata policies; TLS version control requires packet metadata; no compliance certification.
+Nov 05 08:40:59 minifw-monday-financial python[49904]: 2026-11-05 08:40:59,797 - INFO - [FEEDS] Loaded 10 patterns from financial_fraud.txt
+Nov 05 08:40:59 minifw-monday-financial python[49904]: 2026-11-05 08:40:59,797 - INFO - [FEEDS] Loaded 9 patterns from crypto_scams.txt
+Nov 05 08:40:59 minifw-monday-financial python[49904]: 2026-11-05 08:40:59,797 - INFO - [SECTOR_LOCK] Loaded 19 sector-specific feed patterns
+Nov 05 08:40:59 minifw-monday-financial python[49904]: 2026-11-05 08:40:59,797 - INFO - [FEEDS] Loaded 0 Tor exit node IPs from /opt/minifw_ai/config/feeds/tor_exit_nodes.txt
+Nov 05 08:40:59 minifw-monday-financial python[49904]: 2026-11-05 08:40:59,797 - INFO - [SECTOR_LOCK] Tor/anonymizer blocking enabled: loaded 0 exit IPs
+Nov 05 08:40:59 minifw-monday-financial python[49904]: 2026-11-05 08:40:59,945 - INFO - [TELEMETRY] Packet metadata on mfcg; packet14 model required; no TLS decryption
+Nov 05 08:41:00 minifw-monday-financial python[49921]: Capturing on 'mfcg'
+Nov 05 08:41:00 minifw-monday-financial python[49921]: File: -
+Nov 05 08:41:20 minifw-monday-financial python[49921]: [495B blob data]
+Nov 05 08:41:20 minifw-monday-financial python[49904]: 2026-11-05 08:41:20,817 - INFO - Caught SIGTERM, shutting down.
+Nov 05 08:41:20 minifw-monday-financial python[49921]: [38B blob data]
+Nov 05 08:41:20 minifw-monday-financial python[49921]: Packets received/dropped on interface 'mfcg': 3626/0 (pcap:0/dumpcap:0/flushed:0/ps_ifdrop:0) (100.0%)
+Nov 05 08:41:20 minifw-monday-financial systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 05 08:41:20 minifw-monday-financial python[49904]: 2026-11-05 08:41:20,876 - ERROR - [packet] Collector failed; retrying independently
+Nov 05 08:41:20 minifw-monday-financial python[49904]: Traceback (most recent call last):
+Nov 05 08:41:20 minifw-monday-financial python[49904]:   File "/opt/minifw_ai/app/minifw_ai/collector_runtime.py", line 16, in collect
+Nov 05 08:41:20 minifw-monday-financial python[49904]:     for event in factory():
+Nov 05 08:41:20 minifw-monday-financial python[49904]:   File "/opt/minifw_ai/app/minifw_ai/collector_packets.py", line 87, in stream_packet_events
+Nov 05 08:41:20 minifw-monday-financial python[49904]:     raise RuntimeError(f"Packet metadata sensor stopped: exit={decoder.wait()}")
+Nov 05 08:41:20 minifw-monday-financial python[49904]: RuntimeError: Packet metadata sensor stopped: exit=0
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [*] DNS Collector reading from /var/tmp/minifw-monday-financial-20261105T014054Z/dns.log
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 8 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 14 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 21 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 27 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 34 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 41 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 47 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 54 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 60 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 67 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 74 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 81 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 87 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 94 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 100 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 107 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 113 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 120 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 127 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 133 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 140 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 147 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 154 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 160 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 167 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 173 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 180 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 187 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 194 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 200 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 207 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 214 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 220 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 227 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 233 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial python[49904]: [FlowCollector] Exported 240 flows, cleaned 0 old flows
+Nov 05 08:41:21 minifw-monday-financial systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 05 08:41:21 minifw-monday-financial systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 08:41:21 minifw-monday-financial systemd[1]: minifw-ai.service: Consumed 7.430s CPU time.
+Nov 05 08:41:23 minifw-monday-financial systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 08:41:24 minifw-monday-financial python[50247]: 2026-11-05 08:41:24,738 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Nov 05 08:41:24 minifw-monday-financial python[50247]: 2026-11-05 08:41:24,741 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Nov 05 08:41:24 minifw-monday-financial python[50247]: 2026-11-05 08:41:24,742 - INFO - [STATE] Restored state from /opt/minifw_ai/logs/deployment_state.json: BASELINE_PROTECTION
+Nov 05 08:41:24 minifw-monday-financial python[50247]: 2026-11-05 08:41:24,742 - INFO - [STATE] Initial protection state: BASELINE_PROTECTION
+Nov 05 08:41:24 minifw-monday-financial python[50247]: 2026-11-05 08:41:24,750 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_financial: sector=finance
+Nov 05 08:41:24 minifw-monday-financial python[50247]: 2026-11-05 08:41:24,750 - INFO - [SECTOR_LOCK] Loaded config for finance: ['description', 'block_tor', 'block_anonymizers', 'strict_tls', 'minimum_tls_version', 'pci_compliance_mode', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_retention_days']
+Nov 05 08:41:24 minifw-monday-financial python[50247]: 2026-11-05 08:41:24,750 - INFO - [SECTOR_LOCK] Device sector: finance (LOCKED)
+Nov 05 08:41:24 minifw-monday-financial python[50247]: 2026-11-05 08:41:24,750 - INFO - [SECTOR_LOCK] Config: Finance: metadata policies; TLS version control requires packet metadata; no compliance certification.
+Nov 05 08:41:24 minifw-monday-financial python[50247]: 2026-11-05 08:41:24,751 - INFO - [FEEDS] Loaded 10 patterns from financial_fraud.txt
+Nov 05 08:41:24 minifw-monday-financial python[50247]: 2026-11-05 08:41:24,751 - INFO - [FEEDS] Loaded 9 patterns from crypto_scams.txt
+Nov 05 08:41:24 minifw-monday-financial python[50247]: 2026-11-05 08:41:24,751 - INFO - [SECTOR_LOCK] Loaded 19 sector-specific feed patterns
+Nov 05 08:41:24 minifw-monday-financial python[50247]: 2026-11-05 08:41:24,751 - INFO - [FEEDS] Loaded 0 Tor exit node IPs from /opt/minifw_ai/config/feeds/tor_exit_nodes.txt
+Nov 05 08:41:24 minifw-monday-financial python[50247]: 2026-11-05 08:41:24,751 - INFO - [SECTOR_LOCK] Tor/anonymizer blocking enabled: loaded 0 exit IPs
+Nov 05 08:41:24 minifw-monday-financial python[50247]: 2026-11-05 08:41:24,801 - WARNING - [PROTOCOL] TLS version/WireGuard metadata unavailable without MINIFW_PACKET_INTERFACE
+Nov 05 08:41:24 minifw-monday-financial python[50247]: 2026-11-05 08:41:24,801 - WARNING - [TELEMETRY] Conntrack provides counter deltas, not packet timing/size distributions; 24-feature MLP disabled for these observations
+Nov 05 08:41:24 minifw-monday-financial python[50247]: 2026-11-05 08:41:24,801 - WARNING - [DNS] Disabled; flow decisions continue independently
+Nov 05 08:41:29 minifw-monday-financial python[50247]: 2026-11-05 08:41:29,855 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 08:41:32 minifw-monday-financial python[50247]: 2026-11-05 08:41:32,107 - INFO - Caught SIGTERM, shutting down.
+Nov 05 08:41:32 minifw-monday-financial systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 05 08:41:32 minifw-monday-financial systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 05 08:41:32 minifw-monday-financial systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 08:41:32 minifw-monday-financial systemd[1]: minifw-ai.service: Consumed 1.874s CPU time.

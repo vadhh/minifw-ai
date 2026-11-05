@@ -34,7 +34,7 @@ SECTOR_POLICIES: Dict[SectorType, Dict[str, Any]] = {
     # Focus: Content filtering, SafeSearch, VPN/Proxy blocking
     # -------------------------------------------------------------------------
     SectorType.SCHOOL: {
-        "description": "Education: Enforces SafeSearch and strict content filtering.",
+        "description": "Education: domain policies; restricted DNS configuration and optional WireGuard metadata.",
         # SafeSearch enforcement (requires dnsmasq config)
         "force_safesearch": True,
         "safesearch_domains": [
@@ -96,7 +96,7 @@ SECTOR_POLICIES: Dict[SectorType, Dict[str, Any]] = {
     # Focus: Fraud prevention, strict TLS, Tor blocking
     # -------------------------------------------------------------------------
     SectorType.FINANCE: {
-        "description": "Finance: PCI-DSS compliance focus and anti-fraud.",
+        "description": "Finance: metadata policies; TLS version control requires packet metadata; no compliance certification.",
         # Tor and anonymizer blocking (fraud prevention)
         "block_tor": True,
         "block_anonymizers": True,

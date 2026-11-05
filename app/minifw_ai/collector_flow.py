@@ -13,6 +13,25 @@ from typing import Iterator, Optional
 from collections import OrderedDict, defaultdict, deque
 from dataclasses import dataclass, field
 import math
+import ipaddress
+
+
+@dataclass(frozen=True)
+class ConntrackFlow:
+    client_ip: str
+    dst_ip: str
+    dst_port: int
+    proto: str
+    src_port: int
+    packets_out: Optional[int] = None
+    bytes_out: Optional[int] = None
+    packets_in: Optional[int] = None
+    bytes_in: Optional[int] = None
+    observed_at: Optional[float] = field(default=None, compare=False)
+
+    @property
+    def counters(self):
+        return (self.packets_out, self.bytes_out, self.packets_in, self.bytes_in)
 
 
 @dataclass
@@ -57,10 +76,21 @@ class FlowStats:
     tls_handshake_ms: float = 0.0        # Handshake duration from Zeek ssl.log
     alpn_h2: float = 0.0                 # 1.0 if ALPN negotiated h2 (HTTP/2)
     cert_self_signed_suspect: float = 0.0  # 1.0 if cert chain length == 1 (self-signed)
+    src_port: int = 0
+    packet_timing_available: bool = True
+    packet_metadata_only: bool = False
+    counter_baseline: Optional[tuple] = None
+    counter_started_at: Optional[float] = None
+    counter_elapsed: float = 0.0
+    tls_version: str = ""
+    vpn_protocol: str = ""
+    wg_initiator: int = -1
+    wg_responder: int = -1
+    wg_started_at: float = 0.0
 
-    def update(self, pkt_size: int, direction: str = "out") -> None:
+    def update(self, pkt_size: int, direction: str = "out", *, observed_at: Optional[float] = None) -> None:
         """Update flow stats with new packet"""
-        now = time.time()
+        now = time.time() if observed_at is None else observed_at
         self.last_seen = now
         self.pkt_count += 1
 
@@ -92,6 +122,10 @@ class FlowStats:
 
     def get_duration(self) -> float:
         """Get flow duration in seconds"""
+        if self.packet_metadata_only:
+            return max(0.0, self.last_seen - self.first_seen)
+        if not self.packet_timing_available:
+            return max(0.1, self.counter_elapsed)
         return max(0.1, self.last_seen - self.first_seen)
 
     def get_total_bytes(self) -> int:
@@ -168,13 +202,13 @@ class FlowStats:
         """Get maximum burst packets in any 1-second window"""
         if not self.burst_windows:
             return self.current_window_pkts
-        return max(w["pkts"] for w in self.burst_windows)
+        return max(self.current_window_pkts, max(w["pkts"] for w in self.burst_windows))
 
     def get_max_burst_bytes_1s(self) -> int:
         """Get maximum burst bytes in any 1-second window"""
         if not self.burst_windows:
             return self.current_window_bytes
-        return max(w["bytes"] for w in self.burst_windows)
+        return max(self.current_window_bytes, max(w["bytes"] for w in self.burst_windows))
 
     def get_interarrival_mean_ms(self) -> float:
         """Get mean inter-arrival time in milliseconds"""
@@ -217,7 +251,7 @@ class FlowTracker:
             flow_timeout: Flow timeout in seconds (default 5 minutes)
             max_flows: Maximum number of active flows to retain (LRU eviction)
         """
-        self.flows: OrderedDict[str, FlowStats] = OrderedDict()
+        self.flows: OrderedDict[tuple, FlowStats] = OrderedDict()
         self.flow_timeout = flow_timeout
         self.max_flows = max_flows
         self.last_cleanup = time.time()
@@ -227,9 +261,9 @@ class FlowTracker:
         self._domain_timestamps: dict[str, deque] = {}
         self._domain_freq_window = 300  # 5 minutes in seconds
 
-    def _flow_key(self, client_ip: str, dst_ip: str, dst_port: int, proto: str) -> str:
+    def _flow_key(self, client_ip: str, dst_ip: str, dst_port: int, proto: str, src_port: int = 0) -> tuple:
         """Generate unique flow key"""
-        return f"{client_ip}:{dst_ip}:{dst_port}:{proto}"
+        return client_ip, src_port, dst_ip, dst_port, proto
 
     def update_flow(
         self,
@@ -239,15 +273,16 @@ class FlowTracker:
         proto: str,
         pkt_size: int = 0,
         direction: str = "out",
+        src_port: int = 0,
     ) -> FlowStats:
         """Update or create flow"""
-        key = self._flow_key(client_ip, dst_ip, dst_port, proto)
+        key = self._flow_key(client_ip, dst_ip, dst_port, proto, src_port)
 
         if key not in self.flows:
             if len(self.flows) >= self.max_flows:
                 self.flows.popitem(last=False)
             self.flows[key] = FlowStats(
-                client_ip=client_ip, dst_ip=dst_ip, dst_port=dst_port, proto=proto
+                client_ip=client_ip, dst_ip=dst_ip, dst_port=dst_port, proto=proto, src_port=src_port
             )
         else:
             self.flows.move_to_end(key)
@@ -258,11 +293,42 @@ class FlowTracker:
 
         return flow
 
+    def observe_conntrack(self, sample: ConntrackFlow) -> tuple[FlowStats, bool]:
+        """Accumulate measured deltas; the initial snapshot is the baseline."""
+        key = self._flow_key(sample.client_ip, sample.dst_ip, sample.dst_port, sample.proto, sample.src_port)
+        previous = self.flows.get(key)
+        counters = sample.counters
+        reset = bool(previous and previous.counter_baseline and any(
+            value is not None and old is not None and value < old
+            for value, old in zip(counters, previous.counter_baseline)
+        ))
+        if reset:
+            del self.flows[key]
+        is_new = previous is None or reset
+        flow = self.update_flow(sample.client_ip, sample.dst_ip, sample.dst_port, sample.proto,
+                                src_port=sample.src_port)
+        flow.packet_timing_available = False
+        flow.last_seen = time.time()
+        now = sample.observed_at if sample.observed_at is not None else time.monotonic()
+        if flow.counter_started_at is None:
+            flow.counter_started_at = now
+        flow.counter_elapsed = now - flow.counter_started_at
+        if flow.counter_baseline is not None:
+            packets_out, bytes_out, packets_in, bytes_in = (
+                value - old if value is not None and old is not None else 0
+                for value, old in zip(counters, flow.counter_baseline)
+            )
+            flow.pkt_count += packets_out + packets_in
+            flow.bytes_sent += bytes_out
+            flow.bytes_recv += bytes_in
+        flow.counter_baseline = counters
+        return flow, is_new
+
     def get_flow(
-        self, client_ip: str, dst_ip: str, dst_port: int, proto: str
+        self, client_ip: str, dst_ip: str, dst_port: int, proto: str, src_port: int = 0
     ) -> Optional[FlowStats]:
         """Get flow stats if exists"""
-        key = self._flow_key(client_ip, dst_ip, dst_port, proto)
+        key = self._flow_key(client_ip, dst_ip, dst_port, proto, src_port)
         flow = self.flows.get(key)
         if flow is not None:
             self.flows.move_to_end(key)
@@ -273,10 +339,7 @@ class FlowTracker:
         return [flow for flow in self.flows.values() if flow.client_ip == client_ip]
 
     def enrich_with_dns(self, client_ip: str, domain: str) -> None:
-        """Enrich flows from this client with domain info and record domain frequency."""
-        for flow in self.flows.values():
-            if flow.client_ip == client_ip and not flow.domain:
-                flow.domain = domain
+        """Query-only logs support frequency, not DNS-answer/connection correlation."""
         if domain:
             self._record_domain(domain)
 
@@ -311,18 +374,21 @@ class FlowTracker:
         handshake_ms: float = 0.0,
         alpn_h2: float = 0.0,
         cert_self_signed: float = 0.0,
+        *,
+        dst_ip: str = "",
+        dst_port: int = 0,
+        src_port: int = 0,
     ) -> None:
-        """Enrich flows from this client with SNI/TLS info from Zeek ssl.log."""
-        for flow in self.flows.values():
-            if flow.client_ip == client_ip:
-                flow.sni = sni
-                flow.tls_seen = True
-                if handshake_ms > 0:
-                    flow.tls_handshake_ms = handshake_ms
-                if alpn_h2:
-                    flow.alpn_h2 = alpn_h2
-                if cert_self_signed:
-                    flow.cert_self_signed_suspect = cert_self_signed
+        """Enrich only an identified TLS connection, never other client flows."""
+        if not (dst_ip and dst_port and src_port):
+            return
+        flow = self.get_flow(client_ip, dst_ip, dst_port, "tcp", src_port)
+        if flow is not None:
+            flow.sni = sni
+            flow.tls_seen = True
+            flow.tls_handshake_ms = handshake_ms
+            flow.alpn_h2 = alpn_h2
+            flow.cert_self_signed_suspect = cert_self_signed
 
     def cleanup_old_flows(self, force: bool = False) -> int:
         """Remove expired flows"""
@@ -367,41 +433,38 @@ class FlowTracker:
         return len(ports) >= threshold, len(ports)
 
 
-def parse_conntrack_line(line: str) -> Optional[tuple]:
-    """
-    Parse /proc/net/nf_conntrack line
-    Example format:
-    ipv4     2 tcp      6 117 ESTABLISHED src=192.168.1.100 dst=8.8.8.8 sport=54321 dport=443 ...
-    """
+def parse_conntrack_line(line: str, *, observed_at: Optional[float] = None) -> Optional[ConntrackFlow]:
+    """Parse procfs or conntrack -L TCP/UDP original and reply counters."""
     try:
         parts = line.split()
-        if len(parts) < 10:
+        if not parts:
             return None
-
-        proto = parts[0]  # ipv4/ipv6
-        l4_proto = parts[2]  # tcp/udp/icmp
-
-        # Extract IPs and ports
-        src_ip = None
-        dst_ip = None
-        src_port = 0
-        dst_port = 0
-
+        proto = parts[2] if parts[0] in {"ipv4", "ipv6"} else parts[0]
+        if proto not in {"tcp", "udp"}:
+            return None
+        directions = []
         for part in parts:
             if part.startswith("src="):
-                src_ip = part.split("=")[1]
-            elif part.startswith("dst="):
-                dst_ip = part.split("=")[1]
-            elif part.startswith("sport="):
-                src_port = int(part.split("=")[1])
-            elif part.startswith("dport="):
-                dst_port = int(part.split("=")[1])
-
-        if src_ip and dst_ip and dst_port:
-            return (src_ip, dst_ip, dst_port, l4_proto)
-
-        return None
-    except Exception:
+                directions.append({})
+            if directions and "=" in part:
+                key, value = part.split("=", 1)
+                directions[-1].setdefault(key, value)
+        if not directions:
+            return None
+        original = directions[0]
+        reply = directions[1] if len(directions) > 1 else {}
+        client_ip = str(ipaddress.ip_address(original["src"]))
+        dst_ip = str(ipaddress.ip_address(original["dst"]))
+        src_port, dst_port = int(original["sport"]), int(original["dport"])
+        if not (0 < src_port <= 65535 and 0 < dst_port <= 65535):
+            return None
+        counters = [int(fields[key]) if key in fields else None
+                    for fields in (original, reply) for key in ("packets", "bytes")]
+        if any(value is not None and value < 0 for value in counters):
+            return None
+        return ConntrackFlow(client_ip, dst_ip, dst_port, proto, src_port, *counters,
+                             observed_at=time.monotonic() if observed_at is None else observed_at)
+    except (IndexError, KeyError, ValueError):
         return None
 
 
@@ -415,13 +478,15 @@ def _stream_conntrack_via_cli(poll_interval: float = 5.0) -> Iterator[tuple]:
     while True:
         try:
             result = subprocess.run(
-                ["conntrack", "-L"],
+                ["conntrack", "-L", "-o", "extended"],
                 capture_output=True,
                 text=True,
                 timeout=10,
+                check=True,
             )
+            snapshot_at = time.monotonic()
             for line in result.stdout.splitlines():
-                parsed = parse_conntrack_line(line.strip())
+                parsed = parse_conntrack_line(line.strip(), observed_at=snapshot_at)
                 if parsed:
                     yield parsed
         except FileNotFoundError:
@@ -446,7 +511,7 @@ def stream_conntrack_flows(
     Stream flows from conntrack.
     Prefers reading /proc/net/nf_conntrack directly; falls back to the
     `conntrack -L` CLI when the procfs path is absent (kernel 6.8+).
-    Yields: (src_ip, dst_ip, dst_port, proto)
+    Yields ConntrackFlow observations; repeated snapshots are not packets.
     """
     p = Path(conntrack_path)
 
@@ -460,12 +525,15 @@ def stream_conntrack_flows(
     while True:
         try:
             with p.open("r") as f:
-                for line in f:
-                    parsed = parse_conntrack_line(line.strip())
-                    if parsed:
-                        yield parsed
+                lines = f.readlines()
+            snapshot_at = time.monotonic()
+            for line in lines:
+                parsed = parse_conntrack_line(line.strip(), observed_at=snapshot_at)
+                if parsed:
+                    yield parsed
             time.sleep(5)
         except Exception:
+            logging.exception("[FLOW] Conntrack procfs read failed; retrying independently")
             time.sleep(5)
             continue
 
@@ -479,6 +547,9 @@ def build_feature_vector_24(flow: FlowStats, tracker: "FlowTracker | None" = Non
         flow: FlowStats instance for the connection being scored.
         tracker: Optional FlowTracker — required to populate domain_repeat_5min.
     """
+    if not flow.packet_timing_available or flow.packet_metadata_only:
+        raise ValueError("24-feature MLP requires packet timing/size data unavailable from conntrack snapshots")
+
     # Basic flow (8)
     duration_sec = flow.get_duration()
     pkt_count_total = float(flow.pkt_count)
@@ -541,3 +612,15 @@ def build_feature_vector_24(flow: FlowStats, tracker: "FlowTracker | None" = Non
         subdomain_depth,
         domain_repeat_5min,
     ]
+
+
+def build_packet_features_14(flow: FlowStats) -> list[float]:
+    """Measured capture statistics only; no fabricated TLS/DNS metadata."""
+    if not flow.packet_timing_available or not flow.packet_metadata_only or flow.last_seen <= flow.first_seen:
+        raise ValueError("packet14 requires real packet observations over a positive measured interval")
+    return [flow.get_duration(), float(flow.pkt_count), float(flow.get_total_bytes()),
+            flow.get_bytes_per_sec(), flow.get_pkts_per_sec(), flow.get_avg_pkt_size(),
+            flow.get_pkt_size_std(), flow.get_inbound_outbound_ratio(),
+            float(flow.get_max_burst_pkts_1s()), float(flow.get_max_burst_bytes_1s()),
+            flow.get_interarrival_mean_ms(), flow.get_interarrival_std_ms(),
+            flow.get_interarrival_p95_ms(), flow.get_small_pkt_ratio()]

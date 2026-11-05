@@ -1,0 +1,42 @@
+
+==================================== ERRORS ====================================
+_____________ ERROR collecting testing/test_build_static_demos.py ______________
+ImportError while importing test module '/home/lab/tuesday-c16/testing/test_build_static_demos.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.11/importlib/__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+testing/test_build_static_demos.py:9: in <module>
+    from tools.build_static_demos import SECTORS, VERSION, GPG_KEY, build_sector, render_html
+E   ModuleNotFoundError: No module named 'tools'
+_______________ ERROR collecting testing/test_endpoint_bridge.py _______________
+ImportError while importing test module '/home/lab/tuesday-c16/testing/test_endpoint_bridge.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.11/importlib/__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+testing/test_endpoint_bridge.py:8: in <module>
+    from endpoint_bridge import RSS_WARN_BYTES, flow_to_event, scan_once, stats_to_event  # noqa: E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   ModuleNotFoundError: No module named 'endpoint_bridge'
+=============================== warnings summary ===============================
+app/models/user.py:6
+  /home/lab/tuesday-c16/app/models/user.py:6: MovedIn20Warning: The ``declarative_base()`` function is now available as sqlalchemy.orm.declarative_base(). (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
+    Base = declarative_base()
+
+../../../opt/minifw_ai/venv/lib/python3.11/site-packages/passlib/utils/__init__.py:854
+  /opt/minifw_ai/venv/lib/python3.11/site-packages/passlib/utils/__init__.py:854: DeprecationWarning: 'crypt' is deprecated and slated for removal in Python 3.13
+    from crypt import crypt as _crypt
+
+app/models/audit.py:15
+  /home/lab/tuesday-c16/app/models/audit.py:15: MovedIn20Warning: The ``declarative_base()`` function is now available as sqlalchemy.orm.declarative_base(). (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
+    Base = declarative_base()
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+ERROR testing/test_build_static_demos.py
+ERROR testing/test_endpoint_bridge.py
+!!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
+3 warnings, 2 errors in 4.34s

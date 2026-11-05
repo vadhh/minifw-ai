@@ -1,0 +1,577 @@
+{
+  "schema": "packet14-v1",
+  "feature_names": [
+    "duration_sec",
+    "pkt_count_total",
+    "bytes_total",
+    "bytes_per_sec",
+    "pkts_per_sec",
+    "avg_pkt_size",
+    "pkt_size_std",
+    "inbound_outbound_ratio",
+    "max_burst_pkts_1s",
+    "max_burst_bytes_1s",
+    "interarrival_mean_ms",
+    "interarrival_std_ms",
+    "interarrival_p95_ms",
+    "small_pkt_ratio"
+  ],
+  "sklearn_version": "1.5.2",
+  "seed": 20261105,
+  "recall_target": 0.9,
+  "false_isolation_limit": "not yet agreed",
+  "method": "One first eligible five-packet prefix per flow; entire generated capture sessions held out",
+  "representative_sector_validation": false,
+  "independent_environment": false,
+  "attack_onset_checked": false,
+  "session_labels_are_prefix_threat_ground_truth": false,
+  "limitations": [
+    "All sessions use the same fictional service/network; public corpus pilot evaluated separately",
+    "First five TLS packets generally precede the guessed password; session labels do not establish attack onset at the scored prefix",
+    "Flow false positives do not equal client isolation rate",
+    "Capture and session signatures may confound results; no production qualification"
+  ],
+  "diagnostics": [
+    {
+      "capture": "education-0-benign.pcap",
+      "labelled_requests": 30,
+      "eligible_flows": 30,
+      "packet_counts": {
+        "decoded_packets": 451
+      },
+      "independent_feature_parity": "all 14 values match independent NumPy calculations",
+      "label_source": "controlled isolated fixture",
+      "sha256": "aca3d5b65175ea507b8a5846b579eab7a928f43027ef55c834b399151214f02e"
+    },
+    {
+      "capture": "education-0-malicious.pcap",
+      "labelled_requests": 30,
+      "eligible_flows": 30,
+      "packet_counts": {
+        "decoded_packets": 457
+      },
+      "independent_feature_parity": "all 14 values match independent NumPy calculations",
+      "label_source": "controlled isolated fixture",
+      "sha256": "03e9b5fdf1a3932454ce151a71fee838fc569d03577f75e56a80ef78157eae67"
+    },
+    {
+      "capture": "education-1-benign.pcap",
+      "labelled_requests": 30,
+      "eligible_flows": 30,
+      "packet_counts": {
+        "decoded_packets": 452
+      },
+      "independent_feature_parity": "all 14 values match independent NumPy calculations",
+      "label_source": "controlled isolated fixture",
+      "sha256": "47e956510148392b41d61b95896ec148621bc5e58541aa702c02280e55a084cb"
+    },
+    {
+      "capture": "education-1-malicious.pcap",
+      "labelled_requests": 30,
+      "eligible_flows": 30,
+      "packet_counts": {
+        "decoded_packets": 455
+      },
+      "independent_feature_parity": "all 14 values match independent NumPy calculations",
+      "label_source": "controlled isolated fixture",
+      "sha256": "1eb89151994d063de268af7e64c2fe2d65b145cca583a5602f02161c8bd78d3c"
+    },
+    {
+      "capture": "education-2-benign.pcap",
+      "labelled_requests": 30,
+      "eligible_flows": 30,
+      "packet_counts": {
+        "decoded_packets": 454
+      },
+      "independent_feature_parity": "all 14 values match independent NumPy calculations",
+      "label_source": "controlled isolated fixture",
+      "sha256": "7b805c575f067ac39811aedfe34ed0770fa2a10023f1fe838c847680633136d0"
+    },
+    {
+      "capture": "education-2-malicious.pcap",
+      "labelled_requests": 30,
+      "eligible_flows": 30,
+      "packet_counts": {
+        "decoded_packets": 454
+      },
+      "independent_feature_parity": "all 14 values match independent NumPy calculations",
+      "label_source": "controlled isolated fixture",
+      "sha256": "8d4c10f7ed71b257981693f4d7d3dccac9858f41b6e7d7ac0705d49611e672a8"
+    },
+    {
+      "capture": "education-3-benign.pcap",
+      "labelled_requests": 30,
+      "eligible_flows": 30,
+      "packet_counts": {
+        "decoded_packets": 450
+      },
+      "independent_feature_parity": "all 14 values match independent NumPy calculations",
+      "label_source": "controlled isolated fixture",
+      "sha256": "cc5994744bcf430ba7b2f193c06c44f73bd2bffb4c33e9ea0f212bd81f4233d5"
+    },
+    {
+      "capture": "education-3-malicious.pcap",
+      "labelled_requests": 30,
+      "eligible_flows": 30,
+      "packet_counts": {
+        "decoded_packets": 456
+      },
+      "independent_feature_parity": "all 14 values match independent NumPy calculations",
+      "label_source": "controlled isolated fixture",
+      "sha256": "1f5a4d73f982086fb9a473518dc54c70289d6fe948892535f887f83c0ed86932"
+    },
+    {
+      "capture": "financial-0-benign.pcap",
+      "labelled_requests": 30,
+      "eligible_flows": 30,
+      "packet_counts": {
+        "decoded_packets": 454
+      },
+      "independent_feature_parity": "all 14 values match independent NumPy calculations",
+      "label_source": "controlled isolated fixture",
+      "sha256": "69be9c9142ebf5b00292fdb0f794c8afbb68737659c4ef265603369c9d84caf9"
+    },
+    {
+      "capture": "financial-0-malicious.pcap",
+      "labelled_requests": 30,
+      "eligible_flows": 30,
+      "packet_counts": {
+        "decoded_packets": 459
+      },
+      "independent_feature_parity": "all 14 values match independent NumPy calculations",
+      "label_source": "controlled isolated fixture",
+      "sha256": "77e72542cd02c729a9b61d3c921c618f0f98a301e19261b6fb30a4ae0d9ea623"
+    },
+    {
+      "capture": "financial-1-benign.pcap",
+      "labelled_requests": 30,
+      "eligible_flows": 30,
+      "packet_counts": {
+        "decoded_packets": 454
+      },
+      "independent_feature_parity": "all 14 values match independent NumPy calculations",
+      "label_source": "controlled isolated fixture",
+      "sha256": "676e88d10e006a8d0c7521ffd40eb4dde0db042b319a0e00395dfc0f6ede7c0f"
+    },
+    {
+      "capture": "financial-1-malicious.pcap",
+      "labelled_requests": 30,
+      "eligible_flows": 30,
+      "packet_counts": {
+        "decoded_packets": 453
+      },
+      "independent_feature_parity": "all 14 values match independent NumPy calculations",
+      "label_source": "controlled isolated fixture",
+      "sha256": "38dfa3fffb54e0b3120fe2117fce4a97d61687744938b0a84d2f8a1300e5fd91"
+    },
+    {
+      "capture": "financial-2-benign.pcap",
+      "labelled_requests": 30,
+      "eligible_flows": 30,
+      "packet_counts": {
+        "decoded_packets": 449
+      },
+      "independent_feature_parity": "all 14 values match independent NumPy calculations",
+      "label_source": "controlled isolated fixture",
+      "sha256": "4774414ae7b1e6664d45b56fc5c8d5df23ffc4dd2f737b2b5fd7eaf198dd5df6"
+    },
+    {
+      "capture": "financial-2-malicious.pcap",
+      "labelled_requests": 30,
+      "eligible_flows": 30,
+      "packet_counts": {
+        "decoded_packets": 458
+      },
+      "independent_feature_parity": "all 14 values match independent NumPy calculations",
+      "label_source": "controlled isolated fixture",
+      "sha256": "dbb4c5836f1742c41a9941bd3e2afbf91773ffba3cee6d943feabe4cdcec9b97"
+    },
+    {
+      "capture": "financial-3-benign.pcap",
+      "labelled_requests": 30,
+      "eligible_flows": 30,
+      "packet_counts": {
+        "decoded_packets": 453
+      },
+      "independent_feature_parity": "all 14 values match independent NumPy calculations",
+      "label_source": "controlled isolated fixture",
+      "sha256": "b63b74d81d8664963354900f841e99b64ac72c71ee17bed5b670d599571f76c5"
+    },
+    {
+      "capture": "financial-3-malicious.pcap",
+      "labelled_requests": 30,
+      "eligible_flows": 30,
+      "packet_counts": {
+        "decoded_packets": 451
+      },
+      "independent_feature_parity": "all 14 values match independent NumPy calculations",
+      "label_source": "controlled isolated fixture",
+      "sha256": "3d4289b9c327dd29bf3815bc8e31278ee6a781cc316a85ce1a3693903fb79a23"
+    }
+  ],
+  "splits": {
+    "train": {
+      "flows": 240,
+      "captures": [
+        "education-0-benign.pcap",
+        "education-0-malicious.pcap",
+        "education-1-benign.pcap",
+        "education-1-malicious.pcap",
+        "financial-0-benign.pcap",
+        "financial-0-malicious.pcap",
+        "financial-1-benign.pcap",
+        "financial-1-malicious.pcap"
+      ]
+    },
+    "validation": {
+      "flows": 120,
+      "captures": [
+        "education-2-benign.pcap",
+        "education-2-malicious.pcap",
+        "financial-2-benign.pcap",
+        "financial-2-malicious.pcap"
+      ]
+    },
+    "test": {
+      "flows": 120,
+      "captures": [
+        "education-3-benign.pcap",
+        "education-3-malicious.pcap",
+        "financial-3-benign.pcap",
+        "financial-3-malicious.pcap"
+      ]
+    }
+  },
+  "models": {
+    "shipped_MLP": {
+      "training_seconds": 3.5075005143880844e-05,
+      "scores": {
+        "validation": {
+          "education": {
+            "tn": 0,
+            "fp": 30,
+            "fn": 0,
+            "tp": 30,
+            "benign_flows": 30,
+            "malicious_flows": 30,
+            "benign_false_positive_rate": 1.0,
+            "malicious_recall": 1.0,
+            "threshold": 0.5
+          },
+          "financial": {
+            "tn": 0,
+            "fp": 30,
+            "fn": 0,
+            "tp": 30,
+            "benign_flows": 30,
+            "malicious_flows": 30,
+            "benign_false_positive_rate": 1.0,
+            "malicious_recall": 1.0,
+            "threshold": 0.5
+          },
+          "all": {
+            "tn": 0,
+            "fp": 60,
+            "fn": 0,
+            "tp": 60,
+            "benign_flows": 60,
+            "malicious_flows": 60,
+            "benign_false_positive_rate": 1.0,
+            "malicious_recall": 1.0,
+            "threshold": 0.5
+          }
+        },
+        "test": {
+          "education": {
+            "tn": 0,
+            "fp": 30,
+            "fn": 0,
+            "tp": 30,
+            "benign_flows": 30,
+            "malicious_flows": 30,
+            "benign_false_positive_rate": 1.0,
+            "malicious_recall": 1.0,
+            "threshold": 0.5
+          },
+          "financial": {
+            "tn": 0,
+            "fp": 30,
+            "fn": 0,
+            "tp": 30,
+            "benign_flows": 30,
+            "malicious_flows": 30,
+            "benign_false_positive_rate": 1.0,
+            "malicious_recall": 1.0,
+            "threshold": 0.5
+          },
+          "all": {
+            "tn": 0,
+            "fp": 60,
+            "fn": 0,
+            "tp": 60,
+            "benign_flows": 60,
+            "malicious_flows": 60,
+            "benign_false_positive_rate": 1.0,
+            "malicious_recall": 1.0,
+            "threshold": 0.5
+          }
+        }
+      },
+      "training_CPU_seconds": 3.063400000002936e-05,
+      "single_flow_latency_ms": {
+        "mean": 1.5071817242035952,
+        "p95": 2.1243141891318373
+      },
+      "artifact_bytes": 32059,
+      "sha256": "056e0684e9fd8654a183c05f1c642fa4961e494726150388cbf587f29ee79989",
+      "warnings": [],
+      "parameters": {
+        "activation": "relu",
+        "alpha": 0.0001,
+        "batch_size": "auto",
+        "beta_1": 0.9,
+        "beta_2": 0.999,
+        "early_stopping": true,
+        "epsilon": 1e-08,
+        "hidden_layer_sizes": [
+          32,
+          16
+        ],
+        "learning_rate": "constant",
+        "learning_rate_init": 0.001,
+        "max_fun": 15000,
+        "max_iter": 500,
+        "momentum": 0.9,
+        "n_iter_no_change": 10,
+        "nesterovs_momentum": true,
+        "power_t": 0.5,
+        "random_state": 42,
+        "shuffle": true,
+        "solver": "adam",
+        "tol": 0.0001,
+        "validation_fraction": 0.1,
+        "verbose": false,
+        "warm_start": false
+      },
+      "max_process_RSS_KiB": 155880
+    },
+    "trained_MLP": {
+      "training_seconds": 0.14931638201233,
+      "scores": {
+        "validation": {
+          "education": {
+            "tn": 20,
+            "fp": 10,
+            "fn": 12,
+            "tp": 18,
+            "benign_flows": 30,
+            "malicious_flows": 30,
+            "benign_false_positive_rate": 0.3333333333333333,
+            "malicious_recall": 0.6,
+            "threshold": 0.5
+          },
+          "financial": {
+            "tn": 4,
+            "fp": 26,
+            "fn": 11,
+            "tp": 19,
+            "benign_flows": 30,
+            "malicious_flows": 30,
+            "benign_false_positive_rate": 0.8666666666666667,
+            "malicious_recall": 0.6333333333333333,
+            "threshold": 0.5
+          },
+          "all": {
+            "tn": 24,
+            "fp": 36,
+            "fn": 23,
+            "tp": 37,
+            "benign_flows": 60,
+            "malicious_flows": 60,
+            "benign_false_positive_rate": 0.6,
+            "malicious_recall": 0.6166666666666667,
+            "threshold": 0.5
+          }
+        },
+        "test": {
+          "education": {
+            "tn": 8,
+            "fp": 22,
+            "fn": 14,
+            "tp": 16,
+            "benign_flows": 30,
+            "malicious_flows": 30,
+            "benign_false_positive_rate": 0.7333333333333333,
+            "malicious_recall": 0.5333333333333333,
+            "threshold": 0.5
+          },
+          "financial": {
+            "tn": 7,
+            "fp": 23,
+            "fn": 20,
+            "tp": 10,
+            "benign_flows": 30,
+            "malicious_flows": 30,
+            "benign_false_positive_rate": 0.7666666666666667,
+            "malicious_recall": 0.3333333333333333,
+            "threshold": 0.5
+          },
+          "all": {
+            "tn": 15,
+            "fp": 45,
+            "fn": 34,
+            "tp": 26,
+            "benign_flows": 60,
+            "malicious_flows": 60,
+            "benign_false_positive_rate": 0.75,
+            "malicious_recall": 0.43333333333333335,
+            "threshold": 0.5
+          }
+        }
+      },
+      "training_CPU_seconds": 0.1493408810000001,
+      "single_flow_latency_ms": {
+        "mean": 1.3980420767135608,
+        "p95": 1.4585583528969437
+      },
+      "artifact_bytes": 33515,
+      "sha256": "0bb2eaccb9ae8b2dffb564b27a949760b62a5f98737c3428ba3ebb6c09df2336",
+      "warnings": [],
+      "parameters": {
+        "activation": "relu",
+        "alpha": 0.0001,
+        "batch_size": "auto",
+        "beta_1": 0.9,
+        "beta_2": 0.999,
+        "early_stopping": false,
+        "epsilon": 1e-08,
+        "hidden_layer_sizes": [
+          32,
+          16
+        ],
+        "learning_rate": "constant",
+        "learning_rate_init": 0.001,
+        "max_fun": 15000,
+        "max_iter": 300,
+        "momentum": 0.9,
+        "n_iter_no_change": 10,
+        "nesterovs_momentum": true,
+        "power_t": 0.5,
+        "random_state": 20261105,
+        "shuffle": true,
+        "solver": "adam",
+        "tol": 0.0001,
+        "validation_fraction": 0.1,
+        "verbose": false,
+        "warm_start": false
+      },
+      "max_process_RSS_KiB": 155880
+    },
+    "small_RF": {
+      "training_seconds": 0.10624466100125574,
+      "scores": {
+        "validation": {
+          "education": {
+            "tn": 13,
+            "fp": 17,
+            "fn": 13,
+            "tp": 17,
+            "benign_flows": 30,
+            "malicious_flows": 30,
+            "benign_false_positive_rate": 0.5666666666666667,
+            "malicious_recall": 0.5666666666666667,
+            "threshold": 0.5
+          },
+          "financial": {
+            "tn": 9,
+            "fp": 21,
+            "fn": 12,
+            "tp": 18,
+            "benign_flows": 30,
+            "malicious_flows": 30,
+            "benign_false_positive_rate": 0.7,
+            "malicious_recall": 0.6,
+            "threshold": 0.5
+          },
+          "all": {
+            "tn": 22,
+            "fp": 38,
+            "fn": 25,
+            "tp": 35,
+            "benign_flows": 60,
+            "malicious_flows": 60,
+            "benign_false_positive_rate": 0.6333333333333333,
+            "malicious_recall": 0.5833333333333334,
+            "threshold": 0.5
+          }
+        },
+        "test": {
+          "education": {
+            "tn": 14,
+            "fp": 16,
+            "fn": 17,
+            "tp": 13,
+            "benign_flows": 30,
+            "malicious_flows": 30,
+            "benign_false_positive_rate": 0.5333333333333333,
+            "malicious_recall": 0.43333333333333335,
+            "threshold": 0.5
+          },
+          "financial": {
+            "tn": 14,
+            "fp": 16,
+            "fn": 11,
+            "tp": 19,
+            "benign_flows": 30,
+            "malicious_flows": 30,
+            "benign_false_positive_rate": 0.5333333333333333,
+            "malicious_recall": 0.6333333333333333,
+            "threshold": 0.5
+          },
+          "all": {
+            "tn": 28,
+            "fp": 32,
+            "fn": 28,
+            "tp": 32,
+            "benign_flows": 60,
+            "malicious_flows": 60,
+            "benign_false_positive_rate": 0.5333333333333333,
+            "malicious_recall": 0.5333333333333333,
+            "threshold": 0.5
+          }
+        }
+      },
+      "training_CPU_seconds": 0.09746618300000032,
+      "single_flow_latency_ms": {
+        "mean": 5.64805946511721,
+        "p95": 6.012001198541839
+      },
+      "artifact_bytes": 171083,
+      "sha256": "f6e936b579271c5ed55a291124d575d2dc3ee4affdc5bc2c12dc6ae51b09e57d",
+      "warnings": [],
+      "parameters": {
+        "bootstrap": true,
+        "ccp_alpha": 0.0,
+        "class_weight": "balanced",
+        "criterion": "gini",
+        "max_depth": 6,
+        "max_features": "sqrt",
+        "max_leaf_nodes": null,
+        "max_samples": null,
+        "min_impurity_decrease": 0.0,
+        "min_samples_leaf": 5,
+        "min_samples_split": 2,
+        "min_weight_fraction_leaf": 0.0,
+        "monotonic_cst": null,
+        "n_estimators": 64,
+        "n_jobs": 1,
+        "oob_score": false,
+        "random_state": 20261105,
+        "verbose": 0,
+        "warm_start": false
+      },
+      "max_process_RSS_KiB": 155880
+    }
+  },
+  "decision": "HOLD; experimental fixture comparison only"
+}

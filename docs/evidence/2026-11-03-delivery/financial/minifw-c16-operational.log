@@ -1,0 +1,404 @@
+$ dpkg-query -W minifw-ai
+minifw-ai	2.2.10-finance
+$ ip -j netns list
+[]
+$ systemctl stop minifw-ai minifw-ai-web dnsmasq
+$ nft -a list table inet minifw
+table inet minifw { # handle 48
+	set minifw_block_v4 { # handle 1
+		type ipv4_addr
+		timeout 1h
+		elements = { 10.10.0.20 timeout 15s expires 10s296ms }
+	}
+
+	chain forward { # handle 2
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 71 bytes 4196 comment "MiniFW-AI-Conntrack" # handle 3
+		ip saddr @minifw_block_v4 counter packets 72 bytes 3840 drop comment "MiniFW-AI-Blocklist" # handle 4
+	}
+}
+$ nft delete table inet minifw
+$ modprobe nf_conntrack
+$ sysctl -w net.ipv4.ip_forward=1 net.ipv6.conf.all.forwarding=1 net.netfilter.nf_conntrack_acct=0
+net.ipv4.ip_forward = 1
+net.ipv6.conf.all.forwarding = 1
+net.netfilter.nf_conntrack_acct = 0
+$ ip netns add mf-client
+$ ip -n mf-client link set lo up
+$ ip netns add mf-server
+$ ip -n mf-server link set lo up
+$ ip link add mfcg type veth peer name mfc0
+$ ip link set mfc0 netns mf-client
+$ ip addr add 10.10.0.1/24 dev mfcg
+$ ip addr add fd42:10::1/64 dev mfcg
+$ ip link set mfcg up
+$ ip -n mf-client addr add 10.10.0.20/24 dev mfc0
+$ ip -n mf-client addr add fd42:10::20/64 dev mfc0
+$ ip -n mf-client link set mfc0 up
+$ ip -n mf-client route add default via 10.10.0.1
+$ ip -n mf-client -6 route add default via fd42:10::1
+$ ip link add mfsg type veth peer name mfs0
+$ ip link set mfs0 netns mf-server
+$ ip addr add 198.18.0.1/24 dev mfsg
+$ ip addr add fd42:18::1/64 dev mfsg
+$ ip link set mfsg up
+$ ip -n mf-server addr add 198.18.0.2/24 dev mfs0
+$ ip -n mf-server addr add fd42:18::2/64 dev mfs0
+$ ip -n mf-server link set mfs0 up
+$ ip -n mf-server route add default via 198.18.0.1
+$ ip -n mf-server -6 route add default via fd42:18::1
+$ ip -br address
+lo               UNKNOWN        127.0.0.1/8 ::1/128 
+ens3             UP             10.231.0.15/24 metric 100 fec0::5054:ff:fe22:1002/64 fe80::5054:ff:fe22:1002/64 
+mfcg@if127       UP             10.10.0.1/24 fd42:10::1/64 fe80::8494:6dff:fe33:f74/64 
+mfsg@if129       UP             198.18.0.1/24 fd42:18::1/64 fe80::f060:cbff:fed4:659/64
+$ ip -n mf-client route
+default via 10.10.0.1 dev mfc0 
+10.10.0.0/24 dev mfc0 proto kernel scope link src 10.10.0.20
+$ ip -n mf-server route
+default via 198.18.0.1 dev mfs0 
+198.18.0.0/24 dev mfs0 proto kernel scope link src 198.18.0.2
+$ openssl req -x509 -newkey rsa:2048 -nodes -days 1 -subj /CN=lab.test -keyout /var/tmp/minifw-monday-financial-20261103T042803Z/server.key -out /var/tmp/minifw-monday-financial-20261103T042803Z/server.crt
+.......+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*.+.....+.+..+..........+...+.....+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*.+.+..............+.+...+......+.....+.........+.......+..+......+.......+........+.+......+..+.......+......+........+....+........+.........+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+.......+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*...+.+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*..........+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+-----
+$ systemctl stop minifw-ai
+$ nft flush set inet minifw minifw_block_v4
+Error: No such file or directory
+flush set inet minifw minifw_block_v4
+               ^^^^^^
+$ conntrack -D -s 10.10.0.20
+tcp      6 292 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=45046 dport=20003 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20003 dport=45046 packets=0 bytes=0 mark=0 use=1
+tcp      6 292 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=46476 dport=20002 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20002 dport=46476 packets=0 bytes=0 mark=0 use=1
+tcp      6 292 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=46244 dport=20004 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20004 dport=46244 packets=0 bytes=0 mark=0 use=1
+tcp      6 292 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=47140 dport=20011 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20011 dport=47140 packets=0 bytes=0 mark=0 use=1
+tcp      6 292 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=40842 dport=20007 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20007 dport=40842 packets=0 bytes=0 mark=0 use=1
+tcp      6 292 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=59336 dport=20000 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20000 dport=59336 packets=0 bytes=0 mark=0 use=1
+tcp      6 292 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=40624 dport=20006 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20006 dport=40624 packets=0 bytes=0 mark=0 use=1
+tcp      6 292 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=53940 dport=20005 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20005 dport=53940 packets=0 bytes=0 mark=0 use=1
+tcp      6 292 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=43510 dport=20012 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20012 dport=43510 packets=0 bytes=0 mark=0 use=1
+tcp      6 292 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=44154 dport=20008 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20008 dport=44154 packets=0 bytes=0 mark=0 use=1
+tcp      6 292 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=44528 dport=20014 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20014 dport=44528 packets=0 bytes=0 mark=0 use=1
+tcp      6 292 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=48078 dport=20013 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20013 dport=48078 packets=0 bytes=0 mark=0 use=1
+tcp      6 292 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=48304 dport=20009 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20009 dport=48304 packets=0 bytes=0 mark=0 use=1
+tcp      6 292 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=50652 dport=20001 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20001 dport=50652 packets=0 bytes=0 mark=0 use=1
+tcp      6 292 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=57386 dport=20010 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20010 dport=57386 packets=0 bytes=0 mark=0 use=1
+conntrack v1.4.7 (conntrack-tools): 15 flow entries have been deleted.
+$ systemctl daemon-reload
+$ systemctl start minifw-ai
+$ systemctl show minifw-ai -p ActiveState -p MainPID -p ExecMainStatus
+MainPID=38669
+ExecMainStatus=0
+ActiveState=active
+$ ip netns exec mf-client /usr/bin/python3 /home/lab/tuesday-c16/testing/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+$ systemctl daemon-reload
+$ systemctl start minifw-ai-web
+$ ip netns exec mf-client /usr/bin/python3 /home/lab/tuesday-c16/testing/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+$ ip netns exec mf-client /usr/bin/python3 /home/lab/tuesday-c16/testing/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+$ ip netns exec mf-client /usr/bin/python3 /home/lab/tuesday-c16/testing/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+$ ip netns exec mf-client /usr/bin/python3 /home/lab/tuesday-c16/testing/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+$ ip netns exec mf-client /usr/bin/python3 /home/lab/tuesday-c16/testing/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+HEALTH_POLL 200 {"status": "ready", "heartbeat_age_seconds": 0.6838390490011079, "kernel_rule_present": true, "source_age_seconds": {"packet": 1.1351108759990893}, "coverage": "Progress and IPv4 rule presence only; quiet sources remain unverified; not traffic enforcement or AI quality acceptance"}
+VERIFIED {"test": "runtime_health_observed_ready", "actual": {"status": "ready", "heartbeat_age_seconds": 0.6838390490011079, "kernel_rule_present": true, "source_age_seconds": {"packet": 1.1351108759990893}, "coverage": "Progress and IPv4 rule presence only; quiet sources remain unverified; not traffic enforcement or AI quality acceptance"}, "time": "2026-11-03T04:28:11.703645+00:00"}
+$ systemctl stop minifw-ai
+VERIFIED {"test": "runtime_health_stopped_engine", "actual": {"http_status": 503, "status": "not_ready", "reason": "missing, stale or invalid engine evidence"}, "time": "2026-11-03T04:28:12.027049+00:00"}
+$ systemctl stop minifw-ai
+$ nft flush set inet minifw minifw_block_v4
+$ conntrack -D -s 10.10.0.20
+tcp      6 117 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41414 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=41414 packets=5 bytes=577 [ASSURED] mark=0 use=1
+tcp      6 117 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41418 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=41418 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 118 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41438 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=41438 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 116 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41412 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=41412 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 118 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=41426 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=41426 packets=5 bytes=577 [ASSURED] mark=0 use=1
+tcp      6 119 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=39918 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=39918 packets=6 bytes=629 [ASSURED] mark=0 use=1
+conntrack v1.4.7 (conntrack-tools): 6 flow entries have been deleted.
+$ systemctl daemon-reload
+$ systemctl start minifw-ai
+$ systemctl show minifw-ai -p ActiveState -p MainPID -p ExecMainStatus
+MainPID=38773
+ExecMainStatus=0
+ActiveState=active
+$ ip netns exec mf-client /usr/bin/python3 /home/lab/tuesday-c16/testing/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+$ ip netns exec mf-client /usr/bin/python3 /home/lab/tuesday-c16/testing/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+$ ip netns exec mf-client /usr/bin/python3 /home/lab/tuesday-c16/testing/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+HEALTH_POLL 200 {"status": "ready", "heartbeat_age_seconds": 0.4563411109993467, "kernel_rule_present": true, "source_age_seconds": {"packet": 0.6571921040012967}, "coverage": "Progress and IPv4 rule presence only; quiet sources remain unverified; not traffic enforcement or AI quality acceptance"}
+$ nft -a list table inet minifw
+table inet minifw { # handle 49
+	set minifw_block_v4 { # handle 1
+		type ipv4_addr
+		timeout 1h
+	}
+
+	chain forward { # handle 2
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 9 bytes 540 comment "MiniFW-AI-Conntrack" # handle 3
+		ip saddr @minifw_block_v4 counter packets 0 bytes 0 drop comment "MiniFW-AI-Blocklist" # handle 4
+	}
+}
+$ nft flush chain inet minifw forward
+$ ip netns exec mf-client /usr/bin/python3 /home/lab/tuesday-c16/testing/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+$ nft -a list table inet minifw
+table inet minifw { # handle 49
+	set minifw_block_v4 { # handle 1
+		type ipv4_addr
+		timeout 1h
+	}
+
+	chain forward { # handle 2
+		type filter hook forward priority filter; policy accept;
+	}
+}
+VERIFIED {"test": "runtime_health_missing_rule", "actual": {"http_status": 503, "status": "not_ready", "heartbeat_age_seconds": 0.6148147260100814, "kernel_rule_present": false, "source_age_seconds": {"packet": 3.077237065008376}, "coverage": "Progress and IPv4 rule presence only; quiet sources remain unverified; not traffic enforcement or AI quality acceptance"}, "time": "2026-11-03T04:28:19.444743+00:00"}
+$ systemctl stop minifw-ai
+$ nft flush set inet minifw minifw_block_v4
+$ conntrack -D -s 10.10.0.20
+tcp      6 116 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=39946 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=39946 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 116 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=39934 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=39934 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 115 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=39924 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=39924 packets=6 bytes=629 [ASSURED] mark=0 use=1
+conntrack v1.4.7 (conntrack-tools): 3 flow entries have been deleted.
+$ systemctl daemon-reload
+$ systemctl start minifw-ai
+$ systemctl show minifw-ai -p ActiveState -p MainPID -p ExecMainStatus
+MainPID=38855
+ExecMainStatus=0
+ActiveState=active
+$ ip netns exec mf-client /usr/bin/python3 /home/lab/tuesday-c16/testing/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+$ ip netns exec mf-client /usr/bin/python3 /home/lab/tuesday-c16/testing/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+$ ip netns exec mf-client /usr/bin/python3 /home/lab/tuesday-c16/testing/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+HEALTH_POLL 200 {"status": "ready", "heartbeat_age_seconds": 0.52247386900126, "kernel_rule_present": true, "source_age_seconds": {"packet": 0.6730906320008216}, "coverage": "Progress and IPv4 rule presence only; quiet sources remain unverified; not traffic enforcement or AI quality acceptance"}
+VERIFIED {"test": "runtime_health_quiet_sensor", "actual": {"http_status": 503, "status": "not_ready", "heartbeat_age_seconds": 0.34900203500001226, "kernel_rule_present": true, "source_age_seconds": {"packet": 31.90861346499878}, "coverage": "Progress and IPv4 rule presence only; quiet sources remain unverified; not traffic enforcement or AI quality acceptance"}, "time": "2026-11-03T04:28:57.016741+00:00"}
+$ ip netns exec mf-client /usr/bin/python3 /home/lab/tuesday-c16/testing/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+HEALTH_POLL 503 {"status": "not_ready", "heartbeat_age_seconds": 0.4763859029917512, "kernel_rule_present": true, "source_age_seconds": {"packet": 32.03599733299052}, "coverage": "Progress and IPv4 rule presence only; quiet sources remain unverified; not traffic enforcement or AI quality acceptance"}
+$ ip netns exec mf-client /usr/bin/python3 /home/lab/tuesday-c16/testing/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+HEALTH_POLL 200 {"status": "ready", "heartbeat_age_seconds": 0.1086022069939645, "kernel_rule_present": true, "source_age_seconds": {"packet": 0.46012226499442477}, "coverage": "Progress and IPv4 rule presence only; quiet sources remain unverified; not traffic enforcement or AI quality acceptance"}
+$ bash /opt/minifw_ai/scripts/backup.sh
+BACKUP /opt/minifw_ai/backups/minifw-backup-20261103T042858158374Z.tar.gz SHA256 94f57edca1d9ff6664fa11f2eca6d6e60456850921f814f8168c638a2c7617d8
+$ runuser -u lab -- test -r /opt/minifw_ai/backups/minifw-backup-20261103T042858158374Z.tar.gz
+$ bash /opt/minifw_ai/scripts/restore.sh /opt/minifw_ai/backups/minifw-backup-20261103T042858158374Z.tar.gz
+RESTORED 2.2.10-finance ; dynamic nftables blocks and package code were not restored
+VERIFIED {"test": "private_backup_restore_rehearsal", "actual": {"file_and_database": "restored", "sqlite_integrity": "ok", "archive_mode": "0600", "directory_mode": "0700", "unprivileged_read": "denied", "dynamic_blocks": "not restored", "package_rollback": "not tested"}, "time": "2026-11-03T04:29:04.635107+00:00"}
+$ ip netns exec mf-client /usr/bin/python3 /home/lab/tuesday-c16/testing/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+$ ip netns exec mf-client /usr/bin/python3 /home/lab/tuesday-c16/testing/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+$ ip netns exec mf-client /usr/bin/python3 /home/lab/tuesday-c16/testing/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+$ ip netns exec mf-client /usr/bin/python3 /home/lab/tuesday-c16/testing/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+$ ip netns exec mf-client /usr/bin/python3 /home/lab/tuesday-c16/testing/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+HEALTH_POLL 200 {"status": "ready", "heartbeat_age_seconds": 0.09723312000278383, "kernel_rule_present": true, "source_age_seconds": {"packet": 0.49899845200707205}, "coverage": "Progress and IPv4 rule presence only; quiet sources remain unverified; not traffic enforcement or AI quality acceptance"}
+$ systemctl show minifw-ai-web -p MainPID --value
+39014
+$ systemctl show minifw-ai-web -p User -p ProtectSystem -p ProtectHome -p PrivateTmp -p NoNewPrivileges -p CapabilityBoundingSet
+CapabilityBoundingSet=
+User=minifw-web
+PrivateTmp=yes
+ProtectHome=yes
+ProtectSystem=strict
+NoNewPrivileges=yes
+VERIFIED {"test": "web_service_restrictions", "actual": {"properties": "CapabilityBoundingSet=\nUser=minifw-web\nPrivateTmp=yes\nProtectHome=yes\nProtectSystem=strict\nNoNewPrivileges=yes\n", "no_new_privileges": true, "uid": "105", "capabilities": "none (CapBnd=0, CapEff=0)", "remaining": "Dashboard can still edit policy/feeds by design; engine remains root"}, "time": "2026-11-03T04:29:07.330287+00:00"}
+VERIFIED {"test": "dashboard_unprivileged_smoke", "actual": {"forced_password_change": "enforced, then completed (database write as minifw-web)", "login": "303 to /admin/", "GET /admin/": 200, "GET /admin/api/events": 200, "GET /admin/policy": 200, "GET /admin/license": 200, "kernel_proof": "Blocked at kernel level (nftables)", "feed_add_delete": "deny_domains.txt written by minifw-web", "policy_save": "/opt/minifw_ai/config/modes/minifw_financial/policy.json (same file as engine MINIFW_POLICY); original bytes restored", "admin_password": "restored to the installer value; must_change_password now false"}, "time": "2026-11-03T04:29:11.120620+00:00"}
+$ logrotate --force --state /var/tmp/minifw-monday-financial-20261103T042803Z/logrotate.state /etc/logrotate.d/minifw-ai
+VERIFIED {"test": "actual_log_rotation", "actual": {"append_log": "rotated and truncated", "state_json": "preserved", "remaining": "copytruncate has a possible concurrent-write loss window; disk-full/load behavior unverified"}, "time": "2026-11-03T04:29:11.503096+00:00"}
+$ systemctl stop minifw-ai-web
+$ systemctl daemon-reload
+$ systemctl stop minifw-ai
+$ journalctl -u minifw-ai --no-pager --since '2026-11-03 04:28:03 UTC'
+Nov 03 11:28:05 minifw-monday-financial systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 03 11:28:06 minifw-monday-financial python[38669]: 2026-11-03 11:28:06,915 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Nov 03 11:28:06 minifw-monday-financial python[38669]: 2026-11-03 11:28:06,918 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Nov 03 11:28:06 minifw-monday-financial python[38669]: 2026-11-03 11:28:06,919 - INFO - [STATE] Restored state from /opt/minifw_ai/logs/deployment_state.json: BASELINE_PROTECTION
+Nov 03 11:28:06 minifw-monday-financial python[38669]: 2026-11-03 11:28:06,919 - INFO - [STATE] Initial protection state: BASELINE_PROTECTION
+Nov 03 11:28:06 minifw-monday-financial python[38669]: 2026-11-03 11:28:06,926 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_financial: sector=finance
+Nov 03 11:28:06 minifw-monday-financial python[38669]: 2026-11-03 11:28:06,926 - INFO - [SECTOR_LOCK] Loaded config for finance: ['description', 'block_tor', 'block_anonymizers', 'strict_tls', 'minimum_tls_version', 'pci_compliance_mode', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_retention_days']
+Nov 03 11:28:06 minifw-monday-financial python[38669]: 2026-11-03 11:28:06,926 - INFO - [SECTOR_LOCK] Device sector: finance (LOCKED)
+Nov 03 11:28:06 minifw-monday-financial python[38669]: 2026-11-03 11:28:06,926 - INFO - [SECTOR_LOCK] Config: Finance: metadata policies; TLS version control requires packet metadata; no compliance certification.
+Nov 03 11:28:06 minifw-monday-financial python[38669]: 2026-11-03 11:28:06,926 - INFO - [FEEDS] Loaded 10 patterns from financial_fraud.txt
+Nov 03 11:28:06 minifw-monday-financial python[38669]: 2026-11-03 11:28:06,926 - INFO - [FEEDS] Loaded 9 patterns from crypto_scams.txt
+Nov 03 11:28:06 minifw-monday-financial python[38669]: 2026-11-03 11:28:06,927 - INFO - [SECTOR_LOCK] Loaded 19 sector-specific feed patterns
+Nov 03 11:28:06 minifw-monday-financial python[38669]: 2026-11-03 11:28:06,927 - INFO - [FEEDS] Loaded 0 Tor exit node IPs from /opt/minifw_ai/config/feeds/tor_exit_nodes.txt
+Nov 03 11:28:06 minifw-monday-financial python[38669]: 2026-11-03 11:28:06,927 - INFO - [SECTOR_LOCK] Tor/anonymizer blocking enabled: loaded 0 exit IPs
+Nov 03 11:28:06 minifw-monday-financial python[38669]: 2026-11-03 11:28:06,956 - INFO - [TELEMETRY] Packet metadata on mfcg; packet14 model required; no TLS decryption
+Nov 03 11:28:06 minifw-monday-financial python[38669]: 2026-11-03 11:28:06,957 - WARNING - [DNS] Disabled; flow decisions continue independently
+Nov 03 11:28:06 minifw-monday-financial python[38685]: Capturing on 'mfcg'
+Nov 03 11:28:07 minifw-monday-financial python[38685]: File: -
+Nov 03 11:28:11 minifw-monday-financial python[38685]: [76B blob data]
+Nov 03 11:28:11 minifw-monday-financial python[38669]: 2026-11-03 11:28:11,716 - INFO - Caught SIGTERM, shutting down.
+Nov 03 11:28:11 minifw-monday-financial systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 03 11:28:11 minifw-monday-financial python[38685]: [21B blob data]
+Nov 03 11:28:11 minifw-monday-financial python[38685]: Packets received/dropped on interface 'mfcg': 63/0 (pcap:0/dumpcap:0/flushed:0/ps_ifdrop:0) (100.0%)
+Nov 03 11:28:11 minifw-monday-financial python[38669]: 2026-11-03 11:28:11,754 - ERROR - [packet] Collector failed; retrying independently
+Nov 03 11:28:11 minifw-monday-financial python[38669]: Traceback (most recent call last):
+Nov 03 11:28:11 minifw-monday-financial python[38669]:   File "/opt/minifw_ai/app/minifw_ai/collector_runtime.py", line 16, in collect
+Nov 03 11:28:11 minifw-monday-financial python[38669]:     for event in factory():
+Nov 03 11:28:11 minifw-monday-financial python[38669]:   File "/opt/minifw_ai/app/minifw_ai/collector_packets.py", line 87, in stream_packet_events
+Nov 03 11:28:11 minifw-monday-financial python[38669]:     raise RuntimeError(f"Packet metadata sensor stopped: exit={decoder.wait()}")
+Nov 03 11:28:11 minifw-monday-financial python[38669]: RuntimeError: Packet metadata sensor stopped: exit=0
+Nov 03 11:28:12 minifw-monday-financial systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 03 11:28:12 minifw-monday-financial systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 03 11:28:12 minifw-monday-financial systemd[1]: minifw-ai.service: Consumed 2.112s CPU time.
+Nov 03 11:28:12 minifw-monday-financial systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 03 11:28:13 minifw-monday-financial python[38773]: 2026-11-03 11:28:13,690 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Nov 03 11:28:13 minifw-monday-financial python[38773]: 2026-11-03 11:28:13,694 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Nov 03 11:28:13 minifw-monday-financial python[38773]: 2026-11-03 11:28:13,694 - INFO - [STATE] Restored state from /opt/minifw_ai/logs/deployment_state.json: BASELINE_PROTECTION
+Nov 03 11:28:13 minifw-monday-financial python[38773]: 2026-11-03 11:28:13,694 - INFO - [STATE] Initial protection state: BASELINE_PROTECTION
+Nov 03 11:28:13 minifw-monday-financial python[38773]: 2026-11-03 11:28:13,701 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_financial: sector=finance
+Nov 03 11:28:13 minifw-monday-financial python[38773]: 2026-11-03 11:28:13,701 - INFO - [SECTOR_LOCK] Loaded config for finance: ['description', 'block_tor', 'block_anonymizers', 'strict_tls', 'minimum_tls_version', 'pci_compliance_mode', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_retention_days']
+Nov 03 11:28:13 minifw-monday-financial python[38773]: 2026-11-03 11:28:13,701 - INFO - [SECTOR_LOCK] Device sector: finance (LOCKED)
+Nov 03 11:28:13 minifw-monday-financial python[38773]: 2026-11-03 11:28:13,701 - INFO - [SECTOR_LOCK] Config: Finance: metadata policies; TLS version control requires packet metadata; no compliance certification.
+Nov 03 11:28:13 minifw-monday-financial python[38773]: 2026-11-03 11:28:13,702 - INFO - [FEEDS] Loaded 10 patterns from financial_fraud.txt
+Nov 03 11:28:13 minifw-monday-financial python[38773]: 2026-11-03 11:28:13,702 - INFO - [FEEDS] Loaded 9 patterns from crypto_scams.txt
+Nov 03 11:28:13 minifw-monday-financial python[38773]: 2026-11-03 11:28:13,702 - INFO - [SECTOR_LOCK] Loaded 19 sector-specific feed patterns
+Nov 03 11:28:13 minifw-monday-financial python[38773]: 2026-11-03 11:28:13,702 - INFO - [FEEDS] Loaded 0 Tor exit node IPs from /opt/minifw_ai/config/feeds/tor_exit_nodes.txt
+Nov 03 11:28:13 minifw-monday-financial python[38773]: 2026-11-03 11:28:13,702 - INFO - [SECTOR_LOCK] Tor/anonymizer blocking enabled: loaded 0 exit IPs
+Nov 03 11:28:13 minifw-monday-financial python[38773]: 2026-11-03 11:28:13,745 - INFO - [TELEMETRY] Packet metadata on mfcg; packet14 model required; no TLS decryption
+Nov 03 11:28:13 minifw-monday-financial python[38773]: 2026-11-03 11:28:13,746 - WARNING - [DNS] Disabled; flow decisions continue independently
+Nov 03 11:28:13 minifw-monday-financial python[38787]: Capturing on 'mfcg'
+Nov 03 11:28:13 minifw-monday-financial python[38787]: File: -
+Nov 03 11:28:19 minifw-monday-financial python[38787]: [73B blob data]
+Nov 03 11:28:19 minifw-monday-financial python[38787]: Packets received/dropped on interface 'mfcg': 49/0 (pcap:0/dumpcap:0/flushed:0/ps_ifdrop:0) (100.0%)
+Nov 03 11:28:19 minifw-monday-financial systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 03 11:28:19 minifw-monday-financial python[38773]: 2026-11-03 11:28:19,459 - INFO - Caught SIGTERM, shutting down.
+Nov 03 11:28:19 minifw-monday-financial python[38773]: 2026-11-03 11:28:19,491 - ERROR - [packet] Collector failed; retrying independently
+Nov 03 11:28:19 minifw-monday-financial python[38773]: Traceback (most recent call last):
+Nov 03 11:28:19 minifw-monday-financial python[38773]:   File "/opt/minifw_ai/app/minifw_ai/collector_runtime.py", line 16, in collect
+Nov 03 11:28:19 minifw-monday-financial python[38773]:     for event in factory():
+Nov 03 11:28:19 minifw-monday-financial python[38773]:   File "/opt/minifw_ai/app/minifw_ai/collector_packets.py", line 87, in stream_packet_events
+Nov 03 11:28:19 minifw-monday-financial python[38773]:     raise RuntimeError(f"Packet metadata sensor stopped: exit={decoder.wait()}")
+Nov 03 11:28:19 minifw-monday-financial python[38773]: RuntimeError: Packet metadata sensor stopped: exit=0
+Nov 03 11:28:19 minifw-monday-financial systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 03 11:28:19 minifw-monday-financial systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 03 11:28:19 minifw-monday-financial systemd[1]: minifw-ai.service: Consumed 2.120s CPU time.
+Nov 03 11:28:21 minifw-monday-financial systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 03 11:28:22 minifw-monday-financial python[38855]: 2026-11-03 11:28:22,367 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Nov 03 11:28:22 minifw-monday-financial python[38855]: 2026-11-03 11:28:22,370 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Nov 03 11:28:22 minifw-monday-financial python[38855]: 2026-11-03 11:28:22,371 - INFO - [STATE] Restored state from /opt/minifw_ai/logs/deployment_state.json: BASELINE_PROTECTION
+Nov 03 11:28:22 minifw-monday-financial python[38855]: 2026-11-03 11:28:22,371 - INFO - [STATE] Initial protection state: BASELINE_PROTECTION
+Nov 03 11:28:22 minifw-monday-financial python[38855]: 2026-11-03 11:28:22,378 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_financial: sector=finance
+Nov 03 11:28:22 minifw-monday-financial python[38855]: 2026-11-03 11:28:22,378 - INFO - [SECTOR_LOCK] Loaded config for finance: ['description', 'block_tor', 'block_anonymizers', 'strict_tls', 'minimum_tls_version', 'pci_compliance_mode', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_retention_days']
+Nov 03 11:28:22 minifw-monday-financial python[38855]: 2026-11-03 11:28:22,378 - INFO - [SECTOR_LOCK] Device sector: finance (LOCKED)
+Nov 03 11:28:22 minifw-monday-financial python[38855]: 2026-11-03 11:28:22,378 - INFO - [SECTOR_LOCK] Config: Finance: metadata policies; TLS version control requires packet metadata; no compliance certification.
+Nov 03 11:28:22 minifw-monday-financial python[38855]: 2026-11-03 11:28:22,378 - INFO - [FEEDS] Loaded 10 patterns from financial_fraud.txt
+Nov 03 11:28:22 minifw-monday-financial python[38855]: 2026-11-03 11:28:22,378 - INFO - [FEEDS] Loaded 9 patterns from crypto_scams.txt
+Nov 03 11:28:22 minifw-monday-financial python[38855]: 2026-11-03 11:28:22,378 - INFO - [SECTOR_LOCK] Loaded 19 sector-specific feed patterns
+Nov 03 11:28:22 minifw-monday-financial python[38855]: 2026-11-03 11:28:22,378 - INFO - [FEEDS] Loaded 0 Tor exit node IPs from /opt/minifw_ai/config/feeds/tor_exit_nodes.txt
+Nov 03 11:28:22 minifw-monday-financial python[38855]: 2026-11-03 11:28:22,379 - INFO - [SECTOR_LOCK] Tor/anonymizer blocking enabled: loaded 0 exit IPs
+Nov 03 11:28:22 minifw-monday-financial python[38855]: 2026-11-03 11:28:22,437 - INFO - [TELEMETRY] Packet metadata on mfcg; packet14 model required; no TLS decryption
+Nov 03 11:28:22 minifw-monday-financial python[38855]: 2026-11-03 11:28:22,437 - WARNING - [DNS] Disabled; flow decisions continue independently
+Nov 03 11:28:22 minifw-monday-financial python[38871]: Capturing on 'mfcg'
+Nov 03 11:28:22 minifw-monday-financial python[38871]: File: -
+Nov 03 11:28:58 minifw-monday-financial systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 03 11:28:58 minifw-monday-financial python[38871]: [86B blob data]
+Nov 03 11:28:58 minifw-monday-financial python[38871]: Packets received/dropped on interface 'mfcg': 61/0 (pcap:0/dumpcap:0/flushed:0/ps_ifdrop:0) (100.0%)
+Nov 03 11:28:58 minifw-monday-financial python[38855]: 2026-11-03 11:28:58,406 - INFO - Caught SIGTERM, shutting down.
+Nov 03 11:28:58 minifw-monday-financial python[38855]: 2026-11-03 11:28:58,448 - ERROR - [packet] Collector failed; retrying independently
+Nov 03 11:28:58 minifw-monday-financial python[38855]: Traceback (most recent call last):
+Nov 03 11:28:58 minifw-monday-financial python[38855]:   File "/opt/minifw_ai/app/minifw_ai/collector_runtime.py", line 16, in collect
+Nov 03 11:28:58 minifw-monday-financial python[38855]:     for event in factory():
+Nov 03 11:28:58 minifw-monday-financial python[38855]:   File "/opt/minifw_ai/app/minifw_ai/collector_packets.py", line 87, in stream_packet_events
+Nov 03 11:28:58 minifw-monday-financial python[38855]:     raise RuntimeError(f"Packet metadata sensor stopped: exit={decoder.wait()}")
+Nov 03 11:28:58 minifw-monday-financial python[38855]: RuntimeError: Packet metadata sensor stopped: exit=0
+Nov 03 11:28:58 minifw-monday-financial systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 03 11:28:58 minifw-monday-financial systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 03 11:28:58 minifw-monday-financial systemd[1]: minifw-ai.service: Consumed 2.355s CPU time.
+Nov 03 11:28:59 minifw-monday-financial systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 03 11:29:00 minifw-monday-financial python[38946]: 2026-11-03 11:29:00,571 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Nov 03 11:29:00 minifw-monday-financial python[38946]: 2026-11-03 11:29:00,574 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Nov 03 11:29:00 minifw-monday-financial python[38946]: 2026-11-03 11:29:00,575 - INFO - [STATE] Restored state from /opt/minifw_ai/logs/deployment_state.json: BASELINE_PROTECTION
+Nov 03 11:29:00 minifw-monday-financial python[38946]: 2026-11-03 11:29:00,575 - INFO - [STATE] Initial protection state: BASELINE_PROTECTION
+Nov 03 11:29:00 minifw-monday-financial python[38946]: 2026-11-03 11:29:00,582 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_financial: sector=finance
+Nov 03 11:29:00 minifw-monday-financial python[38946]: 2026-11-03 11:29:00,583 - INFO - [SECTOR_LOCK] Loaded config for finance: ['description', 'block_tor', 'block_anonymizers', 'strict_tls', 'minimum_tls_version', 'pci_compliance_mode', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_retention_days']
+Nov 03 11:29:00 minifw-monday-financial python[38946]: 2026-11-03 11:29:00,583 - INFO - [SECTOR_LOCK] Device sector: finance (LOCKED)
+Nov 03 11:29:00 minifw-monday-financial python[38946]: 2026-11-03 11:29:00,583 - INFO - [SECTOR_LOCK] Config: Finance: metadata policies; TLS version control requires packet metadata; no compliance certification.
+Nov 03 11:29:00 minifw-monday-financial python[38946]: 2026-11-03 11:29:00,583 - INFO - [FEEDS] Loaded 10 patterns from financial_fraud.txt
+Nov 03 11:29:00 minifw-monday-financial python[38946]: 2026-11-03 11:29:00,583 - INFO - [FEEDS] Loaded 9 patterns from crypto_scams.txt
+Nov 03 11:29:00 minifw-monday-financial python[38946]: 2026-11-03 11:29:00,584 - INFO - [SECTOR_LOCK] Loaded 19 sector-specific feed patterns
+Nov 03 11:29:00 minifw-monday-financial python[38946]: 2026-11-03 11:29:00,584 - INFO - [FEEDS] Loaded 0 Tor exit node IPs from /opt/minifw_ai/config/feeds/tor_exit_nodes.txt
+Nov 03 11:29:00 minifw-monday-financial python[38946]: 2026-11-03 11:29:00,584 - INFO - [SECTOR_LOCK] Tor/anonymizer blocking enabled: loaded 0 exit IPs
+Nov 03 11:29:00 minifw-monday-financial python[38946]: 2026-11-03 11:29:00,667 - INFO - [TELEMETRY] Packet metadata on mfcg; packet14 model required; no TLS decryption
+Nov 03 11:29:00 minifw-monday-financial python[38946]: 2026-11-03 11:29:00,667 - WARNING - [DNS] Disabled; flow decisions continue independently
+Nov 03 11:29:00 minifw-monday-financial python[38970]: Capturing on 'mfcg'
+Nov 03 11:29:00 minifw-monday-financial python[38970]: File: -
+Nov 03 11:29:01 minifw-monday-financial systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 03 11:29:01 minifw-monday-financial python[38946]: 2026-11-03 11:29:01,465 - INFO - Caught SIGTERM, shutting down.
+Nov 03 11:29:01 minifw-monday-financial python[38970]: [20B blob data]
+Nov 03 11:29:01 minifw-monday-financial python[38970]: Packets received/dropped on interface 'mfcg': 0/0 (pcap:0/dumpcap:0/flushed:0/ps_ifdrop:0) (0.0%)
+Nov 03 11:29:01 minifw-monday-financial python[38946]: 2026-11-03 11:29:01,496 - ERROR - [packet] Collector failed; retrying independently
+Nov 03 11:29:01 minifw-monday-financial python[38946]: Traceback (most recent call last):
+Nov 03 11:29:01 minifw-monday-financial python[38946]:   File "/opt/minifw_ai/app/minifw_ai/collector_runtime.py", line 16, in collect
+Nov 03 11:29:01 minifw-monday-financial python[38946]:     for event in factory():
+Nov 03 11:29:01 minifw-monday-financial python[38946]:   File "/opt/minifw_ai/app/minifw_ai/collector_packets.py", line 87, in stream_packet_events
+Nov 03 11:29:01 minifw-monday-financial python[38946]:     raise RuntimeError(f"Packet metadata sensor stopped: exit={decoder.wait()}")
+Nov 03 11:29:01 minifw-monday-financial python[38946]: RuntimeError: Packet metadata sensor stopped: exit=0
+Nov 03 11:29:01 minifw-monday-financial systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 03 11:29:01 minifw-monday-financial systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 03 11:29:01 minifw-monday-financial systemd[1]: minifw-ai.service: Consumed 1.847s CPU time.
+Nov 03 11:29:04 minifw-monday-financial systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 03 11:29:06 minifw-monday-financial python[39012]: 2026-11-03 11:29:06,098 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Nov 03 11:29:06 minifw-monday-financial python[39012]: 2026-11-03 11:29:06,102 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Nov 03 11:29:06 minifw-monday-financial python[39012]: 2026-11-03 11:29:06,103 - INFO - [STATE] Restored state from /opt/minifw_ai/logs/deployment_state.json: BASELINE_PROTECTION
+Nov 03 11:29:06 minifw-monday-financial python[39012]: 2026-11-03 11:29:06,103 - INFO - [STATE] Initial protection state: BASELINE_PROTECTION
+Nov 03 11:29:06 minifw-monday-financial python[39012]: 2026-11-03 11:29:06,115 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_financial: sector=finance
+Nov 03 11:29:06 minifw-monday-financial python[39012]: 2026-11-03 11:29:06,115 - INFO - [SECTOR_LOCK] Loaded config for finance: ['description', 'block_tor', 'block_anonymizers', 'strict_tls', 'minimum_tls_version', 'pci_compliance_mode', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_retention_days']
+Nov 03 11:29:06 minifw-monday-financial python[39012]: 2026-11-03 11:29:06,115 - INFO - [SECTOR_LOCK] Device sector: finance (LOCKED)
+Nov 03 11:29:06 minifw-monday-financial python[39012]: 2026-11-03 11:29:06,116 - INFO - [SECTOR_LOCK] Config: Finance: metadata policies; TLS version control requires packet metadata; no compliance certification.
+Nov 03 11:29:06 minifw-monday-financial python[39012]: 2026-11-03 11:29:06,116 - INFO - [FEEDS] Loaded 10 patterns from financial_fraud.txt
+Nov 03 11:29:06 minifw-monday-financial python[39012]: 2026-11-03 11:29:06,116 - INFO - [FEEDS] Loaded 9 patterns from crypto_scams.txt
+Nov 03 11:29:06 minifw-monday-financial python[39012]: 2026-11-03 11:29:06,117 - INFO - [SECTOR_LOCK] Loaded 19 sector-specific feed patterns
+Nov 03 11:29:06 minifw-monday-financial python[39012]: 2026-11-03 11:29:06,117 - INFO - [FEEDS] Loaded 0 Tor exit node IPs from /opt/minifw_ai/config/feeds/tor_exit_nodes.txt
+Nov 03 11:29:06 minifw-monday-financial python[39012]: 2026-11-03 11:29:06,117 - INFO - [SECTOR_LOCK] Tor/anonymizer blocking enabled: loaded 0 exit IPs
+Nov 03 11:29:06 minifw-monday-financial python[39012]: 2026-11-03 11:29:06,168 - INFO - [TELEMETRY] Packet metadata on mfcg; packet14 model required; no TLS decryption
+Nov 03 11:29:06 minifw-monday-financial python[39012]: 2026-11-03 11:29:06,168 - WARNING - [DNS] Disabled; flow decisions continue independently
+Nov 03 11:29:06 minifw-monday-financial python[39035]: Capturing on 'mfcg'
+Nov 03 11:29:06 minifw-monday-financial python[39035]: File: -
+Nov 03 11:29:12 minifw-monday-financial python[39035]: [25B blob data]
+Nov 03 11:29:12 minifw-monday-financial python[39012]: 2026-11-03 11:29:12,087 - INFO - Caught SIGTERM, shutting down.
+Nov 03 11:29:12 minifw-monday-financial systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 03 11:29:12 minifw-monday-financial python[39035]: [21B blob data]
+Nov 03 11:29:12 minifw-monday-financial python[39035]: Packets received/dropped on interface 'mfcg': 24/0 (pcap:0/dumpcap:0/flushed:0/ps_ifdrop:0) (100.0%)
+Nov 03 11:29:12 minifw-monday-financial python[39012]: 2026-11-03 11:29:12,129 - ERROR - [packet] Collector failed; retrying independently
+Nov 03 11:29:12 minifw-monday-financial python[39012]: Traceback (most recent call last):
+Nov 03 11:29:12 minifw-monday-financial python[39012]:   File "/opt/minifw_ai/app/minifw_ai/collector_runtime.py", line 16, in collect
+Nov 03 11:29:12 minifw-monday-financial python[39012]:     for event in factory():
+Nov 03 11:29:12 minifw-monday-financial python[39012]:   File "/opt/minifw_ai/app/minifw_ai/collector_packets.py", line 87, in stream_packet_events
+Nov 03 11:29:12 minifw-monday-financial python[39012]:     raise RuntimeError(f"Packet metadata sensor stopped: exit={decoder.wait()}")
+Nov 03 11:29:12 minifw-monday-financial python[39012]: RuntimeError: Packet metadata sensor stopped: exit=0
+Nov 03 11:29:12 minifw-monday-financial systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 03 11:29:12 minifw-monday-financial systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 03 11:29:12 minifw-monday-financial systemd[1]: minifw-ai.service: Consumed 1.902s CPU time.
+$ nft -a list table inet minifw
+table inet minifw { # handle 49
+	set minifw_block_v4 { # handle 1
+		type ipv4_addr
+		timeout 1h
+	}
+
+	chain forward { # handle 2
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 10 bytes 600 comment "MiniFW-AI-Conntrack" # handle 5
+		ip saddr @minifw_block_v4 counter packets 0 bytes 0 drop comment "MiniFW-AI-Blocklist" # handle 6
+	}
+}
+$ systemctl daemon-reload
+$ ip netns delete mf-client
+$ ip netns delete mf-server
+$ ip link delete mfcg
+Cannot find device "mfcg"
+$ ip link delete mfsg
+EVIDENCE_DIRECTORY /var/tmp/minifw-monday-financial-20261103T042803Z

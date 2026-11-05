@@ -1,0 +1,38 @@
+$ trail check
+Exit code: 1
+Diagnostic output below omits the upgrade notice and positive learning matches.
+
+checking 19 changed files against 10 learnings and 0 skills
+
+✗ .github/workflows/release.yml:40
+  brings back helper line bash, which St4rdhoom's learning ruled out
+  St4rdhoom · Oct 30: Existing shell helpers have CRLF line endings that
+  bash -n rejects; normalize shell scripts and systemd units inside
+  the kits without modifying the original helpers.
+✗ .github/workflows/release.yml:47
+  brings back dpkg script build, which St4rdhoom's learning ruled out
+  St4rdhoom · Oct 30: Installed native Homebrew dpkg and gnu-sed, then
+  ran the existing scripts/build_deb.sh against each refreshed clean
+  source kit.
+✗ README.md:37
+  brings back sudo bash curl, which St4rdhoom's learning ruled out
+  St4rdhoom · Oct 26: Using `sudo bash <(curl ...)` is a poor fit for
+  this installer because Bash process substitution consumes its stdin;
+  document the curl-to-sudo-bash pipe instead.
+✗ README.md:37
+  brings back sudo bash curl, which St4rdhoom's learning ruled out
+  St4rdhoom · Oct 26: Changing the supported pipeline to avoid the words
+  `sudo bash curl` would break the intended privileged stdin flow and
+  conflict with the existing installer guidance.
+✗ README.md:61
+  brings back native deb kit, which St4rdhoom's learning ruled out
+  St4rdhoom · Oct 30: Installed native Homebrew dpkg and gnu-sed, then
+  ran the existing scripts/build_deb.sh against each refreshed clean
+  source kit.
+✗ README.md:61
+  brings back deb docker installation, which St4rdhoom's learning ruled out
+  St4rdhoom · Oct 30: This Mac has no dpkg-deb and Docker cannot connect
+  to a daemon, so a Linux package build, installation and live packet
+  enforcement cannot be claimed.
+
+· 6 conflicts · fix them, or say why in the commit message or PR description

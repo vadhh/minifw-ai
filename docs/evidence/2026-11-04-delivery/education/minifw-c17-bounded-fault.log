@@ -1,0 +1,830 @@
+$ dpkg-query -W minifw-ai
+minifw-ai	2.2.10-education
+$ ip -j netns list
+[]
+$ systemctl stop minifw-ai minifw-ai-web dnsmasq
+$ nft -a list table inet minifw
+Error: No such file or directory
+list table inet minifw
+                ^^^^^^
+$ nft delete table inet minifw
+Error: Could not process rule: No such file or directory
+delete table inet minifw
+                  ^^^^^^
+$ modprobe nf_conntrack
+$ sysctl -w net.ipv4.ip_forward=1 net.ipv6.conf.all.forwarding=1 net.netfilter.nf_conntrack_acct=0
+net.ipv4.ip_forward = 1
+net.ipv6.conf.all.forwarding = 1
+net.netfilter.nf_conntrack_acct = 0
+$ ip netns add mf-client
+$ ip -n mf-client link set lo up
+$ ip netns add mf-server
+$ ip -n mf-server link set lo up
+$ ip link add mfcg type veth peer name mfc0
+$ ip link set mfc0 netns mf-client
+$ ip addr add 10.10.0.1/24 dev mfcg
+$ ip addr add fd42:10::1/64 dev mfcg
+$ ip link set mfcg up
+$ ip -n mf-client addr add 10.10.0.20/24 dev mfc0
+$ ip -n mf-client addr add fd42:10::20/64 dev mfc0
+$ ip -n mf-client link set mfc0 up
+$ ip -n mf-client route add default via 10.10.0.1
+$ ip -n mf-client -6 route add default via fd42:10::1
+$ ip link add mfsg type veth peer name mfs0
+$ ip link set mfs0 netns mf-server
+$ ip addr add 198.18.0.1/24 dev mfsg
+$ ip addr add fd42:18::1/64 dev mfsg
+$ ip link set mfsg up
+$ ip -n mf-server addr add 198.18.0.2/24 dev mfs0
+$ ip -n mf-server addr add fd42:18::2/64 dev mfs0
+$ ip -n mf-server link set mfs0 up
+$ ip -n mf-server route add default via 198.18.0.1
+$ ip -n mf-server -6 route add default via fd42:18::1
+$ ip -br address
+lo               UNKNOWN        127.0.0.1/8 ::1/128 
+ens3             UP             10.231.0.15/24 metric 100 fec0::5054:ff:fe22:1001/64 fe80::5054:ff:fe22:1001/64 
+mfcg@if179       UP             10.10.0.1/24 fd42:10::1/64 fe80::8494:6dff:fe33:f74/64 
+mfsg@if181       UP             198.18.0.1/24 fd42:18::1/64 fe80::f060:cbff:fed4:659/64
+$ ip -n mf-client route
+default via 10.10.0.1 dev mfc0 
+10.10.0.0/24 dev mfc0 proto kernel scope link src 10.10.0.20
+$ ip -n mf-server route
+default via 198.18.0.1 dev mfs0 
+198.18.0.0/24 dev mfs0 proto kernel scope link src 198.18.0.2
+$ openssl req -x509 -newkey rsa:2048 -nodes -days 1 -subj /CN=lab.test -keyout /var/tmp/minifw-monday-education-20261104T063204Z/server.key -out /var/tmp/minifw-monday-education-20261104T063204Z/server.crt
+........+............+.........+.+...+.....+.......+...+..+.+............+...+..+...+.......+.....+...+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*.+.........+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*....+...+.....+.......+..+.........+....+...+.....+....+.....+.+........+.+.....+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+..+...+.........+...+.......+.....+.........+....+.....+...+....+...+..+.+...+.....+............+.......+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*.....+.............+...+..+...+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*......+...+........................+..+...+..........+..................+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+-----
+$ systemctl stop minifw-ai
+$ nft flush set inet minifw minifw_block_v4
+Error: No such file or directory
+flush set inet minifw minifw_block_v4
+               ^^^^^^
+$ conntrack -D -s 10.10.0.20
+conntrack v1.4.7 (conntrack-tools): 0 flow entries have been deleted.
+$ systemctl daemon-reload
+$ systemctl start minifw-ai
+$ systemctl show minifw-ai -p ActiveState -p MainPID -p ExecMainStatus
+MainPID=49784
+ExecMainStatus=0
+ActiveState=active
+$ ip netns exec mf-client /usr/bin/python3 /home/lab/wednesday-c17/testing/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+$ systemctl start minifw-ai-web
+$ systemctl show minifw-ai minifw-ai-web -p MemoryCurrent -p CPUUsageNSec -p NRestarts -p ActiveState
+NRestarts=0
+MemoryCurrent=187301888
+CPUUsageNSec=1701344000
+ActiveState=active
+
+NRestarts=0
+MemoryCurrent=249856
+CPUUsageNSec=4731000
+ActiveState=active
+$ systemctl show minifw-ai minifw-ai-web -p MemoryCurrent -p CPUUsageNSec -p NRestarts -p ActiveState
+NRestarts=0
+MemoryCurrent=188923904
+CPUUsageNSec=2155087000
+ActiveState=active
+
+NRestarts=0
+MemoryCurrent=123383808
+CPUUsageNSec=3101607000
+ActiveState=active
+$ systemctl show minifw-ai minifw-ai-web -p MemoryCurrent -p CPUUsageNSec -p NRestarts -p ActiveState
+NRestarts=0
+MemoryCurrent=189628416
+CPUUsageNSec=2535435000
+ActiveState=active
+
+NRestarts=0
+MemoryCurrent=123383808
+CPUUsageNSec=3113201000
+ActiveState=active
+$ systemctl show minifw-ai minifw-ai-web -p MemoryCurrent -p CPUUsageNSec -p NRestarts -p ActiveState
+NRestarts=0
+MemoryCurrent=190418944
+CPUUsageNSec=2990632000
+ActiveState=active
+
+NRestarts=0
+MemoryCurrent=123383808
+CPUUsageNSec=3125287000
+ActiveState=active
+$ systemctl show minifw-ai minifw-ai-web -p MemoryCurrent -p CPUUsageNSec -p NRestarts -p ActiveState
+NRestarts=0
+MemoryCurrent=191217664
+CPUUsageNSec=3744786000
+ActiveState=active
+
+NRestarts=0
+MemoryCurrent=123383808
+CPUUsageNSec=3137043000
+ActiveState=active
+$ systemctl show minifw-ai minifw-ai-web -p MemoryCurrent -p CPUUsageNSec -p NRestarts -p ActiveState
+NRestarts=0
+MemoryCurrent=192126976
+CPUUsageNSec=4223909000
+ActiveState=active
+
+NRestarts=0
+MemoryCurrent=123383808
+CPUUsageNSec=3148403000
+ActiveState=active
+$ systemctl show minifw-ai minifw-ai-web -p MemoryCurrent -p CPUUsageNSec -p NRestarts -p ActiveState
+NRestarts=0
+MemoryCurrent=193048576
+CPUUsageNSec=4702172000
+ActiveState=active
+
+NRestarts=0
+MemoryCurrent=123383808
+CPUUsageNSec=3159781000
+ActiveState=active
+$ systemctl show minifw-ai minifw-ai-web -p MemoryCurrent -p CPUUsageNSec -p NRestarts -p ActiveState
+NRestarts=0
+MemoryCurrent=196141056
+CPUUsageNSec=5237180000
+ActiveState=active
+
+NRestarts=0
+MemoryCurrent=123383808
+CPUUsageNSec=3171076000
+ActiveState=active
+$ systemctl show minifw-ai minifw-ai-web -p MemoryCurrent -p CPUUsageNSec -p NRestarts -p ActiveState
+NRestarts=0
+MemoryCurrent=197062656
+CPUUsageNSec=5782350000
+ActiveState=active
+
+NRestarts=0
+MemoryCurrent=123383808
+CPUUsageNSec=3182767000
+ActiveState=active
+$ systemctl show minifw-ai minifw-ai-web -p MemoryCurrent -p CPUUsageNSec -p NRestarts -p ActiveState
+NRestarts=0
+MemoryCurrent=198021120
+CPUUsageNSec=6328328000
+ActiveState=active
+
+NRestarts=0
+MemoryCurrent=123383808
+CPUUsageNSec=3194160000
+ActiveState=active
+$ systemctl show minifw-ai minifw-ai-web -p MemoryCurrent -p CPUUsageNSec -p NRestarts -p ActiveState
+NRestarts=0
+MemoryCurrent=199057408
+CPUUsageNSec=6941319000
+ActiveState=active
+
+NRestarts=0
+MemoryCurrent=123383808
+CPUUsageNSec=3205452000
+ActiveState=active
+$ systemctl show minifw-ai minifw-ai-web -p MemoryCurrent -p CPUUsageNSec -p NRestarts -p ActiveState
+NRestarts=0
+MemoryCurrent=200167424
+CPUUsageNSec=7592764000
+ActiveState=active
+
+NRestarts=0
+MemoryCurrent=123383808
+CPUUsageNSec=3216405000
+ActiveState=active
+VERIFIED {"test": "bounded_load", "actual": {"duration_seconds": 59.80361201899359, "offered_rate_rps": 5, "scheduled": 300, "attempted": 300, "completed": 300, "success": 300, "failures": 0, "requests": [{"index": 0, "scheduled_seconds": 0.0, "started_seconds": 0.002080473001115024, "finished_seconds": 0.007074593013385311, "result": "success"}, {"index": 1, "scheduled_seconds": 0.2, "started_seconds": 0.20019140900694765, "finished_seconds": 0.20146064000437036, "result": "success"}, {"index": 2, "scheduled_seconds": 0.4, "started_seconds": 0.4001931500097271, "finished_seconds": 0.40145038001355715, "result": "success"}, {"index": 3, "scheduled_seconds": 0.6, "started_seconds": 0.6002030970121268, "finished_seconds": 0.6015505790128373, "result": "success"}, {"index": 4, "scheduled_seconds": 0.8, "started_seconds": 0.8002039119892288, "finished_seconds": 0.8014874029904604, "result": "success"}, {"index": 5, "scheduled_seconds": 1.0, "started_seconds": 1.000188292004168, "finished_seconds": 1.0014633029932156, "result": "success"}, {"index": 6, "scheduled_seconds": 1.2, "started_seconds": 1.2002087529981509, "finished_seconds": 1.201560164015973, "result": "success"}, {"index": 7, "scheduled_seconds": 1.4, "started_seconds": 1.4022952989907935, "finished_seconds": 1.4035312900086865, "result": "success"}, {"index": 8, "scheduled_seconds": 1.6, "started_seconds": 1.6002275950158946, "finished_seconds": 1.6017793230130337, "result": "success"}, {"index": 9, "scheduled_seconds": 1.8, "started_seconds": 1.8002589980023913, "finished_seconds": 1.801883006002754, "result": "success"}, {"index": 10, "scheduled_seconds": 2.0, "started_seconds": 2.000214338011574, "finished_seconds": 2.0014665609924123, "result": "success"}, {"index": 11, "scheduled_seconds": 2.2, "started_seconds": 2.2002205949975178, "finished_seconds": 2.201591268996708, "result": "success"}, {"index": 12, "scheduled_seconds": 2.4, "started_seconds": 2.400174700014759, "finished_seconds": 2.402323756017722, "result": "success"}, {"index": 13, "scheduled_seconds": 2.6, "started_seconds": 2.600180278008338, "finished_seconds": 2.601348208991112, "result": "success"}, {"index": 14, "scheduled_seconds": 2.8, "started_seconds": 2.8002527079952415, "finished_seconds": 2.802197596989572, "result": "success"}, {"index": 15, "scheduled_seconds": 3.0, "started_seconds": 3.0003259200020693, "finished_seconds": 3.0016862640040927, "result": "success"}, {"index": 16, "scheduled_seconds": 3.2, "started_seconds": 3.2003334109904245, "finished_seconds": 3.20247953600483, "result": "success"}, {"index": 17, "scheduled_seconds": 3.4, "started_seconds": 3.4002953710150905, "finished_seconds": 3.4017073959985282, "result": "success"}, {"index": 18, "scheduled_seconds": 3.6, "started_seconds": 3.600305934000062, "finished_seconds": 3.6016366420080885, "result": "success"}, {"index": 19, "scheduled_seconds": 3.8, "started_seconds": 3.8002179320028517, "finished_seconds": 3.8014336100022774, "result": "success"}, {"index": 20, "scheduled_seconds": 4.0, "started_seconds": 4.000342303013895, "finished_seconds": 4.002406568004517, "result": "success"}, {"index": 21, "scheduled_seconds": 4.2, "started_seconds": 4.200320789997932, "finished_seconds": 4.202411591017153, "result": "success"}, {"index": 22, "scheduled_seconds": 4.4, "started_seconds": 4.400232777989004, "finished_seconds": 4.4014085849921685, "result": "success"}, {"index": 23, "scheduled_seconds": 4.6, "started_seconds": 4.600365435006097, "finished_seconds": 4.602508604992181, "result": "success"}, {"index": 24, "scheduled_seconds": 4.8, "started_seconds": 4.800388075993396, "finished_seconds": 4.802493975992547, "result": "success"}, {"index": 25, "scheduled_seconds": 5.0, "started_seconds": 5.000328533991706, "finished_seconds": 5.00206149101723, "result": "success"}, {"index": 26, "scheduled_seconds": 5.2, "started_seconds": 5.2003537369892, "finished_seconds": 5.202528858004371, "result": "success"}, {"index": 27, "scheduled_seconds": 5.4, "started_seconds": 5.400359965016833, "finished_seconds": 5.402385583991418, "result": "success"}, {"index": 28, "scheduled_seconds": 5.6, "started_seconds": 5.6003618980175816, "finished_seconds": 5.602593079995131, "result": "success"}, {"index": 29, "scheduled_seconds": 5.8, "started_seconds": 5.800396081991494, "finished_seconds": 5.8025326970091555, "result": "success"}, {"index": 30, "scheduled_seconds": 6.0, "started_seconds": 6.000382494996302, "finished_seconds": 6.002575549995527, "result": "success"}, {"index": 31, "scheduled_seconds": 6.2, "started_seconds": 6.200364224001532, "finished_seconds": 6.202880527009256, "result": "success"}, {"index": 32, "scheduled_seconds": 6.4, "started_seconds": 6.400451074994635, "finished_seconds": 6.402867930009961, "result": "success"}, {"index": 33, "scheduled_seconds": 6.6, "started_seconds": 6.600345942017157, "finished_seconds": 6.602437027002452, "result": "success"}, {"index": 34, "scheduled_seconds": 6.8, "started_seconds": 6.800250278989552, "finished_seconds": 6.80244549800409, "result": "success"}, {"index": 35, "scheduled_seconds": 7.0, "started_seconds": 7.005808021000121, "finished_seconds": 7.013012415991398, "result": "success"}, {"index": 36, "scheduled_seconds": 7.2, "started_seconds": 7.200379663001513, "finished_seconds": 7.202481112006353, "result": "success"}, {"index": 37, "scheduled_seconds": 7.4, "started_seconds": 7.400345347006805, "finished_seconds": 7.402223856013734, "result": "success"}, {"index": 38, "scheduled_seconds": 7.6, "started_seconds": 7.6003697919950355, "finished_seconds": 7.602523289999226, "result": "success"}, {"index": 39, "scheduled_seconds": 7.8, "started_seconds": 7.800343359995168, "finished_seconds": 7.802436622994719, "result": "success"}, {"index": 40, "scheduled_seconds": 8.0, "started_seconds": 8.00033695201273, "finished_seconds": 8.001739007013384, "result": "success"}, {"index": 41, "scheduled_seconds": 8.2, "started_seconds": 8.200369997997768, "finished_seconds": 8.202483605011366, "result": "success"}, {"index": 42, "scheduled_seconds": 8.4, "started_seconds": 8.400326916016638, "finished_seconds": 8.402500803000294, "result": "success"}, {"index": 43, "scheduled_seconds": 8.6, "started_seconds": 8.600366566999583, "finished_seconds": 8.602467810997041, "result": "success"}, {"index": 44, "scheduled_seconds": 8.8, "started_seconds": 8.800371655001072, "finished_seconds": 8.802774126001168, "result": "success"}, {"index": 45, "scheduled_seconds": 9.0, "started_seconds": 9.000351016002242, "finished_seconds": 9.002434207999613, "result": "success"}, {"index": 46, "scheduled_seconds": 9.2, "started_seconds": 9.200323208002374, "finished_seconds": 9.202156190993264, "result": "success"}, {"index": 47, "scheduled_seconds": 9.4, "started_seconds": 9.400404220999917, "finished_seconds": 9.402530743012903, "result": "success"}, {"index": 48, "scheduled_seconds": 9.6, "started_seconds": 9.600364323006943, "finished_seconds": 9.602439534006407, "result": "success"}, {"index": 49, "scheduled_seconds": 9.8, "started_seconds": 9.800351532001514, "finished_seconds": 9.802519910997944, "result": "success"}, {"index": 50, "scheduled_seconds": 10.0, "started_seconds": 10.000305711990222, "finished_seconds": 10.002380838006502, "result": "success"}, {"index": 51, "scheduled_seconds": 10.2, "started_seconds": 10.20035843399819, "finished_seconds": 10.20217278599739, "result": "success"}, {"index": 52, "scheduled_seconds": 10.4, "started_seconds": 10.400355626014061, "finished_seconds": 10.402529937011423, "result": "success"}, {"index": 53, "scheduled_seconds": 10.6, "started_seconds": 10.600351552013308, "finished_seconds": 10.602470521000214, "result": "success"}, {"index": 54, "scheduled_seconds": 10.8, "started_seconds": 10.800334719999228, "finished_seconds": 10.802456339995842, "result": "success"}, {"index": 55, "scheduled_seconds": 11.0, "started_seconds": 11.000387845997466, "finished_seconds": 11.002642451989232, "result": "success"}, {"index": 56, "scheduled_seconds": 11.2, "started_seconds": 11.200369222002337, "finished_seconds": 11.20273228699807, "result": "success"}, {"index": 57, "scheduled_seconds": 11.4, "started_seconds": 11.400365768990014, "finished_seconds": 11.402097431011498, "result": "success"}, {"index": 58, "scheduled_seconds": 11.6, "started_seconds": 11.600265215005493, "finished_seconds": 11.60239662200911, "result": "success"}, {"index": 59, "scheduled_seconds": 11.8, "started_seconds": 11.80035989699536, "finished_seconds": 11.802429666015087, "result": "success"}, {"index": 60, "scheduled_seconds": 12.0, "started_seconds": 12.000379525008611, "finished_seconds": 12.002647701010574, "result": "success"}, {"index": 61, "scheduled_seconds": 12.2, "started_seconds": 12.20036737000919, "finished_seconds": 12.20247819100041, "result": "success"}, {"index": 62, "scheduled_seconds": 12.4, "started_seconds": 12.400326271017548, "finished_seconds": 12.402034664002713, "result": "success"}, {"index": 63, "scheduled_seconds": 12.6, "started_seconds": 12.600260851992061, "finished_seconds": 12.602174920990365, "result": "success"}, {"index": 64, "scheduled_seconds": 12.8, "started_seconds": 12.800405173009494, "finished_seconds": 12.802546685998095, "result": "success"}, {"index": 65, "scheduled_seconds": 13.0, "started_seconds": 13.000377766991733, "finished_seconds": 13.002430961001664, "result": "success"}, {"index": 66, "scheduled_seconds": 13.2, "started_seconds": 13.200340073992265, "finished_seconds": 13.202508463989943, "result": "success"}, {"index": 67, "scheduled_seconds": 13.4, "started_seconds": 13.40037247899454, "finished_seconds": 13.402457020012662, "result": "success"}, {"index": 68, "scheduled_seconds": 13.6, "started_seconds": 13.600346644991077, "finished_seconds": 13.602472269994905, "result": "success"}, {"index": 69, "scheduled_seconds": 13.8, "started_seconds": 13.800367021001875, "finished_seconds": 13.802470650989562, "result": "success"}, {"index": 70, "scheduled_seconds": 14.0, "started_seconds": 14.000380426004995, "finished_seconds": 14.002528590004658, "result": "success"}, {"index": 71, "scheduled_seconds": 14.2, "started_seconds": 14.20040605601389, "finished_seconds": 14.202550718007842, "result": "success"}, {"index": 72, "scheduled_seconds": 14.4, "started_seconds": 14.400355651014252, "finished_seconds": 14.402364715992007, "result": "success"}, {"index": 73, "scheduled_seconds": 14.6, "started_seconds": 14.600366541999392, "finished_seconds": 14.602462353999726, "result": "success"}, {"index": 74, "scheduled_seconds": 14.8, "started_seconds": 14.800346105999779, "finished_seconds": 14.802374351012986, "result": "success"}, {"index": 75, "scheduled_seconds": 15.0, "started_seconds": 15.00027140599559, "finished_seconds": 15.001623812015168, "result": "success"}, {"index": 76, "scheduled_seconds": 15.2, "started_seconds": 15.20034787998884, "finished_seconds": 15.202424588991562, "result": "success"}, {"index": 77, "scheduled_seconds": 15.4, "started_seconds": 15.400364802015247, "finished_seconds": 15.402460692013847, "result": "success"}, {"index": 78, "scheduled_seconds": 15.6, "started_seconds": 15.600396068010014, "finished_seconds": 15.602584595006192, "result": "success"}, {"index": 79, "scheduled_seconds": 15.8, "started_seconds": 15.800360335008008, "finished_seconds": 15.802609225007473, "result": "success"}, {"index": 80, "scheduled_seconds": 16.0, "started_seconds": 16.000379080011044, "finished_seconds": 16.002528648008592, "result": "success"}, {"index": 81, "scheduled_seconds": 16.2, "started_seconds": 16.20036267800606, "finished_seconds": 16.202454629004933, "result": "success"}, {"index": 82, "scheduled_seconds": 16.4, "started_seconds": 16.400371401017765, "finished_seconds": 16.40238592401147, "result": "success"}, {"index": 83, "scheduled_seconds": 16.6, "started_seconds": 16.600375101988902, "finished_seconds": 16.602537350991042, "result": "success"}, {"index": 84, "scheduled_seconds": 16.8, "started_seconds": 16.800401512999088, "finished_seconds": 16.80266541999299, "result": "success"}, {"index": 85, "scheduled_seconds": 17.0, "started_seconds": 17.00036137001007, "finished_seconds": 17.002555635990575, "result": "success"}, {"index": 86, "scheduled_seconds": 17.2, "started_seconds": 17.20036814600462, "finished_seconds": 17.20260581400362, "result": "success"}, {"index": 87, "scheduled_seconds": 17.4, "started_seconds": 17.40039431900368, "finished_seconds": 17.402470002998598, "result": "success"}, {"index": 88, "scheduled_seconds": 17.6, "started_seconds": 17.60032290799427, "finished_seconds": 17.602047396998387, "result": "success"}, {"index": 89, "scheduled_seconds": 17.8, "started_seconds": 17.800350417994196, "finished_seconds": 17.80246731400257, "result": "success"}, {"index": 90, "scheduled_seconds": 18.0, "started_seconds": 18.00034981200588, "finished_seconds": 18.002446102997055, "result": "success"}, {"index": 91, "scheduled_seconds": 18.2, "started_seconds": 18.20038119101082, "finished_seconds": 18.20252649000031, "result": "success"}, {"index": 92, "scheduled_seconds": 18.4, "started_seconds": 18.40036535699619, "finished_seconds": 18.402567735000048, "result": "success"}, {"index": 93, "scheduled_seconds": 18.6, "started_seconds": 18.60036630401737, "finished_seconds": 18.602510991011513, "result": "success"}, {"index": 94, "scheduled_seconds": 18.8, "started_seconds": 18.80035822899663, "finished_seconds": 18.802536156988936, "result": "success"}, {"index": 95, "scheduled_seconds": 19.0, "started_seconds": 19.000358730001608, "finished_seconds": 19.00247194300755, "result": "success"}, {"index": 96, "scheduled_seconds": 19.2, "started_seconds": 19.200274833012372, "finished_seconds": 19.20246741300798, "result": "success"}, {"index": 97, "scheduled_seconds": 19.4, "started_seconds": 19.400352263008244, "finished_seconds": 19.4024837629986, "result": "success"}, {"index": 98, "scheduled_seconds": 19.6, "started_seconds": 19.60035181499552, "finished_seconds": 19.602471104008146, "result": "success"}, {"index": 99, "scheduled_seconds": 19.8, "started_seconds": 19.800352690013824, "finished_seconds": 19.80255845200736, "result": "success"}, {"index": 100, "scheduled_seconds": 20.0, "started_seconds": 20.00026881499798, "finished_seconds": 20.002378088014666, "result": "success"}, {"index": 101, "scheduled_seconds": 20.2, "started_seconds": 20.200337785005104, "finished_seconds": 20.20251944399206, "result": "success"}, {"index": 102, "scheduled_seconds": 20.4, "started_seconds": 20.400335648999317, "finished_seconds": 20.40238937101094, "result": "success"}, {"index": 103, "scheduled_seconds": 20.6, "started_seconds": 20.600357877992792, "finished_seconds": 20.602499025000725, "result": "success"}, {"index": 104, "scheduled_seconds": 20.8, "started_seconds": 20.800347623007838, "finished_seconds": 20.803098211006727, "result": "success"}, {"index": 105, "scheduled_seconds": 21.0, "started_seconds": 21.000349486013874, "finished_seconds": 21.00250304301153, "result": "success"}, {"index": 106, "scheduled_seconds": 21.2, "started_seconds": 21.200370034988737, "finished_seconds": 21.202584489015862, "result": "success"}, {"index": 107, "scheduled_seconds": 21.4, "started_seconds": 21.400379978993442, "finished_seconds": 21.402643693989376, "result": "success"}, {"index": 108, "scheduled_seconds": 21.6, "started_seconds": 21.600347461993806, "finished_seconds": 21.602498608001042, "result": "success"}, {"index": 109, "scheduled_seconds": 21.8, "started_seconds": 21.800349591998383, "finished_seconds": 21.802535930008162, "result": "success"}, {"index": 110, "scheduled_seconds": 22.0, "started_seconds": 22.00036283399095, "finished_seconds": 22.002486996003427, "result": "success"}, {"index": 111, "scheduled_seconds": 22.2, "started_seconds": 22.20037976000458, "finished_seconds": 22.202584020007635, "result": "success"}, {"index": 112, "scheduled_seconds": 22.4, "started_seconds": 22.40022362599848, "finished_seconds": 22.40197065999382, "result": "success"}, {"index": 113, "scheduled_seconds": 22.6, "started_seconds": 22.600269053014927, "finished_seconds": 22.60159826799645, "result": "success"}, {"index": 114, "scheduled_seconds": 22.8, "started_seconds": 22.80033613901469, "finished_seconds": 22.80254172399873, "result": "success"}, {"index": 115, "scheduled_seconds": 23.0, "started_seconds": 23.000360108009772, "finished_seconds": 23.002465447003487, "result": "success"}, {"index": 116, "scheduled_seconds": 23.2, "started_seconds": 23.20024431901402, "finished_seconds": 23.20214805199066, "result": "success"}, {"index": 117, "scheduled_seconds": 23.4, "started_seconds": 23.40038442000514, "finished_seconds": 23.402448325010482, "result": "success"}, {"index": 118, "scheduled_seconds": 23.6, "started_seconds": 23.60034551200806, "finished_seconds": 23.60243946299306, "result": "success"}, {"index": 119, "scheduled_seconds": 23.8, "started_seconds": 23.800359471992124, "finished_seconds": 23.802454507007496, "result": "success"}, {"index": 120, "scheduled_seconds": 24.0, "started_seconds": 24.00031460201717, "finished_seconds": 24.001702654990368, "result": "success"}, {"index": 121, "scheduled_seconds": 24.2, "started_seconds": 24.200351781008067, "finished_seconds": 24.202429747005226, "result": "success"}, {"index": 122, "scheduled_seconds": 24.4, "started_seconds": 24.400365882989718, "finished_seconds": 24.402452528011054, "result": "success"}, {"index": 123, "scheduled_seconds": 24.6, "started_seconds": 24.600345940008992, "finished_seconds": 24.602454109990504, "result": "success"}, {"index": 124, "scheduled_seconds": 24.8, "started_seconds": 24.800352266000118, "finished_seconds": 24.802512833994115, "result": "success"}, {"index": 125, "scheduled_seconds": 25.0, "started_seconds": 25.000346610991983, "finished_seconds": 25.00246014300501, "result": "success"}, {"index": 126, "scheduled_seconds": 25.2, "started_seconds": 25.200378028006526, "finished_seconds": 25.202403406001395, "result": "success"}, {"index": 127, "scheduled_seconds": 25.4, "started_seconds": 25.400366307003424, "finished_seconds": 25.40252813301049, "result": "success"}, {"index": 128, "scheduled_seconds": 25.6, "started_seconds": 25.600351080007385, "finished_seconds": 25.60252158701769, "result": "success"}, {"index": 129, "scheduled_seconds": 25.8, "started_seconds": 25.80035463499371, "finished_seconds": 25.80236936599249, "result": "success"}, {"index": 130, "scheduled_seconds": 26.0, "started_seconds": 26.000351372989826, "finished_seconds": 26.00244402899989, "result": "success"}, {"index": 131, "scheduled_seconds": 26.2, "started_seconds": 26.200346219993662, "finished_seconds": 26.202477114013163, "result": "success"}, {"index": 132, "scheduled_seconds": 26.4, "started_seconds": 26.40035271900706, "finished_seconds": 26.402527502010344, "result": "success"}, {"index": 133, "scheduled_seconds": 26.6, "started_seconds": 26.60036202298943, "finished_seconds": 26.60243072800222, "result": "success"}, {"index": 134, "scheduled_seconds": 26.8, "started_seconds": 26.800327914999798, "finished_seconds": 26.802369987010024, "result": "success"}, {"index": 135, "scheduled_seconds": 27.0, "started_seconds": 27.0002535120002, "finished_seconds": 27.001963062997675, "result": "success"}, {"index": 136, "scheduled_seconds": 27.2, "started_seconds": 27.200373210012913, "finished_seconds": 27.202681660011876, "result": "success"}, {"index": 137, "scheduled_seconds": 27.4, "started_seconds": 27.40033641899936, "finished_seconds": 27.402418518991908, "result": "success"}, {"index": 138, "scheduled_seconds": 27.6, "started_seconds": 27.60033330900478, "finished_seconds": 27.60240076901391, "result": "success"}, {"index": 139, "scheduled_seconds": 27.8, "started_seconds": 27.80034467400401, "finished_seconds": 27.802511880989186, "result": "success"}, {"index": 140, "scheduled_seconds": 28.0, "started_seconds": 28.00038754401612, "finished_seconds": 28.002443692006636, "result": "success"}, {"index": 141, "scheduled_seconds": 28.2, "started_seconds": 28.200330288003897, "finished_seconds": 28.202370365004754, "result": "success"}, {"index": 142, "scheduled_seconds": 28.4, "started_seconds": 28.40037812301307, "finished_seconds": 28.402443147992017, "result": "success"}, {"index": 143, "scheduled_seconds": 28.6, "started_seconds": 28.600320282013854, "finished_seconds": 28.60229279199848, "result": "success"}, {"index": 144, "scheduled_seconds": 28.8, "started_seconds": 28.800388036004733, "finished_seconds": 28.802553556015482, "result": "success"}, {"index": 145, "scheduled_seconds": 29.0, "started_seconds": 29.000350926013198, "finished_seconds": 29.00246804600465, "result": "success"}, {"index": 146, "scheduled_seconds": 29.2, "started_seconds": 29.200362767995102, "finished_seconds": 29.202946686011273, "result": "success"}, {"index": 147, "scheduled_seconds": 29.4, "started_seconds": 29.400351930002216, "finished_seconds": 29.402472456014948, "result": "success"}, {"index": 148, "scheduled_seconds": 29.6, "started_seconds": 29.600372735993005, "finished_seconds": 29.60245985200163, "result": "success"}, {"index": 149, "scheduled_seconds": 29.8, "started_seconds": 29.8003673950152, "finished_seconds": 29.802479606005363, "result": "success"}, {"index": 150, "scheduled_seconds": 30.0, "started_seconds": 30.00039115801337, "finished_seconds": 30.002567015995737, "result": "success"}, {"index": 151, "scheduled_seconds": 30.2, "started_seconds": 30.200345340010244, "finished_seconds": 30.20247776398901, "result": "success"}, {"index": 152, "scheduled_seconds": 30.4, "started_seconds": 30.40029269500519, "finished_seconds": 30.40280327599612, "result": "success"}, {"index": 153, "scheduled_seconds": 30.6, "started_seconds": 30.600362553988816, "finished_seconds": 30.602419233007822, "result": "success"}, {"index": 154, "scheduled_seconds": 30.8, "started_seconds": 30.800371571007418, "finished_seconds": 30.80255424801726, "result": "success"}, {"index": 155, "scheduled_seconds": 31.0, "started_seconds": 31.00039076100802, "finished_seconds": 31.00245292900945, "result": "success"}, {"index": 156, "scheduled_seconds": 31.2, "started_seconds": 31.20035619600094, "finished_seconds": 31.202414703991963, "result": "success"}, {"index": 157, "scheduled_seconds": 31.4, "started_seconds": 31.40034138399642, "finished_seconds": 31.402400106017012, "result": "success"}, {"index": 158, "scheduled_seconds": 31.6, "started_seconds": 31.60036390699679, "finished_seconds": 31.602663155004848, "result": "success"}, {"index": 159, "scheduled_seconds": 31.8, "started_seconds": 31.800345942989225, "finished_seconds": 31.802442048006924, "result": "success"}, {"index": 160, "scheduled_seconds": 32.0, "started_seconds": 32.0003523020132, "finished_seconds": 32.0024735800107, "result": "success"}, {"index": 161, "scheduled_seconds": 32.2, "started_seconds": 32.20024693501182, "finished_seconds": 32.20212483999785, "result": "success"}, {"index": 162, "scheduled_seconds": 32.4, "started_seconds": 32.4002972060116, "finished_seconds": 32.40221651800675, "result": "success"}, {"index": 163, "scheduled_seconds": 32.6, "started_seconds": 32.600366480997764, "finished_seconds": 32.60243912201258, "result": "success"}, {"index": 164, "scheduled_seconds": 32.8, "started_seconds": 32.800316428998485, "finished_seconds": 32.80150148901157, "result": "success"}, {"index": 165, "scheduled_seconds": 33.0, "started_seconds": 33.00035311401007, "finished_seconds": 33.002403146994766, "result": "success"}, {"index": 166, "scheduled_seconds": 33.2, "started_seconds": 33.2003417010128, "finished_seconds": 33.202449914999306, "result": "success"}, {"index": 167, "scheduled_seconds": 33.4, "started_seconds": 33.40029557599337, "finished_seconds": 33.4023856150161, "result": "success"}, {"index": 168, "scheduled_seconds": 33.6, "started_seconds": 33.6003547940054, "finished_seconds": 33.60250081401318, "result": "success"}, {"index": 169, "scheduled_seconds": 33.8, "started_seconds": 33.800375045015244, "finished_seconds": 33.80248801401467, "result": "success"}, {"index": 170, "scheduled_seconds": 34.0, "started_seconds": 34.00032894601463, "finished_seconds": 34.002548185992055, "result": "success"}, {"index": 171, "scheduled_seconds": 34.2, "started_seconds": 34.20032197100227, "finished_seconds": 34.202299413998844, "result": "success"}, {"index": 172, "scheduled_seconds": 34.4, "started_seconds": 34.400354985991726, "finished_seconds": 34.40249702701112, "result": "success"}, {"index": 173, "scheduled_seconds": 34.6, "started_seconds": 34.60034884599736, "finished_seconds": 34.60237889899872, "result": "success"}, {"index": 174, "scheduled_seconds": 34.8, "started_seconds": 34.80024872999638, "finished_seconds": 34.80216568199103, "result": "success"}, {"index": 175, "scheduled_seconds": 35.0, "started_seconds": 35.00034942099592, "finished_seconds": 35.002478634007275, "result": "success"}, {"index": 176, "scheduled_seconds": 35.2, "started_seconds": 35.20038185501471, "finished_seconds": 35.202446200011764, "result": "success"}, {"index": 177, "scheduled_seconds": 35.4, "started_seconds": 35.40034295601072, "finished_seconds": 35.402450440014945, "result": "success"}, {"index": 178, "scheduled_seconds": 35.6, "started_seconds": 35.600353545014514, "finished_seconds": 35.60248109899112, "result": "success"}, {"index": 179, "scheduled_seconds": 35.8, "started_seconds": 35.80032889000722, "finished_seconds": 35.80237751500681, "result": "success"}, {"index": 180, "scheduled_seconds": 36.0, "started_seconds": 36.00036252499558, "finished_seconds": 36.00244870301685, "result": "success"}, {"index": 181, "scheduled_seconds": 36.2, "started_seconds": 36.20036063500447, "finished_seconds": 36.202475733996835, "result": "success"}, {"index": 182, "scheduled_seconds": 36.4, "started_seconds": 36.40029832601431, "finished_seconds": 36.40220574600971, "result": "success"}, {"index": 183, "scheduled_seconds": 36.6, "started_seconds": 36.60036663900246, "finished_seconds": 36.60240791601245, "result": "success"}, {"index": 184, "scheduled_seconds": 36.8, "started_seconds": 36.80035548101296, "finished_seconds": 36.80265910900198, "result": "success"}, {"index": 185, "scheduled_seconds": 37.0, "started_seconds": 37.000289059011266, "finished_seconds": 37.00167974299984, "result": "success"}, {"index": 186, "scheduled_seconds": 37.2, "started_seconds": 37.20036940500722, "finished_seconds": 37.202467986004194, "result": "success"}, {"index": 187, "scheduled_seconds": 37.4, "started_seconds": 37.400330528005725, "finished_seconds": 37.40241938500549, "result": "success"}, {"index": 188, "scheduled_seconds": 37.6, "started_seconds": 37.60033988999203, "finished_seconds": 37.60248400099226, "result": "success"}, {"index": 189, "scheduled_seconds": 37.8, "started_seconds": 37.80037137301406, "finished_seconds": 37.80250644899206, "result": "success"}, {"index": 190, "scheduled_seconds": 38.0, "started_seconds": 38.00030278900522, "finished_seconds": 38.001635866006836, "result": "success"}, {"index": 191, "scheduled_seconds": 38.2, "started_seconds": 38.2003487960028, "finished_seconds": 38.202500028011855, "result": "success"}, {"index": 192, "scheduled_seconds": 38.4, "started_seconds": 38.400350454990985, "finished_seconds": 38.40248501801398, "result": "success"}, {"index": 193, "scheduled_seconds": 38.6, "started_seconds": 38.60034127699328, "finished_seconds": 38.60238710700651, "result": "success"}, {"index": 194, "scheduled_seconds": 38.8, "started_seconds": 38.800355865008896, "finished_seconds": 38.80246103700483, "result": "success"}, {"index": 195, "scheduled_seconds": 39.0, "started_seconds": 39.000352597999154, "finished_seconds": 39.00241870401078, "result": "success"}, {"index": 196, "scheduled_seconds": 39.2, "started_seconds": 39.20029835400055, "finished_seconds": 39.20228819499607, "result": "success"}, {"index": 197, "scheduled_seconds": 39.4, "started_seconds": 39.40037154301535, "finished_seconds": 39.40248187299585, "result": "success"}, {"index": 198, "scheduled_seconds": 39.6, "started_seconds": 39.60029424401, "finished_seconds": 39.60257046701736, "result": "success"}, {"index": 199, "scheduled_seconds": 39.8, "started_seconds": 39.80035263899481, "finished_seconds": 39.802441603998886, "result": "success"}, {"index": 200, "scheduled_seconds": 40.0, "started_seconds": 40.000359063997166, "finished_seconds": 40.00246539100772, "result": "success"}, {"index": 201, "scheduled_seconds": 40.2, "started_seconds": 40.20034049500828, "finished_seconds": 40.20249694000813, "result": "success"}, {"index": 202, "scheduled_seconds": 40.4, "started_seconds": 40.4003681820177, "finished_seconds": 40.40256995000527, "result": "success"}, {"index": 203, "scheduled_seconds": 40.6, "started_seconds": 40.60035307399812, "finished_seconds": 40.602395541995065, "result": "success"}, {"index": 204, "scheduled_seconds": 40.8, "started_seconds": 40.80035351301194, "finished_seconds": 40.80243865700322, "result": "success"}, {"index": 205, "scheduled_seconds": 41.0, "started_seconds": 41.00036593401455, "finished_seconds": 41.00250803900417, "result": "success"}, {"index": 206, "scheduled_seconds": 41.2, "started_seconds": 41.200340915005654, "finished_seconds": 41.20240266100154, "result": "success"}, {"index": 207, "scheduled_seconds": 41.4, "started_seconds": 41.400356236001244, "finished_seconds": 41.40247733501019, "result": "success"}, {"index": 208, "scheduled_seconds": 41.6, "started_seconds": 41.60035806399537, "finished_seconds": 41.602656856004614, "result": "success"}, {"index": 209, "scheduled_seconds": 41.8, "started_seconds": 41.80037708100281, "finished_seconds": 41.80269260398927, "result": "success"}, {"index": 210, "scheduled_seconds": 42.0, "started_seconds": 42.00033556899871, "finished_seconds": 42.002213892992586, "result": "success"}, {"index": 211, "scheduled_seconds": 42.2, "started_seconds": 42.20035819199984, "finished_seconds": 42.20247125500464, "result": "success"}, {"index": 212, "scheduled_seconds": 42.4, "started_seconds": 42.40033047000179, "finished_seconds": 42.4024832599971, "result": "success"}, {"index": 213, "scheduled_seconds": 42.6, "started_seconds": 42.60035081600654, "finished_seconds": 42.602418813999975, "result": "success"}, {"index": 214, "scheduled_seconds": 42.8, "started_seconds": 42.80027242199867, "finished_seconds": 42.80216543300776, "result": "success"}, {"index": 215, "scheduled_seconds": 43.0, "started_seconds": 43.00028710300103, "finished_seconds": 43.001716293016216, "result": "success"}, {"index": 216, "scheduled_seconds": 43.2, "started_seconds": 43.200407274998724, "finished_seconds": 43.20268864301033, "result": "success"}, {"index": 217, "scheduled_seconds": 43.4, "started_seconds": 43.40041075000772, "finished_seconds": 43.40248687801068, "result": "success"}, {"index": 218, "scheduled_seconds": 43.6, "started_seconds": 43.60035816801246, "finished_seconds": 43.60241048099124, "result": "success"}, {"index": 219, "scheduled_seconds": 43.8, "started_seconds": 43.80033593601547, "finished_seconds": 43.802353514998686, "result": "success"}, {"index": 220, "scheduled_seconds": 44.0, "started_seconds": 44.00036616300349, "finished_seconds": 44.002500097005395, "result": "success"}, {"index": 221, "scheduled_seconds": 44.2, "started_seconds": 44.20034502999624, "finished_seconds": 44.202510175993666, "result": "success"}, {"index": 222, "scheduled_seconds": 44.4, "started_seconds": 44.40035759401508, "finished_seconds": 44.402452765003545, "result": "success"}, {"index": 223, "scheduled_seconds": 44.6, "started_seconds": 44.60027691401774, "finished_seconds": 44.60219920001691, "result": "success"}, {"index": 224, "scheduled_seconds": 44.8, "started_seconds": 44.80036685601226, "finished_seconds": 44.802435313002206, "result": "success"}, {"index": 225, "scheduled_seconds": 45.0, "started_seconds": 45.00036436499795, "finished_seconds": 45.0024845910084, "result": "success"}, {"index": 226, "scheduled_seconds": 45.2, "started_seconds": 45.20037541401689, "finished_seconds": 45.2027455260104, "result": "success"}, {"index": 227, "scheduled_seconds": 45.4, "started_seconds": 45.40036944899475, "finished_seconds": 45.4024250759976, "result": "success"}, {"index": 228, "scheduled_seconds": 45.6, "started_seconds": 45.60026655701222, "finished_seconds": 45.602390999003546, "result": "success"}, {"index": 229, "scheduled_seconds": 45.8, "started_seconds": 45.80059133999748, "finished_seconds": 45.802015910012415, "result": "success"}, {"index": 230, "scheduled_seconds": 46.0, "started_seconds": 46.00038535101339, "finished_seconds": 46.002504261006834, "result": "success"}, {"index": 231, "scheduled_seconds": 46.2, "started_seconds": 46.20039862199337, "finished_seconds": 46.2024933170178, "result": "success"}, {"index": 232, "scheduled_seconds": 46.4, "started_seconds": 46.40027070400538, "finished_seconds": 46.402158304001205, "result": "success"}, {"index": 233, "scheduled_seconds": 46.6, "started_seconds": 46.60030855401419, "finished_seconds": 46.602305023989175, "result": "success"}, {"index": 234, "scheduled_seconds": 46.8, "started_seconds": 46.80041467898991, "finished_seconds": 46.802577866998035, "result": "success"}, {"index": 235, "scheduled_seconds": 47.0, "started_seconds": 47.000378914992325, "finished_seconds": 47.002435164991766, "result": "success"}, {"index": 236, "scheduled_seconds": 47.2, "started_seconds": 47.20034758100519, "finished_seconds": 47.202448544005165, "result": "success"}, {"index": 237, "scheduled_seconds": 47.4, "started_seconds": 47.40038410501438, "finished_seconds": 47.40249723600573, "result": "success"}, {"index": 238, "scheduled_seconds": 47.6, "started_seconds": 47.600360582990106, "finished_seconds": 47.602492058998905, "result": "success"}, {"index": 239, "scheduled_seconds": 47.8, "started_seconds": 47.800366622017464, "finished_seconds": 47.80252553601167, "result": "success"}, {"index": 240, "scheduled_seconds": 48.0, "started_seconds": 48.00035669101635, "finished_seconds": 48.00254706499982, "result": "success"}, {"index": 241, "scheduled_seconds": 48.2, "started_seconds": 48.20030362199759, "finished_seconds": 48.202176896011224, "result": "success"}, {"index": 242, "scheduled_seconds": 48.4, "started_seconds": 48.40035997700761, "finished_seconds": 48.40247264201753, "result": "success"}, {"index": 243, "scheduled_seconds": 48.6, "started_seconds": 48.60036291301367, "finished_seconds": 48.602437771012774, "result": "success"}, {"index": 244, "scheduled_seconds": 48.8, "started_seconds": 48.80037774000084, "finished_seconds": 48.802536253992, "result": "success"}, {"index": 245, "scheduled_seconds": 49.0, "started_seconds": 49.00031338099507, "finished_seconds": 49.00243734201649, "result": "success"}, {"index": 246, "scheduled_seconds": 49.2, "started_seconds": 49.20025766501203, "finished_seconds": 49.202168146002805, "result": "success"}, {"index": 247, "scheduled_seconds": 49.4, "started_seconds": 49.40036223499919, "finished_seconds": 49.40245902200695, "result": "success"}, {"index": 248, "scheduled_seconds": 49.6, "started_seconds": 49.60035405200324, "finished_seconds": 49.60244803299429, "result": "success"}, {"index": 249, "scheduled_seconds": 49.8, "started_seconds": 49.80035047599813, "finished_seconds": 49.80242340199766, "result": "success"}, {"index": 250, "scheduled_seconds": 50.0, "started_seconds": 50.00019197401707, "finished_seconds": 50.0013918520126, "result": "success"}, {"index": 251, "scheduled_seconds": 50.2, "started_seconds": 50.200375543005066, "finished_seconds": 50.20248624600936, "result": "success"}, {"index": 252, "scheduled_seconds": 50.4, "started_seconds": 50.400362465996295, "finished_seconds": 50.40248575300211, "result": "success"}, {"index": 253, "scheduled_seconds": 50.6, "started_seconds": 50.60034425201593, "finished_seconds": 50.60235590400407, "result": "success"}, {"index": 254, "scheduled_seconds": 50.8, "started_seconds": 50.80037574301241, "finished_seconds": 50.802498417004244, "result": "success"}, {"index": 255, "scheduled_seconds": 51.0, "started_seconds": 51.00036905001616, "finished_seconds": 51.00256399300997, "result": "success"}, {"index": 256, "scheduled_seconds": 51.2, "started_seconds": 51.20035473900498, "finished_seconds": 51.202521435014205, "result": "success"}, {"index": 257, "scheduled_seconds": 51.4, "started_seconds": 51.400344615016365, "finished_seconds": 51.4023770079948, "result": "success"}, {"index": 258, "scheduled_seconds": 51.6, "started_seconds": 51.600338888994884, "finished_seconds": 51.601987959002145, "result": "success"}, {"index": 259, "scheduled_seconds": 51.8, "started_seconds": 51.800361839006655, "finished_seconds": 51.80260774801718, "result": "success"}, {"index": 260, "scheduled_seconds": 52.0, "started_seconds": 52.00037813800736, "finished_seconds": 52.00252419599565, "result": "success"}, {"index": 261, "scheduled_seconds": 52.2, "started_seconds": 52.200376597000286, "finished_seconds": 52.20253414098988, "result": "success"}, {"index": 262, "scheduled_seconds": 52.4, "started_seconds": 52.400342514010845, "finished_seconds": 52.4024349389947, "result": "success"}, {"index": 263, "scheduled_seconds": 52.6, "started_seconds": 52.60031314601656, "finished_seconds": 52.6023729040171, "result": "success"}, {"index": 264, "scheduled_seconds": 52.8, "started_seconds": 52.80035420699278, "finished_seconds": 52.80252784100594, "result": "success"}, {"index": 265, "scheduled_seconds": 53.0, "started_seconds": 53.000351972994395, "finished_seconds": 53.002304793015355, "result": "success"}, {"index": 266, "scheduled_seconds": 53.2, "started_seconds": 53.200248278008075, "finished_seconds": 53.201681487989845, "result": "success"}, {"index": 267, "scheduled_seconds": 53.4, "started_seconds": 53.40033984801266, "finished_seconds": 53.40210607901099, "result": "success"}, {"index": 268, "scheduled_seconds": 53.6, "started_seconds": 53.60029741801554, "finished_seconds": 53.6025416420016, "result": "success"}, {"index": 269, "scheduled_seconds": 53.8, "started_seconds": 53.80026627899497, "finished_seconds": 53.80228954998893, "result": "success"}, {"index": 270, "scheduled_seconds": 54.0, "started_seconds": 54.00031064401264, "finished_seconds": 54.00256454900955, "result": "success"}, {"index": 271, "scheduled_seconds": 54.2, "started_seconds": 54.200354710017564, "finished_seconds": 54.20246522501111, "result": "success"}, {"index": 272, "scheduled_seconds": 54.4, "started_seconds": 54.40025465900544, "finished_seconds": 54.402403362008044, "result": "success"}, {"index": 273, "scheduled_seconds": 54.6, "started_seconds": 54.60030280498904, "finished_seconds": 54.60234054501052, "result": "success"}, {"index": 274, "scheduled_seconds": 54.8, "started_seconds": 54.800312779989326, "finished_seconds": 54.802402011002414, "result": "success"}, {"index": 275, "scheduled_seconds": 55.0, "started_seconds": 55.00027097100974, "finished_seconds": 55.002490781014785, "result": "success"}, {"index": 276, "scheduled_seconds": 55.2, "started_seconds": 55.20029370099655, "finished_seconds": 55.20227631198941, "result": "success"}, {"index": 277, "scheduled_seconds": 55.4, "started_seconds": 55.40034936601296, "finished_seconds": 55.40245299000526, "result": "success"}, {"index": 278, "scheduled_seconds": 55.6, "started_seconds": 55.600367559003644, "finished_seconds": 55.60246347900829, "result": "success"}, {"index": 279, "scheduled_seconds": 55.8, "started_seconds": 55.80025758899865, "finished_seconds": 55.802353464008775, "result": "success"}, {"index": 280, "scheduled_seconds": 56.0, "started_seconds": 56.00021239600028, "finished_seconds": 56.00159016001271, "result": "success"}, {"index": 281, "scheduled_seconds": 56.2, "started_seconds": 56.358093031012686, "finished_seconds": 56.36515625700122, "result": "success"}, {"index": 282, "scheduled_seconds": 56.4, "started_seconds": 56.40029853800661, "finished_seconds": 56.402150258014444, "result": "success"}, {"index": 283, "scheduled_seconds": 56.6, "started_seconds": 56.60035655199317, "finished_seconds": 56.602416241017636, "result": "success"}, {"index": 284, "scheduled_seconds": 56.8, "started_seconds": 56.80035247601336, "finished_seconds": 56.80246735399123, "result": "success"}, {"index": 285, "scheduled_seconds": 57.0, "started_seconds": 57.00040634701145, "finished_seconds": 57.002456959016854, "result": "success"}, {"index": 286, "scheduled_seconds": 57.2, "started_seconds": 57.20028223400004, "finished_seconds": 57.20153821801068, "result": "success"}, {"index": 287, "scheduled_seconds": 57.4, "started_seconds": 57.40025961800711, "finished_seconds": 57.40217541300808, "result": "success"}, {"index": 288, "scheduled_seconds": 57.6, "started_seconds": 57.60032059199875, "finished_seconds": 57.6024313569942, "result": "success"}, {"index": 289, "scheduled_seconds": 57.8, "started_seconds": 57.80036092901719, "finished_seconds": 57.80252728200867, "result": "success"}, {"index": 290, "scheduled_seconds": 58.0, "started_seconds": 58.00020470601157, "finished_seconds": 58.00184506701771, "result": "success"}, {"index": 291, "scheduled_seconds": 58.2, "started_seconds": 58.200352220010245, "finished_seconds": 58.20241401999374, "result": "success"}, {"index": 292, "scheduled_seconds": 58.4, "started_seconds": 58.400377184996614, "finished_seconds": 58.405965112004196, "result": "success"}, {"index": 293, "scheduled_seconds": 58.6, "started_seconds": 58.600309133995324, "finished_seconds": 58.602280802006135, "result": "success"}, {"index": 294, "scheduled_seconds": 58.8, "started_seconds": 58.80037122601061, "finished_seconds": 58.80254321001121, "result": "success"}, {"index": 295, "scheduled_seconds": 59.0, "started_seconds": 59.00038191801286, "finished_seconds": 59.00250900001265, "result": "success"}, {"index": 296, "scheduled_seconds": 59.2, "started_seconds": 59.20030849199975, "finished_seconds": 59.20227410501684, "result": "success"}, {"index": 297, "scheduled_seconds": 59.4, "started_seconds": 59.400359099992784, "finished_seconds": 59.40256428401335, "result": "success"}, {"index": 298, "scheduled_seconds": 59.6, "started_seconds": 59.6003217670077, "finished_seconds": 59.602442080999026, "result": "success"}, {"index": 299, "scheduled_seconds": 59.8, "started_seconds": 59.80110252200393, "finished_seconds": 59.80314946299768, "result": "success"}], "legitimate_not_isolated": true, "qualification": "60 seconds only, not prolonged load"}, "time": "2026-11-04T06:33:12.602794+00:00"}
+VERIFIED {"test": "bounded_load_acceptance", "actual": {"result": "pass"}, "time": "2026-11-04T06:33:12.621632+00:00"}
+$ nft flush set inet minifw minifw_block_v4
+$ ip netns exec mf-client /usr/bin/python3 /home/lab/wednesday-c17/testing/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+$ mount -t tmpfs -o size=64k,mode=0755 minifw-test-full /var/tmp/minifw-monday-education-20261104T063204Z/full-log-fs
+$ systemctl daemon-reload
+$ systemctl restart minifw-ai
+$ nft add element inet minifw minifw_block_v4 '{' 10.10.0.20 timeout 2s '}'
+$ nft -a list table inet minifw
+table inet minifw { # handle 61
+	set minifw_block_v4 { # handle 1
+		type ipv4_addr
+		timeout 1h
+		elements = { 10.10.0.20 timeout 2s expires 1s996ms }
+	}
+
+	chain forward { # handle 2
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 302 bytes 18120 comment "MiniFW-AI-Conntrack" # handle 3
+		ip saddr @minifw_block_v4 counter packets 0 bytes 0 drop comment "MiniFW-AI-Blocklist" # handle 4
+	}
+}
+$ ip netns exec mf-client /usr/bin/python3 /home/lab/wednesday-c17/testing/lab_gateway_acceptance.py client dns 10.10.0.1 4chan.org
+{"ok": true, "resolver": "10.10.0.1", "domain": "4chan.org", "answer": "198.18.0.2"}
+VERIFIED {"test": "older_block_renewed_by_explicit_deny", "actual": {"old_timeout_seconds": 2, "checked_after_seconds": 4, "kernel_block_present": true}, "time": "2026-11-04T06:33:21.727677+00:00"}
+$ nft -a list table inet minifw
+table inet minifw { # handle 61
+	set minifw_block_v4 { # handle 1
+		type ipv4_addr
+		timeout 1h
+		elements = { 10.10.0.20 timeout 15s expires 11s20ms }
+	}
+
+	chain forward { # handle 2
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 302 bytes 18120 comment "MiniFW-AI-Conntrack" # handle 3
+		ip saddr @minifw_block_v4 counter packets 0 bytes 0 drop comment "MiniFW-AI-Blocklist" # handle 4
+	}
+}
+$ systemctl show minifw-ai minifw-ai-web -p MemoryCurrent -p CPUUsageNSec -p NRestarts -p ActiveState
+NRestarts=0
+MemoryCurrent=196222976
+CPUUsageNSec=2074310000
+ActiveState=active
+
+NRestarts=0
+MemoryCurrent=123383808
+CPUUsageNSec=3246699000
+ActiveState=active
+$ ip netns exec mf-client /usr/bin/python3 /home/lab/wednesday-c17/testing/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": false, "error": "TimeoutError"}
+VERIFIED {"test": "isolated_disk_full", "actual": {"filesystem_bytes": 65536, "kernel_block_present": true, "free_bytes": 0, "event_log_bytes": 0, "routed_http_exit": 2, "services": "NRestarts=0\nMemoryCurrent=196222976\nCPUUsageNSec=2074310000\nActiveState=active\n\nNRestarts=0\nMemoryCurrent=123383808\nCPUUsageNSec=3246699000\nActiveState=active\n", "dashboard_http": {"/auth/login": 200, "/health/": 503}, "acceptance": "pass"}, "time": "2026-11-04T06:33:23.975362+00:00"}
+$ systemctl stop minifw-ai
+$ systemctl daemon-reload
+$ umount /var/tmp/minifw-monday-education-20261104T063204Z/full-log-fs
+$ systemctl stop minifw-ai
+$ nft flush set inet minifw minifw_block_v4
+$ conntrack -D -s 10.10.0.20
+tcp      6 51 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56680 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=56680 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 73 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=47858 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=47858 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 76 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60542 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60542 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 102 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60424 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60424 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 98 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60254 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60254 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 79 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60638 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60638 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 66 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=47586 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=47586 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 45 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=40668 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=40668 packets=5 bytes=577 [ASSURED] mark=0 use=1
+tcp      6 71 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=47758 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=47758 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 99 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60306 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60306 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 100 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60364 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60364 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 89 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=58952 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=58952 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 50 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56640 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=56640 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 90 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=58996 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=58996 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 46 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56450 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=56450 packets=5 bytes=577 [ASSURED] mark=0 use=1
+tcp      6 73 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=47848 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=47848 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 52 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56716 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=56716 packets=5 bytes=577 [ASSURED] mark=0 use=1
+tcp      6 48 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56532 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=56532 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 77 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60588 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60588 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 77 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60566 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60566 packets=5 bytes=577 [ASSURED] mark=0 use=1
+tcp      6 90 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=58980 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=58980 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 60 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=44724 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=44724 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 74 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=47892 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=47892 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 58 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=44636 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=44636 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 78 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60628 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60628 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 61 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=44776 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=44776 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 88 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=58886 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=58886 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 104 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60502 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60502 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 87 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=58846 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=58846 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 89 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=58946 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=58946 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 95 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=59220 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=59220 packets=5 bytes=577 [ASSURED] mark=0 use=1
+tcp      6 72 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=47796 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=47796 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 51 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56686 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=56686 packets=5 bytes=577 [ASSURED] mark=0 use=1
+tcp      6 75 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=47962 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=47962 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 58 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=44628 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=44628 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 51 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56674 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=56674 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 77 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60596 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60596 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 53 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56768 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=56768 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 104 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60520 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60520 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 83 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60776 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60776 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 85 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60910 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60910 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 84 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60866 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60866 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 50 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56608 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=56608 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 64 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=44964 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=44964 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 104 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60536 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60536 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 89 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=58938 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=58938 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 61 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=44798 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=44798 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 72 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=47842 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=47842 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 75 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=47972 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=47972 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 49 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56570 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=56570 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 72 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=47804 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=47804 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 89 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=58914 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=58914 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 96 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=59294 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=59294 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 96 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60196 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60196 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 54 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56810 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=56810 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 99 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60322 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60322 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 67 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=47596 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=47596 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 46 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56454 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=56454 packets=5 bytes=577 [ASSURED] mark=0 use=1
+tcp      6 45 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=40650 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=40650 packets=5 bytes=577 [ASSURED] mark=0 use=1
+tcp      6 93 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=59160 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=59160 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 88 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=58900 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=58900 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 67 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=47618 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=47618 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 101 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60406 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60406 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 61 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=44814 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=44814 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 73 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=47874 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=47874 packets=5 bytes=577 [ASSURED] mark=0 use=1
+tcp      6 87 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=58836 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=58836 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 70 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=47736 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=47736 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 84 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60854 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60854 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 61 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=44792 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=44792 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 52 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56730 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=56730 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 81 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60704 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60704 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 46 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=40688 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=40688 packets=5 bytes=577 [ASSURED] mark=0 use=1
+tcp      6 57 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=44596 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=44596 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 71 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=47774 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=47774 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 45 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=40640 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=40640 packets=5 bytes=577 [ASSURED] mark=0 use=1
+tcp      6 48 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56504 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=56504 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 97 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60230 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60230 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 83 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60804 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60804 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 85 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60894 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60894 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 93 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=59134 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=59134 packets=5 bytes=577 [ASSURED] mark=0 use=1
+tcp      6 80 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60672 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60672 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 65 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=45022 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=45022 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 76 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=47988 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=47988 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 98 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60252 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60252 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 103 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60460 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60460 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 87 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=58864 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=58864 packets=5 bytes=577 [ASSURED] mark=0 use=1
+tcp      6 57 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=44610 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=44610 packets=5 bytes=577 [ASSURED] mark=0 use=1
+tcp      6 67 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=47620 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=47620 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 100 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60358 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60358 packets=5 bytes=577 [ASSURED] mark=0 use=1
+tcp      6 69 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=47710 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=47710 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 65 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=45014 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=45014 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 51 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56652 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=56652 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 55 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56820 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=56820 packets=5 bytes=577 [ASSURED] mark=0 use=1
+tcp      6 91 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=59056 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=59056 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 45 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=40654 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=40654 packets=5 bytes=577 [ASSURED] mark=0 use=1
+tcp      6 79 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60648 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60648 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 96 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=59278 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=59278 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 88 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=58880 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=58880 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 82 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60768 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60768 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 68 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=47636 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=47636 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 86 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=58810 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=58810 packets=6 bytes=629 [ASSURED] mark=0 use=1
+udp      17 22 src=10.10.0.20 dst=10.10.0.1 sport=38868 dport=53 packets=1 bytes=55 src=10.10.0.1 dst=10.10.0.20 sport=53 dport=38868 packets=1 bytes=71 mark=0 use=1
+tcp      6 57 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=44614 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=44614 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 62 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=44866 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=44866 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 101 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60420 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60420 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 87 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=58854 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=58854 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 86 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=58802 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=58802 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 95 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=59228 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=59228 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 71 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=47788 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=47788 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 76 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60538 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60538 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 50 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56612 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=56612 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 102 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60430 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60430 packets=5 bytes=577 [ASSURED] mark=0 use=1
+tcp      6 79 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60652 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60652 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 78 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60630 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60630 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 71 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=47760 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=47760 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 73 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=47862 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=47862 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 63 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=44900 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=44900 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 102 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60450 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60450 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 67 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=47594 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=47594 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 82 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60748 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60748 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 49 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56562 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=56562 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 97 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60208 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60208 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 77 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60550 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60550 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 59 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=44678 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=44678 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 82 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60740 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60740 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 46 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=40706 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=40706 packets=5 bytes=577 [ASSURED] mark=0 use=1
+tcp      6 53 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56744 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=56744 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 59 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=44692 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=44692 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 56 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56860 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=56860 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 68 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=47654 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=47654 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 85 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60880 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60880 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 84 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60824 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60824 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 57 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=44606 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=44606 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 82 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60752 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60752 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 91 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=59044 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=59044 packets=5 bytes=577 [ASSURED] mark=0 use=1
+tcp      6 94 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=59206 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=59206 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 47 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56456 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=56456 packets=5 bytes=577 [ASSURED] mark=0 use=1
+tcp      6 98 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60260 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60260 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 97 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60218 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60218 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 52 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56700 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=56700 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 104 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60496 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60496 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 90 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=59012 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=59012 packets=5 bytes=577 [ASSURED] mark=0 use=1
+tcp      6 49 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56552 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=56552 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 53 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56758 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=56758 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 92 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=59116 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=59116 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 98 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60276 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60276 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 61 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=44830 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=44830 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 69 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=47692 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=47692 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 53 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56762 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=56762 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 54 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56806 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=56806 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 93 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=59146 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=59146 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 54 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56782 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=56782 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 63 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=44924 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=44924 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 71 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=47770 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=47770 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 103 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60486 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60486 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 94 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=59198 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=59198 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 75 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=47948 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=47948 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 65 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=44994 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=44994 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 59 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=44708 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=44708 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 58 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=44656 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=44656 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 55 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56840 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=56840 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 53 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56740 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=56740 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 68 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=47678 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=47678 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 46 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=40696 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=40696 packets=5 bytes=577 [ASSURED] mark=0 use=1
+tcp      6 50 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56596 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=56596 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 88 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=58866 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=58866 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 102 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60438 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60438 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 62 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=44842 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=44842 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 94 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=59182 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=59182 packets=5 bytes=577 [ASSURED] mark=0 use=1
+tcp      6 58 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=44642 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=44642 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 76 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=47998 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=47998 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 87 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=58822 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=58822 packets=5 bytes=577 [ASSURED] mark=0 use=1
+tcp      6 48 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56518 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=56518 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 69 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=47686 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=47686 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 97 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60224 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60224 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 88 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=58898 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=58898 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 100 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60374 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60374 packets=5 bytes=577 [ASSURED] mark=0 use=1
+tcp      6 103 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60478 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60478 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 79 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60654 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60654 packets=5 bytes=577 [ASSURED] mark=0 use=1
+tcp      6 56 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=44586 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=44586 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 84 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60850 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60850 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 47 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56470 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=56470 packets=5 bytes=577 [ASSURED] mark=0 use=1
+tcp      6 75 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=47938 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=47938 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 74 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=47918 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=47918 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 86 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60942 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60942 packets=5 bytes=577 [ASSURED] mark=0 use=1
+tcp      6 64 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=44972 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=44972 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 49 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56586 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=56586 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 92 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=59080 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=59080 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 74 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=47886 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=47886 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 97 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60216 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60216 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 98 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60246 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60246 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 66 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=47590 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=47590 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 60 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=44760 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=44760 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 48 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56534 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=56534 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 90 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=58966 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=58966 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 81 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60716 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60716 packets=5 bytes=577 [ASSURED] mark=0 use=1
+tcp      6 45 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=40626 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=40626 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 74 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=47904 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=47904 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 99 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60332 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60332 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 62 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=44890 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=44890 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 101 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60398 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60398 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 63 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=44938 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=44938 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 78 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60622 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60622 packets=5 bytes=577 [ASSURED] mark=0 use=1
+tcp      6 55 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56852 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=56852 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 85 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60940 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60940 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 75 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=47950 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=47950 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 92 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=59100 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=59100 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 81 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60708 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60708 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 54 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56798 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=56798 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 89 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=58926 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=58926 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 52 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56694 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=56694 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 56 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56870 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=56870 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 68 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=47650 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=47650 packets=5 bytes=577 [ASSURED] mark=0 use=1
+tcp      6 103 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60454 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60454 packets=5 bytes=577 [ASSURED] mark=0 use=1
+tcp      6 78 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60612 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60612 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 68 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=47668 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=47668 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 57 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=44600 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=44600 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 49 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56576 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=56576 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 60 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=44734 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=44734 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 83 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60780 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60780 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 51 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56658 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=56658 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 69 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=47708 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=47708 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 63 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=44910 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=44910 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 96 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60200 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60200 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 94 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=59174 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=59174 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 66 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=45060 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=45060 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 102 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60428 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60428 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 60 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=44750 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=44750 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 69 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=47700 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=47700 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 94 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=59204 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=59204 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 101 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60390 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60390 packets=5 bytes=577 [ASSURED] mark=0 use=1
+tcp      6 64 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=44976 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=44976 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 50 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56626 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=56626 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 63 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=44936 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=44936 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 108 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=58250 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=58250 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 83 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60820 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60820 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 52 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56722 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=56722 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 91 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=59054 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=59054 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 66 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=45038 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=45038 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 90 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=59018 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=59018 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 104 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60512 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60512 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 80 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60668 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60668 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 103 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60470 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60470 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 47 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56494 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=56494 packets=5 bytes=577 [ASSURED] mark=0 use=1
+tcp      6 72 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=47814 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=47814 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 72 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=47826 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=47826 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 70 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=47714 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=47714 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 66 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=45044 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=45044 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 93 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=59120 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=59120 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 62 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=44874 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=44874 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 91 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=59026 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=59026 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 58 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=44638 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=44638 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 54 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56784 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=56784 packets=5 bytes=577 [ASSURED] mark=0 use=1
+tcp      6 45 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=40684 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=40684 packets=5 bytes=577 [ASSURED] mark=0 use=1
+tcp      6 80 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60678 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60678 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 70 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=47728 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=47728 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 95 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=59258 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=59258 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 78 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60600 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60600 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 91 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=59036 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=59036 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 62 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=44858 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=44858 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 64 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=44980 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=44980 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 59 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=44662 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=44662 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 47 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56490 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=56490 packets=5 bytes=577 [ASSURED] mark=0 use=1
+tcp      6 56 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56858 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=56858 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 77 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60572 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60572 packets=5 bytes=577 [ASSURED] mark=0 use=1
+tcp      6 64 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=44954 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=44954 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 101 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60388 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60388 packets=5 bytes=577 [ASSURED] mark=0 use=1
+tcp      6 99 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60292 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60292 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 92 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=59070 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=59070 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 100 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60350 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60350 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 55 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56832 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=56832 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 47 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56482 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=56482 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 95 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=59244 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=59244 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 70 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=47738 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=47738 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 80 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60684 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60684 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 48 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56540 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=56540 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 60 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=44774 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=44774 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 99 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60342 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60342 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 86 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60954 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60954 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 59 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=44680 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=44680 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 93 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=59154 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=59154 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 56 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=44580 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=44580 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 65 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=45008 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=45008 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 81 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60724 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60724 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 73 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=47860 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=47860 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 83 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60790 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60790 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 95 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=59238 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=59238 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 92 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=59084 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=59084 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 76 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=48014 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=48014 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 74 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=47924 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=47924 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 85 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60926 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60926 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 70 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=47754 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=47754 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 82 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60772 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60772 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 55 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=56850 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=56850 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 100 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60362 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60362 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 81 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60738 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60738 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 80 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60696 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60696 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 79 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60644 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60644 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 65 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=44988 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=44988 packets=5 bytes=577 [ASSURED] mark=0 use=1
+tcp      6 84 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60836 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60836 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 96 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=59262 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=59262 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 86 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60970 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60970 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 67 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=47610 dport=8080 packets=7 bytes=440 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=47610 packets=5 bytes=577 [ASSURED] mark=0 use=1
+conntrack v1.4.7 (conntrack-tools): 303 flow entries have been deleted.
+$ systemctl daemon-reload
+$ systemctl start minifw-ai
+$ systemctl show minifw-ai -p ActiveState -p MainPID -p ExecMainStatus
+MainPID=50350
+ExecMainStatus=0
+ActiveState=active
+$ ip netns exec mf-client /usr/bin/python3 /home/lab/wednesday-c17/testing/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+$ ip netns exec mf-client /usr/bin/python3 /home/lab/wednesday-c17/testing/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+$ ip netns exec mf-client /usr/bin/python3 /home/lab/wednesday-c17/testing/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+VERIFIED {"test": "disk_full_recovery", "actual": {"legitimate_http": "200", "engine": "restarted with normal log path"}, "time": "2026-11-04T06:33:29.164611+00:00"}
+$ systemctl stop minifw-ai-web
+$ systemctl stop minifw-ai
+$ journalctl -u minifw-ai --no-pager --since '2026-11-04 06:32:04 UTC'
+Nov 04 13:32:06 minifw-monday-education systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 04 13:32:08 minifw-monday-education python[49784]: 2026-11-04 13:32:08,099 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Nov 04 13:32:08 minifw-monday-education python[49784]: 2026-11-04 13:32:08,102 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Nov 04 13:32:08 minifw-monday-education python[49784]: 2026-11-04 13:32:08,103 - INFO - [STATE] Restored state from /opt/minifw_ai/logs/deployment_state.json: BASELINE_PROTECTION
+Nov 04 13:32:08 minifw-monday-education python[49784]: 2026-11-04 13:32:08,103 - INFO - [STATE] Initial protection state: BASELINE_PROTECTION
+Nov 04 13:32:08 minifw-monday-education python[49784]: 2026-11-04 13:32:08,109 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_school: sector=education
+Nov 04 13:32:08 minifw-monday-education python[49784]: 2026-11-04 13:32:08,109 - INFO - [SECTOR_LOCK] Loaded config for education: ['description', 'force_safesearch', 'safesearch_domains', 'block_vpns', 'block_proxies', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_student_activity']
+Nov 04 13:32:08 minifw-monday-education python[49784]: 2026-11-04 13:32:08,109 - INFO - [SECTOR_LOCK] Device sector: education (LOCKED)
+Nov 04 13:32:08 minifw-monday-education python[49784]: 2026-11-04 13:32:08,110 - INFO - [SECTOR_LOCK] Config: Education: domain policies; restricted DNS configuration and optional WireGuard metadata.
+Nov 04 13:32:08 minifw-monday-education python[49784]: 2026-11-04 13:32:08,110 - INFO - [FEEDS] Loaded 14 patterns from school_blacklist.txt
+Nov 04 13:32:08 minifw-monday-education python[49784]: 2026-11-04 13:32:08,110 - INFO - [SECTOR_LOCK] Loaded 14 sector-specific feed patterns
+Nov 04 13:32:08 minifw-monday-education python[49784]: 2026-11-04 13:32:08,110 - INFO - [SECTOR_LOCK] Search-domain allowlist: 8 patterns; restricted search requires the generated dnsmasq overrides
+Nov 04 13:32:08 minifw-monday-education python[49784]: 2026-11-04 13:32:08,110 - INFO - [SECTOR_LOCK] VPN/proxy provider domain matching enabled; optional packet metadata detects WireGuard patterns
+Nov 04 13:32:08 minifw-monday-education python[49784]: 2026-11-04 13:32:08,137 - INFO - [TELEMETRY] Packet metadata on mfcg; packet14 model required; no TLS decryption
+Nov 04 13:32:08 minifw-monday-education python[49802]: Capturing on 'mfcg'
+Nov 04 13:32:08 minifw-monday-education python[49802]: File: -
+Nov 04 13:33:13 minifw-monday-education python[49802]: [1.7K blob data]
+Nov 04 13:33:13 minifw-monday-education python[49802]: Packets received/dropped on interface 'mfcg': 3638/0 (pcap:0/dumpcap:0/flushed:0/ps_ifdrop:0) (100.0%)
+Nov 04 13:33:13 minifw-monday-education python[49784]: 2026-11-04 13:33:13,548 - INFO - Caught SIGTERM, shutting down.
+Nov 04 13:33:13 minifw-monday-education systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 04 13:33:13 minifw-monday-education python[49784]: 2026-11-04 13:33:13,590 - ERROR - [packet] Collector failed; retrying independently
+Nov 04 13:33:13 minifw-monday-education python[49784]: Traceback (most recent call last):
+Nov 04 13:33:13 minifw-monday-education python[49784]:   File "/opt/minifw_ai/app/minifw_ai/collector_runtime.py", line 16, in collect
+Nov 04 13:33:13 minifw-monday-education python[49784]:     for event in factory():
+Nov 04 13:33:13 minifw-monday-education python[49784]:   File "/opt/minifw_ai/app/minifw_ai/collector_packets.py", line 87, in stream_packet_events
+Nov 04 13:33:13 minifw-monday-education python[49784]:     raise RuntimeError(f"Packet metadata sensor stopped: exit={decoder.wait()}")
+Nov 04 13:33:13 minifw-monday-education python[49784]: RuntimeError: Packet metadata sensor stopped: exit=0
+Nov 04 13:33:13 minifw-monday-education python[49784]: [*] DNS Collector reading from /var/tmp/minifw-monday-education-20261104T063204Z/dns.log
+Nov 04 13:33:13 minifw-monday-education python[49784]: [FlowCollector] Exported 10 flows, cleaned 0 old flows
+Nov 04 13:33:13 minifw-monday-education python[49784]: [FlowCollector] Exported 18 flows, cleaned 0 old flows
+Nov 04 13:33:13 minifw-monday-education python[49784]: [FlowCollector] Exported 26 flows, cleaned 0 old flows
+Nov 04 13:33:13 minifw-monday-education python[49784]: [FlowCollector] Exported 35 flows, cleaned 0 old flows
+Nov 04 13:33:13 minifw-monday-education python[49784]: [FlowCollector] Exported 43 flows, cleaned 0 old flows
+Nov 04 13:33:13 minifw-monday-education python[49784]: [FlowCollector] Exported 51 flows, cleaned 0 old flows
+Nov 04 13:33:13 minifw-monday-education python[49784]: [FlowCollector] Exported 60 flows, cleaned 0 old flows
+Nov 04 13:33:13 minifw-monday-education python[49784]: [FlowCollector] Exported 68 flows, cleaned 0 old flows
+Nov 04 13:33:13 minifw-monday-education python[49784]: [FlowCollector] Exported 76 flows, cleaned 0 old flows
+Nov 04 13:33:13 minifw-monday-education python[49784]: [FlowCollector] Exported 85 flows, cleaned 0 old flows
+Nov 04 13:33:13 minifw-monday-education python[49784]: [FlowCollector] Exported 93 flows, cleaned 0 old flows
+Nov 04 13:33:13 minifw-monday-education python[49784]: [FlowCollector] Exported 101 flows, cleaned 0 old flows
+Nov 04 13:33:13 minifw-monday-education python[49784]: [FlowCollector] Exported 110 flows, cleaned 0 old flows
+Nov 04 13:33:13 minifw-monday-education python[49784]: [FlowCollector] Exported 118 flows, cleaned 0 old flows
+Nov 04 13:33:13 minifw-monday-education python[49784]: [FlowCollector] Exported 126 flows, cleaned 0 old flows
+Nov 04 13:33:13 minifw-monday-education python[49784]: [FlowCollector] Exported 134 flows, cleaned 0 old flows
+Nov 04 13:33:13 minifw-monday-education python[49784]: [FlowCollector] Exported 143 flows, cleaned 0 old flows
+Nov 04 13:33:13 minifw-monday-education python[49784]: [FlowCollector] Exported 151 flows, cleaned 0 old flows
+Nov 04 13:33:13 minifw-monday-education python[49784]: [FlowCollector] Exported 159 flows, cleaned 0 old flows
+Nov 04 13:33:13 minifw-monday-education python[49784]: [FlowCollector] Exported 168 flows, cleaned 0 old flows
+Nov 04 13:33:13 minifw-monday-education python[49784]: [FlowCollector] Exported 176 flows, cleaned 0 old flows
+Nov 04 13:33:13 minifw-monday-education python[49784]: [FlowCollector] Exported 184 flows, cleaned 0 old flows
+Nov 04 13:33:13 minifw-monday-education python[49784]: [FlowCollector] Exported 193 flows, cleaned 0 old flows
+Nov 04 13:33:13 minifw-monday-education python[49784]: [FlowCollector] Exported 201 flows, cleaned 0 old flows
+Nov 04 13:33:13 minifw-monday-education python[49784]: [FlowCollector] Exported 209 flows, cleaned 0 old flows
+Nov 04 13:33:13 minifw-monday-education python[49784]: [FlowCollector] Exported 218 flows, cleaned 0 old flows
+Nov 04 13:33:13 minifw-monday-education python[49784]: [FlowCollector] Exported 226 flows, cleaned 0 old flows
+Nov 04 13:33:13 minifw-monday-education python[49784]: [FlowCollector] Exported 234 flows, cleaned 0 old flows
+Nov 04 13:33:13 minifw-monday-education python[49784]: [FlowCollector] Exported 243 flows, cleaned 0 old flows
+Nov 04 13:33:13 minifw-monday-education python[49784]: [FlowCollector] Exported 251 flows, cleaned 0 old flows
+Nov 04 13:33:13 minifw-monday-education python[49784]: [FlowCollector] Exported 259 flows, cleaned 0 old flows
+Nov 04 13:33:13 minifw-monday-education python[49784]: [FlowCollector] Exported 267 flows, cleaned 0 old flows
+Nov 04 13:33:13 minifw-monday-education python[49784]: [FlowCollector] Exported 276 flows, cleaned 0 old flows
+Nov 04 13:33:13 minifw-monday-education python[49784]: [FlowCollector] Exported 284 flows, cleaned 0 old flows
+Nov 04 13:33:13 minifw-monday-education python[49784]: [FlowCollector] Exported 292 flows, cleaned 0 old flows
+Nov 04 13:33:13 minifw-monday-education python[49784]: [FlowCollector] Exported 301 flows, cleaned 0 old flows
+Nov 04 13:33:14 minifw-monday-education systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 04 13:33:14 minifw-monday-education systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 04 13:33:14 minifw-monday-education systemd[1]: minifw-ai.service: Consumed 8.268s CPU time.
+Nov 04 13:33:14 minifw-monday-education systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 04 13:33:16 minifw-monday-education python[50246]: 2026-11-04 13:33:16,354 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Nov 04 13:33:16 minifw-monday-education python[50246]: 2026-11-04 13:33:16,360 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Nov 04 13:33:16 minifw-monday-education python[50246]: 2026-11-04 13:33:16,361 - INFO - [STATE] Restored state from /opt/minifw_ai/logs/deployment_state.json: BASELINE_PROTECTION
+Nov 04 13:33:16 minifw-monday-education python[50246]: 2026-11-04 13:33:16,362 - INFO - [STATE] Initial protection state: BASELINE_PROTECTION
+Nov 04 13:33:16 minifw-monday-education python[50246]: 2026-11-04 13:33:16,371 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_school: sector=education
+Nov 04 13:33:16 minifw-monday-education python[50246]: 2026-11-04 13:33:16,373 - INFO - [SECTOR_LOCK] Loaded config for education: ['description', 'force_safesearch', 'safesearch_domains', 'block_vpns', 'block_proxies', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_student_activity']
+Nov 04 13:33:16 minifw-monday-education python[50246]: 2026-11-04 13:33:16,373 - INFO - [SECTOR_LOCK] Device sector: education (LOCKED)
+Nov 04 13:33:16 minifw-monday-education python[50246]: 2026-11-04 13:33:16,374 - INFO - [SECTOR_LOCK] Config: Education: domain policies; restricted DNS configuration and optional WireGuard metadata.
+Nov 04 13:33:16 minifw-monday-education python[50246]: 2026-11-04 13:33:16,374 - INFO - [FEEDS] Loaded 14 patterns from school_blacklist.txt
+Nov 04 13:33:16 minifw-monday-education python[50246]: 2026-11-04 13:33:16,374 - INFO - [SECTOR_LOCK] Loaded 14 sector-specific feed patterns
+Nov 04 13:33:16 minifw-monday-education python[50246]: 2026-11-04 13:33:16,375 - INFO - [SECTOR_LOCK] Search-domain allowlist: 8 patterns; restricted search requires the generated dnsmasq overrides
+Nov 04 13:33:16 minifw-monday-education python[50246]: 2026-11-04 13:33:16,375 - INFO - [SECTOR_LOCK] VPN/proxy provider domain matching enabled; optional packet metadata detects WireGuard patterns
+Nov 04 13:33:16 minifw-monday-education python[50246]: 2026-11-04 13:33:16,422 - INFO - [TELEMETRY] Packet metadata on mfcg; packet14 model required; no TLS decryption
+Nov 04 13:33:16 minifw-monday-education python[50246]: 2026-11-04 13:33:16,434 - ERROR - Failed to publish runtime health; readiness must remain unavailable
+Nov 04 13:33:16 minifw-monday-education python[50246]: OSError: [Errno 28] No space left on device
+Nov 04 13:33:16 minifw-monday-education python[50246]: During handling of the above exception, another exception occurred:
+Nov 04 13:33:16 minifw-monday-education python[50246]: Traceback (most recent call last):
+Nov 04 13:33:16 minifw-monday-education python[50246]:   File "/opt/minifw_ai/app/minifw_ai/runtime_health.py", line 96, in observe
+Nov 04 13:33:16 minifw-monday-education python[50246]:     with tempfile.NamedTemporaryFile(mode="w", dir=self.path.parent, prefix=".runtime-health-", delete=False) as stream:
+Nov 04 13:33:16 minifw-monday-education python[50246]:   File "/usr/lib/python3.11/tempfile.py", line 656, in __exit__
+Nov 04 13:33:16 minifw-monday-education python[50246]:     result = self.file.__exit__(exc, value, tb)
+Nov 04 13:33:16 minifw-monday-education python[50246]:              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Nov 04 13:33:16 minifw-monday-education python[50246]: OSError: [Errno 28] No space left on device
+Nov 04 13:33:16 minifw-monday-education python[50265]: Capturing on 'mfcg'
+Nov 04 13:33:16 minifw-monday-education python[50265]: File: -
+Nov 04 13:33:17 minifw-monday-education python[50246]: 2026-11-04 13:33:17,444 - ERROR - Failed to publish runtime health; readiness must remain unavailable
+Nov 04 13:33:17 minifw-monday-education python[50246]: OSError: [Errno 28] No space left on device
+Nov 04 13:33:17 minifw-monday-education python[50246]: During handling of the above exception, another exception occurred:
+Nov 04 13:33:17 minifw-monday-education python[50246]: Traceback (most recent call last):
+Nov 04 13:33:17 minifw-monday-education python[50246]:   File "/opt/minifw_ai/app/minifw_ai/runtime_health.py", line 96, in observe
+Nov 04 13:33:17 minifw-monday-education python[50246]:     with tempfile.NamedTemporaryFile(mode="w", dir=self.path.parent, prefix=".runtime-health-", delete=False) as stream:
+Nov 04 13:33:17 minifw-monday-education python[50246]:   File "/usr/lib/python3.11/tempfile.py", line 656, in __exit__
+Nov 04 13:33:17 minifw-monday-education python[50246]:     result = self.file.__exit__(exc, value, tb)
+Nov 04 13:33:17 minifw-monday-education python[50246]:              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Nov 04 13:33:17 minifw-monday-education python[50246]: OSError: [Errno 28] No space left on device
+Nov 04 13:33:17 minifw-monday-education python[50246]: 2026-11-04 13:33:17,780 - ERROR - Unhandled exception in main event loop
+Nov 04 13:33:17 minifw-monday-education python[50246]: OSError: [Errno 28] No space left on device
+Nov 04 13:33:17 minifw-monday-education python[50246]: During handling of the above exception, another exception occurred:
+Nov 04 13:33:17 minifw-monday-education python[50246]: Traceback (most recent call last):
+Nov 04 13:33:17 minifw-monday-education python[50246]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:33:17 minifw-monday-education python[50246]:     writer.write(ev)
+Nov 04 13:33:17 minifw-monday-education python[50246]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:33:17 minifw-monday-education python[50246]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:33:17 minifw-monday-education python[50246]: OSError: [Errno 28] No space left on device
+Nov 04 13:33:18 minifw-monday-education python[50265]: [11B blob data]
+Nov 04 13:33:18 minifw-monday-education python[50246]: 2026-11-04 13:33:18,488 - ERROR - Failed to publish runtime health; readiness must remain unavailable
+Nov 04 13:33:18 minifw-monday-education python[50246]: OSError: [Errno 28] No space left on device
+Nov 04 13:33:18 minifw-monday-education python[50246]: During handling of the above exception, another exception occurred:
+Nov 04 13:33:18 minifw-monday-education python[50246]: Traceback (most recent call last):
+Nov 04 13:33:18 minifw-monday-education python[50246]:   File "/opt/minifw_ai/app/minifw_ai/runtime_health.py", line 96, in observe
+Nov 04 13:33:18 minifw-monday-education python[50246]:     with tempfile.NamedTemporaryFile(mode="w", dir=self.path.parent, prefix=".runtime-health-", delete=False) as stream:
+Nov 04 13:33:18 minifw-monday-education python[50246]:   File "/usr/lib/python3.11/tempfile.py", line 656, in __exit__
+Nov 04 13:33:18 minifw-monday-education python[50246]:     result = self.file.__exit__(exc, value, tb)
+Nov 04 13:33:18 minifw-monday-education python[50246]:              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Nov 04 13:33:18 minifw-monday-education python[50246]: OSError: [Errno 28] No space left on device
+Nov 04 13:33:19 minifw-monday-education python[50246]: 2026-11-04 13:33:19,494 - ERROR - Failed to publish runtime health; readiness must remain unavailable
+Nov 04 13:33:19 minifw-monday-education python[50246]: OSError: [Errno 28] No space left on device
+Nov 04 13:33:19 minifw-monday-education python[50246]: During handling of the above exception, another exception occurred:
+Nov 04 13:33:19 minifw-monday-education python[50246]: Traceback (most recent call last):
+Nov 04 13:33:19 minifw-monday-education python[50246]:   File "/opt/minifw_ai/app/minifw_ai/runtime_health.py", line 96, in observe
+Nov 04 13:33:19 minifw-monday-education python[50246]:     with tempfile.NamedTemporaryFile(mode="w", dir=self.path.parent, prefix=".runtime-health-", delete=False) as stream:
+Nov 04 13:33:19 minifw-monday-education python[50246]:   File "/usr/lib/python3.11/tempfile.py", line 656, in __exit__
+Nov 04 13:33:19 minifw-monday-education python[50246]:     result = self.file.__exit__(exc, value, tb)
+Nov 04 13:33:19 minifw-monday-education python[50246]:              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Nov 04 13:33:19 minifw-monday-education python[50246]: OSError: [Errno 28] No space left on device
+Nov 04 13:33:20 minifw-monday-education python[50246]: 2026-11-04 13:33:20,500 - ERROR - Failed to publish runtime health; readiness must remain unavailable
+Nov 04 13:33:20 minifw-monday-education python[50246]: OSError: [Errno 28] No space left on device
+Nov 04 13:33:20 minifw-monday-education python[50246]: During handling of the above exception, another exception occurred:
+Nov 04 13:33:20 minifw-monday-education python[50246]: Traceback (most recent call last):
+Nov 04 13:33:20 minifw-monday-education python[50246]:   File "/opt/minifw_ai/app/minifw_ai/runtime_health.py", line 96, in observe
+Nov 04 13:33:20 minifw-monday-education python[50246]:     with tempfile.NamedTemporaryFile(mode="w", dir=self.path.parent, prefix=".runtime-health-", delete=False) as stream:
+Nov 04 13:33:20 minifw-monday-education python[50246]:   File "/usr/lib/python3.11/tempfile.py", line 656, in __exit__
+Nov 04 13:33:20 minifw-monday-education python[50246]:     result = self.file.__exit__(exc, value, tb)
+Nov 04 13:33:20 minifw-monday-education python[50246]:              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Nov 04 13:33:20 minifw-monday-education python[50246]: OSError: [Errno 28] No space left on device
+Nov 04 13:33:21 minifw-monday-education python[50246]: 2026-11-04 13:33:21,505 - ERROR - Failed to publish runtime health; readiness must remain unavailable
+Nov 04 13:33:21 minifw-monday-education python[50246]: OSError: [Errno 28] No space left on device
+Nov 04 13:33:21 minifw-monday-education python[50246]: During handling of the above exception, another exception occurred:
+Nov 04 13:33:21 minifw-monday-education python[50246]: Traceback (most recent call last):
+Nov 04 13:33:21 minifw-monday-education python[50246]:   File "/opt/minifw_ai/app/minifw_ai/runtime_health.py", line 96, in observe
+Nov 04 13:33:21 minifw-monday-education python[50246]:     with tempfile.NamedTemporaryFile(mode="w", dir=self.path.parent, prefix=".runtime-health-", delete=False) as stream:
+Nov 04 13:33:21 minifw-monday-education python[50246]:   File "/usr/lib/python3.11/tempfile.py", line 656, in __exit__
+Nov 04 13:33:21 minifw-monday-education python[50246]:     result = self.file.__exit__(exc, value, tb)
+Nov 04 13:33:21 minifw-monday-education python[50246]:              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Nov 04 13:33:21 minifw-monday-education python[50246]: OSError: [Errno 28] No space left on device
+Nov 04 13:33:22 minifw-monday-education python[50246]: 2026-11-04 13:33:22,110 - ERROR - Unhandled exception in main event loop
+Nov 04 13:33:22 minifw-monday-education python[50246]: OSError: [Errno 28] No space left on device
+Nov 04 13:33:22 minifw-monday-education python[50246]: During handling of the above exception, another exception occurred:
+Nov 04 13:33:22 minifw-monday-education python[50246]: Traceback (most recent call last):
+Nov 04 13:33:22 minifw-monday-education python[50246]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:33:22 minifw-monday-education python[50246]:     writer.write(ev)
+Nov 04 13:33:22 minifw-monday-education python[50246]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:33:22 minifw-monday-education python[50246]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:33:22 minifw-monday-education python[50246]: OSError: [Errno 28] No space left on device
+Nov 04 13:33:22 minifw-monday-education python[50246]: 2026-11-04 13:33:22,515 - ERROR - Failed to publish runtime health; readiness must remain unavailable
+Nov 04 13:33:22 minifw-monday-education python[50246]: OSError: [Errno 28] No space left on device
+Nov 04 13:33:22 minifw-monday-education python[50246]: During handling of the above exception, another exception occurred:
+Nov 04 13:33:22 minifw-monday-education python[50246]: Traceback (most recent call last):
+Nov 04 13:33:22 minifw-monday-education python[50246]:   File "/opt/minifw_ai/app/minifw_ai/runtime_health.py", line 96, in observe
+Nov 04 13:33:22 minifw-monday-education python[50246]:     with tempfile.NamedTemporaryFile(mode="w", dir=self.path.parent, prefix=".runtime-health-", delete=False) as stream:
+Nov 04 13:33:22 minifw-monday-education python[50246]:   File "/usr/lib/python3.11/tempfile.py", line 656, in __exit__
+Nov 04 13:33:22 minifw-monday-education python[50246]:     result = self.file.__exit__(exc, value, tb)
+Nov 04 13:33:22 minifw-monday-education python[50246]:              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Nov 04 13:33:22 minifw-monday-education python[50246]: OSError: [Errno 28] No space left on device
+Nov 04 13:33:23 minifw-monday-education python[50265]: [11B blob data]
+Nov 04 13:33:23 minifw-monday-education python[50246]: 2026-11-04 13:33:23,119 - ERROR - Unhandled exception in main event loop
+Nov 04 13:33:23 minifw-monday-education python[50246]: OSError: [Errno 28] No space left on device
+Nov 04 13:33:23 minifw-monday-education python[50246]: During handling of the above exception, another exception occurred:
+Nov 04 13:33:23 minifw-monday-education python[50246]: Traceback (most recent call last):
+Nov 04 13:33:23 minifw-monday-education python[50246]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 867, in run
+Nov 04 13:33:23 minifw-monday-education python[50246]:     writer.write(ev)
+Nov 04 13:33:23 minifw-monday-education python[50246]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 04 13:33:23 minifw-monday-education python[50246]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 04 13:33:23 minifw-monday-education python[50246]: OSError: [Errno 28] No space left on device
+Nov 04 13:33:23 minifw-monday-education python[50246]: 2026-11-04 13:33:23,524 - ERROR - Failed to publish runtime health; readiness must remain unavailable
+Nov 04 13:33:23 minifw-monday-education python[50246]: OSError: [Errno 28] No space left on device
+Nov 04 13:33:23 minifw-monday-education python[50246]: During handling of the above exception, another exception occurred:
+Nov 04 13:33:23 minifw-monday-education python[50246]: Traceback (most recent call last):
+Nov 04 13:33:23 minifw-monday-education python[50246]:   File "/opt/minifw_ai/app/minifw_ai/runtime_health.py", line 96, in observe
+Nov 04 13:33:23 minifw-monday-education python[50246]:     with tempfile.NamedTemporaryFile(mode="w", dir=self.path.parent, prefix=".runtime-health-", delete=False) as stream:
+Nov 04 13:33:23 minifw-monday-education python[50246]:   File "/usr/lib/python3.11/tempfile.py", line 656, in __exit__
+Nov 04 13:33:23 minifw-monday-education python[50246]:     result = self.file.__exit__(exc, value, tb)
+Nov 04 13:33:23 minifw-monday-education python[50246]:              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Nov 04 13:33:23 minifw-monday-education python[50246]: OSError: [Errno 28] No space left on device
+Nov 04 13:33:23 minifw-monday-education python[50265]: [32B blob data]
+Nov 04 13:33:23 minifw-monday-education python[50265]: Packets received/dropped on interface 'mfcg': 4/0 (pcap:0/dumpcap:0/flushed:0/ps_ifdrop:0) (100.0%)
+Nov 04 13:33:23 minifw-monday-education python[50246]: 2026-11-04 13:33:23,997 - INFO - Caught SIGTERM, shutting down.
+Nov 04 13:33:23 minifw-monday-education systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 04 13:33:24 minifw-monday-education python[50246]: 2026-11-04 13:33:24,037 - ERROR - [packet] Collector failed; retrying independently
+Nov 04 13:33:24 minifw-monday-education python[50246]: Traceback (most recent call last):
+Nov 04 13:33:24 minifw-monday-education python[50246]:   File "/opt/minifw_ai/app/minifw_ai/collector_runtime.py", line 16, in collect
+Nov 04 13:33:24 minifw-monday-education python[50246]:     for event in factory():
+Nov 04 13:33:24 minifw-monday-education python[50246]:   File "/opt/minifw_ai/app/minifw_ai/collector_packets.py", line 87, in stream_packet_events
+Nov 04 13:33:24 minifw-monday-education python[50246]:     raise RuntimeError(f"Packet metadata sensor stopped: exit={decoder.wait()}")
+Nov 04 13:33:24 minifw-monday-education python[50246]: RuntimeError: Packet metadata sensor stopped: exit=0
+Nov 04 13:33:24 minifw-monday-education python[50246]: [*] DNS Collector reading from /var/tmp/minifw-monday-education-20261104T063204Z/dns.log
+Nov 04 13:33:24 minifw-monday-education systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 04 13:33:24 minifw-monday-education systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 04 13:33:24 minifw-monday-education systemd[1]: minifw-ai.service: Consumed 2.423s CPU time.
+Nov 04 13:33:25 minifw-monday-education systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 04 13:33:26 minifw-monday-education python[50350]: 2026-11-04 13:33:26,557 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Nov 04 13:33:26 minifw-monday-education python[50350]: 2026-11-04 13:33:26,561 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Nov 04 13:33:26 minifw-monday-education python[50350]: 2026-11-04 13:33:26,561 - INFO - [STATE] Restored state from /opt/minifw_ai/logs/deployment_state.json: BASELINE_PROTECTION
+Nov 04 13:33:26 minifw-monday-education python[50350]: 2026-11-04 13:33:26,561 - INFO - [STATE] Initial protection state: BASELINE_PROTECTION
+Nov 04 13:33:26 minifw-monday-education python[50350]: 2026-11-04 13:33:26,569 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_school: sector=education
+Nov 04 13:33:26 minifw-monday-education python[50350]: 2026-11-04 13:33:26,570 - INFO - [SECTOR_LOCK] Loaded config for education: ['description', 'force_safesearch', 'safesearch_domains', 'block_vpns', 'block_proxies', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_student_activity']
+Nov 04 13:33:26 minifw-monday-education python[50350]: 2026-11-04 13:33:26,570 - INFO - [SECTOR_LOCK] Device sector: education (LOCKED)
+Nov 04 13:33:26 minifw-monday-education python[50350]: 2026-11-04 13:33:26,570 - INFO - [SECTOR_LOCK] Config: Education: domain policies; restricted DNS configuration and optional WireGuard metadata.
+Nov 04 13:33:26 minifw-monday-education python[50350]: 2026-11-04 13:33:26,570 - INFO - [FEEDS] Loaded 14 patterns from school_blacklist.txt
+Nov 04 13:33:26 minifw-monday-education python[50350]: 2026-11-04 13:33:26,570 - INFO - [SECTOR_LOCK] Loaded 14 sector-specific feed patterns
+Nov 04 13:33:26 minifw-monday-education python[50350]: 2026-11-04 13:33:26,570 - INFO - [SECTOR_LOCK] Search-domain allowlist: 8 patterns; restricted search requires the generated dnsmasq overrides
+Nov 04 13:33:26 minifw-monday-education python[50350]: 2026-11-04 13:33:26,570 - INFO - [SECTOR_LOCK] VPN/proxy provider domain matching enabled; optional packet metadata detects WireGuard patterns
+Nov 04 13:33:26 minifw-monday-education python[50350]: 2026-11-04 13:33:26,613 - INFO - [TELEMETRY] Packet metadata on mfcg; packet14 model required; no TLS decryption
+Nov 04 13:33:26 minifw-monday-education python[50365]: Capturing on 'mfcg'
+Nov 04 13:33:26 minifw-monday-education python[50365]: File: -
+Nov 04 13:33:29 minifw-monday-education python[50365]: [12B blob data]
+Nov 04 13:33:29 minifw-monday-education python[50350]: 2026-11-04 13:33:29,323 - INFO - Caught SIGTERM, shutting down.
+Nov 04 13:33:29 minifw-monday-education systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 04 13:33:29 minifw-monday-education python[50365]: [34B blob data]
+Nov 04 13:33:29 minifw-monday-education python[50365]: Packets received/dropped on interface 'mfcg': 36/0 (pcap:0/dumpcap:0/flushed:0/ps_ifdrop:0) (100.0%)
+Nov 04 13:33:29 minifw-monday-education python[50350]: 2026-11-04 13:33:29,355 - ERROR - [packet] Collector failed; retrying independently
+Nov 04 13:33:29 minifw-monday-education python[50350]: Traceback (most recent call last):
+Nov 04 13:33:29 minifw-monday-education python[50350]:   File "/opt/minifw_ai/app/minifw_ai/collector_runtime.py", line 16, in collect
+Nov 04 13:33:29 minifw-monday-education python[50350]:     for event in factory():
+Nov 04 13:33:29 minifw-monday-education python[50350]:   File "/opt/minifw_ai/app/minifw_ai/collector_packets.py", line 87, in stream_packet_events
+Nov 04 13:33:29 minifw-monday-education python[50350]:     raise RuntimeError(f"Packet metadata sensor stopped: exit={decoder.wait()}")
+Nov 04 13:33:29 minifw-monday-education python[50350]: RuntimeError: Packet metadata sensor stopped: exit=0
+Nov 04 13:33:29 minifw-monday-education python[50350]: [*] DNS Collector reading from /var/tmp/minifw-monday-education-20261104T063204Z/dns.log
+Nov 04 13:33:29 minifw-monday-education systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 04 13:33:29 minifw-monday-education systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 04 13:33:29 minifw-monday-education systemd[1]: minifw-ai.service: Consumed 1.995s CPU time.
+$ nft -a list table inet minifw
+table inet minifw { # handle 61
+	set minifw_block_v4 { # handle 1
+		type ipv4_addr
+		timeout 1h
+	}
+
+	chain forward { # handle 2
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 307 bytes 18420 comment "MiniFW-AI-Conntrack" # handle 3
+		ip saddr @minifw_block_v4 counter packets 2 bytes 120 drop comment "MiniFW-AI-Blocklist" # handle 4
+	}
+}
+$ systemctl daemon-reload
+$ ip netns delete mf-client
+$ ip netns delete mf-server
+$ ip link delete mfcg
+$ ip link delete mfsg
+EVIDENCE_DIRECTORY /var/tmp/minifw-monday-education-20261104T063204Z

@@ -1,0 +1,547 @@
+$ dpkg-query -W minifw-ai
+minifw-ai	2.2.10-finance
+$ ip -j netns list
+[]
+$ systemctl stop minifw-ai minifw-ai-web dnsmasq
+$ nft -a list table inet minifw
+table inet minifw { # handle 21
+	set minifw_block_v4 { # handle 1
+		type ipv4_addr
+		timeout 1h
+	}
+
+	chain forward { # handle 2
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 71 bytes 4196 comment "MiniFW-AI-Conntrack" # handle 3
+		ip saddr @minifw_block_v4 counter packets 72 bytes 3840 drop comment "MiniFW-AI-Blocklist" # handle 4
+	}
+}
+$ nft delete table inet minifw
+$ modprobe nf_conntrack
+$ sysctl -w net.ipv4.ip_forward=1 net.ipv6.conf.all.forwarding=1 net.netfilter.nf_conntrack_acct=0
+net.ipv4.ip_forward = 1
+net.ipv6.conf.all.forwarding = 1
+net.netfilter.nf_conntrack_acct = 0
+$ ip netns add mf-client
+$ ip -n mf-client link set lo up
+$ ip netns add mf-server
+$ ip -n mf-server link set lo up
+$ ip link add mfcg type veth peer name mfc0
+$ ip link set mfc0 netns mf-client
+$ ip addr add 10.10.0.1/24 dev mfcg
+$ ip addr add fd42:10::1/64 dev mfcg
+$ ip link set mfcg up
+$ ip -n mf-client addr add 10.10.0.20/24 dev mfc0
+$ ip -n mf-client addr add fd42:10::20/64 dev mfc0
+$ ip -n mf-client link set mfc0 up
+$ ip -n mf-client route add default via 10.10.0.1
+$ ip -n mf-client -6 route add default via fd42:10::1
+$ ip link add mfsg type veth peer name mfs0
+$ ip link set mfs0 netns mf-server
+$ ip addr add 198.18.0.1/24 dev mfsg
+$ ip addr add fd42:18::1/64 dev mfsg
+$ ip link set mfsg up
+$ ip -n mf-server addr add 198.18.0.2/24 dev mfs0
+$ ip -n mf-server addr add fd42:18::2/64 dev mfs0
+$ ip -n mf-server link set mfs0 up
+$ ip -n mf-server route add default via 198.18.0.1
+$ ip -n mf-server -6 route add default via fd42:18::1
+$ ip -br address
+lo               UNKNOWN        127.0.0.1/8 ::1/128 
+ens3             UP             10.231.0.15/24 metric 100 fec0::5054:ff:fe22:1002/64 fe80::5054:ff:fe22:1002/64 
+mfcg@if59        UP             10.10.0.1/24 fd42:10::1/64 fe80::8494:6dff:fe33:f74/64 
+mfsg@if61        UP             198.18.0.1/24 fd42:18::1/64 fe80::f060:cbff:fed4:659/64
+$ ip -n mf-client route
+default via 10.10.0.1 dev mfc0 
+10.10.0.0/24 dev mfc0 proto kernel scope link src 10.10.0.20
+$ ip -n mf-server route
+default via 198.18.0.1 dev mfs0 
+198.18.0.0/24 dev mfs0 proto kernel scope link src 198.18.0.2
+$ openssl req -x509 -newkey rsa:2048 -nodes -days 1 -subj /CN=lab.test -keyout /var/tmp/minifw-monday-financial-20261102T082553Z/server.key -out /var/tmp/minifw-monday-financial-20261102T082553Z/server.crt
+..............+.+.....+...+......+......+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*..+.....+...+.+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*..+...+.........+......+...........+...+...+...+....+...+........+.......+........+.+..............+....+...+..............+.+........+.......+..+.+.........+......+..+...+.........................+.....+.+........+.+.....+...............+.+.....+......+..........+..+.+..+....+...+..+...+..........+........+....+.....+...+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+.+....+...+..+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*..+......+.+...+...+..+...+.........+...+.......+.........+..+....+.....+...+...+...+.+.....+.+...+...........+......+.......+.....+.+......+...+.....+...+...+.+.....+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*..+....+..+......+...+.......+.....+....+...........+...+.+......+...+..+....+...+...+..+...............+.+.....+......+.+.....+...+.......+...+..+.......+............+...+...........+..........+..+...+......+...+......+.+......+...+......+...+..+.+..............+.+............+...+...+..............+..........+.....+.......+.....+...+.............+..+...+....+...........+.......+..+.........+......+.+.........+........+...+............+.+..+.........+.+...+.....+.+......+........+...............+............+.............+...........+...+.+..+....+...+......+..+....+......+..+............+.+........+.........+......+...............+.....................+...+.+..............+.......+...+..+...+............+......+..................+......+.............+...+..+............+...+......+.+........+...+.......+......+.....+...................+..+.+..+...+.......+..+.+...+...........+.+...+..+.........+...+.....................+..........+.....+............+....+......+.........+...+......+...........+.+.........+...+......+..+...+..........+..+...+......+...................+......+.....+...............+.+...+.....+....+..+....+..............+......+.+......+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+-----
+$ systemctl stop minifw-ai
+$ nft flush set inet minifw minifw_block_v4
+Error: No such file or directory
+flush set inet minifw minifw_block_v4
+               ^^^^^^
+$ conntrack -D -s 10.10.0.20
+tcp      6 233 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=37234 dport=20005 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20005 dport=37234 packets=0 bytes=0 mark=0 use=1
+tcp      6 233 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=50712 dport=20002 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20002 dport=50712 packets=0 bytes=0 mark=0 use=1
+tcp      6 233 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=34876 dport=20001 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20001 dport=34876 packets=0 bytes=0 mark=0 use=1
+tcp      6 233 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=50068 dport=20013 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20013 dport=50068 packets=0 bytes=0 mark=0 use=1
+tcp      6 233 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=36084 dport=20009 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20009 dport=36084 packets=0 bytes=0 mark=0 use=1
+tcp      6 233 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=43230 dport=20006 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20006 dport=43230 packets=0 bytes=0 mark=0 use=1
+tcp      6 233 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=40604 dport=20004 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20004 dport=40604 packets=0 bytes=0 mark=0 use=1
+tcp      6 233 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=54000 dport=20007 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20007 dport=54000 packets=0 bytes=0 mark=0 use=1
+tcp      6 233 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=45390 dport=20003 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20003 dport=45390 packets=0 bytes=0 mark=0 use=1
+tcp      6 233 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=58242 dport=20012 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20012 dport=58242 packets=0 bytes=0 mark=0 use=1
+tcp      6 233 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=58654 dport=20000 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20000 dport=58654 packets=0 bytes=0 mark=0 use=1
+tcp      6 233 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=49158 dport=20008 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20008 dport=49158 packets=0 bytes=0 mark=0 use=1
+tcp      6 233 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=45304 dport=20014 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20014 dport=45304 packets=0 bytes=0 mark=0 use=1
+tcp      6 233 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=38196 dport=20011 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20011 dport=38196 packets=0 bytes=0 mark=0 use=1
+tcp      6 233 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=43248 dport=20010 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20010 dport=43248 packets=0 bytes=0 mark=0 use=1
+conntrack v1.4.7 (conntrack-tools): 15 flow entries have been deleted.
+$ systemctl daemon-reload
+$ systemctl start minifw-ai
+$ systemctl show minifw-ai -p ActiveState -p MainPID -p ExecMainStatus
+MainPID=16998
+ExecMainStatus=0
+ActiveState=active
+$ ip netns exec mf-client /usr/bin/python3 /var/tmp/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+$ /opt/minifw_ai/venv/bin/python /opt/minifw_ai/app/minifw_ai/safesearch.py --output /var/tmp/minifw-monday-financial-20261102T082553Z/public-safesearch.conf
+dnsmasq: syntax check OK.
+$ ip addr add 10.10.0.53/24 dev mfcg
+$ nft add table ip minifw_browser_internet
+$ nft -f -
+add chain ip minifw_browser_internet postrouting { type nat hook postrouting priority srcnat; policy accept; }
+add rule ip minifw_browser_internet postrouting ip saddr 10.10.0.20 oifname "ens3" counter masquerade
+
+$ ip netns exec mf-client dig @10.10.0.53 www.google.com A +noall +answer
+www.google.com.		0	IN	CNAME	forcesafesearch.google.com.
+forcesafesearch.google.com. 0	IN	A	216.239.38.120
+$ ip netns exec mf-client dig @10.10.0.53 www.bing.com A +noall +answer
+www.bing.com.		0	IN	CNAME	strict.bing.com.
+strict.bing.com.	0	IN	A	150.171.27.16
+strict.bing.com.	0	IN	A	150.171.28.16
+$ ip netns exec mf-client dig @10.10.0.53 www.youtube.com A +noall +answer
+www.youtube.com.	0	IN	CNAME	restrict.youtube.com.
+restrict.youtube.com.	0	IN	A	216.239.38.120
+$ chown lab:lab /var/tmp/minifw-monday-financial-20261102T082553Z/browser-pinned
+$ ip netns exec mf-client dig @10.10.0.53 www.google.com A +noall +answer
+www.google.com.		0	IN	CNAME	forcesafesearch.google.com.
+forcesafesearch.google.com. 0	IN	A	216.239.38.120
+$ ip netns exec mf-client dig @10.10.0.53 www.bing.com A +noall +answer
+www.bing.com.		0	IN	CNAME	strict.bing.com.
+strict.bing.com.	0	IN	A	150.171.28.16
+strict.bing.com.	0	IN	A	150.171.27.16
+$ ip netns exec mf-client dig @10.10.0.53 www.youtube.com A +noall +answer
+www.youtube.com.	0	IN	CNAME	restrict.youtube.com.
+restrict.youtube.com.	0	IN	A	216.239.38.120
+$ ip netns exec mf-client runuser -u lab -- /opt/minifw_ai/venv/bin/python /var/tmp/lab_extended_acceptance.py providers /var/tmp/minifw-monday-financial-20261102T082553Z/browser-pinned
+[{"provider": "google", "requested_url": "https://www.google.com/safesearch", "status": "filtering_locked_observed", "http_status": 200, "final_url": "https://www.google.com/safesearch", "table_rows": [], "review": "Rendered status retained; no restricted-content quality or bypass claim"}, {"provider": "bing", "requested_url": "https://www.bing.com/account/general", "status": "strict_regional_status_observed", "http_status": 200, "final_url": "https://www.bing.com/account/general", "table_rows": [], "review": "Rendered status retained; no restricted-content quality or bypass claim", "attribution": "Regional policy confounds DNS-only attribution"}, {"provider": "youtube", "requested_url": "https://www.youtube.com/check_content_restrictions", "status": "strict_DNS_status_observed", "http_status": 200, "final_url": "https://www.youtube.com/check_content_restrictions", "table_rows": [], "review": "Rendered status retained; no restricted-content quality or bypass claim"}]
+VERIFIED {"test": "provider_browser_pinned", "actual": {"results": [{"provider": "google", "requested_url": "https://www.google.com/safesearch", "status": "filtering_locked_observed", "http_status": 200, "final_url": "https://www.google.com/safesearch", "table_rows": [], "review": "Rendered status retained; no restricted-content quality or bypass claim"}, {"provider": "bing", "requested_url": "https://www.bing.com/account/general", "status": "strict_regional_status_observed", "http_status": 200, "final_url": "https://www.bing.com/account/general", "table_rows": [], "review": "Rendered status retained; no restricted-content quality or bypass claim", "attribution": "Regional policy confounds DNS-only attribution"}, {"provider": "youtube", "requested_url": "https://www.youtube.com/check_content_restrictions", "status": "strict_DNS_status_observed", "http_status": 200, "final_url": "https://www.youtube.com/check_content_restrictions", "table_rows": [], "review": "Rendered status retained; no restricted-content quality or bypass claim"}], "topology": "Client namespace -> isolated VM NAT -> public provider; certificate validation enabled"}, "time": "2026-11-02T08:26:14.161220+00:00"}
+$ chown lab:lab /var/tmp/minifw-monday-financial-20261102T082553Z/browser-unconfigured_control
+$ ip netns exec mf-client dig @10.10.0.53 www.google.com A +noall +answer
+www.google.com.		3	IN	CNAME	forcesafesearch.google.com.
+forcesafesearch.google.com. 86308 IN	A	216.239.38.120
+$ ip netns exec mf-client dig @10.10.0.53 www.bing.com A +noall +answer
+www.bing.com.		21508	IN	CNAME	www-www.bing.com.trafficmanager.net.
+www-www.bing.com.trafficmanager.net. 21	IN CNAME www.bing.com.edgekey.net.
+www.bing.com.edgekey.net. 3838	IN	CNAME	e86303.dscx.akamaiedge.net.
+e86303.dscx.akamaiedge.net. 3	IN	A	118.98.113.72
+e86303.dscx.akamaiedge.net. 3	IN	A	118.98.113.51
+e86303.dscx.akamaiedge.net. 3	IN	A	118.98.113.66
+e86303.dscx.akamaiedge.net. 3	IN	A	118.98.113.73
+e86303.dscx.akamaiedge.net. 3	IN	A	118.98.113.41
+e86303.dscx.akamaiedge.net. 3	IN	A	118.98.113.58
+e86303.dscx.akamaiedge.net. 3	IN	A	118.98.113.42
+e86303.dscx.akamaiedge.net. 3	IN	A	118.98.113.65
+e86303.dscx.akamaiedge.net. 3	IN	A	118.98.113.74
+$ ip netns exec mf-client dig @10.10.0.53 www.youtube.com A +noall +answer
+www.youtube.com.	131	IN	A	142.251.157.4
+www.youtube.com.	131	IN	A	142.251.152.4
+www.youtube.com.	131	IN	A	142.251.153.4
+www.youtube.com.	131	IN	A	142.251.155.4
+www.youtube.com.	131	IN	A	142.251.154.4
+www.youtube.com.	131	IN	A	142.251.150.4
+www.youtube.com.	131	IN	A	142.251.151.4
+www.youtube.com.	131	IN	A	142.251.156.4
+$ ip netns exec mf-client runuser -u lab -- /opt/minifw_ai/venv/bin/python /var/tmp/lab_extended_acceptance.py providers /var/tmp/minifw-monday-financial-20261102T082553Z/browser-unconfigured_control
+[{"provider": "google", "requested_url": "https://www.google.com/safesearch", "status": "filtering_locked_observed", "http_status": 200, "final_url": "https://www.google.com/safesearch", "table_rows": [], "review": "Rendered status retained; no restricted-content quality or bypass claim"}, {"provider": "bing", "requested_url": "https://www.bing.com/account/general", "status": "unverified", "http_status": 200, "final_url": "https://www.bing.com/account/general", "table_rows": [], "review": "Rendered status retained; no restricted-content quality or bypass claim"}, {"provider": "youtube", "requested_url": "https://www.youtube.com/check_content_restrictions", "status": "unverified", "error_type": "TimeoutError", "error": "Page.goto: Timeout 25000ms exceeded."}]
+VERIFIED {"test": "provider_browser_unconfigured_control", "actual": {"results": [{"provider": "google", "requested_url": "https://www.google.com/safesearch", "status": "filtering_locked_observed", "http_status": 200, "final_url": "https://www.google.com/safesearch", "table_rows": [], "review": "Rendered status retained; no restricted-content quality or bypass claim"}, {"provider": "bing", "requested_url": "https://www.bing.com/account/general", "status": "unverified", "http_status": 200, "final_url": "https://www.bing.com/account/general", "table_rows": [], "review": "Rendered status retained; no restricted-content quality or bypass claim"}, {"provider": "youtube", "requested_url": "https://www.youtube.com/check_content_restrictions", "status": "unverified", "error_type": "TimeoutError", "error": "Page.goto: Timeout 25000ms exceeded."}], "topology": "Client namespace -> isolated VM NAT -> public provider; certificate validation enabled"}, "time": "2026-11-02T08:26:49.992865+00:00"}
+$ nft delete table ip minifw_browser_internet
+$ systemctl stop minifw-ai
+$ journalctl -u minifw-ai --no-pager --since '2026-11-02 08:25:53 UTC'
+Nov 02 15:25:56 minifw-monday-financial systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 02 15:25:57 minifw-monday-financial python[16998]: 2026-11-02 15:25:57,587 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Nov 02 15:25:57 minifw-monday-financial python[16998]: 2026-11-02 15:25:57,590 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Nov 02 15:25:57 minifw-monday-financial python[16998]: 2026-11-02 15:25:57,590 - INFO - [STATE] Initial protection state: BASELINE_PROTECTION
+Nov 02 15:25:57 minifw-monday-financial python[16998]: 2026-11-02 15:25:57,597 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_financial: sector=finance
+Nov 02 15:25:57 minifw-monday-financial python[16998]: 2026-11-02 15:25:57,597 - INFO - [SECTOR_LOCK] Loaded config for finance: ['description', 'block_tor', 'block_anonymizers', 'strict_tls', 'minimum_tls_version', 'pci_compliance_mode', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_retention_days']
+Nov 02 15:25:57 minifw-monday-financial python[16998]: 2026-11-02 15:25:57,597 - INFO - [SECTOR_LOCK] Device sector: finance (LOCKED)
+Nov 02 15:25:57 minifw-monday-financial python[16998]: 2026-11-02 15:25:57,597 - INFO - [SECTOR_LOCK] Config: Finance: metadata policies; TLS version control requires packet metadata; no compliance certification.
+Nov 02 15:25:57 minifw-monday-financial python[16998]: 2026-11-02 15:25:57,597 - INFO - [FEEDS] Loaded 10 patterns from financial_fraud.txt
+Nov 02 15:25:57 minifw-monday-financial python[16998]: 2026-11-02 15:25:57,598 - INFO - [FEEDS] Loaded 9 patterns from crypto_scams.txt
+Nov 02 15:25:57 minifw-monday-financial python[16998]: 2026-11-02 15:25:57,598 - INFO - [SECTOR_LOCK] Loaded 19 sector-specific feed patterns
+Nov 02 15:25:57 minifw-monday-financial python[16998]: 2026-11-02 15:25:57,598 - INFO - [FEEDS] Loaded 0 Tor exit node IPs from /opt/minifw_ai/config/feeds/tor_exit_nodes.txt
+Nov 02 15:25:57 minifw-monday-financial python[16998]: 2026-11-02 15:25:57,598 - INFO - [SECTOR_LOCK] Tor/anonymizer blocking enabled: loaded 0 exit IPs
+Nov 02 15:25:57 minifw-monday-financial python[16998]: 2026-11-02 15:25:57,626 - INFO - [TELEMETRY] Packet metadata on mfcg; packet14 model required; no TLS decryption
+Nov 02 15:25:57 minifw-monday-financial python[16998]: 2026-11-02 15:25:57,627 - WARNING - [DNS] Disabled; flow decisions continue independently
+Nov 02 15:25:57 minifw-monday-financial python[17014]: Capturing on 'mfcg'
+Nov 02 15:25:57 minifw-monday-financial python[17014]: File: -
+Nov 02 15:26:23 minifw-monday-financial python[17014]: [621B blob data]
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,254 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,269 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,277 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,286 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,294 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,304 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,313 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,323 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,333 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,344 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,354 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,364 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,375 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,386 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,396 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,406 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,416 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,427 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[17014]: [14B blob data]
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,435 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,447 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,458 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,467 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,475 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,485 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,492 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,498 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,505 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,512 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,518 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,525 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,531 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,538 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,545 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,552 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,559 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,566 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,573 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,579 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,585 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,591 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,597 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,603 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,609 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,615 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,623 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,632 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,646 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,652 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,658 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,664 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,670 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,676 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,682 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,688 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,694 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,700 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,706 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,713 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,718 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,726 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,732 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,738 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,743 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,749 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,754 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,762 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,767 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,773 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,778 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,784 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,789 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,795 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,800 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,806 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,811 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,817 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,822 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,827 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,833 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,838 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,846 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,851 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,857 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,863 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,868 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,874 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,880 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,886 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,892 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,898 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,904 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,909 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,915 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,920 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,926 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,932 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,938 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,943 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,949 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,954 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,962 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,967 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[17014]: [14B blob data]
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,973 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,978 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,984 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,991 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:23 minifw-monday-financial python[16998]: 2026-11-02 15:26:23,997 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:24 minifw-monday-financial python[16998]: 2026-11-02 15:26:24,004 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:24 minifw-monday-financial python[16998]: 2026-11-02 15:26:24,010 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:24 minifw-monday-financial python[16998]: 2026-11-02 15:26:24,017 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:24 minifw-monday-financial python[16998]: 2026-11-02 15:26:24,026 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:24 minifw-monday-financial python[16998]: 2026-11-02 15:26:24,032 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:24 minifw-monday-financial python[16998]: 2026-11-02 15:26:24,040 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:24 minifw-monday-financial python[16998]: 2026-11-02 15:26:24,047 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:24 minifw-monday-financial python[16998]: 2026-11-02 15:26:24,054 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:24 minifw-monday-financial python[16998]: 2026-11-02 15:26:24,061 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:24 minifw-monday-financial python[16998]: 2026-11-02 15:26:24,068 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:24 minifw-monday-financial python[16998]: 2026-11-02 15:26:24,073 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:24 minifw-monday-financial python[16998]: 2026-11-02 15:26:24,080 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:24 minifw-monday-financial python[16998]: 2026-11-02 15:26:24,087 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:24 minifw-monday-financial python[16998]: 2026-11-02 15:26:24,094 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:24 minifw-monday-financial python[16998]: 2026-11-02 15:26:24,101 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:24 minifw-monday-financial python[16998]: 2026-11-02 15:26:24,108 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:24 minifw-monday-financial python[16998]: 2026-11-02 15:26:24,122 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:24 minifw-monday-financial python[16998]: 2026-11-02 15:26:24,128 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:24 minifw-monday-financial python[16998]: 2026-11-02 15:26:24,135 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:24 minifw-monday-financial python[16998]: 2026-11-02 15:26:24,141 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:24 minifw-monday-financial python[16998]: 2026-11-02 15:26:24,147 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:24 minifw-monday-financial python[16998]: 2026-11-02 15:26:24,153 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:24 minifw-monday-financial python[16998]: 2026-11-02 15:26:24,160 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:24 minifw-monday-financial python[16998]: 2026-11-02 15:26:24,173 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:24 minifw-monday-financial python[16998]: 2026-11-02 15:26:24,180 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:24 minifw-monday-financial python[16998]: 2026-11-02 15:26:24,186 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:24 minifw-monday-financial python[16998]: 2026-11-02 15:26:24,193 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:24 minifw-monday-financial python[16998]: 2026-11-02 15:26:24,201 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:24 minifw-monday-financial python[16998]: 2026-11-02 15:26:24,208 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:24 minifw-monday-financial python[16998]: 2026-11-02 15:26:24,216 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:24 minifw-monday-financial python[16998]: 2026-11-02 15:26:24,224 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:24 minifw-monday-financial python[16998]: 2026-11-02 15:26:24,231 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:24 minifw-monday-financial python[16998]: 2026-11-02 15:26:24,238 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:24 minifw-monday-financial python[16998]: 2026-11-02 15:26:24,245 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:24 minifw-monday-financial python[16998]: 2026-11-02 15:26:24,252 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:24 minifw-monday-financial python[16998]: 2026-11-02 15:26:24,259 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:24 minifw-monday-financial python[16998]: 2026-11-02 15:26:24,265 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:24 minifw-monday-financial python[16998]: 2026-11-02 15:26:24,273 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:24 minifw-monday-financial python[16998]: 2026-11-02 15:26:24,282 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:24 minifw-monday-financial python[17014]: [14B blob data]
+Nov 02 15:26:24 minifw-monday-financial python[16998]: 2026-11-02 15:26:24,544 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:24 minifw-monday-financial python[16998]: 2026-11-02 15:26:24,550 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:24 minifw-monday-financial python[16998]: 2026-11-02 15:26:24,807 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:24 minifw-monday-financial python[16998]: 2026-11-02 15:26:24,814 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:24 minifw-monday-financial python[16998]: 2026-11-02 15:26:24,820 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:25 minifw-monday-financial python[17014]: [14B blob data]
+Nov 02 15:26:25 minifw-monday-financial python[16998]: 2026-11-02 15:26:25,077 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:25 minifw-monday-financial python[16998]: 2026-11-02 15:26:25,083 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:25 minifw-monday-financial python[16998]: 2026-11-02 15:26:25,342 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:25 minifw-monday-financial python[17014]: [14B blob data]
+Nov 02 15:26:25 minifw-monday-financial python[16998]: 2026-11-02 15:26:25,856 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:26 minifw-monday-financial python[17014]: [14B blob data]
+Nov 02 15:26:26 minifw-monday-financial python[16998]: 2026-11-02 15:26:26,116 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:26 minifw-monday-financial python[16998]: 2026-11-02 15:26:26,122 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:26 minifw-monday-financial python[17014]: [14B blob data]
+Nov 02 15:26:26 minifw-monday-financial python[16998]: 2026-11-02 15:26:26,631 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:26 minifw-monday-financial python[16998]: 2026-11-02 15:26:26,893 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:27 minifw-monday-financial python[17014]: [14B blob data]
+Nov 02 15:26:27 minifw-monday-financial python[16998]: 2026-11-02 15:26:27,908 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:27 minifw-monday-financial python[16998]: 2026-11-02 15:26:27,918 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:28 minifw-monday-financial python[17014]: [14B blob data]
+Nov 02 15:26:28 minifw-monday-financial python[16998]: 2026-11-02 15:26:28,181 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:30 minifw-monday-financial python[17014]: [14B blob data]
+Nov 02 15:26:30 minifw-monday-financial python[16998]: 2026-11-02 15:26:30,704 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:30 minifw-monday-financial python[16998]: 2026-11-02 15:26:30,715 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:30 minifw-monday-financial python[16998]: 2026-11-02 15:26:30,727 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:30 minifw-monday-financial python[16998]: 2026-11-02 15:26:30,738 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:30 minifw-monday-financial python[16998]: 2026-11-02 15:26:30,748 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:30 minifw-monday-financial python[16998]: 2026-11-02 15:26:30,761 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:30 minifw-monday-financial python[16998]: 2026-11-02 15:26:30,771 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:30 minifw-monday-financial python[16998]: 2026-11-02 15:26:30,983 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:30 minifw-monday-financial python[16998]: 2026-11-02 15:26:30,994 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:31 minifw-monday-financial python[17014]: [14B blob data]
+Nov 02 15:26:31 minifw-monday-financial python[16998]: 2026-11-02 15:26:31,255 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:31 minifw-monday-financial python[16998]: 2026-11-02 15:26:31,265 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:31 minifw-monday-financial python[16998]: 2026-11-02 15:26:31,276 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:31 minifw-monday-financial python[16998]: 2026-11-02 15:26:31,286 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:31 minifw-monday-financial python[16998]: 2026-11-02 15:26:31,297 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:31 minifw-monday-financial python[16998]: 2026-11-02 15:26:31,307 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:31 minifw-monday-financial python[16998]: 2026-11-02 15:26:31,519 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:31 minifw-monday-financial python[16998]: 2026-11-02 15:26:31,529 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:31 minifw-monday-financial python[16998]: 2026-11-02 15:26:31,540 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:31 minifw-monday-financial python[16998]: 2026-11-02 15:26:31,550 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:31 minifw-monday-financial python[16998]: 2026-11-02 15:26:31,561 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:31 minifw-monday-financial python[16998]: 2026-11-02 15:26:31,572 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:31 minifw-monday-financial python[16998]: 2026-11-02 15:26:31,582 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:31 minifw-monday-financial python[16998]: 2026-11-02 15:26:31,593 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:31 minifw-monday-financial python[16998]: 2026-11-02 15:26:31,603 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:32 minifw-monday-financial python[17014]: [14B blob data]
+Nov 02 15:26:32 minifw-monday-financial python[16998]: 2026-11-02 15:26:32,016 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:32 minifw-monday-financial python[17014]: [14B blob data]
+Nov 02 15:26:32 minifw-monday-financial python[16998]: 2026-11-02 15:26:32,277 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:32 minifw-monday-financial python[16998]: 2026-11-02 15:26:32,287 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:32 minifw-monday-financial python[16998]: 2026-11-02 15:26:32,297 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:32 minifw-monday-financial python[16998]: 2026-11-02 15:26:32,308 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:32 minifw-monday-financial python[16998]: 2026-11-02 15:26:32,318 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:32 minifw-monday-financial python[16998]: 2026-11-02 15:26:32,529 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:32 minifw-monday-financial python[17014]: [14B blob data]
+Nov 02 15:26:32 minifw-monday-financial python[16998]: 2026-11-02 15:26:32,787 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:32 minifw-monday-financial python[16998]: 2026-11-02 15:26:32,797 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:32 minifw-monday-financial python[16998]: 2026-11-02 15:26:32,807 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:33 minifw-monday-financial python[17014]: [14B blob data]
+Nov 02 15:26:33 minifw-monday-financial python[16998]: 2026-11-02 15:26:33,270 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:33 minifw-monday-financial python[16998]: 2026-11-02 15:26:33,280 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:33 minifw-monday-financial python[16998]: 2026-11-02 15:26:33,290 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:34 minifw-monday-financial python[17014]: [14B blob data]
+Nov 02 15:26:34 minifw-monday-financial python[16998]: 2026-11-02 15:26:34,054 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:34 minifw-monday-financial python[17014]: [14B blob data]
+Nov 02 15:26:34 minifw-monday-financial python[16998]: 2026-11-02 15:26:34,568 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:35 minifw-monday-financial python[17014]: [14B blob data]
+Nov 02 15:26:35 minifw-monday-financial python[16998]: 2026-11-02 15:26:35,334 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:35 minifw-monday-financial python[17014]: [14B blob data]
+Nov 02 15:26:35 minifw-monday-financial python[16998]: 2026-11-02 15:26:35,897 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:35 minifw-monday-financial python[16998]: 2026-11-02 15:26:35,907 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:36 minifw-monday-financial python[17014]: [14B blob data]
+Nov 02 15:26:36 minifw-monday-financial python[16998]: 2026-11-02 15:26:36,370 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:36 minifw-monday-financial python[16998]: 2026-11-02 15:26:36,378 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:37 minifw-monday-financial python[17014]: [14B blob data]
+Nov 02 15:26:37 minifw-monday-financial python[16998]: 2026-11-02 15:26:37,694 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:38 minifw-monday-financial python[17014]: [14B blob data]
+Nov 02 15:26:38 minifw-monday-financial python[16998]: 2026-11-02 15:26:38,206 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:38 minifw-monday-financial python[17014]: [29B blob data]
+Nov 02 15:26:38 minifw-monday-financial python[16998]: 2026-11-02 15:26:38,971 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:38 minifw-monday-financial python[16998]: 2026-11-02 15:26:38,987 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:38 minifw-monday-financial python[16998]: 2026-11-02 15:26:38,998 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:39 minifw-monday-financial python[16998]: 2026-11-02 15:26:39,259 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:39 minifw-monday-financial python[16998]: 2026-11-02 15:26:39,270 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:39 minifw-monday-financial python[16998]: 2026-11-02 15:26:39,280 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:39 minifw-monday-financial python[16998]: 2026-11-02 15:26:39,292 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:39 minifw-monday-financial python[16998]: 2026-11-02 15:26:39,302 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:39 minifw-monday-financial python[16998]: 2026-11-02 15:26:39,312 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:39 minifw-monday-financial python[16998]: 2026-11-02 15:26:39,324 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:39 minifw-monday-financial python[16998]: 2026-11-02 15:26:39,334 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:39 minifw-monday-financial python[16998]: 2026-11-02 15:26:39,343 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:39 minifw-monday-financial python[17014]: [14B blob data]
+Nov 02 15:26:39 minifw-monday-financial python[16998]: 2026-11-02 15:26:39,757 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:40 minifw-monday-financial python[17014]: [14B blob data]
+Nov 02 15:26:40 minifw-monday-financial python[16998]: 2026-11-02 15:26:40,271 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:40 minifw-monday-financial python[16998]: 2026-11-02 15:26:40,281 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:40 minifw-monday-financial python[16998]: 2026-11-02 15:26:40,291 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:40 minifw-monday-financial python[17014]: [14B blob data]
+Nov 02 15:26:40 minifw-monday-financial python[16998]: 2026-11-02 15:26:40,553 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:40 minifw-monday-financial python[16998]: 2026-11-02 15:26:40,563 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:41 minifw-monday-financial python[17014]: [14B blob data]
+Nov 02 15:26:41 minifw-monday-financial python[16998]: 2026-11-02 15:26:41,326 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:41 minifw-monday-financial python[16998]: 2026-11-02 15:26:41,332 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:41 minifw-monday-financial python[16998]: 2026-11-02 15:26:41,337 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:41 minifw-monday-financial python[16998]: 2026-11-02 15:26:41,343 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:41 minifw-monday-financial python[16998]: 2026-11-02 15:26:41,348 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:41 minifw-monday-financial python[16998]: 2026-11-02 15:26:41,356 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:41 minifw-monday-financial python[17014]: [14B blob data]
+Nov 02 15:26:41 minifw-monday-financial python[16998]: 2026-11-02 15:26:41,564 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:41 minifw-monday-financial python[16998]: 2026-11-02 15:26:41,574 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:41 minifw-monday-financial python[16998]: 2026-11-02 15:26:41,836 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:41 minifw-monday-financial python[16998]: 2026-11-02 15:26:41,846 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:41 minifw-monday-financial python[16998]: 2026-11-02 15:26:41,858 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:41 minifw-monday-financial python[16998]: 2026-11-02 15:26:41,868 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:42 minifw-monday-financial python[17014]: [14B blob data]
+Nov 02 15:26:42 minifw-monday-financial python[16998]: 2026-11-02 15:26:42,381 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:42 minifw-monday-financial python[16998]: 2026-11-02 15:26:42,392 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:42 minifw-monday-financial python[16998]: 2026-11-02 15:26:42,402 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:42 minifw-monday-financial python[17014]: [14B blob data]
+Nov 02 15:26:42 minifw-monday-financial python[16998]: 2026-11-02 15:26:42,864 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:42 minifw-monday-financial python[16998]: 2026-11-02 15:26:42,874 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:43 minifw-monday-financial python[17014]: [14B blob data]
+Nov 02 15:26:43 minifw-monday-financial python[16998]: 2026-11-02 15:26:43,388 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:43 minifw-monday-financial python[16998]: 2026-11-02 15:26:43,396 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:44 minifw-monday-financial python[17014]: [14B blob data]
+Nov 02 15:26:44 minifw-monday-financial python[16998]: 2026-11-02 15:26:44,412 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:44 minifw-monday-financial python[16998]: 2026-11-02 15:26:44,422 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:44 minifw-monday-financial python[17014]: [14B blob data]
+Nov 02 15:26:44 minifw-monday-financial python[16998]: 2026-11-02 15:26:44,685 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:44 minifw-monday-financial python[16998]: 2026-11-02 15:26:44,946 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:45 minifw-monday-financial python[17014]: [14B blob data]
+Nov 02 15:26:45 minifw-monday-financial python[16998]: 2026-11-02 15:26:45,711 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:47 minifw-monday-financial python[17014]: [14B blob data]
+Nov 02 15:26:47 minifw-monday-financial python[16998]: 2026-11-02 15:26:47,984 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:48 minifw-monday-financial python[17014]: [14B blob data]
+Nov 02 15:26:48 minifw-monday-financial python[16998]: 2026-11-02 15:26:48,497 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:49 minifw-monday-financial python[17014]: [14B blob data]
+Nov 02 15:26:49 minifw-monday-financial python[16998]: 2026-11-02 15:26:49,312 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:49 minifw-monday-financial python[16998]: 2026-11-02 15:26:49,323 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:49 minifw-monday-financial python[16998]: 2026-11-02 15:26:49,584 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:49 minifw-monday-financial python[16998]: 2026-11-02 15:26:49,592 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:49 minifw-monday-financial python[16998]: 2026-11-02 15:26:49,602 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:49 minifw-monday-financial python[16998]: 2026-11-02 15:26:49,611 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:49 minifw-monday-financial python[16998]: 2026-11-02 15:26:49,620 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:49 minifw-monday-financial python[16998]: 2026-11-02 15:26:49,629 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:49 minifw-monday-financial python[16998]: 2026-11-02 15:26:49,638 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:49 minifw-monday-financial python[16998]: 2026-11-02 15:26:49,648 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:49 minifw-monday-financial python[16998]: 2026-11-02 15:26:49,657 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:49 minifw-monday-financial python[16998]: 2026-11-02 15:26:49,667 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - pps_saturation
+Nov 02 15:26:50 minifw-monday-financial python[17014]: [14B blob data]
+Nov 02 15:26:50 minifw-monday-financial python[16998]: 2026-11-02 15:26:50,016 - INFO - Caught SIGTERM, shutting down.
+Nov 02 15:26:50 minifw-monday-financial python[17014]: [38B blob data]
+Nov 02 15:26:50 minifw-monday-financial python[17014]: Packets received/dropped on interface 'mfcg': 4162/0 (pcap:0/dumpcap:0/flushed:0/ps_ifdrop:0) (100.0%)
+Nov 02 15:26:50 minifw-monday-financial systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 02 15:26:50 minifw-monday-financial python[16998]: 2026-11-02 15:26:50,056 - ERROR - [packet] Collector failed; retrying independently
+Nov 02 15:26:50 minifw-monday-financial python[16998]: Traceback (most recent call last):
+Nov 02 15:26:50 minifw-monday-financial python[16998]:   File "/opt/minifw_ai/app/minifw_ai/collector_runtime.py", line 16, in collect
+Nov 02 15:26:50 minifw-monday-financial python[16998]:     for event in factory():
+Nov 02 15:26:50 minifw-monday-financial python[16998]:   File "/opt/minifw_ai/app/minifw_ai/collector_packets.py", line 87, in stream_packet_events
+Nov 02 15:26:50 minifw-monday-financial python[16998]:     raise RuntimeError(f"Packet metadata sensor stopped: exit={decoder.wait()}")
+Nov 02 15:26:50 minifw-monday-financial python[16998]: RuntimeError: Packet metadata sensor stopped: exit=0
+Nov 02 15:26:50 minifw-monday-financial python[16998]: [FlowCollector] Exported 7 flows, cleaned 0 old flows
+Nov 02 15:26:50 minifw-monday-financial python[16998]: [FlowCollector] Exported 10 flows, cleaned 0 old flows
+Nov 02 15:26:50 minifw-monday-financial python[16998]: [FlowCollector] Exported 10 flows, cleaned 0 old flows
+Nov 02 15:26:50 minifw-monday-financial python[16998]: [FlowCollector] Exported 14 flows, cleaned 0 old flows
+Nov 02 15:26:50 minifw-monday-financial python[16998]: [FlowCollector] Exported 16 flows, cleaned 0 old flows
+Nov 02 15:26:50 minifw-monday-financial python[16998]: [FlowCollector] Exported 16 flows, cleaned 0 old flows
+Nov 02 15:26:50 minifw-monday-financial python[16998]: [FlowCollector] Exported 20 flows, cleaned 0 old flows
+Nov 02 15:26:50 minifw-monday-financial python[16998]: [FlowCollector] Exported 25 flows, cleaned 0 old flows
+Nov 02 15:26:50 minifw-monday-financial python[16998]: [FlowCollector] Exported 26 flows, cleaned 0 old flows
+Nov 02 15:26:50 minifw-monday-financial python[16998]: [FlowCollector] Exported 29 flows, cleaned 0 old flows
+Nov 02 15:26:50 minifw-monday-financial python[16998]: [FlowCollector] Exported 30 flows, cleaned 0 old flows
+Nov 02 15:26:50 minifw-monday-financial python[16998]: [FlowCollector] Exported 33 flows, cleaned 0 old flows
+Nov 02 15:26:50 minifw-monday-financial python[16998]: [FlowCollector] Exported 33 flows, cleaned 0 old flows
+Nov 02 15:26:50 minifw-monday-financial python[16998]: [FlowCollector] Exported 39 flows, cleaned 0 old flows
+Nov 02 15:26:50 minifw-monday-financial python[16998]: [FlowCollector] Exported 42 flows, cleaned 0 old flows
+Nov 02 15:26:50 minifw-monday-financial python[16998]: [FlowCollector] Exported 45 flows, cleaned 0 old flows
+Nov 02 15:26:50 minifw-monday-financial python[16998]: [FlowCollector] Exported 49 flows, cleaned 0 old flows
+Nov 02 15:26:50 minifw-monday-financial python[16998]: [FlowCollector] Exported 53 flows, cleaned 0 old flows
+Nov 02 15:26:50 minifw-monday-financial python[16998]: [FlowCollector] Exported 56 flows, cleaned 0 old flows
+Nov 02 15:26:50 minifw-monday-financial python[16998]: [FlowCollector] Exported 56 flows, cleaned 0 old flows
+Nov 02 15:26:50 minifw-monday-financial python[16998]: [FlowCollector] Exported 61 flows, cleaned 0 old flows
+Nov 02 15:26:50 minifw-monday-financial python[16998]: [FlowCollector] Exported 65 flows, cleaned 0 old flows
+Nov 02 15:26:50 minifw-monday-financial python[16998]: [FlowCollector] Exported 65 flows, cleaned 0 old flows
+Nov 02 15:26:50 minifw-monday-financial python[16998]: [FlowCollector] Exported 69 flows, cleaned 0 old flows
+Nov 02 15:26:50 minifw-monday-financial python[16998]: [FlowCollector] Exported 69 flows, cleaned 0 old flows
+Nov 02 15:26:50 minifw-monday-financial python[16998]: [FlowCollector] Exported 71 flows, cleaned 0 old flows
+Nov 02 15:26:50 minifw-monday-financial python[16998]: [FlowCollector] Exported 73 flows, cleaned 0 old flows
+Nov 02 15:26:50 minifw-monday-financial python[16998]: [FlowCollector] Exported 77 flows, cleaned 0 old flows
+Nov 02 15:26:50 minifw-monday-financial python[16998]: [FlowCollector] Exported 83 flows, cleaned 0 old flows
+Nov 02 15:26:50 minifw-monday-financial python[16998]: [FlowCollector] Exported 90 flows, cleaned 0 old flows
+Nov 02 15:26:50 minifw-monday-financial python[16998]: [FlowCollector] Exported 91 flows, cleaned 0 old flows
+Nov 02 15:26:50 minifw-monday-financial python[16998]: [FlowCollector] Exported 93 flows, cleaned 0 old flows
+Nov 02 15:26:50 minifw-monday-financial python[16998]: [FlowCollector] Exported 93 flows, cleaned 0 old flows
+Nov 02 15:26:50 minifw-monday-financial python[16998]: [FlowCollector] Exported 94 flows, cleaned 0 old flows
+Nov 02 15:26:50 minifw-monday-financial python[16998]: [FlowCollector] Exported 94 flows, cleaned 0 old flows
+Nov 02 15:26:50 minifw-monday-financial systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 02 15:26:50 minifw-monday-financial systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 02 15:26:50 minifw-monday-financial systemd[1]: minifw-ai.service: Consumed 9.466s CPU time.
+$ nft -a list table inet minifw
+table inet minifw { # handle 22
+	set minifw_block_v4 { # handle 1
+		type ipv4_addr
+		timeout 1h
+		elements = { 10.10.0.20 timeout 15s expires 3s640ms }
+	}
+
+	chain forward { # handle 2
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 221 bytes 68532 comment "MiniFW-AI-Conntrack" # handle 3
+		ip saddr @minifw_block_v4 counter packets 157 bytes 53258 drop comment "MiniFW-AI-Blocklist" # handle 4
+	}
+}
+$ systemctl daemon-reload
+$ ip netns delete mf-client
+$ ip netns delete mf-server
+$ ip link delete mfcg
+$ ip link delete mfsg
+Cannot find device "mfsg"
+EVIDENCE_DIRECTORY /var/tmp/minifw-monday-financial-20261102T082553Z

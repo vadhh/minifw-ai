@@ -1,0 +1,49 @@
+[
+  {
+    "test": "vendor_signed_licence_activation",
+    "actual": {
+      "actual_vendor_key": "minifw-vendor-2026",
+      "licence": {
+        "status": "valid",
+        "license_id": "63e8de78-29f5-4149-ba7c-25a1e31bc6df",
+        "customer_id": "wednesday-isolated-financial-lab",
+        "deployment_id": "d46d5313-1fe4-4ae3-873d-c18ed59b8584",
+        "product_mode": "minifw_financial",
+        "starts_at": "2026-11-04T06:21:01Z",
+        "expires_at": "2027-11-04T06:21:01Z"
+      },
+      "tampered_upload_http": 400,
+      "persists_after_web_restart": true,
+      "scope": "isolated lab deployment, actual vendor signature"
+    },
+    "time": "2026-11-05T02:07:29.637498+00:00"
+  },
+  {
+    "test": "dashboard_explicit_apply",
+    "actual": {
+      "response": {
+        "message": "Engine restarted; saved policy and feeds loaded. Check protection status on the dashboard.",
+        "engine_pid": 56857
+      },
+      "root_restart_after_save": false
+    },
+    "time": "2026-11-05T02:07:35.842276+00:00"
+  },
+  {
+    "test": "dashboard_to_engine_enforcement",
+    "actual": {
+      "authenticated_save": true,
+      "packaged_policy": "/opt/minifw_ai/config/modes/minifw_financial/policy.json",
+      "restart_required": true,
+      "restart_requested_by": "authenticated dashboard apply button",
+      "previous_timeout_seconds": 86400,
+      "timeout_seconds": 11,
+      "added_domain": "wednesday-policy.lab.test",
+      "fixture_setup": "collector paths supplied directly by lab root; enforcement timeout and deny domain saved through dashboard",
+      "actual_kernel": "table inet minifw {\n\tset minifw_block_v4 {\n\t\ttype ipv4_addr\n\t\ttimeout 1h\n\t\telements = { 10.10.0.20 timeout 11s expires 10s900ms }\n\t}\n}\n",
+      "routed_before": "HTTP 200",
+      "routed_after": "blocked"
+    },
+    "time": "2026-11-05T02:07:38.394283+00:00"
+  }
+]

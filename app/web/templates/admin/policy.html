@@ -5,6 +5,11 @@
 {% block content %}
 <div class="app-content">
   <div class="container-fluid">
+    <div class="mb-4">
+      <p id="apply-help">Save your policy and allow/deny list edits, then apply them here. Applying restarts the engine and briefly pauses new detections; existing kernel blocks remain.</p>
+      <button type="button" class="btn btn-primary" id="applyPolicyBtn" aria-describedby="apply-help">Apply saved changes</button>
+      <p id="apply-status" class="mt-2" role="status" aria-live="polite"></p>
+    </div>
     
     <!-- Segments Configuration -->
     <div class="card">
@@ -300,6 +305,15 @@ document.addEventListener('DOMContentLoaded', function() {
   var subnetsModalEl = document.getElementById('subnetsModal');
   var subnetsModal = new bootstrap.Modal(subnetsModalEl);
   
+  jQuery('#applyPolicyBtn').on('click', function() {
+    var button = jQuery(this).prop('disabled', true);
+    jQuery('#apply-status').text('Restarting the engine and checking saved changes…');
+    jQuery.ajax({url: '/admin/policy/apply', method: 'POST', timeout: 20000})
+      .done(function(data) { jQuery('#apply-status').text(data.message); })
+      .fail(function(xhr) { jQuery('#apply-status').text(xhr.responseJSON?.detail || 'Apply status is unknown. Check protection status before retrying.'); })
+      .always(function() { button.prop('disabled', false); });
+  });
+
   // Calculate total weight
   function updateTotalWeight() {
     var dns = parseInt(jQuery('#dns_weight').val()) || 0;

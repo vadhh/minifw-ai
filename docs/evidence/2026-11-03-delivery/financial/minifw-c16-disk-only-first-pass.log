@@ -1,0 +1,368 @@
+$ dpkg-query -W minifw-ai
+minifw-ai	2.2.10-finance
+$ ip -j netns list
+[]
+$ systemctl stop minifw-ai minifw-ai-web dnsmasq
+$ nft -a list table inet minifw
+table inet minifw { # handle 53
+	set minifw_block_v4 { # handle 1
+		type ipv4_addr
+		timeout 1h
+	}
+
+	chain forward { # handle 2
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 229 bytes 13740 comment "MiniFW-AI-Conntrack" # handle 3
+		ip saddr @minifw_block_v4 counter packets 21 bytes 1260 drop comment "MiniFW-AI-Blocklist" # handle 4
+	}
+}
+$ nft delete table inet minifw
+$ modprobe nf_conntrack
+$ sysctl -w net.ipv4.ip_forward=1 net.ipv6.conf.all.forwarding=1 net.netfilter.nf_conntrack_acct=0
+net.ipv4.ip_forward = 1
+net.ipv6.conf.all.forwarding = 1
+net.netfilter.nf_conntrack_acct = 0
+$ ip netns add mf-client
+$ ip -n mf-client link set lo up
+$ ip netns add mf-server
+$ ip -n mf-server link set lo up
+$ ip link add mfcg type veth peer name mfc0
+$ ip link set mfc0 netns mf-client
+$ ip addr add 10.10.0.1/24 dev mfcg
+$ ip addr add fd42:10::1/64 dev mfcg
+$ ip link set mfcg up
+$ ip -n mf-client addr add 10.10.0.20/24 dev mfc0
+$ ip -n mf-client addr add fd42:10::20/64 dev mfc0
+$ ip -n mf-client link set mfc0 up
+$ ip -n mf-client route add default via 10.10.0.1
+$ ip -n mf-client -6 route add default via fd42:10::1
+$ ip link add mfsg type veth peer name mfs0
+$ ip link set mfs0 netns mf-server
+$ ip addr add 198.18.0.1/24 dev mfsg
+$ ip addr add fd42:18::1/64 dev mfsg
+$ ip link set mfsg up
+$ ip -n mf-server addr add 198.18.0.2/24 dev mfs0
+$ ip -n mf-server addr add fd42:18::2/64 dev mfs0
+$ ip -n mf-server link set mfs0 up
+$ ip -n mf-server route add default via 198.18.0.1
+$ ip -n mf-server -6 route add default via fd42:18::1
+$ ip -br address
+lo               UNKNOWN        127.0.0.1/8 ::1/128 
+ens3             UP             10.231.0.15/24 metric 100 fec0::5054:ff:fe22:1002/64 fe80::5054:ff:fe22:1002/64 
+mfcg@if147       UP             10.10.0.1/24 fd42:10::1/64 fe80::8494:6dff:fe33:f74/64 
+mfsg@if149       UP             198.18.0.1/24 fd42:18::1/64 fe80::f060:cbff:fed4:659/64
+$ ip -n mf-client route
+default via 10.10.0.1 dev mfc0 
+10.10.0.0/24 dev mfc0 proto kernel scope link src 10.10.0.20
+$ ip -n mf-server route
+default via 198.18.0.1 dev mfs0 
+198.18.0.0/24 dev mfs0 proto kernel scope link src 198.18.0.2
+$ openssl req -x509 -newkey rsa:2048 -nodes -days 1 -subj /CN=lab.test -keyout /var/tmp/minifw-monday-financial-20261103T043643Z/server.key -out /var/tmp/minifw-monday-financial-20261103T043643Z/server.crt
+............+..........+........+.+.....+....+..+...+......+.+........+.+.....+....+..+..........+...+..+...............+...+.........+.+..............+..................+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*..+...+.+...+...+...+...........+.+.....+....+......+........+.+...+..+.+........+.......+.........+...+.....+.+.....+.........+...+.......+...+..+............+....+......+...+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*.+.....+..........+..................+.........+.....+.+..+.+......+.....+.+........+.+......+...+.....+.......+..............+......+...+.+......+..+.......+......+..+.+.....+............+...+....+...+..+.......+...+........+...............+....+........+.+..+....+......+.....+....+.....+...................+.....+......+...+...+.........+.............+........+.............+.....+....+...+.....+...+....+..+...+...............+..........+..+.+.........+...+..+.........+.......+..+............+...+..........+..................+...+......+........+.....................+.+..............+....+..+...+..........+..................+..+.+..+...+....+...+.........+........+...+...+....+...........+.+...+...+...+.....+.......+.....+.......+.....+.+..............+......+....+...........+.......+........+.........+.......+...........+.........+.............+......+............+..+..........+...+..+............+...+..........+........+...+......+....+.....+.........+.+..+.......+.....+..........+...+..+.+..+....+...+..+.+........+.+.....+.........+....+..+.+.....+.........+.........+....+...+..............+...+.......+...+............+........+.+......+...........+...+.+........+...+.............+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+........+....+...+..+...+.......+...+..+.+...+..+...+....+......+..+.......+.....+......+...............+.+.....+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*..+..+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*..+...+...+.....+...+.+...+......+.........+..+.+.........+........+...+............+......+.......+..................+............+........+...................+..+.+.........+........+.............+...+..+...+.+...+..+.+..+.+............+.....+.......+...........+....+..+.............+..+..........+.....+....+......+...+.................+.........+.+........+.......+...+........+...+.......+...+..+...+.......+.....+.............+..+...+.+........+.+..+...................+.....+...+.......+...........+.........+.........+......+....+..+....+.....+...+.+.....+.......+..+......+....+......+.....+......+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+-----
+$ systemctl stop minifw-ai
+$ nft flush set inet minifw minifw_block_v4
+Error: No such file or directory
+flush set inet minifw minifw_block_v4
+               ^^^^^^
+$ conntrack -D -s 10.10.0.20
+tcp      6 70 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=52352 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=52352 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 69 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=52332 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=52332 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 69 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=52342 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=52342 packets=6 bytes=629 [ASSURED] mark=0 use=1
+conntrack v1.4.7 (conntrack-tools): 3 flow entries have been deleted.
+$ systemctl daemon-reload
+$ systemctl start minifw-ai
+$ systemctl show minifw-ai -p ActiveState -p MainPID -p ExecMainStatus
+MainPID=41091
+ExecMainStatus=0
+ActiveState=active
+$ ip netns exec mf-client /usr/bin/python3 /home/lab/tuesday-c16/testing/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+$ systemctl start minifw-ai-web
+$ systemctl show minifw-ai minifw-ai-web -p MemoryCurrent -p CPUUsageNSec -p NRestarts -p ActiveState
+NRestarts=0
+MemoryCurrent=192061440
+CPUUsageNSec=1771330000
+ActiveState=active
+
+NRestarts=0
+MemoryCurrent=356352
+CPUUsageNSec=19311000
+ActiveState=active
+$ nft flush set inet minifw minifw_block_v4
+$ ip netns exec mf-client /usr/bin/python3 /home/lab/tuesday-c16/testing/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+$ mount -t tmpfs -o size=64k,mode=0755 minifw-test-full /var/tmp/minifw-monday-financial-20261103T043643Z/full-log-fs
+$ systemctl daemon-reload
+$ systemctl restart minifw-ai
+$ ip netns exec mf-client /usr/bin/python3 /home/lab/tuesday-c16/testing/lab_gateway_acceptance.py client dns 10.10.0.1 secure-bankofamerica-login.com
+{"ok": true, "resolver": "10.10.0.1", "domain": "secure-bankofamerica-login.com", "answer": "198.18.0.2"}
+$ nft -a list table inet minifw
+table inet minifw { # handle 54
+	set minifw_block_v4 { # handle 1
+		type ipv4_addr
+		timeout 1h
+		elements = { 10.10.0.20 timeout 15s expires 12s72ms }
+	}
+
+	chain forward { # handle 2
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 2 bytes 120 comment "MiniFW-AI-Conntrack" # handle 3
+		ip saddr @minifw_block_v4 counter packets 0 bytes 0 drop comment "MiniFW-AI-Blocklist" # handle 4
+	}
+}
+$ systemctl show minifw-ai minifw-ai-web -p MemoryCurrent -p CPUUsageNSec -p NRestarts -p ActiveState
+NRestarts=0
+MemoryCurrent=192937984
+CPUUsageNSec=1811184000
+ActiveState=active
+
+NRestarts=0
+MemoryCurrent=122511360
+CPUUsageNSec=2259387000
+ActiveState=active
+$ ip netns exec mf-client /usr/bin/python3 /home/lab/tuesday-c16/testing/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": false, "error": "TimeoutError"}
+VERIFIED {"test": "isolated_disk_full", "actual": {"filesystem_bytes": 65536, "kernel_block_present": true, "routed_http_exit": 2, "services": "NRestarts=0\nMemoryCurrent=192937984\nCPUUsageNSec=1811184000\nActiveState=active\n\nNRestarts=0\nMemoryCurrent=122511360\nCPUUsageNSec=2259387000\nActiveState=active\n", "acceptance": "pass"}, "time": "2026-11-03T04:37:03.637293+00:00"}
+$ systemctl stop minifw-ai
+$ systemctl daemon-reload
+$ umount /var/tmp/minifw-monday-financial-20261103T043643Z/full-log-fs
+$ systemctl stop minifw-ai
+$ nft flush set inet minifw minifw_block_v4
+$ conntrack -D -s 10.10.0.20
+tcp      6 104 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=60962 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=60962 packets=6 bytes=629 [ASSURED] mark=0 use=1
+tcp      6 109 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=47154 dport=8080 packets=6 bytes=388 src=198.18.0.2 dst=10.10.0.20 sport=8080 dport=47154 packets=6 bytes=629 [ASSURED] mark=0 use=1
+udp      17 23 src=10.10.0.20 dst=10.10.0.1 sport=56428 dport=53 packets=1 bytes=76 src=10.10.0.1 dst=10.10.0.20 sport=53 dport=56428 packets=1 bytes=92 mark=0 use=1
+conntrack v1.4.7 (conntrack-tools): 3 flow entries have been deleted.
+$ systemctl daemon-reload
+$ systemctl start minifw-ai
+$ systemctl show minifw-ai -p ActiveState -p MainPID -p ExecMainStatus
+MainPID=41261
+ExecMainStatus=0
+ActiveState=active
+$ ip netns exec mf-client /usr/bin/python3 /home/lab/tuesday-c16/testing/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+$ ip netns exec mf-client /usr/bin/python3 /home/lab/tuesday-c16/testing/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+$ ip netns exec mf-client /usr/bin/python3 /home/lab/tuesday-c16/testing/lab_gateway_acceptance.py client http 198.18.0.2 8080 /
+{"ok": true, "host": "198.18.0.2", "port": 8080, "path": "/", "status": 200, "bytes": 146}
+VERIFIED {"test": "disk_full_recovery", "actual": {"legitimate_http": "200", "engine": "restarted with normal log path"}, "time": "2026-11-03T04:37:08.725114+00:00"}
+$ systemctl stop minifw-ai-web
+$ systemctl stop minifw-ai
+$ journalctl -u minifw-ai --no-pager --since '2026-11-03 04:36:43 UTC'
+Nov 03 11:36:46 minifw-monday-financial systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 03 11:36:47 minifw-monday-financial python[41091]: 2026-11-03 11:36:47,447 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Nov 03 11:36:47 minifw-monday-financial python[41091]: 2026-11-03 11:36:47,451 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Nov 03 11:36:47 minifw-monday-financial python[41091]: 2026-11-03 11:36:47,452 - INFO - [STATE] Restored state from /opt/minifw_ai/logs/deployment_state.json: BASELINE_PROTECTION
+Nov 03 11:36:47 minifw-monday-financial python[41091]: 2026-11-03 11:36:47,452 - INFO - [STATE] Initial protection state: BASELINE_PROTECTION
+Nov 03 11:36:47 minifw-monday-financial python[41091]: 2026-11-03 11:36:47,459 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_financial: sector=finance
+Nov 03 11:36:47 minifw-monday-financial python[41091]: 2026-11-03 11:36:47,459 - INFO - [SECTOR_LOCK] Loaded config for finance: ['description', 'block_tor', 'block_anonymizers', 'strict_tls', 'minimum_tls_version', 'pci_compliance_mode', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_retention_days']
+Nov 03 11:36:47 minifw-monday-financial python[41091]: 2026-11-03 11:36:47,459 - INFO - [SECTOR_LOCK] Device sector: finance (LOCKED)
+Nov 03 11:36:47 minifw-monday-financial python[41091]: 2026-11-03 11:36:47,459 - INFO - [SECTOR_LOCK] Config: Finance: metadata policies; TLS version control requires packet metadata; no compliance certification.
+Nov 03 11:36:47 minifw-monday-financial python[41091]: 2026-11-03 11:36:47,459 - INFO - [FEEDS] Loaded 10 patterns from financial_fraud.txt
+Nov 03 11:36:47 minifw-monday-financial python[41091]: 2026-11-03 11:36:47,459 - INFO - [FEEDS] Loaded 9 patterns from crypto_scams.txt
+Nov 03 11:36:47 minifw-monday-financial python[41091]: 2026-11-03 11:36:47,459 - INFO - [SECTOR_LOCK] Loaded 19 sector-specific feed patterns
+Nov 03 11:36:47 minifw-monday-financial python[41091]: 2026-11-03 11:36:47,459 - INFO - [FEEDS] Loaded 0 Tor exit node IPs from /opt/minifw_ai/config/feeds/tor_exit_nodes.txt
+Nov 03 11:36:47 minifw-monday-financial python[41091]: 2026-11-03 11:36:47,460 - INFO - [SECTOR_LOCK] Tor/anonymizer blocking enabled: loaded 0 exit IPs
+Nov 03 11:36:47 minifw-monday-financial python[41091]: 2026-11-03 11:36:47,489 - INFO - [TELEMETRY] Packet metadata on mfcg; packet14 model required; no TLS decryption
+Nov 03 11:36:47 minifw-monday-financial python[41108]: Capturing on 'mfcg'
+Nov 03 11:36:47 minifw-monday-financial python[41108]: File: -
+Nov 03 11:36:54 minifw-monday-financial python[41108]: [72B blob data]
+Nov 03 11:36:54 minifw-monday-financial python[41108]: Packets received/dropped on interface 'mfcg': 27/0 (pcap:0/dumpcap:0/flushed:0/ps_ifdrop:0) (100.0%)
+Nov 03 11:36:54 minifw-monday-financial systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 03 11:36:54 minifw-monday-financial python[41091]: 2026-11-03 11:36:54,830 - INFO - Caught SIGTERM, shutting down.
+Nov 03 11:36:54 minifw-monday-financial python[41091]: 2026-11-03 11:36:54,860 - ERROR - [packet] Collector failed; retrying independently
+Nov 03 11:36:54 minifw-monday-financial python[41091]: Traceback (most recent call last):
+Nov 03 11:36:54 minifw-monday-financial python[41091]:   File "/opt/minifw_ai/app/minifw_ai/collector_runtime.py", line 16, in collect
+Nov 03 11:36:54 minifw-monday-financial python[41091]:     for event in factory():
+Nov 03 11:36:54 minifw-monday-financial python[41091]:   File "/opt/minifw_ai/app/minifw_ai/collector_packets.py", line 87, in stream_packet_events
+Nov 03 11:36:54 minifw-monday-financial python[41091]:     raise RuntimeError(f"Packet metadata sensor stopped: exit={decoder.wait()}")
+Nov 03 11:36:54 minifw-monday-financial python[41091]: RuntimeError: Packet metadata sensor stopped: exit=0
+Nov 03 11:36:55 minifw-monday-financial python[41091]: [*] DNS Collector reading from /var/tmp/minifw-monday-financial-20261103T043643Z/dns.log
+Nov 03 11:36:55 minifw-monday-financial systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 03 11:36:55 minifw-monday-financial systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 03 11:36:55 minifw-monday-financial systemd[1]: minifw-ai.service: Consumed 2.115s CPU time.
+Nov 03 11:36:55 minifw-monday-financial systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 03 11:36:56 minifw-monday-financial python[41166]: 2026-11-03 11:36:56,581 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Nov 03 11:36:56 minifw-monday-financial python[41166]: 2026-11-03 11:36:56,584 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Nov 03 11:36:56 minifw-monday-financial python[41166]: 2026-11-03 11:36:56,584 - INFO - [STATE] Restored state from /opt/minifw_ai/logs/deployment_state.json: BASELINE_PROTECTION
+Nov 03 11:36:56 minifw-monday-financial python[41166]: 2026-11-03 11:36:56,584 - INFO - [STATE] Initial protection state: BASELINE_PROTECTION
+Nov 03 11:36:56 minifw-monday-financial python[41166]: 2026-11-03 11:36:56,591 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_financial: sector=finance
+Nov 03 11:36:56 minifw-monday-financial python[41166]: 2026-11-03 11:36:56,591 - INFO - [SECTOR_LOCK] Loaded config for finance: ['description', 'block_tor', 'block_anonymizers', 'strict_tls', 'minimum_tls_version', 'pci_compliance_mode', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_retention_days']
+Nov 03 11:36:56 minifw-monday-financial python[41166]: 2026-11-03 11:36:56,591 - INFO - [SECTOR_LOCK] Device sector: finance (LOCKED)
+Nov 03 11:36:56 minifw-monday-financial python[41166]: 2026-11-03 11:36:56,591 - INFO - [SECTOR_LOCK] Config: Finance: metadata policies; TLS version control requires packet metadata; no compliance certification.
+Nov 03 11:36:56 minifw-monday-financial python[41166]: 2026-11-03 11:36:56,591 - INFO - [FEEDS] Loaded 10 patterns from financial_fraud.txt
+Nov 03 11:36:56 minifw-monday-financial python[41166]: 2026-11-03 11:36:56,592 - INFO - [FEEDS] Loaded 9 patterns from crypto_scams.txt
+Nov 03 11:36:56 minifw-monday-financial python[41166]: 2026-11-03 11:36:56,592 - INFO - [SECTOR_LOCK] Loaded 19 sector-specific feed patterns
+Nov 03 11:36:56 minifw-monday-financial python[41166]: 2026-11-03 11:36:56,592 - INFO - [FEEDS] Loaded 0 Tor exit node IPs from /opt/minifw_ai/config/feeds/tor_exit_nodes.txt
+Nov 03 11:36:56 minifw-monday-financial python[41166]: 2026-11-03 11:36:56,592 - INFO - [SECTOR_LOCK] Tor/anonymizer blocking enabled: loaded 0 exit IPs
+Nov 03 11:36:56 minifw-monday-financial python[41166]: 2026-11-03 11:36:56,647 - INFO - [TELEMETRY] Packet metadata on mfcg; packet14 model required; no TLS decryption
+Nov 03 11:36:56 minifw-monday-financial python[41166]: 2026-11-03 11:36:56,657 - ERROR - Failed to publish runtime health; readiness must remain unavailable
+Nov 03 11:36:56 minifw-monday-financial python[41166]: OSError: [Errno 28] No space left on device
+Nov 03 11:36:56 minifw-monday-financial python[41166]: During handling of the above exception, another exception occurred:
+Nov 03 11:36:56 minifw-monday-financial python[41166]: Traceback (most recent call last):
+Nov 03 11:36:56 minifw-monday-financial python[41166]:   File "/opt/minifw_ai/app/minifw_ai/runtime_health.py", line 96, in observe
+Nov 03 11:36:56 minifw-monday-financial python[41166]:     with tempfile.NamedTemporaryFile(mode="w", dir=self.path.parent, prefix=".runtime-health-", delete=False) as stream:
+Nov 03 11:36:56 minifw-monday-financial python[41166]:   File "/usr/lib/python3.11/tempfile.py", line 656, in __exit__
+Nov 03 11:36:56 minifw-monday-financial python[41166]:     result = self.file.__exit__(exc, value, tb)
+Nov 03 11:36:56 minifw-monday-financial python[41166]:              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Nov 03 11:36:56 minifw-monday-financial python[41166]: OSError: [Errno 28] No space left on device
+Nov 03 11:36:56 minifw-monday-financial python[41181]: Capturing on 'mfcg'
+Nov 03 11:36:56 minifw-monday-financial python[41181]: File: -
+Nov 03 11:36:57 minifw-monday-financial python[41166]: 2026-11-03 11:36:57,664 - ERROR - Failed to publish runtime health; readiness must remain unavailable
+Nov 03 11:36:57 minifw-monday-financial python[41166]: OSError: [Errno 28] No space left on device
+Nov 03 11:36:57 minifw-monday-financial python[41166]: During handling of the above exception, another exception occurred:
+Nov 03 11:36:57 minifw-monday-financial python[41166]: Traceback (most recent call last):
+Nov 03 11:36:57 minifw-monday-financial python[41166]:   File "/opt/minifw_ai/app/minifw_ai/runtime_health.py", line 96, in observe
+Nov 03 11:36:57 minifw-monday-financial python[41166]:     with tempfile.NamedTemporaryFile(mode="w", dir=self.path.parent, prefix=".runtime-health-", delete=False) as stream:
+Nov 03 11:36:57 minifw-monday-financial python[41166]:   File "/usr/lib/python3.11/tempfile.py", line 656, in __exit__
+Nov 03 11:36:57 minifw-monday-financial python[41166]:     result = self.file.__exit__(exc, value, tb)
+Nov 03 11:36:57 minifw-monday-financial python[41166]:              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Nov 03 11:36:57 minifw-monday-financial python[41166]: OSError: [Errno 28] No space left on device
+Nov 03 11:36:58 minifw-monday-financial python[41166]: 2026-11-03 11:36:58,588 - ERROR - Unhandled exception in main event loop
+Nov 03 11:36:58 minifw-monday-financial python[41166]: OSError: [Errno 28] No space left on device
+Nov 03 11:36:58 minifw-monday-financial python[41166]: During handling of the above exception, another exception occurred:
+Nov 03 11:36:58 minifw-monday-financial python[41166]: Traceback (most recent call last):
+Nov 03 11:36:58 minifw-monday-financial python[41166]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 871, in run
+Nov 03 11:36:58 minifw-monday-financial python[41166]:     writer.write(ev)
+Nov 03 11:36:58 minifw-monday-financial python[41166]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 03 11:36:58 minifw-monday-financial python[41166]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 03 11:36:58 minifw-monday-financial python[41166]: OSError: [Errno 28] No space left on device
+Nov 03 11:36:58 minifw-monday-financial python[41166]: 2026-11-03 11:36:58,692 - ERROR - Failed to publish runtime health; readiness must remain unavailable
+Nov 03 11:36:58 minifw-monday-financial python[41166]: OSError: [Errno 28] No space left on device
+Nov 03 11:36:58 minifw-monday-financial python[41166]: During handling of the above exception, another exception occurred:
+Nov 03 11:36:58 minifw-monday-financial python[41166]: Traceback (most recent call last):
+Nov 03 11:36:58 minifw-monday-financial python[41166]:   File "/opt/minifw_ai/app/minifw_ai/runtime_health.py", line 96, in observe
+Nov 03 11:36:58 minifw-monday-financial python[41166]:     with tempfile.NamedTemporaryFile(mode="w", dir=self.path.parent, prefix=".runtime-health-", delete=False) as stream:
+Nov 03 11:36:58 minifw-monday-financial python[41166]:   File "/usr/lib/python3.11/tempfile.py", line 656, in __exit__
+Nov 03 11:36:58 minifw-monday-financial python[41166]:     result = self.file.__exit__(exc, value, tb)
+Nov 03 11:36:58 minifw-monday-financial python[41166]:              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Nov 03 11:36:58 minifw-monday-financial python[41166]: OSError: [Errno 28] No space left on device
+Nov 03 11:36:59 minifw-monday-financial python[41181]: [11B blob data]
+Nov 03 11:36:59 minifw-monday-financial python[41166]: 2026-11-03 11:36:59,698 - ERROR - Failed to publish runtime health; readiness must remain unavailable
+Nov 03 11:36:59 minifw-monday-financial python[41166]: OSError: [Errno 28] No space left on device
+Nov 03 11:36:59 minifw-monday-financial python[41166]: During handling of the above exception, another exception occurred:
+Nov 03 11:36:59 minifw-monday-financial python[41166]: Traceback (most recent call last):
+Nov 03 11:36:59 minifw-monday-financial python[41166]:   File "/opt/minifw_ai/app/minifw_ai/runtime_health.py", line 96, in observe
+Nov 03 11:36:59 minifw-monday-financial python[41166]:     with tempfile.NamedTemporaryFile(mode="w", dir=self.path.parent, prefix=".runtime-health-", delete=False) as stream:
+Nov 03 11:36:59 minifw-monday-financial python[41166]:   File "/usr/lib/python3.11/tempfile.py", line 656, in __exit__
+Nov 03 11:36:59 minifw-monday-financial python[41166]:     result = self.file.__exit__(exc, value, tb)
+Nov 03 11:36:59 minifw-monday-financial python[41166]:              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Nov 03 11:36:59 minifw-monday-financial python[41166]: OSError: [Errno 28] No space left on device
+Nov 03 11:37:00 minifw-monday-financial python[41166]: 2026-11-03 11:37:00,704 - ERROR - Failed to publish runtime health; readiness must remain unavailable
+Nov 03 11:37:00 minifw-monday-financial python[41166]: OSError: [Errno 28] No space left on device
+Nov 03 11:37:00 minifw-monday-financial python[41166]: During handling of the above exception, another exception occurred:
+Nov 03 11:37:00 minifw-monday-financial python[41166]: Traceback (most recent call last):
+Nov 03 11:37:00 minifw-monday-financial python[41166]:   File "/opt/minifw_ai/app/minifw_ai/runtime_health.py", line 96, in observe
+Nov 03 11:37:00 minifw-monday-financial python[41166]:     with tempfile.NamedTemporaryFile(mode="w", dir=self.path.parent, prefix=".runtime-health-", delete=False) as stream:
+Nov 03 11:37:00 minifw-monday-financial python[41166]:   File "/usr/lib/python3.11/tempfile.py", line 656, in __exit__
+Nov 03 11:37:00 minifw-monday-financial python[41166]:     result = self.file.__exit__(exc, value, tb)
+Nov 03 11:37:00 minifw-monday-financial python[41166]:              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Nov 03 11:37:00 minifw-monday-financial python[41166]: OSError: [Errno 28] No space left on device
+Nov 03 11:37:01 minifw-monday-financial python[41166]: 2026-11-03 11:37:01,708 - ERROR - Failed to publish runtime health; readiness must remain unavailable
+Nov 03 11:37:01 minifw-monday-financial python[41166]: OSError: [Errno 28] No space left on device
+Nov 03 11:37:01 minifw-monday-financial python[41166]: During handling of the above exception, another exception occurred:
+Nov 03 11:37:01 minifw-monday-financial python[41166]: Traceback (most recent call last):
+Nov 03 11:37:01 minifw-monday-financial python[41166]:   File "/opt/minifw_ai/app/minifw_ai/runtime_health.py", line 96, in observe
+Nov 03 11:37:01 minifw-monday-financial python[41166]:     with tempfile.NamedTemporaryFile(mode="w", dir=self.path.parent, prefix=".runtime-health-", delete=False) as stream:
+Nov 03 11:37:01 minifw-monday-financial python[41166]:   File "/usr/lib/python3.11/tempfile.py", line 656, in __exit__
+Nov 03 11:37:01 minifw-monday-financial python[41166]:     result = self.file.__exit__(exc, value, tb)
+Nov 03 11:37:01 minifw-monday-financial python[41166]:              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Nov 03 11:37:01 minifw-monday-financial python[41166]: OSError: [Errno 28] No space left on device
+Nov 03 11:37:01 minifw-monday-financial python[41166]: 2026-11-03 11:37:01,811 - ERROR - Unhandled exception in main event loop
+Nov 03 11:37:01 minifw-monday-financial python[41166]: OSError: [Errno 28] No space left on device
+Nov 03 11:37:01 minifw-monday-financial python[41166]: During handling of the above exception, another exception occurred:
+Nov 03 11:37:01 minifw-monday-financial python[41166]: Traceback (most recent call last):
+Nov 03 11:37:01 minifw-monday-financial python[41166]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 871, in run
+Nov 03 11:37:01 minifw-monday-financial python[41166]:     writer.write(ev)
+Nov 03 11:37:01 minifw-monday-financial python[41166]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 03 11:37:01 minifw-monday-financial python[41166]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 03 11:37:01 minifw-monday-financial python[41166]: OSError: [Errno 28] No space left on device
+Nov 03 11:37:02 minifw-monday-financial python[41181]: [11B blob data]
+Nov 03 11:37:02 minifw-monday-financial python[41166]: 2026-11-03 11:37:02,718 - ERROR - Failed to publish runtime health; readiness must remain unavailable
+Nov 03 11:37:02 minifw-monday-financial python[41166]: OSError: [Errno 28] No space left on device
+Nov 03 11:37:02 minifw-monday-financial python[41166]: During handling of the above exception, another exception occurred:
+Nov 03 11:37:02 minifw-monday-financial python[41166]: Traceback (most recent call last):
+Nov 03 11:37:02 minifw-monday-financial python[41166]:   File "/opt/minifw_ai/app/minifw_ai/runtime_health.py", line 96, in observe
+Nov 03 11:37:02 minifw-monday-financial python[41166]:     with tempfile.NamedTemporaryFile(mode="w", dir=self.path.parent, prefix=".runtime-health-", delete=False) as stream:
+Nov 03 11:37:02 minifw-monday-financial python[41166]:   File "/usr/lib/python3.11/tempfile.py", line 656, in __exit__
+Nov 03 11:37:02 minifw-monday-financial python[41166]:     result = self.file.__exit__(exc, value, tb)
+Nov 03 11:37:02 minifw-monday-financial python[41166]:              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Nov 03 11:37:02 minifw-monday-financial python[41166]: OSError: [Errno 28] No space left on device
+Nov 03 11:37:02 minifw-monday-financial python[41166]: 2026-11-03 11:37:02,871 - ERROR - Unhandled exception in main event loop
+Nov 03 11:37:02 minifw-monday-financial python[41166]: OSError: [Errno 28] No space left on device
+Nov 03 11:37:02 minifw-monday-financial python[41166]: During handling of the above exception, another exception occurred:
+Nov 03 11:37:02 minifw-monday-financial python[41166]: Traceback (most recent call last):
+Nov 03 11:37:02 minifw-monday-financial python[41166]:   File "/opt/minifw_ai/app/minifw_ai/main.py", line 871, in run
+Nov 03 11:37:02 minifw-monday-financial python[41166]:     writer.write(ev)
+Nov 03 11:37:02 minifw-monday-financial python[41166]:   File "/opt/minifw_ai/app/minifw_ai/events.py", line 49, in write
+Nov 03 11:37:02 minifw-monday-financial python[41166]:     with self.path.open("a", encoding="utf-8") as f:
+Nov 03 11:37:02 minifw-monday-financial python[41166]: OSError: [Errno 28] No space left on device
+Nov 03 11:37:03 minifw-monday-financial systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 03 11:37:03 minifw-monday-financial python[41181]: [32B blob data]
+Nov 03 11:37:03 minifw-monday-financial python[41181]: Packets received/dropped on interface 'mfcg': 5/0 (pcap:0/dumpcap:0/flushed:0/ps_ifdrop:0) (100.0%)
+Nov 03 11:37:03 minifw-monday-financial python[41166]: 2026-11-03 11:37:03,652 - INFO - Caught SIGTERM, shutting down.
+Nov 03 11:37:03 minifw-monday-financial python[41166]: 2026-11-03 11:37:03,709 - ERROR - [packet] Collector failed; retrying independently
+Nov 03 11:37:03 minifw-monday-financial python[41166]: Traceback (most recent call last):
+Nov 03 11:37:03 minifw-monday-financial python[41166]:   File "/opt/minifw_ai/app/minifw_ai/collector_runtime.py", line 16, in collect
+Nov 03 11:37:03 minifw-monday-financial python[41166]:     for event in factory():
+Nov 03 11:37:03 minifw-monday-financial python[41166]:   File "/opt/minifw_ai/app/minifw_ai/collector_packets.py", line 87, in stream_packet_events
+Nov 03 11:37:03 minifw-monday-financial python[41166]:     raise RuntimeError(f"Packet metadata sensor stopped: exit={decoder.wait()}")
+Nov 03 11:37:03 minifw-monday-financial python[41166]: RuntimeError: Packet metadata sensor stopped: exit=0
+Nov 03 11:37:03 minifw-monday-financial python[41166]: [*] DNS Collector reading from /var/tmp/minifw-monday-financial-20261103T043643Z/dns.log
+Nov 03 11:37:04 minifw-monday-financial systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 03 11:37:04 minifw-monday-financial systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 03 11:37:04 minifw-monday-financial systemd[1]: minifw-ai.service: Consumed 2.134s CPU time.
+Nov 03 11:37:04 minifw-monday-financial systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 03 11:37:06 minifw-monday-financial python[41261]: 2026-11-03 11:37:06,132 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Nov 03 11:37:06 minifw-monday-financial python[41261]: 2026-11-03 11:37:06,135 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Nov 03 11:37:06 minifw-monday-financial python[41261]: 2026-11-03 11:37:06,136 - INFO - [STATE] Restored state from /opt/minifw_ai/logs/deployment_state.json: BASELINE_PROTECTION
+Nov 03 11:37:06 minifw-monday-financial python[41261]: 2026-11-03 11:37:06,136 - INFO - [STATE] Initial protection state: BASELINE_PROTECTION
+Nov 03 11:37:06 minifw-monday-financial python[41261]: 2026-11-03 11:37:06,142 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_financial: sector=finance
+Nov 03 11:37:06 minifw-monday-financial python[41261]: 2026-11-03 11:37:06,143 - INFO - [SECTOR_LOCK] Loaded config for finance: ['description', 'block_tor', 'block_anonymizers', 'strict_tls', 'minimum_tls_version', 'pci_compliance_mode', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_retention_days']
+Nov 03 11:37:06 minifw-monday-financial python[41261]: 2026-11-03 11:37:06,143 - INFO - [SECTOR_LOCK] Device sector: finance (LOCKED)
+Nov 03 11:37:06 minifw-monday-financial python[41261]: 2026-11-03 11:37:06,143 - INFO - [SECTOR_LOCK] Config: Finance: metadata policies; TLS version control requires packet metadata; no compliance certification.
+Nov 03 11:37:06 minifw-monday-financial python[41261]: 2026-11-03 11:37:06,143 - INFO - [FEEDS] Loaded 10 patterns from financial_fraud.txt
+Nov 03 11:37:06 minifw-monday-financial python[41261]: 2026-11-03 11:37:06,143 - INFO - [FEEDS] Loaded 9 patterns from crypto_scams.txt
+Nov 03 11:37:06 minifw-monday-financial python[41261]: 2026-11-03 11:37:06,143 - INFO - [SECTOR_LOCK] Loaded 19 sector-specific feed patterns
+Nov 03 11:37:06 minifw-monday-financial python[41261]: 2026-11-03 11:37:06,143 - INFO - [FEEDS] Loaded 0 Tor exit node IPs from /opt/minifw_ai/config/feeds/tor_exit_nodes.txt
+Nov 03 11:37:06 minifw-monday-financial python[41261]: 2026-11-03 11:37:06,143 - INFO - [SECTOR_LOCK] Tor/anonymizer blocking enabled: loaded 0 exit IPs
+Nov 03 11:37:06 minifw-monday-financial python[41261]: 2026-11-03 11:37:06,208 - INFO - [TELEMETRY] Packet metadata on mfcg; packet14 model required; no TLS decryption
+Nov 03 11:37:06 minifw-monday-financial python[41276]: Capturing on 'mfcg'
+Nov 03 11:37:06 minifw-monday-financial python[41276]: File: -
+Nov 03 11:37:08 minifw-monday-financial python[41276]: [12B blob data]
+Nov 03 11:37:08 minifw-monday-financial python[41261]: 2026-11-03 11:37:08,888 - INFO - Caught SIGTERM, shutting down.
+Nov 03 11:37:08 minifw-monday-financial python[41276]: [34B blob data]
+Nov 03 11:37:08 minifw-monday-financial python[41276]: Packets received/dropped on interface 'mfcg': 36/0 (pcap:0/dumpcap:0/flushed:0/ps_ifdrop:0) (100.0%)
+Nov 03 11:37:08 minifw-monday-financial systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 03 11:37:08 minifw-monday-financial python[41261]: 2026-11-03 11:37:08,944 - ERROR - [packet] Collector failed; retrying independently
+Nov 03 11:37:08 minifw-monday-financial python[41261]: Traceback (most recent call last):
+Nov 03 11:37:08 minifw-monday-financial python[41261]:   File "/opt/minifw_ai/app/minifw_ai/collector_runtime.py", line 16, in collect
+Nov 03 11:37:08 minifw-monday-financial python[41261]:     for event in factory():
+Nov 03 11:37:08 minifw-monday-financial python[41261]:   File "/opt/minifw_ai/app/minifw_ai/collector_packets.py", line 87, in stream_packet_events
+Nov 03 11:37:08 minifw-monday-financial python[41261]:     raise RuntimeError(f"Packet metadata sensor stopped: exit={decoder.wait()}")
+Nov 03 11:37:08 minifw-monday-financial python[41261]: RuntimeError: Packet metadata sensor stopped: exit=0
+Nov 03 11:37:09 minifw-monday-financial python[41261]: [*] DNS Collector reading from /var/tmp/minifw-monday-financial-20261103T043643Z/dns.log
+Nov 03 11:37:09 minifw-monday-financial systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 03 11:37:09 minifw-monday-financial systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 03 11:37:09 minifw-monday-financial systemd[1]: minifw-ai.service: Consumed 2.151s CPU time.
+$ nft -a list table inet minifw
+table inet minifw { # handle 54
+	set minifw_block_v4 { # handle 1
+		type ipv4_addr
+		timeout 1h
+	}
+
+	chain forward { # handle 2
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 7 bytes 420 comment "MiniFW-AI-Conntrack" # handle 3
+		ip saddr @minifw_block_v4 counter packets 2 bytes 120 drop comment "MiniFW-AI-Blocklist" # handle 4
+	}
+}
+$ systemctl daemon-reload
+$ ip netns delete mf-client
+$ ip netns delete mf-server
+$ ip link delete mfcg
+$ ip link delete mfsg
+EVIDENCE_DIRECTORY /var/tmp/minifw-monday-financial-20261103T043643Z
