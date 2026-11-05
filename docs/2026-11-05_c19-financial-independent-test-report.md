@@ -22,7 +22,7 @@
 | **2. Installer & Package Status** | **SHA-256:** `ead9c4a376c4680c8cfdbbf97e303e8a8361a4bad47ae3a48094c12db8819744`<br>**Retrieval:** Authenticated GitHub CLI release asset fetch (`gh release download v2.2.10-c19-financial-test`) transferred to guest via SCP.<br>**dpkg Status:** `Status: install ok installed`, `Version: 2.2.10-finance`<br>**dpkg --verify:** Clean (exit code 0) |
 | **3. Raw `nft` Output** | Captured in live kernel during active client isolation (`10.10.0.20` in `minifw_block_v4`, timeout 15s) and verified automatically purged after timeout expiration. |
 | **4. Run Logs / Results** | Exported to [`docs/evidence/2026-11-05-independent-run/ilham-run-evidence.json`](file:///mnt/c/Users/ADVAN/minifw-ai/docs/evidence/2026-11-05-independent-run/ilham-run-evidence.json). |
-| **5. Deployment ID & Signed Licence** | **Deployment ID:** `e645474e-5d68-47ab-9b0c-c5d2fc98a61c` (generated from dashboard `/admin/license` on guest).<br>**Licence Source:** Signed on lab host `sydeco-desktop` using private vendor key `/home/sydeco/.minifw-license/vendor-ed25519.pem` (Key ID: `minifw-vendor-2026`) via `scripts/license_tool.py`. Activated via `/admin/api/license` (HTTP 200, status `valid`). Tampered license rejected (HTTP 400). Persisted across `minifw-ai-web` service restart. |
+| **5. Deployment ID & Signed Licence** | **Deployment ID:** `e645474e-5d68-47ab-9b0c-c5d2fc98a61c` (generated from dashboard `/admin/license` on guest).<br>**Licence Details:** Key ID: `minifw-vendor-2026`, Licence ID: `6f74f3eb-c9f7-4913-b1c5-83566fa53ca0`. Signed via vendor authority on lab host. Activated via `/admin/api/license` (HTTP 200, status `valid`). Tampered license rejected (HTTP 400). Persisted across `minifw-ai-web` service restart. |
 
 ---
 
@@ -75,23 +75,16 @@ table inet minifw {
 }
 ```
 
-### 2.4 Vendor-Signed Licence Payload
-```json
-{
-  "key_id": "minifw-vendor-2026",
-  "payload": {
-    "schema_version": 1,
-    "license_id": "6f74f3eb-c9f7-4913-b1c5-83566fa53ca0",
-    "customer_id": "ilhamws-independent-financial-lab",
-    "deployment_id": "e645474e-5d68-47ab-9b0c-c5d2fc98a61c",
-    "product_mode": "minifw_financial",
-    "issued_at": "2026-11-05T06:26:34Z",
-    "starts_at": "2026-11-05T06:26:34Z",
-    "expires_at": "2027-11-05T06:26:34Z"
-  },
-  "signature": "02F1wm4lCNOAOXjIT9IZeUgI8VTQ7SxkDNusMMKL86/X0IYpM+eFuttd7cbsJ7KeW7ov7DbwPFQfzuHZu+YmBQ=="
-}
-```
+### 2.4 Licence Activation Verification
+* **Key ID:** `minifw-vendor-2026`
+* **Licence ID:** `6f74f3eb-c9f7-4913-b1c5-83566fa53ca0`
+* **Deployment ID:** `e645474e-5d68-47ab-9b0c-c5d2fc98a61c`
+* **Customer ID:** `ilhamws-independent-financial-lab`
+* **Product Mode:** `minifw_financial`
+* **Validity Window:** `2026-11-05T06:26:34Z` to `2027-11-05T06:26:34Z`
+* **Status:** `valid` (HTTP 200 on `/admin/api/license`)
+* **Tampered Rejection:** HTTP 400 (corrupted payload rejected)
+*(Note: Per public repository security guidelines, full license payload, signature string, and private key paths are omitted).*
 
 ### 2.5 Policy Apply Response via Dashboard (`POST /admin/policy/apply`)
 ```json
