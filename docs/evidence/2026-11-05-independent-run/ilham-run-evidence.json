@@ -1,0 +1,72 @@
+{
+  "run_metadata": {
+    "tester": "ilhamws",
+    "evaluation": "Independent Verification for MiniFW-AI Financial v2.2.10 C19 Baseline",
+    "issue": "https://github.com/vadhh/minifw-ai/issues/7",
+    "host": "sydeco-desktop (100.64.135.126)",
+    "guest_hostname": "minifw-ilham-financial",
+    "guest_os": "Debian GNU/Linux 12 (bookworm)",
+    "guest_kernel": "Linux 6.1.0-54-cloud-amd64 #1 SMP PREEMPT_DYNAMIC Debian 6.1.190-1 (2026-10-16) x86_64",
+    "start_time_wib": "2026-11-05T13:19:53+07:00",
+    "end_time_wib": "2026-11-05T13:28:15+07:00",
+    "start_time_utc": "2026-11-05T06:19:53Z",
+    "end_time_utc": "2026-11-05T06:28:15Z"
+  },
+  "package_verification": {
+    "installer_file": "minifw-ai_2.2.10-finance_amd64.deb",
+    "retrieval_method": "GitHub CLI authenticated API release download (gh release download v2.2.10-c19-financial-test) from collaborator draft release",
+    "sha256": "ead9c4a376c4680c8cfdbbf97e303e8a8361a4bad47ae3a48094c12db8819744",
+    "sha256_match": true,
+    "dpkg_status": {
+      "package": "minifw-ai",
+      "status": "install ok installed",
+      "version": "2.2.10-finance",
+      "architecture": "amd64",
+      "maintainer": "Afridho Ikhsan <afridho@minifw.local>",
+      "depends": "python3 (>= 3.10), python3-venv, nftables, openssl, conntrack, logrotate, adduser"
+    },
+    "dpkg_verify": "clean"
+  },
+  "licensing": {
+    "deployment_id": "e645474e-5d68-47ab-9b0c-c5d2fc98a61c",
+    "vendor_key_id": "minifw-vendor-2026",
+    "private_key_source": "/home/sydeco/.minifw-license/vendor-ed25519.pem on lab host",
+    "signed_license": {
+      "license_id": "6f74f3eb-c9f7-4913-b1c5-83566fa53ca0",
+      "customer_id": "ilhamws-independent-financial-lab",
+      "deployment_id": "e645474e-5d68-47ab-9b0c-c5d2fc98a61c",
+      "product_mode": "minifw_financial",
+      "issued_at": "2026-11-05T06:26:34Z",
+      "starts_at": "2026-11-05T06:26:34Z",
+      "expires_at": "2027-11-05T06:26:34Z"
+    },
+    "activation_http_status": 200,
+    "activation_result": "valid",
+    "tampered_upload_http_status": 400,
+    "persists_after_web_restart": true
+  },
+  "dashboard_and_services": {
+    "web_process_user": "minifw-web",
+    "web_service_status": "active (running)",
+    "engine_service_status": "active (running, BASELINE_PROTECTION)",
+    "mandatory_password_reset_enforced": true,
+    "policy_apply_endpoint": "POST /admin/policy/apply",
+    "policy_apply_response": {
+      "http_status": 200,
+      "message": "Engine restarted; saved policy and feeds loaded. Check protection status on the dashboard.",
+      "engine_pid": 1505
+    }
+  },
+  "kernel_enforcement_nftables": {
+    "raw_nft_output_isolated": "table inet minifw {\n\tset minifw_block_v4 {\n\t\ttype ipv4_addr\n\t\ttimeout 1h\n\t\telements = { 10.10.0.20 timeout 15s expires 14s972ms }\n\t}\n\n\tchain forward {\n\t\ttype filter hook forward priority filter; policy accept;\n\t\tct state new counter packets 0 bytes 0 comment \"MiniFW-AI-Conntrack\"\n\t\tip saddr @minifw_block_v4 counter packets 0 bytes 0 drop comment \"MiniFW-AI-Blocklist\"\n\t}\n}",
+    "raw_nft_output_after_expiry": "table inet minifw {\n\tset minifw_block_v4 {\n\t\ttype ipv4_addr\n\t\ttimeout 1h\n\t}\n\n\tchain forward {\n\t\ttype filter hook forward priority filter; policy accept;\n\t\tct state new counter packets 0 bytes 0 comment \"MiniFW-AI-Conntrack\"\n\t\tip saddr @minifw_block_v4 counter packets 0 bytes 0 drop comment \"MiniFW-AI-Blocklist\"\n\t}\n}",
+    "timeout_seconds": 15,
+    "cleanly_expired": true
+  },
+  "normal_traffic_verification": {
+    "routes_tested": ["/admin/", "/admin/policy", "/admin/license"],
+    "http_status": 200,
+    "false_isolation": false,
+    "ai_mode": "shadow_only"
+  }
+}
