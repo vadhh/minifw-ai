@@ -3,14 +3,14 @@
 | Item | Value |
 | --- | --- |
 | Edition | Financial (`minifw_financial`) |
-| Version | 2.2.13 (candidate C22) |
-| Source commit | `50058d10` on `fix/monday-core-20261102` |
-| Source tarball SHA-256 | `7184a0039d852bfff6069b402589b859b1ffcf0ee8300fff41f151048106963f` |
+| Version | 2.2.13 |
+| Source commit | `50058d10` |
 | Installer | `minifw-ai_2.2.13-finance_amd64.deb`, SHA-256 `6192bdd79e4094ec3c841217afe1c335c9ac36df9220a6e91a3857e3013d92c9` |
 | Connection-rate AI model | `client_window_v1.json`, SHA-256 `d06ce40ea3276d2cedac9e354075c4aa74aa3987e08b35e40a95451d4e69d6ee` |
 | Previous public release | v2.2.10 (26 October 2026) |
+| State at handover | Connection-rate AI in shadow mode (isolation off); rule blocks on. The site turns AI isolation on after the shadow period (setup guide, sections 14–15). |
 
-Read with `setup-guide.md` and `recovery-procedure.md` in the same folder.
+Read with the setup guide and the recovery procedure.
 
 ## What changed since v2.2.10
 
@@ -58,7 +58,7 @@ Read with `setup-guide.md` and `recovery-procedure.md` in the same folder.
 
 1. **It counts connections, not passwords.** It does not see logins or failed attempts. Several attempts over one connection count once. Clients slower than about 37 new connections a minute are not caught; 30–36 a minute was never isolated in the lab.
 2. **Benign automation looks the same.** A poller opening a new connection every second was isolated after about 40–44 seconds. Servers, monitoring and polling systems, proxies and shared NAT addresses must be listed in `exempt` before isolation is turned on. Pollers that reuse one connection are not affected.
-3. **It runs only in AI-enhanced protection,** which needs a healthy DNS log. With no DNS query for a minute (a quiet network, for example at night), the engine falls back to baseline and the AI pauses until queries resume.
+3. **It runs only in AI-enhanced protection,** which needs a healthy DNS log. With no DNS query for about two minutes (a quiet network, for example at night), the engine falls back to baseline and the AI pauses. It resumes about one to one and a half minutes after queries return.
 4. **A shared address is one client.** Clients behind a shared NAT address count together.
 5. **Lab evidence only.** All AI results come from a lab with scripted clients. There is no measured false-isolation rate on a real network. A shadow period of a few days before approval is recommended.
 
@@ -86,7 +86,7 @@ Read with `setup-guide.md` and `recovery-procedure.md` in the same folder.
 
 ## Test summary
 
-All results come from the vendor's lab on 6 November 2026: two Debian 12 VMs, scripted clients, and a lab server. Raw evidence is in `docs/evidence/2026-11-06-financial/` (`c22/`, `c21/`, `boundary-c20/`). The independent test by a second engineer is tracked separately; this summary does not replace it.
+All results come from the vendor's lab on 6 November 2026: two Debian 12 VMs, scripted clients, and a lab server. The vendor keeps the raw evidence and can provide it on request. Version 2.2.12, mentioned below, was an internal test build and was not released.
 
 | Check | Result on 2.2.13 |
 | --- | --- |
@@ -101,6 +101,7 @@ All results come from the vendor's lab on 6 November 2026: two Debian 12 VMs, sc
 | Benign poller, one new connection a second | Isolated in about 39 s; not isolated when exempt |
 | Baseline gates | Licence valid; tampered licence rejected; Save → Apply changed enforcement; deny-listed domain isolated the client; labelled normal traffic not isolated |
 | Backup and restore | Both succeeded; all archive entries matched after restore; login worked |
+| Shadow review command (setup guide, section 14) | Read 171,188 events from the current, rotated and compressed logs in about 2 s; listed the two lab clients that crossed the isolation point |
 
 Checked on 2.2.12, unchanged in 2.2.13:
 
@@ -109,3 +110,13 @@ Checked on 2.2.12, unchanged in 2.2.13:
 - No invented labels appeared.
 - CSV and PDF exports parsed with the new columns.
 - HTML escaping was checked by code review only.
+
+A second engineer then repeated the main checks independently on a clean Debian 12 guest, with the same results. The checks covered:
+
+- installation, first login, licence and Save → Apply;
+- recovery after a kill and a reboot, and backup and restore;
+- AI isolation, its 15-minute expiry, and exemptions;
+- restart behaviour and large downloads;
+- a full log volume;
+- loss and return of DNS;
+- a missing or corrupt model.

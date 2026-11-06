@@ -3,7 +3,7 @@
 | Item | Value |
 | --- | --- |
 | Product | MiniFW-AI, Financial edition (sector `finance`, product mode `minifw_financial`) |
-| Version | 2.2.13 (candidate C22) |
+| Version | 2.2.13 |
 | Source commit | `50058d10` |
 | Installer | `minifw-ai_2.2.13-finance_amd64.deb` |
 | Installer SHA-256 | `6192bdd79e4094ec3c841217afe1c335c9ac36df9220a6e91a3857e3013d92c9` |
@@ -13,7 +13,9 @@ This guide covers a new installation. Every command runs as root, so it starts w
 Example addresses come from the documentation range `192.0.2.0/24`. Replace them with your own.
 Values in angle brackets, such as `<gateway-address>`, are placeholders.
 
-The companion document `recovery-procedure.md` covers unblocking, turning the AI off, backup, restore and rollback.
+The companion document, the recovery procedure, covers unblocking, turning the AI off, backup, restore and rollback.
+
+**At handover, AI isolation is off.** Sections 1–14 are done at installation. The connection-rate AI scores in shadow mode only, while deny-listed domains and port scans are blocked from day one. Turning AI isolation on (section 15) is the site's step after the shadow period, once the exempt list is built from the section 14 review.
 
 ---
 
@@ -40,7 +42,7 @@ Hard gates on a gateway without a packet sensor (the default): the port-scan gat
 - "Healthy" means dnsmasq wrote a DNS query line in the last 60 seconds.
 - The engine checks every 30 seconds. After 2 failed checks it switches to baseline protection. After 3 good checks in a row it switches back to AI-enhanced protection.
 - Domain deny-list matching takes domain names from DNS log lines (and from Zeek SNI, if a Zeek sensor exists). While the DNS log is missing, DNS-based domain matches cannot happen. Address-based feeds and hard gates are not affected.
-- A quiet network also counts as unhealthy. If no client makes a DNS query for a minute (for example at night), the engine drops to baseline. It returns by itself when queries resume.
+- A quiet network also counts as unhealthy. If no client makes a DNS query for about two minutes (for example at night), the engine drops to baseline. It returns by itself one to one and a half minutes after queries resume.
 - The current state is saved in `/opt/minifw_ai/logs/deployment_state.json` and survives engine restarts.
 
 The dashboard's **Firewall Status** card shows two rows read from the engine's runtime health:
@@ -461,14 +463,12 @@ If it shows something else:
 
 These points come from reading the code and have not been tested yet.
 
-1. A fresh install of this exact installer on a clean Debian 12 amd64 host: first login, licence install, Save and Apply.
-2. With no Zeek sensor and **Enable Zeek SNI Collection** turned off, the "Protection checks unavailable" banner clears while DNS and connection tracking are active.
-3. What an installation without PyPI access leaves behind, and whether running `apt install` again completes it.
-4. How to renew the dashboard certificate after 365 days. The code creates it only when it is missing; no renewal step exists.
-5. Whether a client's new connections to the gateway's own services count toward the connection-rate AI. If they do, isolation would cut only that client's routed traffic.
-6. Whether `/var/log/dnsmasq.log` is rotated on the site. The MiniFW-AI log rotation covers only its own logs.
-7. How long the switch to baseline and back takes on the site's network.
-8. The shadow review command in section 14 against a real, rotated events log.
+1. With no Zeek sensor and **Enable Zeek SNI Collection** turned off, the "Protection checks unavailable" banner clears while DNS and connection tracking are active.
+2. What an installation without PyPI access leaves behind, and whether running `apt install` again completes it.
+3. How to renew the dashboard certificate after 365 days. The code creates it only when it is missing; no renewal step exists.
+4. Whether a client's new connections to the gateway's own services count toward the connection-rate AI. If they do, isolation would cut only that client's routed traffic.
+5. Whether `/var/log/dnsmasq.log` is rotated on the site. The MiniFW-AI log rotation covers only its own logs.
+6. How long the switch to baseline and back takes on the site's network.
 
 ## Sources (commit `50058d10`)
 

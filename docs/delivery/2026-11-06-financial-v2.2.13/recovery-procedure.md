@@ -2,12 +2,12 @@
 
 | Item | Value |
 | --- | --- |
-| Version | 2.2.13-finance (candidate C22, commit `50058d10`) |
+| Version | 2.2.13-finance (source commit `50058d10`) |
 | Installer | `minifw-ai_2.2.13-finance_amd64.deb`, SHA-256 `6192bdd79e4094ec3c841217afe1c335c9ac36df9220a6e91a3857e3013d92c9` |
 
 Every command runs as root, so it starts with `sudo`.
 `192.0.2.10` stands for the affected client. Replace it with the real address.
-Section numbers like "setup guide §12" refer to `setup-guide.md`.
+Section numbers like "setup guide §12" refer to the setup guide.
 
 ## Names and paths used below
 
@@ -256,7 +256,7 @@ The AI keeps scoring in shadow mode. To turn isolation back on, follow setup gui
 - Rules, threat feeds and hard gates keep enforcing. The AI does not run.
 - Domain deny-list matches from DNS cannot happen while there are no DNS log lines.
 
-The engine checks every 30 seconds whether dnsmasq wrote a query line in the last 60 seconds. After 2 failed checks it switches to baseline. A network with no DNS queries for a minute (for example at night) also switches to baseline. That is not a fault, and it switches back by itself.
+The engine checks every 30 seconds whether dnsmasq wrote a query line in the last 60 seconds. After 2 failed checks it switches to baseline, about 90 to 120 seconds after the last query. After 3 good checks in a row it switches back, 60 to 90 seconds after queries return. A network with no DNS queries for about two minutes (for example at night) also switches to baseline. That is not a fault, and it switches back by itself.
 
 ### Steps
 
@@ -473,7 +473,6 @@ A backup restores only onto the same version and edition. A 2.2.13-finance archi
 1. Make a backup on the current version (section 6). You will need it if you return to 2.2.13.
 2. Know the restore limits:
    - A 2.2.13 backup cannot be restored onto an older version.
-   - The backup tool in 2.2.11 refuses every backup and restore.
    - The backup tool in 2.2.10 accepts only 2.2.10.
    - So after a rollback, you rely on the files dpkg leaves in place.
 3. Get the previous installer from the vendor. Check its SHA-256 against the vendor's value.
@@ -492,7 +491,7 @@ The install step does adjust some of them. It runs `pip install` into the existi
 
 The policy files and feeds are conffiles. `--force-confold` keeps your edited versions without asking.
 
-Versions 2.2.10 and 2.2.11 read the licence and the deployment ID from the same paths as 2.2.13. So the deployment ID should not change, and the licence should stay valid (to confirm in the lab, item 6).
+Version 2.2.10 reads the licence and the deployment ID from the same paths as 2.2.13. So the deployment ID should not change, and the licence should stay valid (to confirm in the lab, item 6).
 
 ### Steps
 
@@ -597,7 +596,7 @@ These points come from reading the code and have not been tested yet. Treat them
 
 1. The order in section 1 (fix, restart, then delete) for an AI block. For a port-scan block it was confirmed in the lab: after a restart the client was not re-blocked (4 of 4 runs), while deleting the block on a running engine let the engine re-add the client within 1-5 seconds.
 2. The exact error text `nft get element` prints for an address that is not in the set.
-3. Behaviour when `/opt/minifw_ai/logs` or `/var/lib/minifw-ai` is full: blocking continues, the dashboard login still works, and recovery after space is freed.
+3. Behaviour when `/var/lib/minifw-ai` is full, and whether the dashboard login still works while `/opt/minifw_ai/logs` is full. With `/opt/minifw_ai/logs` full, an independent test showed blocking continues and health recovers after space is freed and the engine restarts.
 4. Whether a broken-policy restart loop ever reaches systemd's start limit, so that `reset-failed` is needed.
 5. Restoring a backup onto a rebuilt gateway with the saved `installation-id` put back first: the licence shows Valid. Agree this with the vendor before relying on it.
 6. A downgrade from 2.2.13 to the previous Financial version: services start; the dashboard database, licence and deployment ID still work; the policy is kept; the AI approval line has no unwanted effect.
