@@ -168,3 +168,15 @@ class TestBaselineHardGates(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+def test_conntrack_bulk_download_does_not_trip_packet_rate_gate():
+    # One 20 MB download measured by conntrack counters: ~15000 packets between two 5 s polls (3000 pps).
+    from minifw_ai.collector_flow import ConntrackFlow
+    tracker = FlowTracker()
+    for i, n in enumerate((0, 15000)):
+        tracker.observe_conntrack(ConntrackFlow("10.10.0.50", "198.18.0.2", 443, "tcp", 51000,
+                                                n // 3, n * 40, n - n // 3, n * 1400, observed_at=1000.0 + 5 * i))
+    flows = tracker.get_flows_for_client("10.10.0.50")
+    assert flows[0].pkts_per_sec > 200
+    assert evaluate_hard_threat(flows) == (False, None)
