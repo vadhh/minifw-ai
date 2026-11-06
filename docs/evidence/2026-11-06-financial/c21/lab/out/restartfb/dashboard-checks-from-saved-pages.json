@@ -1,0 +1,63 @@
+{
+  "/admin/": {
+    "bytes": 76018,
+    "forbidden_found": [],
+    "Detection Mode": "Baseline (AI off: DNS log not healthy)",
+    "Connection-rate AI": "Off (baseline)",
+    "banner": [
+      "",
+      "<strong><i class=\"bi bi-exclamation-triangle\"></i> Security Notice:</strong> The engine ' + (blk ? 'blocked' : 'flagged for monitoring') + ' this event.</div>'"
+    ]
+  },
+  "/admin/events": {
+    "bytes": 963289,
+    "forbidden_found": []
+  },
+  "csv": {
+    "comment_lines": [
+      "# MiniFW-AI Evidence Report",
+      "# Generated: 2026-11-06 10:05:43",
+      "# Kernel status at export time (not per event): Blocked at kernel level (nftables) \u2014 Engine-verified inet/minifw drop rule (runtime health, <=10 s old)",
+      "# score: total of all signals, 0-100 (not an AI score)"
+    ],
+    "header": [
+      "timestamp",
+      "client_ip",
+      "domain",
+      "action",
+      "score",
+      "decision_owner",
+      "ai_window_mode",
+      "reasons",
+      "kernel_status_at_export"
+    ],
+    "rows": 46980,
+    "widths": [
+      9
+    ],
+    "client_block_rows": [
+      [
+        "2026-11-06 03:05:00.768691+00:00",
+        "10.10.0.20",
+        "",
+        "block",
+        "100",
+        "Hard Gate",
+        "not_run",
+        "port_scan, hard_threat_gate_override",
+        "Blocked at kernel level (nftables)"
+      ],
+      [
+        "2026-11-06 03:05:39.514476+00:00",
+        "10.10.0.20",
+        "",
+        "block",
+        "100",
+        "Hard Gate",
+        "not_run",
+        "port_scan, hard_threat_gate_override",
+        "Blocked at kernel level (nftables)"
+      ]
+    ]
+  }
+}

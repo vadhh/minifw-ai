@@ -1,0 +1,88 @@
+$ dpkg-query -W minifw-ai -> 0 minifw-ai	2.2.13-finance
+$ systemctl is-active minifw-ai -> 0 active
+$ systemctl is-active minifw-ai-web -> 0 active
+$ systemctl is-active dnsmasq -> 3 failed
+$ nft list table inet minifw -> 0 table inet minifw {
+	set minifw_block_v4 {
+		type ipv4_addr
+		timeout 1h
+	}
+
+	chain forward {
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 4024 bytes 241200 comment "MiniFW-AI-Conntrack"
+		ip saddr @minifw_block_v4 counter packets 1539 bytes 91460 drop comment "MiniFW-AI-Blocklist"
+	}
+}
+$ ip netns add mf-client -> 0 
+$ ip netns add mf-server -> 0 
+$ ip -n mf-client link set lo up -> 0 
+$ ip link add mfcg type veth peer name mfc0 -> 0 
+$ ip link set mfc0 netns mf-client -> 0 
+$ ip addr add 10.10.0.1/24 dev mfcg -> 0 
+$ ip link set mfcg up -> 0 
+$ ip -n mf-client addr add 10.10.0.20/24 dev mfc0 -> 0 
+$ ip -n mf-client link set mfc0 up -> 0 
+$ ip -n mf-client route add default via 10.10.0.1 -> 0 
+$ ip -n mf-server link set lo up -> 0 
+$ ip link add mfsg type veth peer name mfs0 -> 0 
+$ ip link set mfs0 netns mf-server -> 0 
+$ ip addr add 198.18.0.1/24 dev mfsg -> 0 
+$ ip link set mfsg up -> 0 
+$ ip -n mf-server addr add 198.18.0.2/24 dev mfs0 -> 0 
+$ ip -n mf-server link set mfs0 up -> 0 
+$ ip -n mf-server route add default via 198.18.0.1 -> 0 
+$ ip -n mf-client addr add 10.10.0.130/24 dev mfc0 -> 0 
+$ ip -n mf-client addr add 10.10.0.133/24 dev mfc0 -> 0 
+$ ip -n mf-client addr add 10.10.0.135/24 dev mfc0 -> 0 
+$ ip -n mf-client addr add 10.10.0.136/24 dev mfc0 -> 0 
+$ ip -n mf-client addr add 10.10.0.137/24 dev mfc0 -> 0 
+$ ip -n mf-client addr add 10.10.0.138/24 dev mfc0 -> 0 
+$ ip -n mf-client addr add 10.10.0.139/24 dev mfc0 -> 0 
+$ ip -n mf-client addr add 10.10.0.145/24 dev mfc0 -> 0 
+$ ip -n mf-client addr add 10.10.0.160/24 dev mfc0 -> 0 
+$ ip -n mf-client addr add 10.10.0.201/24 dev mfc0 -> 0 
+$ ip -n mf-client addr add 10.10.0.202/24 dev mfc0 -> 0 
+$ ip -n mf-client addr add 10.10.0.203/24 dev mfc0 -> 0 
+$ ip -n mf-client addr add 10.10.0.204/24 dev mfc0 -> 0 
+$ ip -n mf-client addr add 10.10.0.205/24 dev mfc0 -> 0 
+$ ip -n mf-client addr add 10.10.0.170/24 dev mfc0 -> 0 
+$ ip -n mf-client addr add 10.10.0.171/24 dev mfc0 -> 0 
+$ ip -n mf-client addr add 10.10.0.172/24 dev mfc0 -> 0 
+$ ip -n mf-client addr add 10.10.0.173/24 dev mfc0 -> 0 
+$ ip -n mf-client addr add 10.10.0.174/24 dev mfc0 -> 0 
+$ ip -n mf-client addr add 10.10.0.175/24 dev mfc0 -> 0 
+$ ip -n mf-client addr add 10.10.0.176/24 dev mfc0 -> 0 
+$ ip -n mf-client addr add 10.10.0.177/24 dev mfc0 -> 0 
+$ ip -n mf-client addr add 10.10.0.178/24 dev mfc0 -> 0 
+$ ip -n mf-client addr add 10.10.0.70/24 dev mfc0 -> 0 
+$ openssl req -x509 -newkey rsa:2048 -nodes -days 1 -subj /CN=lab.test -keyout /var/tmp/c22/lab/server.key -out /var/tmp/c22/lab/server.crt -> 0 ..+..........+.....+...+.......+........+...+....+..+.+.....+....+...+......+............+........+......+.+........+.......+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*....+..+...+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*........+.....+...+..........+......+...+........+...................+...+...+...+.....+............+....+...+.....+.......+...+.....
+$ systemd-run --unit=bc20-server ip netns exec mf-server /usr/bin/python3 /var/tmp/c22/src-current/testing/lab_gateway_acceptance.py server /var/tmp/c22/lab/server.crt /var/tmp/c22/lab/server.key -> 0 Running as unit: bc20-server.service
+$ systemd-run --unit=bc20-dns /usr/sbin/dnsmasq --conf-file=/dev/null --keep-in-foreground --user=root --no-resolv --no-hosts --bind-interfaces --interface=mfcg --listen-address=10.10.0.1 --address=/#/198.18.0.2 --log-queries --log-facility=/var/log/dnsmasq.log --pid-file=/var/tmp/c22/lab/dns.pid -> 0 Running as unit: bc20-dns.service
+$ systemd-run --unit=bc20-feeder ip netns exec mf-client /usr/bin/python3 -c import socket,struct,sys,time
+q=struct.pack("!HHHHHH",4321,0x100,1,0,0,0)+b"\x06feeder\x08approved\x04test\x00\x00\x01\x00\x01"
+while True:
+ try:
+  s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM); s.settimeout(1); s.bind((sys.argv[1],0)); s.sendto(q,("10.10.0.1",53)); s.recvfrom(512); s.close()
+ except OSError: pass
+ time.sleep(4)
+ 10.10.0.70 -> 0 Running as unit: bc20-feeder.service
+$ systemctl is-active bc20-server -> 0 active
+$ systemctl is-active bc20-dns -> 0 active
+$ systemctl is-active bc20-feeder -> 0 active
+$ dpkg-query -W minifw-ai -> 0 minifw-ai	2.2.13-finance
+$ systemctl is-active minifw-ai -> 0 active
+$ systemctl is-active minifw-ai-web -> 0 active
+$ systemctl is-active dnsmasq -> 3 failed
+$ nft list table inet minifw -> 0 table inet minifw {
+	set minifw_block_v4 {
+		type ipv4_addr
+		timeout 1h
+	}
+
+	chain forward {
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 4024 bytes 241200 comment "MiniFW-AI-Conntrack"
+		ip saddr @minifw_block_v4 counter packets 1539 bytes 91460 drop comment "MiniFW-AI-Blocklist"
+	}
+}

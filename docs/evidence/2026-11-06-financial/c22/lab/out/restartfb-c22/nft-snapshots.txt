@@ -1,0 +1,143 @@
+## pre-fresh-engine 2026-11-06T10:55:26+0700 (1793937326.5)
+table inet minifw {
+	set minifw_block_v4 {
+		type ipv4_addr
+		timeout 1h
+	}
+
+	chain forward {
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 4024 bytes 241200 comment "MiniFW-AI-Conntrack"
+		ip saddr @minifw_block_v4 counter packets 1539 bytes 91460 drop comment "MiniFW-AI-Blocklist"
+	}
+}
+
+## 0-before 2026-11-06T10:55:26+0700 (1793937326.6)
+table inet minifw {
+	set minifw_block_v4 {
+		type ipv4_addr
+		timeout 1h
+	}
+
+	chain forward {
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 4024 bytes 241200 comment "MiniFW-AI-Conntrack"
+		ip saddr @minifw_block_v4 counter packets 1539 bytes 91460 drop comment "MiniFW-AI-Blocklist"
+	}
+}
+
+## 1-isolated-by-first-scan 2026-11-06T10:55:33+0700 (1793937333.4)
+table inet minifw {
+	set minifw_block_v4 {
+		type ipv4_addr
+		timeout 1h
+		elements = { 10.10.0.20 timeout 1d expires 23h59m59s912ms }
+	}
+
+	chain forward {
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 4039 bytes 242100 comment "MiniFW-AI-Conntrack"
+		ip saddr @minifw_block_v4 counter packets 1539 bytes 91460 drop comment "MiniFW-AI-Blocklist"
+	}
+}
+
+## 2-deleted-by-hand 2026-11-06T10:55:34+0700 (1793937334.1)
+table inet minifw {
+	set minifw_block_v4 {
+		type ipv4_addr
+		timeout 1h
+	}
+
+	chain forward {
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 4039 bytes 242100 comment "MiniFW-AI-Conntrack"
+		ip saddr @minifw_block_v4 counter packets 1539 bytes 91460 drop comment "MiniFW-AI-Blocklist"
+	}
+}
+
+## 3-engine-restarted 2026-11-06T10:55:37+0700 (1793937337.8)
+table inet minifw {
+	set minifw_block_v4 {
+		type ipv4_addr
+		timeout 1h
+	}
+
+	chain forward {
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 4039 bytes 242100 comment "MiniFW-AI-Conntrack"
+		ip saddr @minifw_block_v4 counter packets 1539 bytes 91460 drop comment "MiniFW-AI-Blocklist"
+	}
+}
+
+## 4-30s-after-apply-and-restart 2026-11-06T10:56:08+0700 (1793937368.2)
+table inet minifw {
+	set minifw_block_v4 {
+		type ipv4_addr
+		timeout 1h
+	}
+
+	chain forward {
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 4039 bytes 242100 comment "MiniFW-AI-Conntrack"
+		ip saddr @minifw_block_v4 counter packets 1539 bytes 91460 drop comment "MiniFW-AI-Blocklist"
+	}
+}
+
+## 5-isolated-by-fresh-scan 2026-11-06T10:56:14+0700 (1793937374.7)
+table inet minifw {
+	set minifw_block_v4 {
+		type ipv4_addr
+		timeout 1h
+		elements = { 10.10.0.20 timeout 1d expires 23h59m56s916ms }
+	}
+
+	chain forward {
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 4054 bytes 243000 comment "MiniFW-AI-Conntrack"
+		ip saddr @minifw_block_v4 counter packets 1539 bytes 91460 drop comment "MiniFW-AI-Blocklist"
+	}
+}
+
+## 6-cleanup 2026-11-06T10:56:20+0700 (1793937380.9)
+table inet minifw {
+	set minifw_block_v4 {
+		type ipv4_addr
+		timeout 1h
+	}
+
+	chain forward {
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 4054 bytes 243000 comment "MiniFW-AI-Conntrack"
+		ip saddr @minifw_block_v4 counter packets 1554 bytes 92240 drop comment "MiniFW-AI-Blocklist"
+	}
+}
+
+## 6a-readded-by-running-engine 2026-11-06T10:56:21+0700 (1793937382.0)
+table inet minifw {
+	set minifw_block_v4 {
+		type ipv4_addr
+		timeout 1h
+		elements = { 10.10.0.20 timeout 1d expires 23h59m59s652ms }
+	}
+
+	chain forward {
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 4069 bytes 243780 comment "MiniFW-AI-Conntrack"
+		ip saddr @minifw_block_v4 counter packets 1554 bytes 92240 drop comment "MiniFW-AI-Blocklist"
+	}
+}
+
+## 7-post-fresh-engine 2026-11-06T10:56:32+0700 (1793937392.5)
+table inet minifw {
+	set minifw_block_v4 {
+		type ipv4_addr
+		timeout 1h
+	}
+
+	chain forward {
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 4069 bytes 243780 comment "MiniFW-AI-Conntrack"
+		ip saddr @minifw_block_v4 counter packets 1554 bytes 92240 drop comment "MiniFW-AI-Blocklist"
+	}
+}
+

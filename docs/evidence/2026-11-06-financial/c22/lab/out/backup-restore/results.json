@@ -1,0 +1,66 @@
+{
+  "test": "C21 backup.sh -> restore.sh on 2.2.12",
+  "package": "minifw-ai\t2.2.13-finance",
+  "services_before": {
+    "minifw-ai": "active",
+    "minifw-ai-web": "active"
+  },
+  "backup_rc": 0,
+  "backup_stdout": "BACKUP /opt/minifw_ai/backups/minifw-backup-20261106T040938837970Z.tar.gz SHA256 4740d3160f84fbbb1451c0727f1a9a0ddf9b97574246744571769b1cc1d1d23d",
+  "backup_stderr": "",
+  "services_after_backup": {
+    "minifw-ai": "active",
+    "minifw-ai-web": "active"
+  },
+  "archive_owner_mode": "0:0 0o600",
+  "archive_members": 34,
+  "archive_meta": {
+    "schema": 1,
+    "version": "2.2.13-finance",
+    "created": "2026-11-06T04:09:40.091242+00:00",
+    "scope": "Configuration/models/database/env/TLS/base units; no package code or dynamic blocks"
+  },
+  "match_after_backup": false,
+  "mismatch_after_backup": [
+    "var/lib/minifw-ai/minifw.db"
+  ],
+  "probe_changed_before_restore": true,
+  "restore_rc": 0,
+  "restore_stdout": "RESTORED 2.2.13-finance ; dynamic nftables blocks and package code were not restored",
+  "restore_stderr": "",
+  "services_after_restore": {
+    "minifw-ai": "active",
+    "minifw-ai-web": "active"
+  },
+  "all_entries_match_archive_after_restore": true,
+  "mismatches_after_restore": [],
+  "secret_files_present_and_match": {
+    "etc/minifw/minifw.env": true,
+    "var/lib/minifw-ai/license.json": true,
+    "var/lib/minifw-ai/minifw.db": true
+  },
+  "nonsecret_sha256_after_restore": {
+    "etc/systemd/system/minifw-ai-web.service": "bd04bdae4e9d0f40a4aebe8000cad046e420e1df5d6619073449c1ca7073daa9",
+    "etc/systemd/system/minifw-ai.service": "eaca0312719119c97f14950b51e28faf8829691f0f8bd78ae963712f5b884421",
+    "opt/minifw_ai/config/feeds/allow_domains.txt": "782ef05e79ea0b7514eb8b694ea20472788e6d9786ecd711f120337544cd1fd0",
+    "opt/minifw_ai/config/feeds/apt_indicators.txt": "84e3760fc62ec4dd3b63dc81fea1f10bea395c5997347b791ced3ba257e2056d",
+    "opt/minifw_ai/config/feeds/asn_prefixes.txt": "017e022c1c3a6fd395a9eb0832d83ac0cb56be09112ba46242c6e2f32b97f79c",
+    "opt/minifw_ai/config/feeds/crypto_scams.txt": "9d88fa25d8f598ae362148a4d4a4a6da0b20e388fe3e6c7786ccfdfeab8cc2e8",
+    "opt/minifw_ai/config/feeds/deny_asn.txt": "59d38dac80f6340860e64da993102ba7be3a2e5042b33d8352d903e9aee89ecb",
+    "opt/minifw_ai/config/feeds/deny_domains.txt": "ed112e2b3630669378851483b47a10e91b3e1f62b2c37fa46be0f4672d19d7ab",
+    "opt/minifw_ai/config/feeds/deny_ips.txt": "4fda725fb545c33e327d972d7f18e0251684b909ff93710940ae993b9b9bb0f9",
+    "opt/minifw_ai/config/feeds/doh_resolvers.txt": "242bbdd78e379211e8375d06da7dcfdc4bbc1891d5e0a6925177d359e40d2bfb",
+    "opt/minifw_ai/config/feeds/financial_fraud.txt": "1281c4481d210dfced61acdfb7688e738d862aad492522b724fbe0fa7afc5507",
+    "opt/minifw_ai/config/feeds/government_sensitive.txt": "c8c7bf3be933c285f9d9fefaa44fd7ea1a3e11e3424cc1061256a832e8aa2422",
+    "opt/minifw_ai/config/feeds/healthcare_threats.txt": "30ecd651a6c9a06d1fe64e5c9ce1b9d8a5268bb09b022ab7af5d67b5c391126a",
+    "opt/minifw_ai/config/feeds/legal_threats.txt": "ee6b6b38518d1434a3739cf19a6e4f07f6158380590e770244d02d8b744ffa2e",
+    "opt/minifw_ai/config/feeds/school_blacklist.txt": "e0c429d047c6d99d0224fa6c4343bae6901a55fd126d5c2b47304bb53d402dd4",
+    "opt/minifw_ai/config/feeds/tor_exit_nodes.txt": "a0cb96e66a09285e763af15ccf1b90b57905faf958739f434bc3a3448e2f93cd",
+    "opt/minifw_ai/config/license_public_keys.json": "f13c6a20fbdf9b231b1e50b362dfb970b3c3731637205c53ba4c687d606195a4",
+    "opt/minifw_ai/config/modes/minifw_financial/policy.json": "ad580ecba7b717226185b9f334a4eaf1efe877a4beaa530ead7885886defe338",
+    "opt/minifw_ai/config/policy.json": "8428e21a557170a476bafc934ff41337c6153ebb7eca5d23eea8952c6a44c8ff"
+  },
+  "dpkg_verify": "clean",
+  "dashboard_login_after_restore": true,
+  "archive_deleted": true
+}

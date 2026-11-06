@@ -1,0 +1,201 @@
+$ truncate -s 300M /var/tmp/c21/lab/f1blobs/big -> 0 
+$ systemd-run --unit=bc20-f1http ip netns exec mf-server /usr/bin/python3 -m http.server 18080 --bind 198.18.0.2 --directory /var/tmp/c21/lab/f1blobs -> 0 Running as unit: bc20-f1http.service
+$ ip -n mf-client addr add 10.10.0.154/24 dev mfc0 -> 0 
+$ ip -n mf-client addr add 10.10.0.155/24 dev mfc0 -> 0 
+$ ip -n mf-client addr add 10.10.0.156/24 dev mfc0 -> 0 
+$ ip -n mf-client addr add 10.10.0.157/24 dev mfc0 -> 0 
+$ /usr/sbin/ethtool -K mfcg tso off gso off gro off -> 0 
+$ /usr/sbin/ethtool -K mfsg tso off gso off gro off -> 0 
+$ ip netns exec mf-client /usr/sbin/ethtool -K mfc0 tso off gso off gro off -> 0 
+$ ip netns exec mf-server /usr/sbin/ethtool -K mfs0 tso off gso off gro off -> 0 
+$ /usr/sbin/ethtool -k mfcg -> 0 Features for mfcg:
+rx-checksumming: on
+tx-checksumming: on
+	tx-checksum-ipv4: off [fixed]
+	tx-checksum-ip-generic: on
+	tx-checksum-ipv6: off [fixed]
+	tx-checksum-fcoe-crc: off [fixed]
+	tx-checksum-sctp: on
+scatter-gather: on
+	tx-scatter-gather: on
+	tx-scatter-gather-fraglist: on
+tcp-segmentation-offload: off
+	tx-tcp-segmentation: off
+	tx-tcp-ecn-segmentation: off
+	tx-tcp-mangleid-segmentation: off
+$ /usr/sbin/ethtool -k mfsg -> 0 Features for mfsg:
+rx-checksumming: on
+tx-checksumming: on
+	tx-checksum-ipv4: off [fixed]
+	tx-checksum-ip-generic: on
+	tx-checksum-ipv6: off [fixed]
+	tx-checksum-fcoe-crc: off [fixed]
+	tx-checksum-sctp: on
+scatter-gather: on
+	tx-scatter-gather: on
+	tx-scatter-gather-fraglist: on
+tcp-segmentation-offload: off
+	tx-tcp-segmentation: off
+	tx-tcp-ecn-segmentation: off
+	tx-tcp-mangleid-segmentation: off
+$ ip netns exec mf-client /usr/sbin/ethtool -k mfc0 -> 0 Features for mfc0:
+rx-checksumming: on
+tx-checksumming: on
+	tx-checksum-ipv4: off [fixed]
+	tx-checksum-ip-generic: on
+	tx-checksum-ipv6: off [fixed]
+	tx-checksum-fcoe-crc: off [fixed]
+	tx-checksum-sctp: on
+scatter-gather: on
+	tx-scatter-gather: on
+	tx-scatter-gather-fraglist: on
+tcp-segmentation-offload: off
+	tx-tcp-segmentation: off
+	tx-tcp-ecn-segmentation: off
+	tx-tcp-mangleid-segmentation: off
+$ ip netns exec mf-server /usr/sbin/ethtool -k mfs0 -> 0 Features for mfs0:
+rx-checksumming: on
+tx-checksumming: on
+	tx-checksum-ipv4: off [fixed]
+	tx-checksum-ip-generic: on
+	tx-checksum-ipv6: off [fixed]
+	tx-checksum-fcoe-crc: off [fixed]
+	tx-checksum-sctp: on
+scatter-gather: on
+	tx-scatter-gather: on
+	tx-scatter-gather-fraglist: on
+tcp-segmentation-offload: off
+	tx-tcp-segmentation: off
+	tx-tcp-ecn-segmentation: off
+	tx-tcp-mangleid-segmentation: off
+$ systemctl stop minifw-ai -> 0 
+$ nft delete element inet minifw minifw_block_v4 { 10.10.0.154 } -> 1 Error: Could not process rule: No such file or directory
+delete element inet minifw minifw_block_v4 { 10.10.0.154 }
+                                             ^^^^^^^^^^^
+$ conntrack -D -s 10.10.0.154 -> 1 conntrack v1.4.7 (conntrack-tools): 0 flow entries have been deleted.
+$ nft delete element inet minifw minifw_block_v4 { 10.10.0.155 } -> 1 Error: Could not process rule: No such file or directory
+delete element inet minifw minifw_block_v4 { 10.10.0.155 }
+                                             ^^^^^^^^^^^
+$ conntrack -D -s 10.10.0.155 -> 1 conntrack v1.4.7 (conntrack-tools): 0 flow entries have been deleted.
+$ nft delete element inet minifw minifw_block_v4 { 10.10.0.156 } -> 1 Error: Could not process rule: No such file or directory
+delete element inet minifw minifw_block_v4 { 10.10.0.156 }
+                                             ^^^^^^^^^^^
+$ conntrack -D -s 10.10.0.156 -> 1 conntrack v1.4.7 (conntrack-tools): 0 flow entries have been deleted.
+$ nft delete element inet minifw minifw_block_v4 { 10.10.0.157 } -> 1 Error: Could not process rule: No such file or directory
+delete element inet minifw minifw_block_v4 { 10.10.0.157 }
+                                             ^^^^^^^^^^^
+$ conntrack -D -s 10.10.0.157 -> 1 conntrack v1.4.7 (conntrack-tools): 0 flow entries have been deleted.
+$ systemctl start minifw-ai -> 0 
+$ journalctl -u minifw-ai --since 2026-11-06 10:49:50 --no-pager -o cat -> 0 2026-11-06 10:49:50,476 - WARNING - [ZEEK] ssl.log unavailable at /var/log/zeek/ssl.log; retrying independently
+Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+2026-11-06 10:49:50,930 - INFO - Caught SIGTERM, shutting down.
+[*] DNS Collector reading from /var/log/dnsmasq.log
+[FlowCollector] Exported 100 flows, cleaned 0 old flows
+[FlowCollector] Exported 147 flows, cleaned 0 o
+$ journalctl -u minifw-ai --since 2026-11-06 10:49:50 --no-pager -o cat -> 0 2026-11-06 10:49:50,476 - WARNING - [ZEEK] ssl.log unavailable at /var/log/zeek/ssl.log; retrying independently
+Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+2026-11-06 10:49:50,930 - INFO - Caught SIGTERM, shutting down.
+[*] DNS Collector reading from /var/log/dnsmasq.log
+[FlowCollector] Exported 100 flows, cleaned 0 old flows
+[FlowCollector] Exported 147 flows, cleaned 0 o
+$ journalctl -u minifw-ai --since 2026-11-06 10:49:50 --no-pager -o cat -> 0 2026-11-06 10:49:50,476 - WARNING - [ZEEK] ssl.log unavailable at /var/log/zeek/ssl.log; retrying independently
+Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+2026-11-06 10:49:50,930 - INFO - Caught SIGTERM, shutting down.
+[*] DNS Collector reading from /var/log/dnsmasq.log
+[FlowCollector] Exported 100 flows, cleaned 0 old flows
+[FlowCollector] Exported 147 flows, cleaned 0 o
+$ journalctl -u minifw-ai --since 2026-11-06 10:49:50 --no-pager -o cat -> 0 2026-11-06 10:49:50,476 - WARNING - [ZEEK] ssl.log unavailable at /var/log/zeek/ssl.log; retrying independently
+Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+2026-11-06 10:49:50,930 - INFO - Caught SIGTERM, shutting down.
+[*] DNS Collector reading from /var/log/dnsmasq.log
+[FlowCollector] Exported 100 flows, cleaned 0 old flows
+[FlowCollector] Exported 147 flows, cleaned 0 o
+$ nft list table inet minifw -> 0 table inet minifw {
+	set minifw_block_v4 {
+		type ipv4_addr
+		timeout 1h
+		elements = { 10.10.0.173 timeout 15m expires 9m17s788ms, 10.10.0.176 timeout 15m expires 8m57s716ms,
+			     10.10.0.177 timeout 15m expires 9m27s996ms, 10.10.0.178 timeout 15m expires 9m32s840ms }
+	}
+
+	chain forward {
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 4020 bytes 24096
+$ nft list table inet minifw -> 0 table inet minifw {
+	set minifw_block_v4 {
+		type ipv4_addr
+		timeout 1h
+		elements = { 10.10.0.155 timeout 1d expires 23h59m59s428ms, 10.10.0.156 timeout 1d expires 23h59m59s412ms,
+			     10.10.0.173 timeout 15m expires 9m10s424ms, 10.10.0.176 timeout 15m expires 8m50s352ms,
+			     10.10.0.177 timeout 15m expires 9m20s632ms, 10.10.0.178 timeout 15m expires 9m25s476ms }
+	}
+
+	chain forward {
+		ty
+$ nft list table inet minifw -> 0 table inet minifw {
+	set minifw_block_v4 {
+		type ipv4_addr
+		timeout 1h
+		elements = { 10.10.0.155 timeout 1d expires 23h59m59s420ms, 10.10.0.156 timeout 1d expires 23h59m59s404ms,
+			     10.10.0.173 timeout 15m expires 9m10s416ms, 10.10.0.176 timeout 15m expires 8m50s344ms,
+			     10.10.0.177 timeout 15m expires 9m20s624ms, 10.10.0.178 timeout 15m expires 9m25s468ms }
+	}
+
+	chain forward {
+		ty
+Traceback (most recent call last):
+  File "<string>", line 6, in <module>
+  File "/usr/lib/python3.11/http/client.py", line 470, in read
+    s = self.fp.read(amt)
+        ^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.11/socket.py", line 706, in readinto
+    return self._sock.recv_into(b)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+TimeoutError: timed out
+$ nft list table inet minifw -> 0 table inet minifw {
+	set minifw_block_v4 {
+		type ipv4_addr
+		timeout 1h
+		elements = { 10.10.0.155 timeout 1d expires 23h58m50s612ms, 10.10.0.156 timeout 1d expires 23h58m50s596ms,
+			     10.10.0.173 timeout 15m expires 8m1s608ms, 10.10.0.176 timeout 15m expires 7m41s536ms,
+			     10.10.0.177 timeout 15m expires 8m11s816ms, 10.10.0.178 timeout 15m expires 8m16s660ms }
+	}
+
+	chain forward {
+		typ
+$ journalctl -u minifw-ai --since 2026-11-06 10:49:50 --no-pager -o short-iso -> 0 2026-11-06T10:49:50+0700 minifw-monday-financial python[133294]: 2026-11-06 10:49:50,476 - WARNING - [ZEEK] ssl.log unavailable at /var/log/zeek/ssl.log; retrying independently
+2026-11-06T10:49:50+0700 minifw-monday-financial systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+2026-11-06T10:49:50+0700 minifw-monday-financial python[133294]: 2026-11-06 10:49:50,930 - IN
+$ nft delete element inet minifw minifw_block_v4 { 10.10.0.154 } -> 1 Error: Could not process rule: No such file or directory
+delete element inet minifw minifw_block_v4 { 10.10.0.154 }
+                                             ^^^^^^^^^^^
+$ conntrack -D -s 10.10.0.154 -> 0 tcp      6 43 TIME_WAIT src=10.10.0.154 dst=198.18.0.2 sport=35671 dport=18080 packets=1584 bytes=82449 src=198.18.0.2 dst=10.10.0.154 sport=18080 dport=35671 packets=14691 bytes=21735666 [ASSURED] mark=0 use=1
+conntrack v1.4.7 (conntrack-tools): 1 flow entries have been deleted.
+$ nft delete element inet minifw minifw_block_v4 { 10.10.0.155 } -> 0 
+$ conntrack -D -s 10.10.0.155 -> 0 tcp      6 49 TIME_WAIT src=10.10.0.155 dst=198.18.0.2 sport=57297 dport=18080 packets=1020 bytes=53541 src=198.18.0.2 dst=10.10.0.155 sport=18080 dport=57297 packets=14664 bytes=21926078 [ASSURED] mark=0 use=1
+conntrack v1.4.7 (conntrack-tools): 1 flow entries have been deleted.
+$ nft delete element inet minifw minifw_block_v4 { 10.10.0.156 } -> 0 
+$ conntrack -D -s 10.10.0.156 -> 0 tcp      6 115 TIME_WAIT src=10.10.0.156 dst=198.18.0.2 sport=60729 dport=18080 packets=168 bytes=8996 src=198.18.0.2 dst=10.10.0.156 sport=18080 dport=60729 packets=1964 bytes=2876055 [ASSURED] mark=0 use=1
+conntrack v1.4.7 (conntrack-tools): 1 flow entries have been deleted.
+$ nft delete element inet minifw minifw_block_v4 { 10.10.0.157 } -> 1 Error: Could not process rule: No such file or directory
+delete element inet minifw minifw_block_v4 { 10.10.0.157 }
+                                             ^^^^^^^^^^^
+$ conntrack -D -s 10.10.0.157 -> 0 tcp      6 43 TIME_WAIT src=10.10.0.157 dst=198.18.0.2 sport=37251 dport=18080 packets=890 bytes=46360 src=198.18.0.2 dst=10.10.0.157 sport=18080 dport=37251 packets=1476 bytes=2174117 [ASSURED] mark=0 use=1
+conntrack v1.4.7 (conntrack-tools): 1 flow entries have been deleted.
+$ systemctl stop bc20-f1http -> 0 
+$ systemctl reset-failed bc20-f1http -> 1 Failed to reset failed state of unit bc20-f1http.service: Unit bc20-f1http.service not loaded.
+$ nft list table inet minifw -> 0 table inet minifw {
+	set minifw_block_v4 {
+		type ipv4_addr
+		timeout 1h
+		elements = { 10.10.0.173 timeout 15m expires 8m1s236ms, 10.10.0.176 timeout 15m expires 7m41s164ms,
+			     10.10.0.177 timeout 15m expires 8m11s444ms, 10.10.0.178 timeout 15m expires 8m16s288ms }
+	}
+
+	chain forward {
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 4024 bytes 241200
+{"case": "dl_20MB_unpaced", "ip": "10.10.0.154", "client": {"ip": "10.10.0.154", "path": "/mb20", "status": 200, "bytes": 20971520, "seconds": 0.11, "start": 1793937001.8022897}, "isolated": false, "seconds_to_isolation": null, "nft_element": null, "reasons": null, "decision_owner": null, "block_events": 0, "events": 15, "segment": ["internal"], "conntrack_packets_total": 16275, "max_pps_5s_window_conntrack": 0.0}
+{"case": "dl_20MB_paced_4MBps", "ip": "10.10.0.155", "client": {"ip": "10.10.0.155", "path": "/mb20", "status": 200, "bytes": 20971520, "seconds": 5.24, "start": 1793937001.8746703}, "isolated": true, "seconds_to_isolation": 7.0, "nft_element": {"timeout": 86400, "expires": 86399}, "reasons": ["pps_saturation", "hard_threat_gate_override"], "decision_owner": "Hard Gate", "block_events": 1, "events": 10, "segment": ["internal"], "conntrack_packets_total": 15684, "max_pps_5s_window_conntrack": 1546.3}
+{"case": "stream_2.5Mbps_60s", "ip": "10.10.0.156", "client": {}, "isolated": true, "seconds_to_isolation": 7.1, "nft_element": {"timeout": 86400, "expires": 86399}, "reasons": ["pps_saturation", "hard_threat_gate_override"], "decision_owner": "Hard Gate", "block_events": 1, "events": 15, "segment": ["internal"], "conntrack_packets_total": 2132, "max_pps_5s_window_conntrack": 234.2}
+{"case": "control_2MB_unpaced", "ip": "10.10.0.157", "client": {"ip": "10.10.0.157", "path": "/mb2", "status": 200, "bytes": 2097152, "seconds": 0.02, "start": 1793937001.9015274}, "isolated": false, "seconds_to_isolation": null, "nft_element": null, "reasons": null, "decision_owner": null, "block_events": 0, "events": 15, "segment": ["internal"], "conntrack_packets_total": 2366, "max_pps_5s_window_conntrack": 0.0}

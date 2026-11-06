@@ -1,0 +1,40 @@
+# final state 2026-11-06T10:15:36+07:00 (after starting minifw-ai and minifw-ai-web, which the gate harness leaves stopped)
+minifw-ai	2.2.12-finance
+verify_rc=0
+minifw-ai active
+minifw-ai-web active
+minifw-ai-apply.path active
+dnsmasq failed
+ad580ecba7b717226185b9f334a4eaf1efe877a4beaa530ead7885886defe338  /opt/minifw_ai/config/modes/minifw_financial/policy.json
+shipped_policy_sha256=ad580ecba7b717226185b9f334a4eaf1efe877a4beaa530ead7885886defe338  -
+active_approval_lines=0 commented_approval_lines=1
+protection_state BASELINE_PROTECTION
+ai_window {'model_sha256': 'd06ce40ea3276d2cedac9e354075c4aa74aa3987e08b35e40a95451d4e69d6ee', 'approved': False, 'segments': ['internal', 'guest', 'default'], 'exempt': 0}
+table inet minifw {
+	set minifw_block_v4 {
+		type ipv4_addr
+		timeout 1h
+	}
+
+	chain forward {
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 258 bytes 15480 comment "MiniFW-AI-Conntrack"
+		ip saddr @minifw_block_v4 counter packets 107 bytes 5940 drop comment "MiniFW-AI-Blocklist"
+	}
+}
+
+# 2026-11-06T10:21:10+07:00 financial: /var/tmp/c21/lab/orig (byte copies of policy/env/state/dnsmasq.log used by the byte-exact restores) removed after RESTORED_MATCHES_PRE True
+orig absent
+# 2026-11-06T10:21:11+07:00 education VM (build only):
+minifw-monday-education
+minifw-ai	2.2.11-education
+minifw-ai active
+minifw-ai-web active
+dnsmasq failed
+0
+out
+scripts
+source.tar.gz
+src-20261106T095553
+src-current
+0

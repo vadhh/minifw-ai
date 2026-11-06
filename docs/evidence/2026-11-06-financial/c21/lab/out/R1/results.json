@@ -1,0 +1,265 @@
+{
+  "test": "C21 boundary R1 (main), minifw-monday-financial",
+  "started": "2026-11-06 10:09:21",
+  "clients_launched": 1793934574.9954422,
+  "events_mark_line": 50312,
+  "feeder_dns_events": 300,
+  "state_file_after": "absent (no transition since start)",
+  "state_journal": [
+    "2026-11-06T10:09:23+0700 minifw-monday-financial python[121675]: 2026-11-06 10:09:23,883 - INFO - [STATE] Initial protection state: AI_ENHANCED_PROTECTION",
+    "2026-11-06T10:09:23+0700 minifw-monday-financial python[121675]: 2026-11-06 10:09:23,959 - INFO - [AI_WINDOW] Loaded /opt/minifw_ai/models/client_window_v1.json sha256=d06ce40ea3276d2cedac9e354075c4aa74aa3987e08b35e40a95451d4e69d6ee"
+  ],
+  "results": [
+    {
+      "case": "attack_30pm",
+      "ip": "10.10.0.130",
+      "rate_per_min": 30.0,
+      "mode": "new",
+      "duration_s": 150,
+      "attempts": 75,
+      "connected_ok": 75,
+      "failed": 0,
+      "first_failure_s": null,
+      "isolated": false,
+      "seconds_to_isolation": null,
+      "nft_element": null,
+      "events": 1195,
+      "max_n60": 31,
+      "max_probability": 0.7101595860741554,
+      "segments": [
+        "internal"
+      ],
+      "modes": [
+        "enforcing",
+        "not_run"
+      ],
+      "first_block_event": null
+    },
+    {
+      "case": "attack_37pm",
+      "ip": "10.10.0.137",
+      "rate_per_min": 37.0,
+      "mode": "new",
+      "duration_s": 150,
+      "attempts": 93,
+      "connected_ok": 93,
+      "failed": 0,
+      "first_failure_s": null,
+      "isolated": false,
+      "seconds_to_isolation": null,
+      "nft_element": null,
+      "events": 1469,
+      "max_n60": 38,
+      "max_probability": 0.8867759082988741,
+      "segments": [
+        "internal"
+      ],
+      "modes": [
+        "enforcing",
+        "not_run"
+      ],
+      "first_block_event": null
+    },
+    {
+      "case": "attack_38pm",
+      "ip": "10.10.0.138",
+      "rate_per_min": 38.0,
+      "mode": "new",
+      "duration_s": 150,
+      "attempts": 86,
+      "connected_ok": 51,
+      "failed": 35,
+      "first_failure_s": 80.5,
+      "isolated": true,
+      "seconds_to_isolation": 79.4,
+      "nft_element": {
+        "timeout": 900,
+        "expires": 899
+      },
+      "events": 1104,
+      "max_n60": 39,
+      "max_probability": 0.9024045897511963,
+      "segments": [
+        "internal"
+      ],
+      "modes": [
+        "enforcing",
+        "not_run"
+      ],
+      "first_block_event": {
+        "ts": "2026-11-06T03:10:54.522541+00:00",
+        "client_ip": "10.10.0.138",
+        "dst_ip": "198.18.0.2",
+        "dst_port": 443,
+        "segment": "internal",
+        "action": "block",
+        "reasons": [
+          "ai_window_rate"
+        ],
+        "decision_owner": "AI Engine (client window)",
+        "score": 90,
+        "ai_window_n60": 39,
+        "ai_window_probability": 0.9024045897511963,
+        "ai_window_mode": "enforcing",
+        "ai_window_model_sha256": "d06ce40ea3276d2cedac9e354075c4aa74aa3987e08b35e40a95451d4e69d6ee"
+      }
+    },
+    {
+      "case": "attack_39pm",
+      "ip": "10.10.0.139",
+      "rate_per_min": 39.0,
+      "mode": "new",
+      "duration_s": 150,
+      "attempts": 84,
+      "connected_ok": 39,
+      "failed": 45,
+      "first_failure_s": 60.0,
+      "isolated": true,
+      "seconds_to_isolation": 59.6,
+      "nft_element": {
+        "timeout": 900,
+        "expires": 899
+      },
+      "events": 895,
+      "max_n60": 39,
+      "max_probability": 0.9024045897511963,
+      "segments": [
+        "internal"
+      ],
+      "modes": [
+        "enforcing",
+        "not_run"
+      ],
+      "first_block_event": {
+        "ts": "2026-11-06T03:10:34.378957+00:00",
+        "client_ip": "10.10.0.139",
+        "dst_ip": "198.18.0.2",
+        "dst_port": 443,
+        "segment": "internal",
+        "action": "block",
+        "reasons": [
+          "ai_window_rate"
+        ],
+        "decision_owner": "AI Engine (client window)",
+        "score": 90,
+        "ai_window_n60": 39,
+        "ai_window_probability": 0.9024045897511963,
+        "ai_window_mode": "enforcing",
+        "ai_window_model_sha256": "d06ce40ea3276d2cedac9e354075c4aa74aa3987e08b35e40a95451d4e69d6ee"
+      }
+    },
+    {
+      "case": "attack_60pm",
+      "ip": "10.10.0.160",
+      "rate_per_min": 60.0,
+      "mode": "new",
+      "duration_s": 150,
+      "attempts": 95,
+      "connected_ok": 39,
+      "failed": 56,
+      "first_failure_s": 39.0,
+      "isolated": true,
+      "seconds_to_isolation": 39.4,
+      "nft_element": {
+        "timeout": 900,
+        "expires": 899
+      },
+      "events": 917,
+      "max_n60": 39,
+      "max_probability": 0.9024045897511963,
+      "segments": [
+        "internal"
+      ],
+      "modes": [
+        "enforcing",
+        "not_run"
+      ],
+      "first_block_event": {
+        "ts": "2026-11-06T03:10:14.234820+00:00",
+        "client_ip": "10.10.0.160",
+        "dst_ip": "198.18.0.2",
+        "dst_port": 443,
+        "segment": "internal",
+        "action": "block",
+        "reasons": [
+          "ai_window_rate"
+        ],
+        "decision_owner": "AI Engine (client window)",
+        "score": 90,
+        "ai_window_n60": 39,
+        "ai_window_probability": 0.9024045897511963,
+        "ai_window_mode": "enforcing",
+        "ai_window_model_sha256": "d06ce40ea3276d2cedac9e354075c4aa74aa3987e08b35e40a95451d4e69d6ee"
+      }
+    },
+    {
+      "case": "a_poller_1s",
+      "ip": "10.10.0.201",
+      "rate_per_min": 60.0,
+      "mode": "new",
+      "duration_s": 150,
+      "attempts": 95,
+      "connected_ok": 40,
+      "failed": 55,
+      "first_failure_s": 40.0,
+      "isolated": true,
+      "seconds_to_isolation": 39.4,
+      "nft_element": {
+        "timeout": 900,
+        "expires": 899
+      },
+      "events": 932,
+      "max_n60": 39,
+      "max_probability": 0.9024045897511963,
+      "segments": [
+        "internal"
+      ],
+      "modes": [
+        "enforcing",
+        "not_run"
+      ],
+      "first_block_event": {
+        "ts": "2026-11-06T03:10:14.346821+00:00",
+        "client_ip": "10.10.0.201",
+        "dst_ip": "198.18.0.2",
+        "dst_port": 443,
+        "segment": "internal",
+        "action": "block",
+        "reasons": [
+          "ai_window_rate"
+        ],
+        "decision_owner": "AI Engine (client window)",
+        "score": 90,
+        "ai_window_n60": 39,
+        "ai_window_probability": 0.9024045897511963,
+        "ai_window_mode": "enforcing",
+        "ai_window_model_sha256": "d06ce40ea3276d2cedac9e354075c4aa74aa3987e08b35e40a95451d4e69d6ee"
+      }
+    },
+    {
+      "case": "e_exempt_poller_1s",
+      "ip": "10.10.0.205",
+      "rate_per_min": 60.0,
+      "mode": "new",
+      "duration_s": 150,
+      "attempts": 150,
+      "connected_ok": 150,
+      "failed": 0,
+      "first_failure_s": null,
+      "isolated": false,
+      "seconds_to_isolation": null,
+      "nft_element": null,
+      "events": 2357,
+      "max_n60": 62,
+      "max_probability": 0.997629883235997,
+      "segments": [
+        "internal"
+      ],
+      "modes": [
+        "not_run",
+        "shadow_only"
+      ],
+      "first_block_event": null
+    }
+  ]
+}

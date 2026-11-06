@@ -1,0 +1,313 @@
+$ systemctl stop minifw-ai -> 0 
+$ nft delete element inet minifw minifw_block_v4 { 10.10.0.20 } -> 1 Error: Could not process rule: No such file or directory
+delete element inet minifw minifw_block_v4 { 10.10.0.20 }
+                                             ^^^^^^^^^^
+$ conntrack -D -s 10.10.0.20 -> 1 conntrack v1.4.7 (conntrack-tools): 0 flow entries have been deleted.
+$ systemctl start minifw-ai -> 0 
+$ journalctl -u minifw-ai --since 2026-11-06 10:23:33 --no-pager -o cat -> 0 2026-11-06 10:23:33,792 - INFO - Caught SIGTERM, shutting down.
+Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+[*] DNS Collector reading from /var/log/dnsmasq.log
+[FlowCollector] Exported 30 flows, cleaned 0 old flows
+[FlowCollector] Exported 33 flows, cleaned 0 old flows
+[FlowCollector] Exported 37 flows, cleaned 0 old flows
+[FlowCollector] Exported 37 flows, cleaned 0 old f
+$ journalctl -u minifw-ai --since 2026-11-06 10:23:33 --no-pager -o cat -> 0 2026-11-06 10:23:33,792 - INFO - Caught SIGTERM, shutting down.
+Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+[*] DNS Collector reading from /var/log/dnsmasq.log
+[FlowCollector] Exported 30 flows, cleaned 0 old flows
+[FlowCollector] Exported 33 flows, cleaned 0 old flows
+[FlowCollector] Exported 37 flows, cleaned 0 old flows
+[FlowCollector] Exported 37 flows, cleaned 0 old f
+$ journalctl -u minifw-ai --since 2026-11-06 10:23:33 --no-pager -o cat -> 0 2026-11-06 10:23:33,792 - INFO - Caught SIGTERM, shutting down.
+Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+[*] DNS Collector reading from /var/log/dnsmasq.log
+[FlowCollector] Exported 30 flows, cleaned 0 old flows
+[FlowCollector] Exported 33 flows, cleaned 0 old flows
+[FlowCollector] Exported 37 flows, cleaned 0 old flows
+[FlowCollector] Exported 37 flows, cleaned 0 old f
+$ journalctl -u minifw-ai --since 2026-11-06 10:23:33 --no-pager -o cat -> 0 2026-11-06 10:23:33,792 - INFO - Caught SIGTERM, shutting down.
+Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+[*] DNS Collector reading from /var/log/dnsmasq.log
+[FlowCollector] Exported 30 flows, cleaned 0 old flows
+[FlowCollector] Exported 33 flows, cleaned 0 old flows
+[FlowCollector] Exported 37 flows, cleaned 0 old flows
+[FlowCollector] Exported 37 flows, cleaned 0 old f
+$ nft list table inet minifw -> 0 table inet minifw {
+	set minifw_block_v4 {
+		type ipv4_addr
+		timeout 1h
+	}
+
+	chain forward {
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 258 bytes 15480 comment "MiniFW-AI-Conntrack"
+		ip saddr @minifw_block_v4 counter packets 107 bytes 5940 drop comment "MiniFW-AI-Blocklist"
+	}
+}
+$ nft delete element inet minifw minifw_block_v4 { 10.10.0.20 } -> 1 Error: Could not process rule: No such file or directory
+delete element inet minifw minifw_block_v4 { 10.10.0.20 }
+                                             ^^^^^^^^^^
+$ conntrack -D -s 10.10.0.20 -> 1 conntrack v1.4.7 (conntrack-tools): 0 flow entries have been deleted.
+$ nft list table inet minifw -> 0 table inet minifw {
+	set minifw_block_v4 {
+		type ipv4_addr
+		timeout 1h
+	}
+
+	chain forward {
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 258 bytes 15480 comment "MiniFW-AI-Conntrack"
+		ip saddr @minifw_block_v4 counter packets 107 bytes 5940 drop comment "MiniFW-AI-Blocklist"
+	}
+}
+$ nft list table inet minifw -> 0 table inet minifw {
+	set minifw_block_v4 {
+		type ipv4_addr
+		timeout 1h
+		elements = { 10.10.0.20 timeout 1d expires 23h59m59s864ms }
+	}
+
+	chain forward {
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 273 bytes 16380 comment "MiniFW-AI-Conntrack"
+		ip saddr @minifw_block_v4 counter packets 107 bytes 5940 drop comment "MiniFW-AI-Blocklist"
+	}
+}
+$ nft delete element inet minifw minifw_block_v4 { 10.10.0.20 } -> 0 
+$ nft list table inet minifw -> 0 table inet minifw {
+	set minifw_block_v4 {
+		type ipv4_addr
+		timeout 1h
+	}
+
+	chain forward {
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 273 bytes 16380 comment "MiniFW-AI-Conntrack"
+		ip saddr @minifw_block_v4 counter packets 107 bytes 5940 drop comment "MiniFW-AI-Blocklist"
+	}
+}
+$ systemctl show -p MainPID --value minifw-ai -> 0 124878
+$ systemctl show -p MainPID --value minifw-ai -> 0 124970
+$ nft list table inet minifw -> 0 table inet minifw {
+	set minifw_block_v4 {
+		type ipv4_addr
+		timeout 1h
+	}
+
+	chain forward {
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 273 bytes 16380 comment "MiniFW-AI-Conntrack"
+		ip saddr @minifw_block_v4 counter packets 107 bytes 5940 drop comment "MiniFW-AI-Blocklist"
+	}
+}
+$ nft list table inet minifw -> 0 table inet minifw {
+	set minifw_block_v4 {
+		type ipv4_addr
+		timeout 1h
+	}
+
+	chain forward {
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 273 bytes 16380 comment "MiniFW-AI-Conntrack"
+		ip saddr @minifw_block_v4 counter packets 107 bytes 5940 drop comment "MiniFW-AI-Blocklist"
+	}
+}
+$ journalctl -u minifw-ai --since 2026-11-06 10:23:44 --no-pager -o short-iso -> 0 2026-11-06T10:23:46+0700 minifw-monday-financial python[124878]: 2026-11-06 10:23:46,048 - WARNING - [ZEEK] ssl.log unavailable at /var/log/zeek/ssl.log; retrying independently
+2026-11-06T10:23:46+0700 minifw-monday-financial python[124878]: 2026-11-06 10:23:46,128 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-06T10:23:47+0700 minifw-monday-financial python[124878]: 2026-11-06 
+$ nft list table inet minifw -> 0 table inet minifw {
+	set minifw_block_v4 {
+		type ipv4_addr
+		timeout 1h
+		elements = { 10.10.0.20 timeout 1d expires 23h59m58s48ms }
+	}
+
+	chain forward {
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 288 bytes 17280 comment "MiniFW-AI-Conntrack"
+		ip saddr @minifw_block_v4 counter packets 107 bytes 5940 drop comment "MiniFW-AI-Blocklist"
+	}
+}
+$ nft delete element inet minifw minifw_block_v4 { 10.10.0.20 } -> 0 
+$ conntrack -D -s 10.10.0.20 -> 0 tcp      6 108 TIME_WAIT src=10.10.0.20 dst=198.18.0.2 sport=59278 dport=20010 packets=4 bytes=216 src=198.18.0.2 dst=10.10.0.20 sport=20010 dport=59278 packets=2 bytes=112 [ASSURED] mark=0 use=1
+tcp      6 119 FIN_WAIT src=10.10.0.20 dst=198.18.0.2 sport=35852 dport=20006 packets=3 bytes=164 src=198.18.0.2 dst=10.10.0.20 sport=20006 dport=35852 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6
+$ nft list table inet minifw -> 0 table inet minifw {
+	set minifw_block_v4 {
+		type ipv4_addr
+		timeout 1h
+	}
+
+	chain forward {
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 288 bytes 17280 comment "MiniFW-AI-Conntrack"
+		ip saddr @minifw_block_v4 counter packets 122 bytes 6720 drop comment "MiniFW-AI-Blocklist"
+	}
+}
+$ nft list table inet minifw -> 0 table inet minifw {
+	set minifw_block_v4 {
+		type ipv4_addr
+		timeout 1h
+		elements = { 10.10.0.20 timeout 1d expires 23h59m59s840ms }
+	}
+
+	chain forward {
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 303 bytes 18060 comment "MiniFW-AI-Conntrack"
+		ip saddr @minifw_block_v4 counter packets 122 bytes 6720 drop comment "MiniFW-AI-Blocklist"
+	}
+}
+$ systemctl stop minifw-ai -> 0 
+$ nft delete element inet minifw minifw_block_v4 { 10.10.0.20 } -> 0 
+$ conntrack -D -s 10.10.0.20 -> 0 tcp      6 297 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=35852 dport=20006 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20006 dport=35852 packets=0 bytes=0 mark=0 use=1
+tcp      6 297 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=33148 dport=20009 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20009 dport=33148 packets=0 bytes=0 mark=0 use=1
+tcp   
+$ systemctl start minifw-ai -> 0 
+$ journalctl -u minifw-ai --since 2026-11-06 10:24:34 --no-pager -o cat -> 0 2026-11-06 10:24:34,207 - WARNING - [ZEEK] ssl.log unavailable at /var/log/zeek/ssl.log; retrying independently
+2026-11-06 10:24:34,281 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-06 10:24:34,296 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-06 10:24:34,304 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-06 10:24:34,313 - WARNING - [HARD_
+$ journalctl -u minifw-ai --since 2026-11-06 10:24:34 --no-pager -o cat -> 0 2026-11-06 10:24:34,207 - WARNING - [ZEEK] ssl.log unavailable at /var/log/zeek/ssl.log; retrying independently
+2026-11-06 10:24:34,281 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-06 10:24:34,296 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-06 10:24:34,304 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-06 10:24:34,313 - WARNING - [HARD_
+$ journalctl -u minifw-ai --since 2026-11-06 10:24:34 --no-pager -o cat -> 0 2026-11-06 10:24:34,207 - WARNING - [ZEEK] ssl.log unavailable at /var/log/zeek/ssl.log; retrying independently
+2026-11-06 10:24:34,281 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-06 10:24:34,296 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-06 10:24:34,304 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-06 10:24:34,313 - WARNING - [HARD_
+$ journalctl -u minifw-ai --since 2026-11-06 10:24:34 --no-pager -o cat -> 0 2026-11-06 10:24:34,207 - WARNING - [ZEEK] ssl.log unavailable at /var/log/zeek/ssl.log; retrying independently
+2026-11-06 10:24:34,281 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-06 10:24:34,296 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-06 10:24:34,304 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-06 10:24:34,313 - WARNING - [HARD_
+$ nft list table inet minifw -> 0 table inet minifw {
+	set minifw_block_v4 {
+		type ipv4_addr
+		timeout 1h
+	}
+
+	chain forward {
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 303 bytes 18060 comment "MiniFW-AI-Conntrack"
+		ip saddr @minifw_block_v4 counter packets 122 bytes 6720 drop comment "MiniFW-AI-Blocklist"
+	}
+}
+{
+ "test": "C21 restart false block restartfb-run2, minifw-monday-financial",
+ "client": "10.10.0.20",
+ "apply_delay_s": 0.0,
+ "scan1_start": "2026-11-06T10:23:44+0700",
+ "scan1_isolated_after_s": 1.7,
+ "conntrack_at_isolation": {
+  "at": "2026-11-06T10:23:46+0700",
+  "entries": 15,
+  "distinct_dports": 15,
+  "states": [
+   "ESTABLISHED"
+  ]
+ },
+ "hand_delete_at": "2026-11-06T10:23:46+0700",
+ "readded_during_delay_at": null,
+ "save_http": 200,
+ "apply_http": 200,
+ "apply_response": {
+  "message": "Engine restarted; saved policy and feeds loaded. Check protection status on the dashboard.",
+  "engine_pid": 124970
+ },
+ "apply_at": "2026-11-06T10:23:50+0700",
+ "seconds_delete_to_apply": 3.5,
+ "policy_sha_before_save": "ad580ecba7b717226185b9f334a4eaf1efe877a4beaa530ead7885886defe338",
+ "policy_sha_after_save": "cbdf0cdad4054d3217d0a46be7405437b22356b9caba6036bde2d69e906b54e0",
+ "client_isolated_at_apply": false,
+ "engine_restarted": true,
+ "readded_by_old_engine_before_restart": false,
+ "engine_pid_before": "124878",
+ "engine_pid_after": "124970",
+ "engine_restarted_at": "2026-11-06T10:23:50+0700",
+ "seconds_apply_to_restart": 0.0,
+ "conntrack_at_restart": {
+  "at": "2026-11-06T10:23:50+0700",
+  "entries": 15,
+  "distinct_dports": 15,
+  "states": [
+   "ESTABLISHED"
+  ]
+ },
+ "conntrack_after_30s": {
+  "at": "2026-11-06T10:24:20+0700",
+  "entries": 15,
+  "distinct_dports": 15,
+  "states": [
+   "ESTABLISHED"
+  ]
+ },
+ "reblocked_after_restart": false,
+ "reblocked_after_s": null,
+ "watched_until": "2026-11-06T10:24:20+0700",
+ "watched_s_after_restart": 30.4,
+ "hard_gate_lines": [
+  "2026-11-06T10:23:46+0700 minifw-monday-financial python[124878]: 2026-11-06 10:23:46,128 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan"
+ ],
+ "post_restart_client_events": {
+  "count": 89,
+  "actions": [
+   "allow"
+  ],
+  "reasons": []
+ },
+ "restart_test_valid": true,
+ "first_poll_after_restart": [
+  "2026-11-06T10:23:49+0700 minifw-monday-financial python[124970]: 2026-11-06 10:23:49,146 - INFO - [STATE] Restored state from /opt/minifw_ai/logs/deployment_state.json: BASELINE_PROTECTION",
+  "2026-11-06T10:23:49+0700 minifw-monday-financial python[124970]: 2026-11-06 10:23:49,147 - INFO - [STATE] Initial protection state: BASELINE_PROTECTION"
+ ],
+ "scan2_start": "2026-11-06T10:24:20+0700",
+ "live_blocks": [
+  {
+   "time": "2026-11-06 03:24:24",
+   "type": "Security Block",
+   "type_color": "danger",
+   "source": "10.10.0.20",
+   "status": "blocked",
+   "threat_detected": true,
+   "reason": "port_scan, hard_threat_gate_override",
+   "score": 100,
+   "segment": "dmz",
+   "client_ip": "10.10.0.20",
+   "domain": "",
+   "decision_owner": "Hard Gate",
+   "trigger": "Hard gate (packet rate/burst/port scan)",
+   "ai_window_mode": "not_run",
+   "ai_window_n60": 1,
+   "ai_window_probability": null,
+   "ai_explanation": {
+    "score": 100,
+    "category": "Behavior",
+    "asn": [],
+    "tls": [],
+    "behavior": [
+     "Port scan / high PPS",
+     "Hard threat gate triggered"
+    ]
+   }
+  }
+ ],
+ "scan2_isolated": true,
+ "scan2_isolated_after_s": 3.5,
+ "conntrack_at_fresh_isolation": {
+  "at": "2026-11-06T10:24:26+0700",
+  "entries": 30,
+  "distinct_dports": 15,
+  "states": [
+   "ESTABLISHED",
+   "TIME_WAIT"
+  ]
+ },
+ "readded_after_cleanup_delete_after_s": 2.0,
+ "client_isolated_at_end": false,
+ "policy_restored": true
+}
+BLOCK 2026-11-06T03:23:46.144164+00:00 ['port_scan', 'hard_threat_gate_override'] Hard Gate
+BLOCK 2026-11-06T03:24:24.302048+00:00 ['port_scan', 'hard_threat_gate_override'] Hard Gate

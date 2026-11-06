@@ -1,0 +1,149 @@
+{
+  "test": "C21 restart false block, minifw-monday-financial",
+  "client": "10.10.0.20",
+  "scan1_start": "2026-11-06T10:04:57+0700",
+  "scan1_isolated_after_s": 3.1,
+  "conntrack_at_isolation": {
+    "at": "2026-11-06T10:05:00+0700",
+    "entries": 15,
+    "distinct_dports": 15,
+    "states": [
+      "ESTABLISHED"
+    ]
+  },
+  "hand_delete_at": "2026-11-06T10:05:01+0700",
+  "save_http": 200,
+  "apply_http": 200,
+  "apply_response": {
+    "message": "Engine restarted; saved policy and feeds loaded. Check protection status on the dashboard.",
+    "engine_pid": 120036
+  },
+  "apply_at": "2026-11-06T10:05:05+0700",
+  "seconds_delete_to_apply": 4.1,
+  "policy_sha_before_save": "ad580ecba7b717226185b9f334a4eaf1efe877a4beaa530ead7885886defe338",
+  "policy_sha_after_save": "cbdf0cdad4054d3217d0a46be7405437b22356b9caba6036bde2d69e906b54e0",
+  "client_isolated_at_apply": false,
+  "engine_restarted": true,
+  "readded_by_old_engine_before_restart": false,
+  "engine_pid_before": "119067",
+  "engine_pid_after": "120036",
+  "engine_restarted_at": "2026-11-06T10:05:05+0700",
+  "seconds_apply_to_restart": 0.0,
+  "conntrack_at_restart": {
+    "at": "2026-11-06T10:05:05+0700",
+    "entries": 15,
+    "distinct_dports": 15,
+    "states": [
+      "ESTABLISHED"
+    ]
+  },
+  "conntrack_after_30s": {
+    "at": "2026-11-06T10:05:35+0700",
+    "entries": 15,
+    "distinct_dports": 15,
+    "states": [
+      "ESTABLISHED"
+    ]
+  },
+  "reblocked_after_restart": false,
+  "reblocked_after_s": null,
+  "watched_until": "2026-11-06T10:05:35+0700",
+  "watched_s_after_restart": 30.4,
+  "hard_gate_lines": [
+    "2026-11-06T10:05:00+0700 minifw-monday-financial python[119067]: 2026-11-06 10:05:00,755 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan"
+  ],
+  "post_restart_client_events": {
+    "count": 87,
+    "actions": [
+      "allow"
+    ],
+    "reasons": []
+  },
+  "restart_test_valid": true,
+  "first_poll_after_restart": [
+    "2026-11-06T10:05:04+0700 minifw-monday-financial python[120036]: 2026-11-06 10:05:04,330 - INFO - [STATE] Restored state from /opt/minifw_ai/logs/deployment_state.json: BASELINE_PROTECTION",
+    "2026-11-06T10:05:04+0700 minifw-monday-financial python[120036]: 2026-11-06 10:05:04,330 - INFO - [STATE] Initial protection state: BASELINE_PROTECTION"
+  ],
+  "scan2_start": "2026-11-06T10:05:36+0700",
+  "live_blocks": [
+    {
+      "time": "2026-11-06 03:05:39",
+      "type": "Security Block",
+      "type_color": "danger",
+      "source": "10.10.0.20",
+      "status": "blocked",
+      "threat_detected": true,
+      "reason": "port_scan, hard_threat_gate_override",
+      "score": 100,
+      "segment": "dmz",
+      "client_ip": "10.10.0.20",
+      "domain": "",
+      "decision_owner": "Hard Gate",
+      "trigger": "Hard gate (packet rate/burst/port scan)",
+      "ai_window_mode": "not_run",
+      "ai_window_n60": 1,
+      "ai_window_probability": null,
+      "ai_explanation": {
+        "score": 100,
+        "category": "Behavior",
+        "asn": [],
+        "tls": [],
+        "behavior": [
+          "Port scan / high PPS",
+          "Hard threat gate triggered"
+        ]
+      }
+    }
+  ],
+  "scan2_isolated": true,
+  "scan2_isolated_after_s": 3.5,
+  "conntrack_at_fresh_isolation": {
+    "at": "2026-11-06T10:05:40+0700",
+    "entries": 30,
+    "distinct_dports": 15,
+    "states": [
+      "ESTABLISHED",
+      "TIME_WAIT"
+    ]
+  },
+  "dashboard_error": "TimeoutError('The read operation timed out')",
+  "block_events": [
+    {
+      "ts": "2026-11-06T03:05:00.768691+00:00",
+      "client_ip": "10.10.0.20",
+      "dst_ip": "198.18.0.2",
+      "dst_port": 20013,
+      "segment": "dmz",
+      "action": "block",
+      "reasons": [
+        "port_scan",
+        "hard_threat_gate_override"
+      ],
+      "decision_owner": "Hard Gate",
+      "score": 100,
+      "ai_window_n60": 1,
+      "ai_window_probability": null,
+      "ai_window_mode": "not_run",
+      "ai_window_model_sha256": ""
+    },
+    {
+      "ts": "2026-11-06T03:05:39.514476+00:00",
+      "client_ip": "10.10.0.20",
+      "dst_ip": "198.18.0.2",
+      "dst_port": 20000,
+      "segment": "dmz",
+      "action": "block",
+      "reasons": [
+        "port_scan",
+        "hard_threat_gate_override"
+      ],
+      "decision_owner": "Hard Gate",
+      "score": 100,
+      "ai_window_n60": 1,
+      "ai_window_probability": null,
+      "ai_window_mode": "not_run",
+      "ai_window_model_sha256": ""
+    }
+  ],
+  "policy_restored": true
+}

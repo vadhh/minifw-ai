@@ -1,0 +1,80 @@
+--- /var/tmp/c21/lab/orig/policy.json	2026-11-06 10:04:54.074862691 +0700
++++ /opt/minifw_ai/config/modes/minifw_financial/policy.json	2026-11-06 10:06:49.672509808 +0700
+@@ -2,7 +2,10 @@
+   "_mode": "minifw_financial",
+   "_sector": "finance",
+   "_note": "Financial metadata policy; no compliance certification. TLS version controls require an explicit packet metadata interface. Deny-domain matches isolate the client's forwarded IPv4 traffic.",
+-  "protocol_controls": {"minimum_tls_version": "TLSv1.2", "block_vpn_tunnels": false},
++  "protocol_controls": {
++    "minimum_tls_version": "TLSv1.2",
++    "block_vpn_tunnels": false
++  },
+   "segments": {
+     "default": {
+       "block_threshold": 85,
+@@ -29,32 +32,36 @@
+     }
+   },
+   "segment_subnets": {
+-    "trading":  ["10.50.0.0/24"],
+-    "internal": ["192.168.1.0/24", "10.0.0.0/8"],
+-    "guest":    ["192.168.100.0/24"],
+-    "dmz":      ["10.10.0.0/24"]
++    "trading": [
++      "10.50.0.0/24"
++    ],
++    "internal": [
++      "192.168.1.0/24",
++      "10.0.0.0/8",
++      "10.10.0.128/25"
++    ],
++    "guest": [
++      "192.168.100.0/24"
++    ],
++    "dmz": [
++      "10.10.0.0/24"
++    ]
+   },
+   "features": {
+-    "dns_weight":       40,
+-    "sni_weight":       35,
+-    "asn_weight":       15,
++    "dns_weight": 40,
++    "sni_weight": 35,
++    "asn_weight": 15,
+     "ip_denied_weight": 15,
+-    "burst_weight":     10,
+-    "mlp_weight":       30,
+-    "yara_weight":      35
++    "burst_weight": 10,
++    "mlp_weight": 30,
++    "yara_weight": 35
+   },
+   "enforcement": {
+-    "ipset_name_v4":      "minifw_block_v4",
++    "ipset_name_v4": "minifw_block_v4",
+     "ip_timeout_seconds": 86400,
+-    "nft_table":          "inet",
+-    "nft_table_name":     "minifw",
+-    "nft_chain":          "forward"
+-  },
+-  "ai_enforcement": {
+-    "_note": "Counts new TCP connections from one client to one server:port in 60 s and isolates the client for 15 min at 39 or more. It does not see passwords, logins or failed attempts; slower rates are not caught. Benign automation at about 1 request/s (pollers, monitoring) looks identical and will be isolated unless listed in exempt. Runs only in AI-enhanced protection (healthy DNS log). Isolation needs MINIFW_AI_ENFORCE_MODEL_SHA256 in /etc/minifw/minifw.env; otherwise shadow scoring only. Before enabling, fill segment_subnets and exempt (servers, pollers, proxies, shared NAT addresses).",
+-    "segments": ["internal", "guest", "default"],
+-    "exempt": [],
+-    "block_timeout_seconds": 900
++    "nft_table": "inet",
++    "nft_table_name": "minifw",
++    "nft_chain": "forward"
+   },
+   "collectors": {
+     "dnsmasq_log_path": "/var/log/dnsmasq.log",
+@@ -64,7 +71,7 @@
+   },
+   "burst": {
+     "dns_queries_per_minute_monitor": 30,
+-    "dns_queries_per_minute_block":   50
++    "dns_queries_per_minute_block": 50
+   },
+   "iomt_subnets": [],
+   "minimum_tls_version": "1.2"

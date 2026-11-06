@@ -1,0 +1,122 @@
+{
+  "test": "F1 bulk pass B: legitimate bulk traffic vs pps_saturation (>200 pkt/s in one flow)",
+  "offloads": "off",
+  "policy": "shipped + segment_subnets.internal 10.10.0.128/25 only; no approval; shipped state file",
+  "elements_deleted_by_test": [
+    "10.10.0.155",
+    "10.10.0.156"
+  ],
+  "results": [
+    {
+      "case": "dl_20MB_unpaced",
+      "ip": "10.10.0.154",
+      "client": {
+        "ip": "10.10.0.154",
+        "path": "/mb20",
+        "status": 200,
+        "bytes": 20971520,
+        "seconds": 0.11,
+        "start": 1793937001.8022897
+      },
+      "isolated": false,
+      "seconds_to_isolation": null,
+      "nft_element": null,
+      "reasons": null,
+      "decision_owner": null,
+      "block_events": 0,
+      "events": 15,
+      "segment": [
+        "internal"
+      ],
+      "conntrack_packets_total": 16275,
+      "max_pps_5s_window_conntrack": 0.0,
+      "hard_gate_lines": []
+    },
+    {
+      "case": "dl_20MB_paced_4MBps",
+      "ip": "10.10.0.155",
+      "client": {
+        "ip": "10.10.0.155",
+        "path": "/mb20",
+        "status": 200,
+        "bytes": 20971520,
+        "seconds": 5.24,
+        "start": 1793937001.8746703
+      },
+      "isolated": true,
+      "seconds_to_isolation": 7.0,
+      "nft_element": {
+        "timeout": 86400,
+        "expires": 86399
+      },
+      "reasons": [
+        "pps_saturation",
+        "hard_threat_gate_override"
+      ],
+      "decision_owner": "Hard Gate",
+      "block_events": 1,
+      "events": 10,
+      "segment": [
+        "internal"
+      ],
+      "conntrack_packets_total": 15684,
+      "max_pps_5s_window_conntrack": 1546.3,
+      "hard_gate_lines": [
+        "[HARD_GATE] Triggered: 10.10.0.155 - pps_saturation",
+        "[HARD_GATE] Triggered: 10.10.0.155 - pps_saturation",
+        "[HARD_GATE] Triggered: 10.10.0.155 - pps_saturation"
+      ]
+    },
+    {
+      "case": "stream_2.5Mbps_60s",
+      "ip": "10.10.0.156",
+      "client": {},
+      "isolated": true,
+      "seconds_to_isolation": 7.1,
+      "nft_element": {
+        "timeout": 86400,
+        "expires": 86399
+      },
+      "reasons": [
+        "pps_saturation",
+        "hard_threat_gate_override"
+      ],
+      "decision_owner": "Hard Gate",
+      "block_events": 1,
+      "events": 15,
+      "segment": [
+        "internal"
+      ],
+      "conntrack_packets_total": 2132,
+      "max_pps_5s_window_conntrack": 234.2,
+      "hard_gate_lines": [
+        "[HARD_GATE] Triggered: 10.10.0.156 - pps_saturation"
+      ]
+    },
+    {
+      "case": "control_2MB_unpaced",
+      "ip": "10.10.0.157",
+      "client": {
+        "ip": "10.10.0.157",
+        "path": "/mb2",
+        "status": 200,
+        "bytes": 2097152,
+        "seconds": 0.02,
+        "start": 1793937001.9015274
+      },
+      "isolated": false,
+      "seconds_to_isolation": null,
+      "nft_element": null,
+      "reasons": null,
+      "decision_owner": null,
+      "block_events": 0,
+      "events": 15,
+      "segment": [
+        "internal"
+      ],
+      "conntrack_packets_total": 2366,
+      "max_pps_5s_window_conntrack": 0.0,
+      "hard_gate_lines": []
+    }
+  ]
+}

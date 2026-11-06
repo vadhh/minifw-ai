@@ -1,0 +1,16 @@
+## before 2026-11-06T11:02:01+07:00
+table inet minifw {
+	set minifw_block_v4 {
+		type ipv4_addr
+		timeout 1h
+		elements = { 10.231.0.2 timeout 1d expires 23h50m39s68ms }
+	}
+}
+# 10.231.0.2 = the SSH client address of the lab jump host; isolated 10:52:40 by pps_saturation (engine 2.2.11, flow 10.231.0.2 -> 10.231.0.15:22) while the C22 deb was copied off this VM with scp. Caused by this session: deleted.
+## after 2026-11-06T11:02:01+07:00
+table inet minifw {
+	set minifw_block_v4 {
+		type ipv4_addr
+		timeout 1h
+	}
+}

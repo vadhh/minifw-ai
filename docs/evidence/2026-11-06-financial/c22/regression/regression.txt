@@ -1,0 +1,67 @@
+........................................................................ [ 10%]
+........................................................................ [ 21%]
+........................................................................ [ 32%]
+........................................................................ [ 43%]
+........................................................................ [ 54%]
+........................................................................ [ 65%]
+........................................................................ [ 76%]
+........................................................................ [ 87%]
+........................................................................ [ 98%]
+...........                                                              [100%]
+=============================== warnings summary ===============================
+app/models/user.py:6
+testing/test_sector_lock.py::TestSectorLock::test_sector_loads_from_env_education
+  /var/tmp/c22/src-20261106T105215/app/models/user.py:6: MovedIn20Warning: The ``declarative_base()`` function is now available as sqlalchemy.orm.declarative_base(). (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
+    Base = declarative_base()
+
+../../../../opt/minifw_ai/venv/lib/python3.11/site-packages/passlib/utils/__init__.py:854
+  /opt/minifw_ai/venv/lib/python3.11/site-packages/passlib/utils/__init__.py:854: DeprecationWarning: 'crypt' is deprecated and slated for removal in Python 3.13
+    from crypt import crypt as _crypt
+
+app/models/audit.py:15
+  /var/tmp/c22/src-20261106T105215/app/models/audit.py:15: MovedIn20Warning: The ``declarative_base()`` function is now available as sqlalchemy.orm.declarative_base(). (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
+    Base = declarative_base()
+
+testing/test_demo_polish.py::test_simulator_resolves_hospital_sector
+  /opt/minifw_ai/venv/lib/python3.11/site-packages/_pytest/threadexception.py:54: PytestUnhandledThreadExceptionWarning: Exception in thread minifw-kernel-health
+  
+  Traceback (most recent call last):
+    File "/usr/lib/python3.11/threading.py", line 1038, in _bootstrap_inner
+      self.run()
+    File "/usr/lib/python3.11/threading.py", line 975, in run
+      self._target(*self._args, **self._kwargs)
+    File "/var/tmp/c22/src-20261106T105215/app/minifw_ai/runtime_health.py", line 77, in check
+      ready = kernel_ready(table, chain, set_name)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "/var/tmp/c22/src-20261106T105215/app/minifw_ai/runtime_health.py", line 14, in kernel_ready
+      result = subprocess.run(["nft", "-j", "list", "table", "inet", table],
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "/var/tmp/c22/src-20261106T105215/testing/test_dashboard_unprivileged.py", line 16, in refuse
+      raise AssertionError("dashboard must not run nft or other commands for kernel proof")
+  AssertionError: dashboard must not run nft or other commands for kernel proof
+  
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+    warnings.warn(pytest.PytestUnhandledThreadExceptionWarning(msg))
+
+testing/test_full_integration.py::test_mlp_detection
+testing/test_full_integration.py::test_decision_integration
+  /opt/minifw_ai/venv/lib/python3.11/site-packages/sklearn/base.py:376: InconsistentVersionWarning: Trying to unpickle estimator LabelBinarizer from version 1.5.0 when using version 1.5.2. This might lead to breaking code or invalid results. Use at your own risk. For more info please refer to:
+  https://scikit-learn.org/stable/model_persistence.html#security-maintainability-limitations
+    warnings.warn(
+
+testing/test_full_integration.py::test_mlp_detection
+testing/test_full_integration.py::test_decision_integration
+  /opt/minifw_ai/venv/lib/python3.11/site-packages/sklearn/base.py:376: InconsistentVersionWarning: Trying to unpickle estimator MLPClassifier from version 1.5.0 when using version 1.5.2. This might lead to breaking code or invalid results. Use at your own risk. For more info please refer to:
+  https://scikit-learn.org/stable/model_persistence.html#security-maintainability-limitations
+    warnings.warn(
+
+testing/test_full_integration.py::test_mlp_detection
+testing/test_full_integration.py::test_decision_integration
+  /opt/minifw_ai/venv/lib/python3.11/site-packages/sklearn/base.py:376: InconsistentVersionWarning: Trying to unpickle estimator StandardScaler from version 1.5.0 when using version 1.5.2. This might lead to breaking code or invalid results. Use at your own risk. For more info please refer to:
+  https://scikit-learn.org/stable/model_persistence.html#security-maintainability-limitations
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+659 passed, 11 warnings in 30.25s
+pytest_rc=0

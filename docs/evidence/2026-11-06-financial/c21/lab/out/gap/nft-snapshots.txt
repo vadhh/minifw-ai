@@ -1,0 +1,30 @@
+## before-client 2026-11-06T10:07:04+0700 (1793934424.9)
+table inet minifw {
+	set minifw_block_v4 {
+		type ipv4_addr
+		timeout 1h
+		elements = { 10.10.0.20 timeout 1d expires 23h59m24s556ms, 127.0.0.1 timeout 1d expires 23h58m49s616ms }
+	}
+
+	chain forward {
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 2577 bytes 154500 comment "MiniFW-AI-Conntrack"
+		ip saddr @minifw_block_v4 counter packets 825 bytes 48960 drop comment "MiniFW-AI-Blocklist"
+	}
+}
+
+## after-client 2026-11-06T10:08:41+0700 (1793934521.1)
+table inet minifw {
+	set minifw_block_v4 {
+		type ipv4_addr
+		timeout 1h
+		elements = { 10.10.0.20 timeout 1d expires 23h57m48s416ms, 127.0.0.1 timeout 1d expires 23h57m13s476ms }
+	}
+
+	chain forward {
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 2667 bytes 159900 comment "MiniFW-AI-Conntrack"
+		ip saddr @minifw_block_v4 counter packets 825 bytes 48960 drop comment "MiniFW-AI-Blocklist"
+	}
+}
+

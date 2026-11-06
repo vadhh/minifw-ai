@@ -1,0 +1,70 @@
+## pre-100K-fresh-engine 2026-11-06T10:32:15+0700 (1793935935.4)
+table inet minifw {
+	set minifw_block_v4 {
+		type ipv4_addr
+		timeout 1h
+	}
+
+	chain forward {
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 348 bytes 20640 comment "MiniFW-AI-Conntrack"
+		ip saddr @minifw_block_v4 counter packets 137 bytes 7500 drop comment "MiniFW-AI-Blocklist"
+	}
+}
+
+## pre-250K-fresh-engine 2026-11-06T10:32:55+0700 (1793935975.1)
+table inet minifw {
+	set minifw_block_v4 {
+		type ipv4_addr
+		timeout 1h
+	}
+
+	chain forward {
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 349 bytes 20700 comment "MiniFW-AI-Conntrack"
+		ip saddr @minifw_block_v4 counter packets 137 bytes 7500 drop comment "MiniFW-AI-Blocklist"
+	}
+}
+
+## pre-500K-fresh-engine 2026-11-06T10:33:34+0700 (1793936014.0)
+table inet minifw {
+	set minifw_block_v4 {
+		type ipv4_addr
+		timeout 1h
+	}
+
+	chain forward {
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 350 bytes 20760 comment "MiniFW-AI-Conntrack"
+		ip saddr @minifw_block_v4 counter packets 137 bytes 7500 drop comment "MiniFW-AI-Blocklist"
+	}
+}
+
+## pre-unlimited-fresh-engine 2026-11-06T10:34:13+0700 (1793936053.2)
+table inet minifw {
+	set minifw_block_v4 {
+		type ipv4_addr
+		timeout 1h
+	}
+
+	chain forward {
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 351 bytes 20820 comment "MiniFW-AI-Conntrack"
+		ip saddr @minifw_block_v4 counter packets 137 bytes 7500 drop comment "MiniFW-AI-Blocklist"
+	}
+}
+
+## post-fresh-engine 2026-11-06T10:35:01+0700 (1793936101.1)
+table inet minifw {
+	set minifw_block_v4 {
+		type ipv4_addr
+		timeout 1h
+	}
+
+	chain forward {
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 352 bytes 20880 comment "MiniFW-AI-Conntrack"
+		ip saddr @minifw_block_v4 counter packets 137 bytes 7500 drop comment "MiniFW-AI-Blocklist"
+	}
+}
+

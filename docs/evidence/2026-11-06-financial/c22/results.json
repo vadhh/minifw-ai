@@ -1,0 +1,614 @@
+{
+  "candidate": "C22 v2.2.13 Financial (replaces C21)",
+  "date": "2026-11-06",
+  "source_commit": "50058d10",
+  "source_tar_sha256": "7184a0039d852bfff6069b402589b859b1ffcf0ee8300fff41f151048106963f",
+  "change_vs_C21": "main.py evaluate_hard_threat: pps_saturation now requires flow.packet_timing_available (packet sensor); + one unit test",
+  "steps": {
+    "build": {
+      "pass": true,
+      "deb": "minifw-ai_2.2.13-finance_amd64.deb",
+      "deb_sha256": {
+        "financial_vm": "6192bdd79e4094ec3c841217afe1c335c9ac36df9220a6e91a3857e3013d92c9",
+        "education_vm": "6192bdd79e4094ec3c841217afe1c335c9ac36df9220a6e91a3857e3013d92c9"
+      },
+      "byte_identical_cmp": true,
+      "tarball_hash_verified_on_both_vms": true,
+      "command": "SOURCE_DATE_EPOCH=1793836800 bash scripts/build_deb.sh finance 2.2.13 (as user lab)"
+    },
+    "upgrade_2.2.12_to_2.2.13": {
+      "pass": true,
+      "dpkg_rc": 0,
+      "dpkg_verify_before_after": [
+        "clean",
+        "clean"
+      ],
+      "postinst_warnings": 0,
+      "policy_conffile": "unchanged between C21 and C22 (ad580ecb...), no conffile prompt",
+      "env_commented_lines_after_second_postinst": {
+        "#MINIFW_AI_ENFORCE_MODEL_SHA256=": 1,
+        "#MINIFW_AI_WINDOW_MODEL=": 1
+      },
+      "runtime_health_keys": [
+        "ai_window",
+        "boot_id",
+        "heartbeat",
+        "kernel_checked",
+        "kernel_ready",
+        "pid",
+        "process_start",
+        "protection_state",
+        "sources"
+      ],
+      "services_after": {
+        "minifw-ai": "active",
+        "minifw-ai-web": "active",
+        "dnsmasq": "failed (as found)"
+      }
+    },
+    "regression": {
+      "pass": true,
+      "result": "659 passed, 11 warnings in 30.25s",
+      "pytest_rc": 0
+    },
+    "f1_bulk_after": {
+      "pass": true,
+      "expected": "no isolation",
+      "A": {
+        "offloads": "on",
+        "elements_deleted_by_test": [],
+        "results": [
+          {
+            "case": "dl_20MB_unpaced",
+            "ip": "10.10.0.150",
+            "bytes": 20971520,
+            "seconds": 0.05,
+            "isolated": false,
+            "reasons": null,
+            "conntrack_packets": 1302,
+            "max_pps_5s": 0.0,
+            "hard_gate_lines": 0
+          },
+          {
+            "case": "dl_20MB_paced_4MBps",
+            "ip": "10.10.0.151",
+            "bytes": 20971520,
+            "seconds": 5.24,
+            "isolated": false,
+            "reasons": null,
+            "conntrack_packets": 551,
+            "max_pps_5s": 56.1,
+            "hard_gate_lines": 0
+          },
+          {
+            "case": "stream_2.5Mbps_60s",
+            "ip": "10.10.0.152",
+            "bytes": 18750000,
+            "seconds": 60.0,
+            "isolated": false,
+            "reasons": null,
+            "conntrack_packets": 1655,
+            "max_pps_5s": 29.1,
+            "hard_gate_lines": 0
+          },
+          {
+            "case": "control_2MB_unpaced",
+            "ip": "10.10.0.153",
+            "bytes": 2097152,
+            "seconds": 0.01,
+            "isolated": false,
+            "reasons": null,
+            "conntrack_packets": 148,
+            "max_pps_5s": 0.0,
+            "hard_gate_lines": 0
+          }
+        ]
+      },
+      "B": {
+        "offloads": "off",
+        "elements_deleted_by_test": [],
+        "results": [
+          {
+            "case": "dl_20MB_unpaced",
+            "ip": "10.10.0.154",
+            "bytes": 20971520,
+            "seconds": 0.13,
+            "isolated": false,
+            "reasons": null,
+            "conntrack_packets": 15846,
+            "max_pps_5s": 0.0,
+            "hard_gate_lines": 0
+          },
+          {
+            "case": "dl_20MB_paced_4MBps",
+            "ip": "10.10.0.155",
+            "bytes": 20971520,
+            "seconds": 5.24,
+            "isolated": false,
+            "reasons": null,
+            "conntrack_packets": 15239,
+            "max_pps_5s": 1708.8,
+            "hard_gate_lines": 0
+          },
+          {
+            "case": "stream_2.5Mbps_60s",
+            "ip": "10.10.0.156",
+            "bytes": 18750000,
+            "seconds": 60.0,
+            "isolated": false,
+            "reasons": null,
+            "conntrack_packets": 15748,
+            "max_pps_5s": 264.6,
+            "hard_gate_lines": 0
+          },
+          {
+            "case": "control_2MB_unpaced",
+            "ip": "10.10.0.157",
+            "bytes": 2097152,
+            "seconds": 0.02,
+            "isolated": false,
+            "reasons": null,
+            "conntrack_packets": 2457,
+            "max_pps_5s": 0.0,
+            "hard_gate_lines": 0
+          }
+        ]
+      }
+    },
+    "port_scan_control": {
+      "pass": true,
+      "first_scan_isolated_after_s": 6.6,
+      "fresh_scan_isolated_after_s": 3.3,
+      "reasons": [
+        "port_scan",
+        "hard_threat_gate_override"
+      ],
+      "owner": "Hard Gate",
+      "live_blocks_trigger": "Hard gate (packet rate/burst/port scan)",
+      "gate_F1": {
+        "reasons": [
+          "port_scan",
+          "hard_threat_gate_override"
+        ],
+        "routed_HTTP": "blocked",
+        "limitation": "Does not establish same-port flood or encrypted password-guessing detection"
+      }
+    },
+    "restart_false_block": {
+      "pass": true,
+      "hand_delete_at": "2026-11-06T10:55:34+0700",
+      "apply_at": "2026-11-06T10:55:37+0700",
+      "seconds_delete_to_apply": 3.6,
+      "save_apply_http": [
+        200,
+        200
+      ],
+      "engine_pid": [
+        "135315",
+        "135417"
+      ],
+      "conntrack_at_restart": {
+        "at": "2026-11-06T10:55:37+0700",
+        "entries": 15,
+        "distinct_dports": 15,
+        "states": [
+          "ESTABLISHED"
+        ]
+      },
+      "reblocked_within_30s": false,
+      "post_restart_client_events": {
+        "count": 86,
+        "actions": [
+          "allow"
+        ],
+        "reasons": []
+      },
+      "restart_test_valid": true,
+      "readded_by_running_engine_after_cleanup_delete_s": 1.0,
+      "policy_restored_after_dashboard_save": true
+    },
+    "baseline_gates": {
+      "pass": true,
+      "exit": [
+        0,
+        0
+      ],
+      "licence": [
+        "valid",
+        400
+      ],
+      "save_apply_timeout": [
+        86400,
+        11
+      ],
+      "deny_domain_routed_after": "blocked",
+      "labelled_corpus": {
+        "captures": 8,
+        "requests": 240,
+        "representative": false,
+        "AI": "C18 shadow only",
+        "quality_gate": "not evaluated yet"
+      },
+      "F1": {
+        "reasons": [
+          "port_scan",
+          "hard_threat_gate_override"
+        ],
+        "routed_HTTP": "blocked",
+        "limitation": "Does not establish same-port flood or encrypted password-guessing detection"
+      }
+    },
+    "boundary_sanity": {
+      "pass": true,
+      "R1_main": [
+        {
+          "case": "attack_30pm",
+          "ip": "10.10.0.130",
+          "rate_per_min": 30.0,
+          "isolated": false,
+          "seconds_to_isolation": null,
+          "max_n60": 30,
+          "max_probability": 0.6748382060708626,
+          "modes": [
+            "enforcing",
+            "not_run"
+          ],
+          "nft_timeout": null,
+          "reasons": null
+        },
+        {
+          "case": "attack_37pm",
+          "ip": "10.10.0.137",
+          "rate_per_min": 37.0,
+          "isolated": false,
+          "seconds_to_isolation": null,
+          "max_n60": 38,
+          "max_probability": 0.8867759082988741,
+          "modes": [
+            "enforcing",
+            "not_run"
+          ],
+          "nft_timeout": null,
+          "reasons": null
+        },
+        {
+          "case": "attack_38pm",
+          "ip": "10.10.0.138",
+          "rate_per_min": 38.0,
+          "isolated": true,
+          "seconds_to_isolation": 84.5,
+          "max_n60": 39,
+          "max_probability": 0.9024045897511963,
+          "modes": [
+            "enforcing",
+            "not_run"
+          ],
+          "nft_timeout": 900,
+          "reasons": [
+            "ai_window_rate"
+          ]
+        },
+        {
+          "case": "attack_39pm",
+          "ip": "10.10.0.139",
+          "rate_per_min": 39.0,
+          "isolated": true,
+          "seconds_to_isolation": 59.1,
+          "max_n60": 39,
+          "max_probability": 0.9024045897511963,
+          "modes": [
+            "enforcing",
+            "not_run"
+          ],
+          "nft_timeout": 900,
+          "reasons": [
+            "ai_window_rate"
+          ]
+        },
+        {
+          "case": "attack_60pm",
+          "ip": "10.10.0.160",
+          "rate_per_min": 60.0,
+          "isolated": true,
+          "seconds_to_isolation": 38.8,
+          "max_n60": 39,
+          "max_probability": 0.9024045897511963,
+          "modes": [
+            "enforcing",
+            "not_run"
+          ],
+          "nft_timeout": 900,
+          "reasons": [
+            "ai_window_rate"
+          ]
+        },
+        {
+          "case": "a_poller_1s",
+          "ip": "10.10.0.201",
+          "rate_per_min": 60.0,
+          "isolated": true,
+          "seconds_to_isolation": 39.3,
+          "max_n60": 39,
+          "max_probability": 0.9024045897511963,
+          "modes": [
+            "enforcing",
+            "not_run"
+          ],
+          "nft_timeout": 900,
+          "reasons": [
+            "ai_window_rate"
+          ]
+        },
+        {
+          "case": "e_exempt_poller_1s",
+          "ip": "10.10.0.205",
+          "rate_per_min": 60.0,
+          "isolated": false,
+          "seconds_to_isolation": null,
+          "max_n60": 60,
+          "max_probability": 0.9966996627132658,
+          "modes": [
+            "not_run",
+            "shadow_only"
+          ],
+          "nft_timeout": null,
+          "reasons": null
+        }
+      ],
+      "R2_replicas": [
+        {
+          "case": "rep_36pm_0",
+          "ip": "10.10.0.170",
+          "rate_per_min": 36.0,
+          "isolated": false,
+          "seconds_to_isolation": null,
+          "max_n60": 37,
+          "max_probability": 0.8690077844868668,
+          "modes": [
+            "enforcing",
+            "not_run"
+          ],
+          "nft_timeout": null,
+          "reasons": null
+        },
+        {
+          "case": "rep_36pm_1",
+          "ip": "10.10.0.171",
+          "rate_per_min": 36.0,
+          "isolated": false,
+          "seconds_to_isolation": null,
+          "max_n60": 36,
+          "max_probability": 0.8489263577543502,
+          "modes": [
+            "enforcing",
+            "not_run"
+          ],
+          "nft_timeout": null,
+          "reasons": null
+        },
+        {
+          "case": "rep_36pm_2",
+          "ip": "10.10.0.172",
+          "rate_per_min": 36.0,
+          "isolated": false,
+          "seconds_to_isolation": null,
+          "max_n60": 37,
+          "max_probability": 0.8690077844868668,
+          "modes": [
+            "enforcing",
+            "not_run"
+          ],
+          "nft_timeout": null,
+          "reasons": null
+        },
+        {
+          "case": "rep_37pm_0",
+          "ip": "10.10.0.173",
+          "rate_per_min": 37.0,
+          "isolated": false,
+          "seconds_to_isolation": null,
+          "max_n60": 37,
+          "max_probability": 0.8690077844868668,
+          "modes": [
+            "enforcing",
+            "not_run"
+          ],
+          "nft_timeout": null,
+          "reasons": null
+        },
+        {
+          "case": "rep_37pm_1",
+          "ip": "10.10.0.174",
+          "rate_per_min": 37.0,
+          "isolated": false,
+          "seconds_to_isolation": null,
+          "max_n60": 38,
+          "max_probability": 0.8867759082988741,
+          "modes": [
+            "enforcing",
+            "not_run"
+          ],
+          "nft_timeout": null,
+          "reasons": null
+        },
+        {
+          "case": "rep_37pm_2",
+          "ip": "10.10.0.175",
+          "rate_per_min": 37.0,
+          "isolated": false,
+          "seconds_to_isolation": null,
+          "max_n60": 38,
+          "max_probability": 0.8867759082988741,
+          "modes": [
+            "enforcing",
+            "not_run"
+          ],
+          "nft_timeout": null,
+          "reasons": null
+        },
+        {
+          "case": "rep_38pm_0",
+          "ip": "10.10.0.176",
+          "rate_per_min": 38.0,
+          "isolated": true,
+          "seconds_to_isolation": 84.4,
+          "max_n60": 39,
+          "max_probability": 0.9024045897511963,
+          "modes": [
+            "enforcing",
+            "not_run"
+          ],
+          "nft_timeout": 900,
+          "reasons": [
+            "ai_window_rate"
+          ]
+        },
+        {
+          "case": "rep_38pm_1",
+          "ip": "10.10.0.177",
+          "rate_per_min": 38.0,
+          "isolated": true,
+          "seconds_to_isolation": 82.7,
+          "max_n60": 39,
+          "max_probability": 0.9024045897511963,
+          "modes": [
+            "enforcing",
+            "not_run"
+          ],
+          "nft_timeout": 900,
+          "reasons": [
+            "ai_window_rate"
+          ]
+        },
+        {
+          "case": "rep_38pm_2",
+          "ip": "10.10.0.178",
+          "rate_per_min": 38.0,
+          "isolated": true,
+          "seconds_to_isolation": 86.0,
+          "max_n60": 39,
+          "max_probability": 0.9024045897511963,
+          "modes": [
+            "enforcing",
+            "not_run"
+          ],
+          "nft_timeout": 900,
+          "reasons": [
+            "ai_window_rate"
+          ]
+        }
+      ],
+      "summary_150s": {
+        "30/min": "0/1",
+        "36/min": "0/3",
+        "37/min": "0/4",
+        "38/min": "4/4 (82.7-86.0 s)",
+        "39/min": "1/1 (59.1 s)",
+        "60/min": "1/1 (38.8 s)",
+        "poller_1s": "1/1 (39.3 s)",
+        "exempt_poller_1s": "0/1 (shadow_only, n60 60)"
+      },
+      "poll_interval_s": {
+        "R1": [
+          5.02,
+          4.97,
+          5.06
+        ],
+        "R2": [
+          5.03,
+          4.97,
+          5.08
+        ]
+      },
+      "rows_ai_enhanced_approved": {
+        "Detection Mode": "AI enhanced",
+        "Connection-rate AI": "Enforcing in internal, guest, default"
+      }
+    },
+    "dashboard_exports": {
+      "pass": true,
+      "all_events_csv": {
+        "status": 200,
+        "seconds": 48.1,
+        "bytes": 14423277,
+        "start": "# Min",
+        "pdf_eof": null,
+        "csv_header": "timestamp,client_ip,domain,action,score,decision_owner,ai_window_mode,reasons,kernel_status_at_export",
+        "csv_rows": 119418,
+        "loopback_isolated_after": false
+      },
+      "all_events_pdf": {
+        "status": 200,
+        "seconds": 114.9,
+        "bytes": 10194690,
+        "start": "%PDF-",
+        "pdf_eof": true,
+        "csv_header": null,
+        "csv_rows": null,
+        "loopback_isolated_after": false
+      },
+      "loopback_isolated": false,
+      "hard_gate_lines": 0
+    },
+    "backup_restore": {
+      "pass": true,
+      "note": "results.json 'test' label says C21/2.2.12 (string copied from the C21 driver); package field shows 2.2.13-finance",
+      "package": "minifw-ai\t2.2.13-finance",
+      "backup_rc": 0,
+      "restore_rc": 0,
+      "archive_owner_mode": "0:0 0o600",
+      "archive_members": 34,
+      "archive_meta": {
+        "schema": 1,
+        "version": "2.2.13-finance",
+        "created": "2026-11-06T04:09:40.091242+00:00",
+        "scope": "Configuration/models/database/env/TLS/base units; no package code or dynamic blocks"
+      },
+      "services_after_backup": {
+        "minifw-ai": "active",
+        "minifw-ai-web": "active"
+      },
+      "services_after_restore": {
+        "minifw-ai": "active",
+        "minifw-ai-web": "active"
+      },
+      "mismatch_after_backup": [
+        "var/lib/minifw-ai/minifw.db"
+      ],
+      "probe_changed_before_restore": true,
+      "all_entries_match_archive_after_restore": true,
+      "secret_files_present_and_match": {
+        "etc/minifw/minifw.env": true,
+        "var/lib/minifw-ai/license.json": true,
+        "var/lib/minifw-ai/minifw.db": true
+      },
+      "dpkg_verify": "clean",
+      "dashboard_login_after_restore": true,
+      "archive_deleted": true
+    }
+  },
+  "unexpected": [
+    "Education VM (2.2.11-education): at 10:52:40 its engine isolated 10.231.0.2 (jump host address) for 24 h by pps_saturation while the C22 deb was copied off with scp (flow 10.231.0.2 -> 10.231.0.15:22). Forward chain only, SSH continued; deleted 11:02:01. Only the finance edition of C22 was built: the Education edition keeps this gate until an Education build from 50058d10 exists. On the Financial VM under C22 (since 10:53) the journal has 0 pps_saturation lines despite several MB of evidence pulled over SSH; under C21 (09:57-10:52) it had 218 (127.0.0.1 x211, F1 clients x7).",
+    "all-events exports are slow and growing: CSV 48.1 s, PDF 114.9 s for ~119k events (C21: 25.4 s / 62.5 s at ~64k)",
+    "the running engine re-isolates a hand-deleted port scanner at its next poll (1.0 s here) while it still tracks the scan flows (also on C21)",
+    "the gate harness leaves minifw-ai and minifw-ai-web stopped; started again at 11:12",
+    "right after backup.sh only var/lib/minifw-ai/minifw.db differs from its archive entry (dashboard DB written when the services restart); everything matches after restore.sh",
+    "SSH via the jump host timed out a few times (banner exchange) during 11:03-11:06 while polling every 10 s; cause not investigated (jump host out of scope). The jump host runs its own pre-C22 MiniFW and relayed every multi-MB transfer of this session: a pps_saturation block there is possible and unverified"
+  ],
+  "final_state": {
+    "package": "2.2.13-finance",
+    "dpkg_verify": "clean",
+    "minifw-ai": "active",
+    "minifw-ai-web": "active",
+    "dnsmasq": "failed (as found)",
+    "policy_sha256": "ad580ecb... (= shipped)",
+    "active_approval_lines": 0,
+    "commented_approval_lines": 1,
+    "block_set": "empty",
+    "netns": 0,
+    "env_copies_on_vm": "removed",
+    "education_vm": "2.2.11-education, services as before, block set empty, no netns; only /var/tmp/c21 and /var/tmp/c22 added",
+    "not_restored": "events.jsonl (now 149,146 lines), the engine journal and dashboard audit/DB entries keep today's lab events, logins and Save->Apply records (as on 5 Nov); this growth also slows the all-events exports"
+  },
+  "pps_gate_journal_count": "pps_saturation lines since 10:53 (C22 engine): 0\nHARD_GATE lines since 10:53 by reason:\n     53 Triggered: 10.10.0.20 - port_scan\npps_saturation 09:56-10:52 (C21 engine): 218\n2026-11-06T11:18:40+07:00\nevents.jsonl lines: 149146\n      6 Triggered: 10.10.0.155\n      1 Triggered: 10.10.0.156\n    211 Triggered: 127.0.0.1\n"
+}

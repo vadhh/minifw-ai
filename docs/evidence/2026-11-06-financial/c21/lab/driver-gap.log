@@ -1,0 +1,105 @@
+$ nft delete element inet minifw minifw_block_v4 { 10.10.0.160 } -> 1 Error: Could not process rule: No such file or directory
+delete element inet minifw minifw_block_v4 { 10.10.0.160 }
+                                             ^^^^^^^^^^^
+$ systemctl stop minifw-ai -> 0 
+$ conntrack -D -s 10.10.0.160 -> 1 conntrack v1.4.7 (conntrack-tools): 0 flow entries have been deleted.
+$ systemctl start minifw-ai -> 0 
+$ journalctl -u minifw-ai --since 2026-11-06 10:06:49 --no-pager -o cat -> 0 2026-11-06 10:06:49,400 - WARNING - [ZEEK] ssl.log unavailable at /var/log/zeek/ssl.log; retrying independently
+2026-11-06 10:06:49,491 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-06 10:06:49,501 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-06 10:06:49,513 - WARNING - [HARD_GATE] Triggered: 127.0.0.1 - pps_saturation
+2026-11-06 10:06:49,522 - WARNING - [H
+$ journalctl -u minifw-ai --since 2026-11-06 10:06:49 --no-pager -o cat -> 0 2026-11-06 10:06:49,400 - WARNING - [ZEEK] ssl.log unavailable at /var/log/zeek/ssl.log; retrying independently
+2026-11-06 10:06:49,491 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-06 10:06:49,501 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-06 10:06:49,513 - WARNING - [HARD_GATE] Triggered: 127.0.0.1 - pps_saturation
+2026-11-06 10:06:49,522 - WARNING - [H
+$ journalctl -u minifw-ai --since 2026-11-06 10:06:49 --no-pager -o cat -> 0 2026-11-06 10:06:49,400 - WARNING - [ZEEK] ssl.log unavailable at /var/log/zeek/ssl.log; retrying independently
+2026-11-06 10:06:49,491 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-06 10:06:49,501 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-06 10:06:49,513 - WARNING - [HARD_GATE] Triggered: 127.0.0.1 - pps_saturation
+2026-11-06 10:06:49,522 - WARNING - [H
+$ journalctl -u minifw-ai --since 2026-11-06 10:06:49 --no-pager -o cat -> 0 2026-11-06 10:06:49,400 - WARNING - [ZEEK] ssl.log unavailable at /var/log/zeek/ssl.log; retrying independently
+2026-11-06 10:06:49,491 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-06 10:06:49,501 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-06 10:06:49,513 - WARNING - [HARD_GATE] Triggered: 127.0.0.1 - pps_saturation
+2026-11-06 10:06:49,522 - WARNING - [H
+$ journalctl -u minifw-ai --since 2026-11-06 10:06:49 --no-pager -o cat -> 0 2026-11-06 10:06:49,400 - WARNING - [ZEEK] ssl.log unavailable at /var/log/zeek/ssl.log; retrying independently
+2026-11-06 10:06:49,491 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-06 10:06:49,501 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-06 10:06:49,513 - WARNING - [HARD_GATE] Triggered: 127.0.0.1 - pps_saturation
+2026-11-06 10:06:49,522 - WARNING - [H
+$ journalctl -u minifw-ai --since 2026-11-06 10:06:49 --no-pager -o cat -> 0 2026-11-06 10:06:49,400 - WARNING - [ZEEK] ssl.log unavailable at /var/log/zeek/ssl.log; retrying independently
+2026-11-06 10:06:49,491 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-06 10:06:49,501 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-06 10:06:49,513 - WARNING - [HARD_GATE] Triggered: 127.0.0.1 - pps_saturation
+2026-11-06 10:06:49,522 - WARNING - [H
+$ journalctl -u minifw-ai --since 2026-11-06 10:06:49 --no-pager -o cat -> 0 2026-11-06 10:06:49,400 - WARNING - [ZEEK] ssl.log unavailable at /var/log/zeek/ssl.log; retrying independently
+2026-11-06 10:06:49,491 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-06 10:06:49,501 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-06 10:06:49,513 - WARNING - [HARD_GATE] Triggered: 127.0.0.1 - pps_saturation
+2026-11-06 10:06:49,522 - WARNING - [H
+$ nft list table inet minifw -> 0 table inet minifw {
+	set minifw_block_v4 {
+		type ipv4_addr
+		timeout 1h
+		elements = { 10.10.0.20 timeout 1d expires 23h59m24s556ms, 127.0.0.1 timeout 1d expires 23h58m49s616ms }
+	}
+
+	chain forward {
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 2577 bytes 154500 comment "MiniFW-AI-Conntrack"
+		ip saddr @minifw_block_v4 counter packets 825 bytes 48960 d
+$ nft list table inet minifw -> 0 table inet minifw {
+	set minifw_block_v4 {
+		type ipv4_addr
+		timeout 1h
+		elements = { 10.10.0.20 timeout 1d expires 23h57m48s416ms, 127.0.0.1 timeout 1d expires 23h57m13s476ms }
+	}
+
+	chain forward {
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 2667 bytes 159900 comment "MiniFW-AI-Conntrack"
+		ip saddr @minifw_block_v4 counter packets 825 bytes 48960 d
+$ journalctl -u minifw-ai --since 2026-11-06 10:06:49 --no-pager -o short-iso -> 0 2026-11-06T10:06:49+0700 minifw-monday-financial python[120036]: 2026-11-06 10:06:49,400 - WARNING - [ZEEK] ssl.log unavailable at /var/log/zeek/ssl.log; retrying independently
+2026-11-06T10:06:49+0700 minifw-monday-financial python[120036]: 2026-11-06 10:06:49,491 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-06T10:06:49+0700 minifw-monday-financial python[120036]: 2026-11-06 
+$ nft delete element inet minifw minifw_block_v4 { 10.10.0.160 } -> 1 Error: Could not process rule: No such file or directory
+delete element inet minifw minifw_block_v4 { 10.10.0.160 }
+                                             ^^^^^^^^^^^
+$ systemctl stop minifw-ai -> 0 
+$ systemctl start minifw-ai -> 0 
+{
+ "test": "C21 upgrade gap: policy without ai_enforcement, approval line set",
+ "ip": "10.10.0.160",
+ "rate_per_min": 60,
+ "duration_s": 90,
+ "attempts": 90,
+ "connected_ok": 90,
+ "isolated": false,
+ "warning_lines": [
+  "2026-11-06T10:06:53+0700 minifw-monday-financial python[120897]: 2026-11-06 10:06:53,638 - WARNING - [AI_WINDOW] Policy /opt/minifw_ai/config/modes/minifw_financial/policy.json has no ai_enforcement segments: the client-window AI will not isolate any client. Add the ai_enforcement block to the policy (the shipped default policy, or policy.json.dpkg-dist after an upgrade, has it)."
+ ],
+ "state_lines": [
+  "2026-11-06T10:06:53+0700 minifw-monday-financial python[120897]: 2026-11-06 10:06:53,574 - INFO - [STATE] Initial protection state: AI_ENHANCED_PROTECTION"
+ ],
+ "runtime_health_ai_window": {
+  "model_sha256": "d06ce40ea3276d2cedac9e354075c4aa74aa3987e08b35e40a95451d4e69d6ee",
+  "approved": true,
+  "segments": [],
+  "exempt": 0
+ },
+ "runtime_health_protection_state": "AI_ENHANCED_PROTECTION",
+ "segments": [
+  "internal"
+ ],
+ "modes": [
+  "not_run",
+  "shadow_only"
+ ],
+ "max_n60": 60,
+ "max_probability": 0.9966996627132658,
+ "block_events": [],
+ "events": 907,
+ "policy_env_restored": true
+}

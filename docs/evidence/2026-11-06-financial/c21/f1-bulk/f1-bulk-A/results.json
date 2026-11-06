@@ -1,0 +1,108 @@
+{
+  "test": "F1 bulk pass A: legitimate bulk traffic vs pps_saturation (>200 pkt/s in one flow)",
+  "offloads": "on",
+  "policy": "shipped + segment_subnets.internal 10.10.0.128/25 only; no approval; shipped state file",
+  "elements_deleted_by_test": [],
+  "results": [
+    {
+      "case": "dl_20MB_unpaced",
+      "ip": "10.10.0.150",
+      "client": {
+        "ip": "10.10.0.150",
+        "path": "/mb20",
+        "status": 200,
+        "bytes": 20971520,
+        "seconds": 0.05,
+        "start": 1793936894.0747921
+      },
+      "isolated": false,
+      "seconds_to_isolation": null,
+      "nft_element": null,
+      "reasons": null,
+      "decision_owner": null,
+      "block_events": 0,
+      "events": 14,
+      "segment": [
+        "internal"
+      ],
+      "conntrack_packets_total": 1242,
+      "max_pps_5s_window_conntrack": 0.0,
+      "hard_gate_lines": []
+    },
+    {
+      "case": "dl_20MB_paced_4MBps",
+      "ip": "10.10.0.151",
+      "client": {
+        "ip": "10.10.0.151",
+        "path": "/mb20",
+        "status": 200,
+        "bytes": 20971520,
+        "seconds": 5.24,
+        "start": 1793936894.0342863
+      },
+      "isolated": false,
+      "seconds_to_isolation": null,
+      "nft_element": null,
+      "reasons": null,
+      "decision_owner": null,
+      "block_events": 0,
+      "events": 15,
+      "segment": [
+        "internal"
+      ],
+      "conntrack_packets_total": 542,
+      "max_pps_5s_window_conntrack": 55.1,
+      "hard_gate_lines": []
+    },
+    {
+      "case": "stream_2.5Mbps_60s",
+      "ip": "10.10.0.152",
+      "client": {
+        "ip": "10.10.0.152",
+        "path": "/big",
+        "status": 200,
+        "bytes": 18750000,
+        "seconds": 60.0,
+        "start": 1793936894.112777
+      },
+      "isolated": false,
+      "seconds_to_isolation": null,
+      "nft_element": null,
+      "reasons": null,
+      "decision_owner": null,
+      "block_events": 0,
+      "events": 14,
+      "segment": [
+        "internal"
+      ],
+      "conntrack_packets_total": 1730,
+      "max_pps_5s_window_conntrack": 32.4,
+      "hard_gate_lines": []
+    },
+    {
+      "case": "control_2MB_unpaced",
+      "ip": "10.10.0.153",
+      "client": {
+        "ip": "10.10.0.153",
+        "path": "/mb2",
+        "status": 200,
+        "bytes": 2097152,
+        "seconds": 0.01,
+        "start": 1793936894.1205063
+      },
+      "isolated": false,
+      "seconds_to_isolation": null,
+      "nft_element": null,
+      "reasons": null,
+      "decision_owner": null,
+      "block_events": 0,
+      "events": 15,
+      "segment": [
+        "internal"
+      ],
+      "conntrack_packets_total": 148,
+      "max_pps_5s_window_conntrack": 0.0,
+      "hard_gate_lines": []
+    }
+  ]
+}

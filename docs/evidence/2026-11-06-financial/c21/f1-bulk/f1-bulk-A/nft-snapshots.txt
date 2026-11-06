@@ -1,0 +1,48 @@
+## 0-before 2026-11-06T10:48:13+0700 (1793936893.7)
+table inet minifw {
+	set minifw_block_v4 {
+		type ipv4_addr
+		timeout 1h
+		elements = { 10.10.0.173 timeout 15m expires 11m5s564ms, 10.10.0.176 timeout 15m expires 10m45s492ms,
+			     10.10.0.177 timeout 15m expires 11m15s772ms, 10.10.0.178 timeout 15m expires 11m20s616ms }
+	}
+
+	chain forward {
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 4016 bytes 240720 comment "MiniFW-AI-Conntrack"
+		ip saddr @minifw_block_v4 counter packets 1519 bytes 90420 drop comment "MiniFW-AI-Blocklist"
+	}
+}
+
+## 9-end 2026-11-06T10:49:29+0700 (1793936970.0)
+table inet minifw {
+	set minifw_block_v4 {
+		type ipv4_addr
+		timeout 1h
+		elements = { 10.10.0.173 timeout 15m expires 9m49s348ms, 10.10.0.176 timeout 15m expires 9m29s276ms,
+			     10.10.0.177 timeout 15m expires 9m59s556ms, 10.10.0.178 timeout 15m expires 10m4s400ms }
+	}
+
+	chain forward {
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 4020 bytes 240960 comment "MiniFW-AI-Conntrack"
+		ip saddr @minifw_block_v4 counter packets 1519 bytes 90420 drop comment "MiniFW-AI-Blocklist"
+	}
+}
+
+## 10-after-cleanup 2026-11-06T10:49:30+0700 (1793936970.4)
+table inet minifw {
+	set minifw_block_v4 {
+		type ipv4_addr
+		timeout 1h
+		elements = { 10.10.0.173 timeout 15m expires 9m48s936ms, 10.10.0.176 timeout 15m expires 9m28s864ms,
+			     10.10.0.177 timeout 15m expires 9m59s144ms, 10.10.0.178 timeout 15m expires 10m3s988ms }
+	}
+
+	chain forward {
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 4020 bytes 240960 comment "MiniFW-AI-Conntrack"
+		ip saddr @minifw_block_v4 counter packets 1519 bytes 90420 drop comment "MiniFW-AI-Blocklist"
+	}
+}
+

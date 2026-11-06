@@ -1,0 +1,16 @@
+$ dpkg-query -W minifw-ai -> 0 minifw-ai	2.2.12-finance
+$ systemctl is-active minifw-ai -> 0 active
+$ systemctl is-active minifw-ai-web -> 0 active
+$ systemctl is-active dnsmasq -> 3 failed
+$ nft list table inet minifw -> 0 table inet minifw {
+	set minifw_block_v4 {
+		type ipv4_addr
+		timeout 1h
+	}
+
+	chain forward {
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 2667 bytes 159900 comment "MiniFW-AI-Conntrack"
+		ip saddr @minifw_block_v4 counter packets 825 bytes 48960 drop comment "MiniFW-AI-Blocklist"
+	}
+}

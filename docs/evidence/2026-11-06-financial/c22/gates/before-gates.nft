@@ -1,0 +1,13 @@
+2026-11-06T11:09:51+07:00
+table inet minifw {
+	set minifw_block_v4 {
+		type ipv4_addr
+		timeout 1h
+	}
+
+	chain forward {
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 5855 bytes 350940 comment "MiniFW-AI-Conntrack"
+		ip saddr @minifw_block_v4 counter packets 2132 bytes 126920 drop comment "MiniFW-AI-Blocklist"
+	}
+}

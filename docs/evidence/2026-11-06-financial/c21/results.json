@@ -1,0 +1,755 @@
+{
+  "candidate": "C21 v2.2.12 Financial",
+  "date": "2026-11-06",
+  "vm": "minifw-monday-financial (build also on minifw-monday-education)",
+  "source_tar_sha256": "0be83f2a43c4bddc55344a96c549ed2d67336b966df9cfa35f07b0873c426a6c",
+  "source_commit": "a9c87e93",
+  "model_sha256": "d06ce40ea3276d2cedac9e354075c4aa74aa3987e08b35e40a95451d4e69d6ee",
+  "steps": {
+    "1_build": {
+      "pass": true,
+      "command": "SOURCE_DATE_EPOCH=1793836800 bash scripts/build_deb.sh finance 2.2.12 (as user lab)",
+      "deb": "minifw-ai_2.2.12-finance_amd64.deb",
+      "deb_sha256": {
+        "financial_vm": "41c8345de1a8fd880bbbd36d6d91a3977137ed133f7e0ce7e215559ca7b2dd11",
+        "education_vm": "41c8345de1a8fd880bbbd36d6d91a3977137ed133f7e0ce7e215559ca7b2dd11"
+      },
+      "tarball_hash_verified_on_both_vms": true,
+      "build_env": "dpkg-deb 1.21.23, GNU sed 4.9, kernel 6.1.0-54-cloud-amd64"
+    },
+    "2_upgrade": {
+      "pass": true,
+      "from": "2.2.11-finance",
+      "to": "2.2.12-finance",
+      "dpkg_rc": 0,
+      "dpkg_verify_before": "clean",
+      "dpkg_verify_after": "clean",
+      "policy_conffile": "unmodified 2.2.11 policy (f51fdb90...) replaced by shipped 2.2.12 policy ad580ecb...",
+      "postinst_ai_enforcement_warning": false,
+      "unit_policy": "Environment=MINIFW_POLICY=/opt/minifw_ai/config/modes/minifw_financial/policy.json (so the postinst check did run against it)",
+      "env_commented_lines": {
+        "#MINIFW_AI_ENFORCE_MODEL_SHA256=": 1,
+        "#MINIFW_AI_WINDOW_MODEL=": 1,
+        "active MINIFW_AI_ lines": 0,
+        "env mode": "root:root 600"
+      },
+      "services_after": {
+        "minifw-ai": "active",
+        "minifw-ai-web": "active",
+        "dnsmasq": "failed (as before the upgrade)"
+      },
+      "runtime_health_new_keys": {
+        "protection_state": "BASELINE_PROTECTION",
+        "ai_window": {
+          "approved": false,
+          "segments": [
+            "internal",
+            "guest",
+            "default"
+          ],
+          "exempt": 0,
+          "model_sha256": "d06ce40e...d6ee"
+        }
+      },
+      "health_banner": "present; /health/ returns 503 not_ready because the dns and zeek sources are quiet on this VM (dnsmasq failed as found, Zeek not installed), so the banner shows its warning",
+      "apply": "works: HTTP 200 and engine PID changed (step 4 and the dashboard gate)"
+    },
+    "3_regression": {
+      "pass": true,
+      "result": "658 passed, 10 warnings in 29.34s",
+      "pytest_rc": 0,
+      "selection": "testing/ -m 'not integration', /opt/minifw_ai/venv python, as user lab"
+    },
+    "4_restart_false_block": {
+      "pass": true,
+      "client": "10.10.0.20",
+      "scan1_isolated_after_s": 3.1,
+      "conntrack_at_isolation": {
+        "at": "2026-11-06T10:05:00+0700",
+        "entries": 15,
+        "distinct_dports": 15,
+        "states": [
+          "ESTABLISHED"
+        ]
+      },
+      "hand_delete_at": "2026-11-06T10:05:01+0700",
+      "apply_at": "2026-11-06T10:05:05+0700",
+      "seconds_delete_to_apply": 4.1,
+      "save_http": 200,
+      "apply_http": 200,
+      "engine_pid_before_after": [
+        "119067",
+        "120036"
+      ],
+      "readded_by_old_engine_before_restart": false,
+      "conntrack_at_restart": {
+        "at": "2026-11-06T10:05:05+0700",
+        "entries": 15,
+        "distinct_dports": 15,
+        "states": [
+          "ESTABLISHED"
+        ]
+      },
+      "conntrack_after_30s": {
+        "at": "2026-11-06T10:05:35+0700",
+        "entries": 15,
+        "distinct_dports": 15,
+        "states": [
+          "ESTABLISHED"
+        ]
+      },
+      "reblocked_after_restart": false,
+      "watched_s_after_restart": 30.4,
+      "post_restart_client_events": {
+        "count": 87,
+        "actions": [
+          "allow"
+        ],
+        "reasons": []
+      },
+      "restart_test_valid": true,
+      "fresh_scan_isolated": true,
+      "fresh_scan_isolated_after_s": 3.5,
+      "block_events": [
+        [
+          "2026-11-06T03:05:00.768691+00:00",
+          [
+            "port_scan",
+            "hard_threat_gate_override"
+          ],
+          "Hard Gate"
+        ],
+        [
+          "2026-11-06T03:05:39.514476+00:00",
+          [
+            "port_scan",
+            "hard_threat_gate_override"
+          ],
+          "Hard Gate"
+        ]
+      ],
+      "policy_restored_after_dashboard_save": true,
+      "runs": [
+        {
+          "run": "run1",
+          "apply_delay_s": 0.0,
+          "scan1_isolated_after_s": 3.1,
+          "hand_delete_at": "2026-11-06T10:05:01+0700",
+          "readded_by_running_engine_before_apply_after_s": null,
+          "apply_at": "2026-11-06T10:05:05+0700",
+          "seconds_delete_to_apply": 4.1,
+          "save_apply_http": [
+            200,
+            200
+          ],
+          "engine_pid": [
+            "119067",
+            "120036"
+          ],
+          "element_present_when_new_pid_seen": false,
+          "conntrack_at_restart": {
+            "at": "2026-11-06T10:05:05+0700",
+            "entries": 15,
+            "distinct_dports": 15,
+            "states": [
+              "ESTABLISHED"
+            ]
+          },
+          "reblocked_within_30s_after_restart": false,
+          "post_restart_client_events": {
+            "count": 87,
+            "actions": [
+              "allow"
+            ],
+            "reasons": []
+          },
+          "restart_test_valid": true,
+          "fresh_scan_isolated_after_s": 3.5,
+          "readded_after_cleanup_delete_after_s": null,
+          "policy_restored": true
+        },
+        {
+          "run": "run2",
+          "apply_delay_s": 0.0,
+          "scan1_isolated_after_s": 1.7,
+          "hand_delete_at": "2026-11-06T10:23:46+0700",
+          "readded_by_running_engine_before_apply_after_s": null,
+          "apply_at": "2026-11-06T10:23:50+0700",
+          "seconds_delete_to_apply": 3.5,
+          "save_apply_http": [
+            200,
+            200
+          ],
+          "engine_pid": [
+            "124878",
+            "124970"
+          ],
+          "element_present_when_new_pid_seen": false,
+          "conntrack_at_restart": {
+            "at": "2026-11-06T10:23:50+0700",
+            "entries": 15,
+            "distinct_dports": 15,
+            "states": [
+              "ESTABLISHED"
+            ]
+          },
+          "reblocked_within_30s_after_restart": false,
+          "post_restart_client_events": {
+            "count": 89,
+            "actions": [
+              "allow"
+            ],
+            "reasons": []
+          },
+          "restart_test_valid": true,
+          "fresh_scan_isolated_after_s": 3.5,
+          "readded_after_cleanup_delete_after_s": 2.0,
+          "policy_restored": true
+        },
+        {
+          "run": "run3",
+          "apply_delay_s": 30.0,
+          "scan1_isolated_after_s": 1.9,
+          "hand_delete_at": "2026-11-06T10:25:08+0700",
+          "readded_by_running_engine_before_apply_after_s": 4.6,
+          "apply_at": "2026-11-06T10:25:42+0700",
+          "seconds_delete_to_apply": 33.8,
+          "save_apply_http": [
+            200,
+            200
+          ],
+          "engine_pid": [
+            "125380",
+            "125569"
+          ],
+          "element_present_when_new_pid_seen": true,
+          "conntrack_at_restart": {
+            "at": "2026-11-06T10:25:42+0700",
+            "entries": 15,
+            "distinct_dports": 15,
+            "states": [
+              "ESTABLISHED"
+            ]
+          },
+          "reblocked_within_30s_after_restart": false,
+          "post_restart_client_events": {
+            "count": 82,
+            "actions": [
+              "allow"
+            ],
+            "reasons": []
+          },
+          "restart_test_valid": true,
+          "fresh_scan_isolated_after_s": 8.5,
+          "readded_after_cleanup_delete_after_s": 2.5,
+          "policy_restored": true
+        }
+      ]
+    },
+    "5_upgrade_gap": {
+      "pass": true,
+      "policy_change": "ai_enforcement block removed; lab clients 10.10.0.128/25 -> internal",
+      "approval_line": "set",
+      "warning_present": true,
+      "warning": "[AI_WINDOW] Policy /opt/minifw_ai/config/modes/minifw_financial/policy.json has no ai_enforcement segments: the client-window AI will not isolate any client. Add the ai_enforcement block to the policy (the shipped default policy, or policy.json.dpkg-dist after an upgrade, has it).",
+      "protection_state": "AI_ENHANCED_PROTECTION",
+      "runtime_health_ai_window": {
+        "model_sha256": "d06ce40ea3276d2cedac9e354075c4aa74aa3987e08b35e40a95451d4e69d6ee",
+        "approved": true,
+        "segments": [],
+        "exempt": 0
+      },
+      "client": "10.10.0.160",
+      "rate_per_min": 60,
+      "duration_s": 90,
+      "connected_ok": 90,
+      "segment": [
+        "internal"
+      ],
+      "ai_window_modes": {
+        "shadow_only": 90,
+        "not_run (repeat observations)": 817
+      },
+      "max_n60": 60,
+      "max_probability": 0.997,
+      "isolated": false,
+      "block_events": 0,
+      "policy_env_restored": true
+    },
+    "6_backup_restore": {
+      "pass": true,
+      "backup_rc": 0,
+      "restore_rc": 0,
+      "archive_owner_mode": "0:0 0o600",
+      "archive_members": 34,
+      "services_after_backup": {
+        "minifw-ai": "active",
+        "minifw-ai-web": "active"
+      },
+      "services_after_restore": {
+        "minifw-ai": "active",
+        "minifw-ai-web": "active"
+      },
+      "probe_change_reverted": true,
+      "all_entries_match_archive_after_restore": true,
+      "secret_files_present_and_match": {
+        "etc/minifw/minifw.env": true,
+        "var/lib/minifw-ai/license.json": true,
+        "var/lib/minifw-ai/minifw.db": true
+      },
+      "dpkg_verify": "clean",
+      "dashboard_login_after_restore": true,
+      "archive_deleted": true,
+      "match_immediately_after_backup": false
+    },
+    "7_dashboard": {
+      "pass": true,
+      "live_blocks_trigger": "Hard gate (packet rate/burst/port scan)",
+      "live_blocks_decision_owner": "Hard Gate",
+      "forbidden_text_found": {
+        "/admin/": [],
+        "/admin/events": []
+      },
+      "rows": {
+        "Detection Mode": "Baseline (AI off: DNS log not healthy)",
+        "Connection-rate AI": "Off (baseline)"
+      },
+      "csv_header": [
+        "timestamp",
+        "client_ip",
+        "domain",
+        "action",
+        "score",
+        "decision_owner",
+        "ai_window_mode",
+        "reasons",
+        "kernel_status_at_export"
+      ],
+      "csv_rows_all": 46980,
+      "csv_widths": [
+        9
+      ],
+      "exports_block_filter": {
+        "csv": {
+          "status": 200,
+          "seconds": 1.5,
+          "bytes": 2133
+        },
+        "pdf": {
+          "status": 200,
+          "seconds": 1.4,
+          "bytes": 3027
+        }
+      },
+      "pdf_parsed": "pdftotext: 8 headers incl. Decision owner and AI window, 12 block rows",
+      "pdf_all_events": "repeat with no client timeout: all-events CSV 25.4 s (7.9 MB, 63,890 lines, same 9-column header); all-events PDF 62.5 s (5.4 MB, %PDF ... %%EOF)",
+      "escaping": "inspection only (innerHTML paths use esc(), other ev.domain/ev.source paths use textContent); no live injection test",
+      "status_equals_engine_action": "seen for a block only (status blocked, action block)",
+      "rows_captured_in": "BASELINE_PROTECTION only (fixed controller text for that state)",
+      "app_source_forbidden_strings": "Math.random only in user_management.html password generator (outside C21 scope)",
+      "exportall_repeat": {
+        "at": "2026-11-06T10:26:51+0700",
+        "loopback_isolated_before": false,
+        "csv": {
+          "status": 200,
+          "seconds": 25.4,
+          "bytes": 7891341,
+          "start": "# Min",
+          "pdf_eof": null,
+          "csv_header": "timestamp,client_ip,domain,action,score,decision_owner,ai_window_mode,reasons,kernel_status_at_export",
+          "csv_rows": 63890,
+          "loopback_isolated_after": true
+        },
+        "pdf": {
+          "status": 200,
+          "seconds": 62.5,
+          "bytes": 5446672,
+          "start": "%PDF-",
+          "pdf_eof": true,
+          "csv_header": null,
+          "csv_rows": null,
+          "loopback_isolated_after": true
+        },
+        "loopback_isolated_at_end": false,
+        "loopback_element_adds": 25,
+        "first_add": "2026-11-06T10:28:20+0700",
+        "last_add": "2026-11-06T10:30:19+0700",
+        "hard_gate_lines": 115
+      }
+    },
+    "8_baseline_gates": {
+      "pass": true,
+      "dashboard_gate_exit": 0,
+      "thursday_gate_exit": 0,
+      "licence": {
+        "valid_upload": "valid",
+        "tampered_upload_http": 400,
+        "persists_after_web_restart": true
+      },
+      "save_apply_changes_enforcement": {
+        "timeout_before": 86400,
+        "timeout_after": 11,
+        "routed_after": "blocked"
+      },
+      "deny_domain_isolates": "wednesday-policy.lab.test",
+      "labelled_corpus": {
+        "captures": 8,
+        "requests": 240,
+        "representative": false,
+        "AI": "C18 shadow only",
+        "quality_gate": "not evaluated yet"
+      },
+      "labelled_corpus_isolation": "none (assert not member() after each of 8 captures)",
+      "F1": {
+        "reasons": [
+          "port_scan",
+          "hard_threat_gate_override"
+        ],
+        "routed_HTTP": "blocked",
+        "limitation": "Does not establish same-port flood or encrypted password-guessing detection"
+      }
+    },
+    "9_ai_boundary": {
+      "pass": true,
+      "poll_interval_s": {
+        "R1": [
+          5.03,
+          4.98,
+          5.08
+        ],
+        "R1full": [
+          5.04,
+          4.98,
+          5.11
+        ],
+        "R2": [
+          5.03,
+          4.97,
+          5.09
+        ]
+      },
+      "feeder_dns_events": 300,
+      "results": [
+        {
+          "case": "attack_30pm",
+          "ip": "10.10.0.130",
+          "rate_per_min": 30.0,
+          "isolated": false,
+          "seconds_to_isolation": null,
+          "max_n60": 31,
+          "max_probability": 0.7101595860741554,
+          "modes": [
+            "enforcing",
+            "not_run"
+          ],
+          "nft_timeout": null
+        },
+        {
+          "case": "attack_37pm",
+          "ip": "10.10.0.137",
+          "rate_per_min": 37.0,
+          "isolated": false,
+          "seconds_to_isolation": null,
+          "max_n60": 38,
+          "max_probability": 0.8867759082988741,
+          "modes": [
+            "enforcing",
+            "not_run"
+          ],
+          "nft_timeout": null
+        },
+        {
+          "case": "attack_38pm",
+          "ip": "10.10.0.138",
+          "rate_per_min": 38.0,
+          "isolated": true,
+          "seconds_to_isolation": 79.4,
+          "max_n60": 39,
+          "max_probability": 0.9024045897511963,
+          "modes": [
+            "enforcing",
+            "not_run"
+          ],
+          "nft_timeout": 900
+        },
+        {
+          "case": "attack_39pm",
+          "ip": "10.10.0.139",
+          "rate_per_min": 39.0,
+          "isolated": true,
+          "seconds_to_isolation": 59.6,
+          "max_n60": 39,
+          "max_probability": 0.9024045897511963,
+          "modes": [
+            "enforcing",
+            "not_run"
+          ],
+          "nft_timeout": 900
+        },
+        {
+          "case": "attack_60pm",
+          "ip": "10.10.0.160",
+          "rate_per_min": 60.0,
+          "isolated": true,
+          "seconds_to_isolation": 39.4,
+          "max_n60": 39,
+          "max_probability": 0.9024045897511963,
+          "modes": [
+            "enforcing",
+            "not_run"
+          ],
+          "nft_timeout": 900
+        },
+        {
+          "case": "a_poller_1s",
+          "ip": "10.10.0.201",
+          "rate_per_min": 60.0,
+          "isolated": true,
+          "seconds_to_isolation": 39.4,
+          "max_n60": 39,
+          "max_probability": 0.9024045897511963,
+          "modes": [
+            "enforcing",
+            "not_run"
+          ],
+          "nft_timeout": 900
+        },
+        {
+          "case": "e_exempt_poller_1s",
+          "ip": "10.10.0.205",
+          "rate_per_min": 60.0,
+          "isolated": false,
+          "seconds_to_isolation": null,
+          "max_n60": 62,
+          "max_probability": 0.997629883235997,
+          "modes": [
+            "not_run",
+            "shadow_only"
+          ],
+          "nft_timeout": null
+        }
+      ],
+      "restored_matches_pre": "True for both brackets (10:12:40 and 10:5x)",
+      "runs": {
+        "R1 (main, 150 s)": "lab/out/R1",
+        "R1full (this morning's C20 list, 150 s)": "lab2/out/R1full",
+        "R2 (36/37/38 x3, phase offsets 0/1.7/3.4 s, 150 s)": "lab2/out/R2",
+        "R3long (37/38 x3, 300 s)": "lab2/out/R3long"
+      },
+      "aggregate_150s": {
+        "30/min": "0/2",
+        "33/min": "0/1",
+        "35/min": "0/1",
+        "36/min": "0/4 (n60 max 37)",
+        "37/min": "0/5 (n60 max 38)",
+        "38/min": "5/5 (79.4, 84.3, 84.4, 87.8, 136.7 s)",
+        "39/min": "2/2 (59.6, 79.2 s)",
+        "45/min": "1/1 (53.9 s)",
+        "60/min": "2/2 (39.4, 38.7 s)",
+        "a_poller_1s": "2/2 (39.4, 38.7 s)",
+        "b_poller_2s": "0/1",
+        "c_monitor_10s": "0/1",
+        "d_keepalive_1s": "0/1",
+        "e_exempt_poller_1s": "0/2 (n60 60/62, mode shadow_only)"
+      },
+      "aggregate_300s": {
+        "37/min": "1/3 (104.2 s, n60 39)",
+        "38/min": "3/3 (84.4, 112.6, 116.0 s)"
+      },
+      "rows_ai_enhanced_approved": {
+        "Detection Mode": "AI enhanced",
+        "Connection-rate AI": "Enforcing in internal, guest, default"
+      },
+      "finding": "the boundary is not a clean 38/min: 37/min never isolated in 150 s (0/5) but isolated once in 300 s (1/3); 38/min always isolated but needed up to 136.7 s"
+    }
+  },
+  "final_state": {
+    "package": "2.2.12-finance",
+    "dpkg_verify": "clean",
+    "minifw-ai": "active",
+    "minifw-ai-web": "active",
+    "dnsmasq": "failed (as found)",
+    "policy_sha256": "ad580ecba7b717226185b9f334a4eaf1efe877a4beaa530ead7885886defe338 (= shipped)",
+    "active_approval_lines": 0,
+    "commented_approval_lines": 1,
+    "block_set": "empty",
+    "lab_netns_and_units": "removed",
+    "education_vm": "2.2.11-education, minifw-ai/minifw-ai-web active, dnsmasq failed (as before), no blocks, no netns; only /var/tmp/c21 added (build)",
+    "env_copies_on_vm": "/var/tmp/c21/lab/orig removed",
+    "note": "C21 state at 10:15 WIB; superseded by ../c22/final-state.txt (VM upgraded to 2.2.13 at 10:52)",
+    "not_restored": "events.jsonl, the engine journal and dashboard audit/DB entries keep today's lab events and logins (as on 5 Nov)"
+  },
+  "unexpected": [
+    "127.0.0.1 isolated by the pps_saturation hard gate (1 d element) during all-events dashboard exports over loopback: 10:05:54 in run 1, reproduced 10:27-10:30 (25 re-adds about every 5 s for 2 min, deleted each time). Dashboard listens on 127.0.0.1 only and the block is in forward, so no traffic was cut. Same gate as F1 bulk (see f1_bulk_before_C22): routed bulk flows with MTU-sized segments (pass B) WERE isolated for 24 h at 7.0/7.1 s; with the lab's default veth offloads (pass A, and the earlier curl test) they were not.",
+    "all-events exports are slow: CSV 25.4 s, PDF 62.5 s for ~64k events (the first PDF try hit the 20 s client timeout); block-only exports ~1.5 s",
+    "the running engine re-isolates a hand-deleted client one poll later while it still tracks that client's scan flows: 2.0 s, 2.5 s (cleanup of runs 2/3), 4.6 s (run 3 delay), 2 s (run 1 cleanup). Running-engine behaviour, not the restart path C21 changes; an operator's hand unblock does not stick until the flows age out or the engine restarts",
+    "gate harness leaves minifw-ai and minifw-ai-web stopped; restarted 10:15",
+    "right after backup.sh at least one file differed from its archive entry (names not recorded); all matched after restore.sh",
+    "the AI boundary is 37-38/min, not a clean 38: 37/min 0/5 at 150 s but 1/3 at 300 s (104 s); 38/min always isolated but needed up to 136.7 s"
+  ],
+  "followup_bulk_download_pps": {
+    "question": "does a routed bulk download from a lab client trip pps_saturation (>200 pkt/s per flow)?",
+    "client": "10.10.0.20",
+    "results": [
+      {
+        "limit": "100K",
+        "bytes": 3604480,
+        "avg_bytes_per_s": 180221,
+        "isolated": false,
+        "block_events": 0
+      },
+      {
+        "limit": "250K",
+        "bytes": 14077952,
+        "avg_bytes_per_s": 703890,
+        "isolated": false,
+        "block_events": 0
+      },
+      {
+        "limit": "500K",
+        "bytes": 14208648,
+        "avg_bytes_per_s": 710432,
+        "isolated": false,
+        "block_events": 0
+      },
+      {
+        "limit": "unlimited",
+        "bytes": 314572800,
+        "avg_bytes_per_s": 510888252,
+        "isolated": false,
+        "block_events": 0
+      }
+    ],
+    "isolated_at_end": false,
+    "dashboard_bind": "127.0.0.1:8443 only (minifw-ai-web.service), so exports always arrive over loopback",
+    "conclusion": "superseded by f1_bulk_before_C22: with default veth offloads (coalesced super-packets) no isolation; with MTU-sized segments (pass B) a 20 MB download at 4 MB/s and a 2.5 Mbit/s stream were isolated for 24 h by pps_saturation"
+  },
+  "f1_bulk_before_C22": {
+    "A": {
+      "offloads": "on",
+      "elements_deleted_by_test": [],
+      "results": [
+        {
+          "case": "dl_20MB_unpaced",
+          "ip": "10.10.0.150",
+          "bytes": 20971520,
+          "seconds": 0.05,
+          "isolated": false,
+          "seconds_to_isolation": null,
+          "reasons": null,
+          "owner": null,
+          "nft_timeout": null,
+          "conntrack_packets": 1242,
+          "max_pps_5s": 0.0
+        },
+        {
+          "case": "dl_20MB_paced_4MBps",
+          "ip": "10.10.0.151",
+          "bytes": 20971520,
+          "seconds": 5.24,
+          "isolated": false,
+          "seconds_to_isolation": null,
+          "reasons": null,
+          "owner": null,
+          "nft_timeout": null,
+          "conntrack_packets": 542,
+          "max_pps_5s": 55.1
+        },
+        {
+          "case": "stream_2.5Mbps_60s",
+          "ip": "10.10.0.152",
+          "bytes": 18750000,
+          "seconds": 60.0,
+          "isolated": false,
+          "seconds_to_isolation": null,
+          "reasons": null,
+          "owner": null,
+          "nft_timeout": null,
+          "conntrack_packets": 1730,
+          "max_pps_5s": 32.4
+        },
+        {
+          "case": "control_2MB_unpaced",
+          "ip": "10.10.0.153",
+          "bytes": 2097152,
+          "seconds": 0.01,
+          "isolated": false,
+          "seconds_to_isolation": null,
+          "reasons": null,
+          "owner": null,
+          "nft_timeout": null,
+          "conntrack_packets": 148,
+          "max_pps_5s": 0.0
+        }
+      ]
+    },
+    "B": {
+      "offloads": "off",
+      "elements_deleted_by_test": [
+        "10.10.0.155",
+        "10.10.0.156"
+      ],
+      "results": [
+        {
+          "case": "dl_20MB_unpaced",
+          "ip": "10.10.0.154",
+          "bytes": 20971520,
+          "seconds": 0.11,
+          "isolated": false,
+          "seconds_to_isolation": null,
+          "reasons": null,
+          "owner": null,
+          "nft_timeout": null,
+          "conntrack_packets": 16275,
+          "max_pps_5s": 0.0
+        },
+        {
+          "case": "dl_20MB_paced_4MBps",
+          "ip": "10.10.0.155",
+          "bytes": 20971520,
+          "seconds": 5.24,
+          "isolated": true,
+          "seconds_to_isolation": 7.0,
+          "reasons": [
+            "pps_saturation",
+            "hard_threat_gate_override"
+          ],
+          "owner": "Hard Gate",
+          "nft_timeout": 86400,
+          "conntrack_packets": 15684,
+          "max_pps_5s": 1546.3
+        },
+        {
+          "case": "stream_2.5Mbps_60s",
+          "ip": "10.10.0.156",
+          "bytes": null,
+          "seconds": null,
+          "isolated": true,
+          "seconds_to_isolation": 7.1,
+          "reasons": [
+            "pps_saturation",
+            "hard_threat_gate_override"
+          ],
+          "owner": "Hard Gate",
+          "nft_timeout": 86400,
+          "conntrack_packets": 2132,
+          "max_pps_5s": 234.2
+        },
+        {
+          "case": "control_2MB_unpaced",
+          "ip": "10.10.0.157",
+          "bytes": 2097152,
+          "seconds": 0.02,
+          "isolated": false,
+          "seconds_to_isolation": null,
+          "reasons": null,
+          "owner": null,
+          "nft_timeout": null,
+          "conntrack_packets": 2366,
+          "max_pps_5s": 0.0
+        }
+      ]
+    }
+  },
+  "restart_false_block_repeats": "runs 2 and 3 in steps.4_restart_false_block.runs"
+}

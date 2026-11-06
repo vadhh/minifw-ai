@@ -1,0 +1,178 @@
+$ truncate -s 300M /var/tmp/c21/lab/f1blobs/big -> 0 
+$ systemd-run --unit=bc20-f1http ip netns exec mf-server /usr/bin/python3 -m http.server 18080 --bind 198.18.0.2 --directory /var/tmp/c21/lab/f1blobs -> 0 Running as unit: bc20-f1http.service
+$ ip -n mf-client addr add 10.10.0.150/24 dev mfc0 -> 0 
+$ ip -n mf-client addr add 10.10.0.151/24 dev mfc0 -> 0 
+$ ip -n mf-client addr add 10.10.0.152/24 dev mfc0 -> 0 
+$ ip -n mf-client addr add 10.10.0.153/24 dev mfc0 -> 0 
+$ /usr/sbin/ethtool -k mfcg -> 0 Features for mfcg:
+rx-checksumming: on
+tx-checksumming: on
+	tx-checksum-ipv4: off [fixed]
+	tx-checksum-ip-generic: on
+	tx-checksum-ipv6: off [fixed]
+	tx-checksum-fcoe-crc: off [fixed]
+	tx-checksum-sctp: on
+scatter-gather: on
+	tx-scatter-gather: on
+	tx-scatter-gather-fraglist: on
+tcp-segmentation-offload: on
+	tx-tcp-segmentation: on
+	tx-tcp-ecn-segmentation: on
+	tx-tcp-mangleid-segmentation: on
+	tx
+$ /usr/sbin/ethtool -k mfsg -> 0 Features for mfsg:
+rx-checksumming: on
+tx-checksumming: on
+	tx-checksum-ipv4: off [fixed]
+	tx-checksum-ip-generic: on
+	tx-checksum-ipv6: off [fixed]
+	tx-checksum-fcoe-crc: off [fixed]
+	tx-checksum-sctp: on
+scatter-gather: on
+	tx-scatter-gather: on
+	tx-scatter-gather-fraglist: on
+tcp-segmentation-offload: on
+	tx-tcp-segmentation: on
+	tx-tcp-ecn-segmentation: on
+	tx-tcp-mangleid-segmentation: on
+	tx
+$ ip netns exec mf-client /usr/sbin/ethtool -k mfc0 -> 0 Features for mfc0:
+rx-checksumming: on
+tx-checksumming: on
+	tx-checksum-ipv4: off [fixed]
+	tx-checksum-ip-generic: on
+	tx-checksum-ipv6: off [fixed]
+	tx-checksum-fcoe-crc: off [fixed]
+	tx-checksum-sctp: on
+scatter-gather: on
+	tx-scatter-gather: on
+	tx-scatter-gather-fraglist: on
+tcp-segmentation-offload: on
+	tx-tcp-segmentation: on
+	tx-tcp-ecn-segmentation: on
+	tx-tcp-mangleid-segmentation: on
+	tx
+$ ip netns exec mf-server /usr/sbin/ethtool -k mfs0 -> 0 Features for mfs0:
+rx-checksumming: on
+tx-checksumming: on
+	tx-checksum-ipv4: off [fixed]
+	tx-checksum-ip-generic: on
+	tx-checksum-ipv6: off [fixed]
+	tx-checksum-fcoe-crc: off [fixed]
+	tx-checksum-sctp: on
+scatter-gather: on
+	tx-scatter-gather: on
+	tx-scatter-gather-fraglist: on
+tcp-segmentation-offload: on
+	tx-tcp-segmentation: on
+	tx-tcp-ecn-segmentation: on
+	tx-tcp-mangleid-segmentation: on
+	tx
+$ systemctl stop minifw-ai -> 0 
+$ nft delete element inet minifw minifw_block_v4 { 10.10.0.150 } -> 1 Error: Could not process rule: No such file or directory
+delete element inet minifw minifw_block_v4 { 10.10.0.150 }
+                                             ^^^^^^^^^^^
+$ conntrack -D -s 10.10.0.150 -> 1 conntrack v1.4.7 (conntrack-tools): 0 flow entries have been deleted.
+$ nft delete element inet minifw minifw_block_v4 { 10.10.0.151 } -> 1 Error: Could not process rule: No such file or directory
+delete element inet minifw minifw_block_v4 { 10.10.0.151 }
+                                             ^^^^^^^^^^^
+$ conntrack -D -s 10.10.0.151 -> 1 conntrack v1.4.7 (conntrack-tools): 0 flow entries have been deleted.
+$ nft delete element inet minifw minifw_block_v4 { 10.10.0.152 } -> 1 Error: Could not process rule: No such file or directory
+delete element inet minifw minifw_block_v4 { 10.10.0.152 }
+                                             ^^^^^^^^^^^
+$ conntrack -D -s 10.10.0.152 -> 1 conntrack v1.4.7 (conntrack-tools): 0 flow entries have been deleted.
+$ nft delete element inet minifw minifw_block_v4 { 10.10.0.153 } -> 1 Error: Could not process rule: No such file or directory
+delete element inet minifw minifw_block_v4 { 10.10.0.153 }
+                                             ^^^^^^^^^^^
+$ conntrack -D -s 10.10.0.153 -> 1 conntrack v1.4.7 (conntrack-tools): 0 flow entries have been deleted.
+$ systemctl start minifw-ai -> 0 
+$ journalctl -u minifw-ai --since 2026-11-06 10:48:03 --no-pager -o cat -> 0 2026-11-06 10:48:03,133 - INFO - Caught SIGTERM, shutting down.
+Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+[FlowCollector] Exported 775 flows, cleaned 0 old flows
+[FlowCollector] Exported 779 flows, cleaned 0 old flows
+[FlowCollector] Exported 781 flows, cleaned 0 old flows
+[FlowCollector] Exported 784 flows, cleaned 0 old flows
+[FlowCollector] Exported 786 flows, cleaned
+$ journalctl -u minifw-ai --since 2026-11-06 10:48:03 --no-pager -o cat -> 0 2026-11-06 10:48:03,133 - INFO - Caught SIGTERM, shutting down.
+Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+[FlowCollector] Exported 775 flows, cleaned 0 old flows
+[FlowCollector] Exported 779 flows, cleaned 0 old flows
+[FlowCollector] Exported 781 flows, cleaned 0 old flows
+[FlowCollector] Exported 784 flows, cleaned 0 old flows
+[FlowCollector] Exported 786 flows, cleaned
+$ journalctl -u minifw-ai --since 2026-11-06 10:48:03 --no-pager -o cat -> 0 2026-11-06 10:48:03,133 - INFO - Caught SIGTERM, shutting down.
+Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+[FlowCollector] Exported 775 flows, cleaned 0 old flows
+[FlowCollector] Exported 779 flows, cleaned 0 old flows
+[FlowCollector] Exported 781 flows, cleaned 0 old flows
+[FlowCollector] Exported 784 flows, cleaned 0 old flows
+[FlowCollector] Exported 786 flows, cleaned
+$ journalctl -u minifw-ai --since 2026-11-06 10:48:03 --no-pager -o cat -> 0 2026-11-06 10:48:03,133 - INFO - Caught SIGTERM, shutting down.
+Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+[FlowCollector] Exported 775 flows, cleaned 0 old flows
+[FlowCollector] Exported 779 flows, cleaned 0 old flows
+[FlowCollector] Exported 781 flows, cleaned 0 old flows
+[FlowCollector] Exported 784 flows, cleaned 0 old flows
+[FlowCollector] Exported 786 flows, cleaned
+$ nft list table inet minifw -> 0 table inet minifw {
+	set minifw_block_v4 {
+		type ipv4_addr
+		timeout 1h
+		elements = { 10.10.0.173 timeout 15m expires 11m5s564ms, 10.10.0.176 timeout 15m expires 10m45s492ms,
+			     10.10.0.177 timeout 15m expires 11m15s772ms, 10.10.0.178 timeout 15m expires 11m20s616ms }
+	}
+
+	chain forward {
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 4016 bytes 24
+$ nft list table inet minifw -> 0 table inet minifw {
+	set minifw_block_v4 {
+		type ipv4_addr
+		timeout 1h
+		elements = { 10.10.0.173 timeout 15m expires 9m49s348ms, 10.10.0.176 timeout 15m expires 9m29s276ms,
+			     10.10.0.177 timeout 15m expires 9m59s556ms, 10.10.0.178 timeout 15m expires 10m4s400ms }
+	}
+
+	chain forward {
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 4020 bytes 24096
+$ journalctl -u minifw-ai --since 2026-11-06 10:48:03 --no-pager -o short-iso -> 0 2026-11-06T10:48:03+0700 minifw-monday-financial python[131117]: 2026-11-06 10:48:03,133 - INFO - Caught SIGTERM, shutting down.
+2026-11-06T10:48:03+0700 minifw-monday-financial systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+2026-11-06T10:48:03+0700 minifw-monday-financial python[131117]: [FlowCollector] Exported 775 flows, cleaned 0 old flows
+2026-11-06T10:48:03+
+$ nft delete element inet minifw minifw_block_v4 { 10.10.0.150 } -> 1 Error: Could not process rule: No such file or directory
+delete element inet minifw minifw_block_v4 { 10.10.0.150 }
+                                             ^^^^^^^^^^^
+$ conntrack -D -s 10.10.0.150 -> 0 tcp      6 43 TIME_WAIT src=10.10.0.150 dst=198.18.0.2 sport=40255 dport=18080 packets=611 bytes=31853 src=198.18.0.2 dst=10.10.0.150 sport=18080 dport=40255 packets=631 bytes=21004546 [ASSURED] mark=0 use=1
+conntrack v1.4.7 (conntrack-tools): 1 flow entries have been deleted.
+$ nft delete element inet minifw minifw_block_v4 { 10.10.0.151 } -> 1 Error: Could not process rule: No such file or directory
+delete element inet minifw minifw_block_v4 { 10.10.0.151 }
+                                             ^^^^^^^^^^^
+$ conntrack -D -s 10.10.0.151 -> 0 tcp      6 48 TIME_WAIT src=10.10.0.151 dst=198.18.0.2 sport=34185 dport=18080 packets=127 bytes=6817 src=198.18.0.2 dst=10.10.0.151 sport=18080 dport=34185 packets=415 bytes=21004042 [ASSURED] mark=0 use=1
+conntrack v1.4.7 (conntrack-tools): 1 flow entries have been deleted.
+$ nft delete element inet minifw minifw_block_v4 { 10.10.0.152 } -> 1 Error: Could not process rule: No such file or directory
+delete element inet minifw minifw_block_v4 { 10.10.0.152 }
+                                             ^^^^^^^^^^^
+$ conntrack -D -s 10.10.0.152 -> 1 conntrack v1.4.7 (conntrack-tools): 0 flow entries have been deleted.
+$ nft delete element inet minifw minifw_block_v4 { 10.10.0.153 } -> 1 Error: Could not process rule: No such file or directory
+delete element inet minifw minifw_block_v4 { 10.10.0.153 }
+                                             ^^^^^^^^^^^
+$ conntrack -D -s 10.10.0.153 -> 0 tcp      6 43 TIME_WAIT src=10.10.0.153 dst=198.18.0.2 sport=57095 dport=18080 packets=75 bytes=3980 src=198.18.0.2 dst=10.10.0.153 sport=18080 dport=57095 packets=73 bytes=2101161 [ASSURED] mark=0 use=1
+conntrack v1.4.7 (conntrack-tools): 1 flow entries have been deleted.
+$ systemctl stop bc20-f1http -> 0 
+$ systemctl reset-failed bc20-f1http -> 1 Failed to reset failed state of unit bc20-f1http.service: Unit bc20-f1http.service not loaded.
+$ nft list table inet minifw -> 0 table inet minifw {
+	set minifw_block_v4 {
+		type ipv4_addr
+		timeout 1h
+		elements = { 10.10.0.173 timeout 15m expires 9m48s936ms, 10.10.0.176 timeout 15m expires 9m28s864ms,
+			     10.10.0.177 timeout 15m expires 9m59s144ms, 10.10.0.178 timeout 15m expires 10m3s988ms }
+	}
+
+	chain forward {
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 4020 bytes 24096
+{"case": "dl_20MB_unpaced", "ip": "10.10.0.150", "client": {"ip": "10.10.0.150", "path": "/mb20", "status": 200, "bytes": 20971520, "seconds": 0.05, "start": 1793936894.0747921}, "isolated": false, "seconds_to_isolation": null, "nft_element": null, "reasons": null, "decision_owner": null, "block_events": 0, "events": 14, "segment": ["internal"], "conntrack_packets_total": 1242, "max_pps_5s_window_conntrack": 0.0}
+{"case": "dl_20MB_paced_4MBps", "ip": "10.10.0.151", "client": {"ip": "10.10.0.151", "path": "/mb20", "status": 200, "bytes": 20971520, "seconds": 5.24, "start": 1793936894.0342863}, "isolated": false, "seconds_to_isolation": null, "nft_element": null, "reasons": null, "decision_owner": null, "block_events": 0, "events": 15, "segment": ["internal"], "conntrack_packets_total": 542, "max_pps_5s_window_conntrack": 55.1}
+{"case": "stream_2.5Mbps_60s", "ip": "10.10.0.152", "client": {"ip": "10.10.0.152", "path": "/big", "status": 200, "bytes": 18750000, "seconds": 60.0, "start": 1793936894.112777}, "isolated": false, "seconds_to_isolation": null, "nft_element": null, "reasons": null, "decision_owner": null, "block_events": 0, "events": 14, "segment": ["internal"], "conntrack_packets_total": 1730, "max_pps_5s_window_conntrack": 32.4}
+{"case": "control_2MB_unpaced", "ip": "10.10.0.153", "client": {"ip": "10.10.0.153", "path": "/mb2", "status": 200, "bytes": 2097152, "seconds": 0.01, "start": 1793936894.1205063}, "isolated": false, "seconds_to_isolation": null, "nft_element": null, "reasons": null, "decision_owner": null, "block_events": 0, "events": 15, "segment": ["internal"], "conntrack_packets_total": 148, "max_pps_5s_window_conntrack": 0.0}
