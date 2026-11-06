@@ -1,0 +1,667 @@
+Nov 05 16:01:40 minifw-monday-financial python[76568]: 2026-11-05 16:01:40,120 - INFO - Caught SIGTERM, shutting down.
+Nov 05 16:01:40 minifw-monday-financial systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 05 16:01:40 minifw-monday-financial python[76568]: [*] DNS Collector reading from /var/log/dnsmasq.log
+Nov 05 16:01:40 minifw-monday-financial python[76568]: [FlowCollector] Exported 30 flows, cleaned 0 old flows
+Nov 05 16:01:40 minifw-monday-financial python[76568]: [FlowCollector] Exported 30 flows, cleaned 0 old flows
+Nov 05 16:01:40 minifw-monday-financial systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 05 16:01:40 minifw-monday-financial systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 16:01:40 minifw-monday-financial systemd[1]: minifw-ai.service: Consumed 2.284s CPU time.
+Nov 05 16:01:43 minifw-monday-financial systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 16:01:44 minifw-monday-financial python[76797]: 2026-11-05 16:01:44,629 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Nov 05 16:01:44 minifw-monday-financial python[76797]: 2026-11-05 16:01:44,633 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Nov 05 16:01:44 minifw-monday-financial python[76797]: 2026-11-05 16:01:44,633 - INFO - [STATE] Initial protection state: AI_ENHANCED_PROTECTION
+Nov 05 16:01:44 minifw-monday-financial python[76797]: 2026-11-05 16:01:44,639 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_financial: sector=finance
+Nov 05 16:01:44 minifw-monday-financial python[76797]: 2026-11-05 16:01:44,639 - INFO - [SECTOR_LOCK] Loaded config for finance: ['description', 'block_tor', 'block_anonymizers', 'strict_tls', 'minimum_tls_version', 'pci_compliance_mode', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_retention_days']
+Nov 05 16:01:44 minifw-monday-financial python[76797]: 2026-11-05 16:01:44,640 - INFO - [SECTOR_LOCK] Device sector: finance (LOCKED)
+Nov 05 16:01:44 minifw-monday-financial python[76797]: 2026-11-05 16:01:44,640 - INFO - [SECTOR_LOCK] Config: Finance: metadata policies; TLS version control requires packet metadata; no compliance certification.
+Nov 05 16:01:44 minifw-monday-financial python[76797]: 2026-11-05 16:01:44,640 - INFO - [FEEDS] Loaded 10 patterns from financial_fraud.txt
+Nov 05 16:01:44 minifw-monday-financial python[76797]: 2026-11-05 16:01:44,640 - INFO - [FEEDS] Loaded 9 patterns from crypto_scams.txt
+Nov 05 16:01:44 minifw-monday-financial python[76797]: 2026-11-05 16:01:44,640 - INFO - [SECTOR_LOCK] Loaded 19 sector-specific feed patterns
+Nov 05 16:01:44 minifw-monday-financial python[76797]: 2026-11-05 16:01:44,640 - INFO - [FEEDS] Loaded 0 Tor exit node IPs from /opt/minifw_ai/config/feeds/tor_exit_nodes.txt
+Nov 05 16:01:44 minifw-monday-financial python[76797]: 2026-11-05 16:01:44,640 - INFO - [SECTOR_LOCK] Tor/anonymizer blocking enabled: loaded 0 exit IPs
+Nov 05 16:01:44 minifw-monday-financial python[76797]: 2026-11-05 16:01:44,640 - INFO - Loading MLP model from: /opt/minifw_ai/models/mlp_packet14.pkl
+Nov 05 16:01:44 minifw-monday-financial python[76797]: 2026-11-05 16:01:44,641 - INFO - Model trained on: unknown
+Nov 05 16:01:44 minifw-monday-financial python[76797]: 2026-11-05 16:01:44,641 - INFO - Training samples: 2000
+Nov 05 16:01:44 minifw-monday-financial python[76797]: 2026-11-05 16:01:44,641 - INFO - Training-data accuracy: unknown; provenance: synthetic (generate_pretrained_model.py; first 14 measured packet features)
+Nov 05 16:01:44 minifw-monday-financial python[76797]: 2026-11-05 16:01:44,641 - INFO - ✓ MLP model loaded successfully
+Nov 05 16:01:44 minifw-monday-financial python[76797]: 2026-11-05 16:01:44,641 - INFO - [MLP] Loaded model from: /opt/minifw_ai/models/mlp_packet14.pkl
+Nov 05 16:01:44 minifw-monday-financial python[76797]: 2026-11-05 16:01:44,641 - INFO - [MLP] Threshold: 0.5
+Nov 05 16:01:44 minifw-monday-financial python[76797]: 2026-11-05 16:01:44,642 - INFO - Compiling YARA rules from: /opt/minifw_ai/yara_rules
+Nov 05 16:01:44 minifw-monday-financial python[76797]: 2026-11-05 16:01:44,652 - INFO - ✓ Compiled 6 YARA rule namespaces
+Nov 05 16:01:44 minifw-monday-financial python[76797]: 2026-11-05 16:01:44,652 - INFO - [YARA] Loaded rules from: /opt/minifw_ai/yara_rules
+Nov 05 16:01:44 minifw-monday-financial python[76797]: 2026-11-05 16:01:44,652 - INFO - [YARA] Rules loaded: True
+Nov 05 16:01:44 minifw-monday-financial python[76797]: 2026-11-05 16:01:44,702 - WARNING - [PROTOCOL] TLS version/WireGuard metadata unavailable without MINIFW_PACKET_INTERFACE
+Nov 05 16:01:44 minifw-monday-financial python[76797]: 2026-11-05 16:01:44,702 - WARNING - [TELEMETRY] Conntrack provides counter deltas, not packet timing/size distributions; 24-feature MLP disabled for these observations
+Nov 05 16:01:44 minifw-monday-financial python[76797]: 2026-11-05 16:01:44,704 - INFO - [AI_WINDOW] Loaded /opt/minifw_ai/models/client_window_v1.json sha256=d06ce40ea3276d2cedac9e354075c4aa74aa3987e08b35e40a95451d4e69d6ee
+Nov 05 16:02:38 minifw-monday-financial systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 05 16:02:38 minifw-monday-financial python[76797]: 2026-11-05 16:02:38,777 - INFO - Caught SIGTERM, shutting down.
+Nov 05 16:02:39 minifw-monday-financial python[76797]: [*] DNS Collector reading from /var/tmp/minifw-monday-financial-20261105T090140Z/dns.log
+Nov 05 16:02:39 minifw-monday-financial python[76797]: [FlowCollector] Exported 37 flows, cleaned 0 old flows
+Nov 05 16:02:39 minifw-monday-financial python[76797]: [FlowCollector] Exported 79 flows, cleaned 0 old flows
+Nov 05 16:02:39 minifw-monday-financial python[76797]: [FlowCollector] Exported 124 flows, cleaned 0 old flows
+Nov 05 16:02:39 minifw-monday-financial python[76797]: [FlowCollector] Exported 155 flows, cleaned 0 old flows
+Nov 05 16:02:39 minifw-monday-financial python[76797]: [FlowCollector] Exported 183 flows, cleaned 0 old flows
+Nov 05 16:02:39 minifw-monday-financial python[76797]: [FlowCollector] Exported 205 flows, cleaned 0 old flows
+Nov 05 16:02:39 minifw-monday-financial python[76797]: [FlowCollector] Exported 230 flows, cleaned 0 old flows
+Nov 05 16:02:39 minifw-monday-financial python[76797]: [FlowCollector] Exported 245 flows, cleaned 0 old flows
+Nov 05 16:02:39 minifw-monday-financial python[76797]: [FlowCollector] Exported 267 flows, cleaned 0 old flows
+Nov 05 16:02:39 minifw-monday-financial python[76797]: [FlowCollector] Exported 284 flows, cleaned 0 old flows
+Nov 05 16:02:39 minifw-monday-financial python[76797]: [FlowCollector] Exported 299 flows, cleaned 0 old flows
+Nov 05 16:02:39 minifw-monday-financial python[76797]: [FlowCollector] Exported 316 flows, cleaned 0 old flows
+Nov 05 16:02:39 minifw-monday-financial python[76797]: [FlowCollector] Exported 329 flows, cleaned 0 old flows
+Nov 05 16:02:39 minifw-monday-financial python[76797]: [FlowCollector] Exported 340 flows, cleaned 0 old flows
+Nov 05 16:02:39 minifw-monday-financial python[76797]: [FlowCollector] Exported 350 flows, cleaned 0 old flows
+Nov 05 16:02:39 minifw-monday-financial python[76797]: [FlowCollector] Exported 357 flows, cleaned 0 old flows
+Nov 05 16:02:39 minifw-monday-financial python[76797]: [FlowCollector] Exported 360 flows, cleaned 0 old flows
+Nov 05 16:02:39 minifw-monday-financial python[76797]: [FlowCollector] Exported 360 flows, cleaned 0 old flows
+Nov 05 16:02:39 minifw-monday-financial systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 05 16:02:39 minifw-monday-financial systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 16:02:39 minifw-monday-financial systemd[1]: minifw-ai.service: Consumed 3.837s CPU time.
+Nov 05 16:02:39 minifw-monday-financial systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 16:02:41 minifw-monday-financial python[77560]: 2026-11-05 16:02:41,139 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Nov 05 16:02:41 minifw-monday-financial python[77560]: 2026-11-05 16:02:41,142 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Nov 05 16:02:41 minifw-monday-financial python[77560]: 2026-11-05 16:02:41,142 - INFO - [STATE] Initial protection state: AI_ENHANCED_PROTECTION
+Nov 05 16:02:41 minifw-monday-financial python[77560]: 2026-11-05 16:02:41,149 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_financial: sector=finance
+Nov 05 16:02:41 minifw-monday-financial python[77560]: 2026-11-05 16:02:41,149 - INFO - [SECTOR_LOCK] Loaded config for finance: ['description', 'block_tor', 'block_anonymizers', 'strict_tls', 'minimum_tls_version', 'pci_compliance_mode', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_retention_days']
+Nov 05 16:02:41 minifw-monday-financial python[77560]: 2026-11-05 16:02:41,149 - INFO - [SECTOR_LOCK] Device sector: finance (LOCKED)
+Nov 05 16:02:41 minifw-monday-financial python[77560]: 2026-11-05 16:02:41,149 - INFO - [SECTOR_LOCK] Config: Finance: metadata policies; TLS version control requires packet metadata; no compliance certification.
+Nov 05 16:02:41 minifw-monday-financial python[77560]: 2026-11-05 16:02:41,150 - INFO - [FEEDS] Loaded 10 patterns from financial_fraud.txt
+Nov 05 16:02:41 minifw-monday-financial python[77560]: 2026-11-05 16:02:41,150 - INFO - [FEEDS] Loaded 9 patterns from crypto_scams.txt
+Nov 05 16:02:41 minifw-monday-financial python[77560]: 2026-11-05 16:02:41,150 - INFO - [SECTOR_LOCK] Loaded 19 sector-specific feed patterns
+Nov 05 16:02:41 minifw-monday-financial python[77560]: 2026-11-05 16:02:41,150 - INFO - [FEEDS] Loaded 0 Tor exit node IPs from /opt/minifw_ai/config/feeds/tor_exit_nodes.txt
+Nov 05 16:02:41 minifw-monday-financial python[77560]: 2026-11-05 16:02:41,150 - INFO - [SECTOR_LOCK] Tor/anonymizer blocking enabled: loaded 0 exit IPs
+Nov 05 16:02:41 minifw-monday-financial python[77560]: 2026-11-05 16:02:41,150 - INFO - Loading MLP model from: /opt/minifw_ai/models/mlp_packet14.pkl
+Nov 05 16:02:41 minifw-monday-financial python[77560]: 2026-11-05 16:02:41,151 - INFO - Model trained on: unknown
+Nov 05 16:02:41 minifw-monday-financial python[77560]: 2026-11-05 16:02:41,151 - INFO - Training samples: 2000
+Nov 05 16:02:41 minifw-monday-financial python[77560]: 2026-11-05 16:02:41,151 - INFO - Training-data accuracy: unknown; provenance: synthetic (generate_pretrained_model.py; first 14 measured packet features)
+Nov 05 16:02:41 minifw-monday-financial python[77560]: 2026-11-05 16:02:41,151 - INFO - ✓ MLP model loaded successfully
+Nov 05 16:02:41 minifw-monday-financial python[77560]: 2026-11-05 16:02:41,151 - INFO - [MLP] Loaded model from: /opt/minifw_ai/models/mlp_packet14.pkl
+Nov 05 16:02:41 minifw-monday-financial python[77560]: 2026-11-05 16:02:41,151 - INFO - [MLP] Threshold: 0.5
+Nov 05 16:02:41 minifw-monday-financial python[77560]: 2026-11-05 16:02:41,151 - INFO - Compiling YARA rules from: /opt/minifw_ai/yara_rules
+Nov 05 16:02:41 minifw-monday-financial python[77560]: 2026-11-05 16:02:41,161 - INFO - ✓ Compiled 6 YARA rule namespaces
+Nov 05 16:02:41 minifw-monday-financial python[77560]: 2026-11-05 16:02:41,162 - INFO - [YARA] Loaded rules from: /opt/minifw_ai/yara_rules
+Nov 05 16:02:41 minifw-monday-financial python[77560]: 2026-11-05 16:02:41,162 - INFO - [YARA] Rules loaded: True
+Nov 05 16:02:41 minifw-monday-financial python[77560]: 2026-11-05 16:02:41,211 - WARNING - [PROTOCOL] TLS version/WireGuard metadata unavailable without MINIFW_PACKET_INTERFACE
+Nov 05 16:02:41 minifw-monday-financial python[77560]: 2026-11-05 16:02:41,212 - WARNING - [TELEMETRY] Conntrack provides counter deltas, not packet timing/size distributions; 24-feature MLP disabled for these observations
+Nov 05 16:02:41 minifw-monday-financial python[77560]: 2026-11-05 16:02:41,214 - INFO - [AI_WINDOW] Loaded /opt/minifw_ai/models/client_window_v1.json sha256=d06ce40ea3276d2cedac9e354075c4aa74aa3987e08b35e40a95451d4e69d6ee
+Nov 05 16:03:35 minifw-monday-financial systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 05 16:03:35 minifw-monday-financial python[77560]: 2026-11-05 16:03:35,358 - INFO - Caught SIGTERM, shutting down.
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [*] DNS Collector reading from /var/tmp/minifw-monday-financial-20261105T090140Z/dns.log
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 100 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 200 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 300 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 333 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 334 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 334 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 334 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 335 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 336 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 336 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 346 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 356 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 361 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 368 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 382 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 399 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 410 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 421 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 433 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 440 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 450 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 464 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 472 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 486 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 497 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 507 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 518 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 527 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 536 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 548 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 558 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 564 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 572 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 576 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 581 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 591 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 599 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 610 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 619 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 624 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 630 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 636 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 638 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 647 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 654 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 656 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 656 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 656 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 656 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 656 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 656 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 657 flows, cleaned 0 old flows
+Nov 05 16:03:36 minifw-monday-financial systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 05 16:03:36 minifw-monday-financial systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 16:03:36 minifw-monday-financial systemd[1]: minifw-ai.service: Consumed 6.923s CPU time.
+Nov 05 16:03:36 minifw-monday-financial systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 16:03:37 minifw-monday-financial python[78215]: 2026-11-05 16:03:37,924 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Nov 05 16:03:37 minifw-monday-financial python[78215]: 2026-11-05 16:03:37,927 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Nov 05 16:03:37 minifw-monday-financial python[78215]: 2026-11-05 16:03:37,927 - INFO - [STATE] Initial protection state: AI_ENHANCED_PROTECTION
+Nov 05 16:03:37 minifw-monday-financial python[78215]: 2026-11-05 16:03:37,934 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_financial: sector=finance
+Nov 05 16:03:37 minifw-monday-financial python[78215]: 2026-11-05 16:03:37,934 - INFO - [SECTOR_LOCK] Loaded config for finance: ['description', 'block_tor', 'block_anonymizers', 'strict_tls', 'minimum_tls_version', 'pci_compliance_mode', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_retention_days']
+Nov 05 16:03:37 minifw-monday-financial python[78215]: 2026-11-05 16:03:37,934 - INFO - [SECTOR_LOCK] Device sector: finance (LOCKED)
+Nov 05 16:03:37 minifw-monday-financial python[78215]: 2026-11-05 16:03:37,934 - INFO - [SECTOR_LOCK] Config: Finance: metadata policies; TLS version control requires packet metadata; no compliance certification.
+Nov 05 16:03:37 minifw-monday-financial python[78215]: 2026-11-05 16:03:37,935 - INFO - [FEEDS] Loaded 10 patterns from financial_fraud.txt
+Nov 05 16:03:37 minifw-monday-financial python[78215]: 2026-11-05 16:03:37,935 - INFO - [FEEDS] Loaded 9 patterns from crypto_scams.txt
+Nov 05 16:03:37 minifw-monday-financial python[78215]: 2026-11-05 16:03:37,935 - INFO - [SECTOR_LOCK] Loaded 19 sector-specific feed patterns
+Nov 05 16:03:37 minifw-monday-financial python[78215]: 2026-11-05 16:03:37,935 - INFO - [FEEDS] Loaded 0 Tor exit node IPs from /opt/minifw_ai/config/feeds/tor_exit_nodes.txt
+Nov 05 16:03:37 minifw-monday-financial python[78215]: 2026-11-05 16:03:37,935 - INFO - [SECTOR_LOCK] Tor/anonymizer blocking enabled: loaded 0 exit IPs
+Nov 05 16:03:37 minifw-monday-financial python[78215]: 2026-11-05 16:03:37,935 - INFO - Loading MLP model from: /opt/minifw_ai/models/mlp_packet14.pkl
+Nov 05 16:03:37 minifw-monday-financial python[78215]: 2026-11-05 16:03:37,936 - INFO - Model trained on: unknown
+Nov 05 16:03:37 minifw-monday-financial python[78215]: 2026-11-05 16:03:37,936 - INFO - Training samples: 2000
+Nov 05 16:03:37 minifw-monday-financial python[78215]: 2026-11-05 16:03:37,936 - INFO - Training-data accuracy: unknown; provenance: synthetic (generate_pretrained_model.py; first 14 measured packet features)
+Nov 05 16:03:37 minifw-monday-financial python[78215]: 2026-11-05 16:03:37,936 - INFO - ✓ MLP model loaded successfully
+Nov 05 16:03:37 minifw-monday-financial python[78215]: 2026-11-05 16:03:37,936 - INFO - [MLP] Loaded model from: /opt/minifw_ai/models/mlp_packet14.pkl
+Nov 05 16:03:37 minifw-monday-financial python[78215]: 2026-11-05 16:03:37,936 - INFO - [MLP] Threshold: 0.5
+Nov 05 16:03:37 minifw-monday-financial python[78215]: 2026-11-05 16:03:37,936 - INFO - Compiling YARA rules from: /opt/minifw_ai/yara_rules
+Nov 05 16:03:37 minifw-monday-financial python[78215]: 2026-11-05 16:03:37,946 - INFO - ✓ Compiled 6 YARA rule namespaces
+Nov 05 16:03:37 minifw-monday-financial python[78215]: 2026-11-05 16:03:37,946 - INFO - [YARA] Loaded rules from: /opt/minifw_ai/yara_rules
+Nov 05 16:03:37 minifw-monday-financial python[78215]: 2026-11-05 16:03:37,947 - INFO - [YARA] Rules loaded: True
+Nov 05 16:03:38 minifw-monday-financial python[78215]: 2026-11-05 16:03:38,004 - WARNING - [PROTOCOL] TLS version/WireGuard metadata unavailable without MINIFW_PACKET_INTERFACE
+Nov 05 16:03:38 minifw-monday-financial python[78215]: 2026-11-05 16:03:38,005 - WARNING - [TELEMETRY] Conntrack provides counter deltas, not packet timing/size distributions; 24-feature MLP disabled for these observations
+Nov 05 16:03:38 minifw-monday-financial python[78215]: 2026-11-05 16:03:38,007 - INFO - [AI_WINDOW] Loaded /opt/minifw_ai/models/client_window_v1.json sha256=d06ce40ea3276d2cedac9e354075c4aa74aa3987e08b35e40a95451d4e69d6ee
+Nov 05 16:04:18 minifw-monday-financial systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 05 16:04:18 minifw-monday-financial python[78215]: 2026-11-05 16:04:18,544 - INFO - Caught SIGTERM, shutting down.
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [*] DNS Collector reading from /var/tmp/minifw-monday-financial-20261105T090140Z/dns.log
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 100 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 200 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 300 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 400 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 500 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 600 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 643 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 643 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 643 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 644 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 644 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 644 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 645 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 645 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 645 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 646 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 646 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 646 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 646 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 652 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 656 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 662 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 664 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 667 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 673 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 675 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 684 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 692 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 698 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 702 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 714 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 723 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 728 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 730 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 730 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 731 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 735 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 735 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 736 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 736 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 737 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 737 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 737 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 737 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 738 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 738 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 739 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 740 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 742 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 742 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 05 16:04:19 minifw-monday-financial systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 16:04:19 minifw-monday-financial systemd[1]: minifw-ai.service: Consumed 7.519s CPU time.
+Nov 05 16:04:19 minifw-monday-financial systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 16:04:21 minifw-monday-financial python[78547]: 2026-11-05 16:04:21,167 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Nov 05 16:04:21 minifw-monday-financial python[78547]: 2026-11-05 16:04:21,171 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Nov 05 16:04:21 minifw-monday-financial python[78547]: 2026-11-05 16:04:21,171 - INFO - [STATE] Initial protection state: AI_ENHANCED_PROTECTION
+Nov 05 16:04:21 minifw-monday-financial python[78547]: 2026-11-05 16:04:21,178 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_financial: sector=finance
+Nov 05 16:04:21 minifw-monday-financial python[78547]: 2026-11-05 16:04:21,178 - INFO - [SECTOR_LOCK] Loaded config for finance: ['description', 'block_tor', 'block_anonymizers', 'strict_tls', 'minimum_tls_version', 'pci_compliance_mode', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_retention_days']
+Nov 05 16:04:21 minifw-monday-financial python[78547]: 2026-11-05 16:04:21,178 - INFO - [SECTOR_LOCK] Device sector: finance (LOCKED)
+Nov 05 16:04:21 minifw-monday-financial python[78547]: 2026-11-05 16:04:21,178 - INFO - [SECTOR_LOCK] Config: Finance: metadata policies; TLS version control requires packet metadata; no compliance certification.
+Nov 05 16:04:21 minifw-monday-financial python[78547]: 2026-11-05 16:04:21,178 - INFO - [FEEDS] Loaded 10 patterns from financial_fraud.txt
+Nov 05 16:04:21 minifw-monday-financial python[78547]: 2026-11-05 16:04:21,178 - INFO - [FEEDS] Loaded 9 patterns from crypto_scams.txt
+Nov 05 16:04:21 minifw-monday-financial python[78547]: 2026-11-05 16:04:21,179 - INFO - [SECTOR_LOCK] Loaded 19 sector-specific feed patterns
+Nov 05 16:04:21 minifw-monday-financial python[78547]: 2026-11-05 16:04:21,179 - INFO - [FEEDS] Loaded 0 Tor exit node IPs from /opt/minifw_ai/config/feeds/tor_exit_nodes.txt
+Nov 05 16:04:21 minifw-monday-financial python[78547]: 2026-11-05 16:04:21,179 - INFO - [SECTOR_LOCK] Tor/anonymizer blocking enabled: loaded 0 exit IPs
+Nov 05 16:04:21 minifw-monday-financial python[78547]: 2026-11-05 16:04:21,179 - INFO - Loading MLP model from: /opt/minifw_ai/models/mlp_packet14.pkl
+Nov 05 16:04:21 minifw-monday-financial python[78547]: 2026-11-05 16:04:21,180 - INFO - Model trained on: unknown
+Nov 05 16:04:21 minifw-monday-financial python[78547]: 2026-11-05 16:04:21,180 - INFO - Training samples: 2000
+Nov 05 16:04:21 minifw-monday-financial python[78547]: 2026-11-05 16:04:21,180 - INFO - Training-data accuracy: unknown; provenance: synthetic (generate_pretrained_model.py; first 14 measured packet features)
+Nov 05 16:04:21 minifw-monday-financial python[78547]: 2026-11-05 16:04:21,180 - INFO - ✓ MLP model loaded successfully
+Nov 05 16:04:21 minifw-monday-financial python[78547]: 2026-11-05 16:04:21,180 - INFO - [MLP] Loaded model from: /opt/minifw_ai/models/mlp_packet14.pkl
+Nov 05 16:04:21 minifw-monday-financial python[78547]: 2026-11-05 16:04:21,180 - INFO - [MLP] Threshold: 0.5
+Nov 05 16:04:21 minifw-monday-financial python[78547]: 2026-11-05 16:04:21,180 - INFO - Compiling YARA rules from: /opt/minifw_ai/yara_rules
+Nov 05 16:04:21 minifw-monday-financial python[78547]: 2026-11-05 16:04:21,190 - INFO - ✓ Compiled 6 YARA rule namespaces
+Nov 05 16:04:21 minifw-monday-financial python[78547]: 2026-11-05 16:04:21,190 - INFO - [YARA] Loaded rules from: /opt/minifw_ai/yara_rules
+Nov 05 16:04:21 minifw-monday-financial python[78547]: 2026-11-05 16:04:21,190 - INFO - [YARA] Rules loaded: True
+Nov 05 16:04:21 minifw-monday-financial python[78547]: 2026-11-05 16:04:21,256 - WARNING - [PROTOCOL] TLS version/WireGuard metadata unavailable without MINIFW_PACKET_INTERFACE
+Nov 05 16:04:21 minifw-monday-financial python[78547]: 2026-11-05 16:04:21,256 - WARNING - [TELEMETRY] Conntrack provides counter deltas, not packet timing/size distributions; 24-feature MLP disabled for these observations
+Nov 05 16:04:21 minifw-monday-financial python[78547]: 2026-11-05 16:04:21,258 - INFO - [AI_WINDOW] Loaded /opt/minifw_ai/models/client_window_v1.json sha256=d06ce40ea3276d2cedac9e354075c4aa74aa3987e08b35e40a95451d4e69d6ee
+Nov 05 16:05:15 minifw-monday-financial systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 05 16:05:15 minifw-monday-financial python[78547]: 2026-11-05 16:05:15,447 - INFO - Caught SIGTERM, shutting down.
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [*] DNS Collector reading from /var/tmp/minifw-monday-financial-20261105T090140Z/dns.log
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 100 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 200 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 300 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 400 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 476 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 482 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 486 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 491 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 491 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 491 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 491 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 491 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 493 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 501 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 508 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 512 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 519 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 527 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 534 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 544 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 554 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 567 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 581 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 593 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 599 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 606 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 615 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 625 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 634 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 646 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 653 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 667 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 675 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 680 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 689 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 693 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 705 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 715 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 724 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 730 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 735 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 742 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 751 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 759 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 771 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 780 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 785 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 788 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 793 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 801 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 803 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 805 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 805 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 806 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 806 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 05 16:05:16 minifw-monday-financial systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 16:05:16 minifw-monday-financial systemd[1]: minifw-ai.service: Consumed 7.774s CPU time.
+Nov 05 16:05:17 minifw-monday-financial systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 16:05:18 minifw-monday-financial python[79118]: 2026-11-05 16:05:18,257 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Nov 05 16:05:18 minifw-monday-financial python[79118]: 2026-11-05 16:05:18,260 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Nov 05 16:05:18 minifw-monday-financial python[79118]: 2026-11-05 16:05:18,260 - INFO - [STATE] Initial protection state: AI_ENHANCED_PROTECTION
+Nov 05 16:05:18 minifw-monday-financial python[79118]: 2026-11-05 16:05:18,267 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_financial: sector=finance
+Nov 05 16:05:18 minifw-monday-financial python[79118]: 2026-11-05 16:05:18,267 - INFO - [SECTOR_LOCK] Loaded config for finance: ['description', 'block_tor', 'block_anonymizers', 'strict_tls', 'minimum_tls_version', 'pci_compliance_mode', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_retention_days']
+Nov 05 16:05:18 minifw-monday-financial python[79118]: 2026-11-05 16:05:18,267 - INFO - [SECTOR_LOCK] Device sector: finance (LOCKED)
+Nov 05 16:05:18 minifw-monday-financial python[79118]: 2026-11-05 16:05:18,267 - INFO - [SECTOR_LOCK] Config: Finance: metadata policies; TLS version control requires packet metadata; no compliance certification.
+Nov 05 16:05:18 minifw-monday-financial python[79118]: 2026-11-05 16:05:18,268 - INFO - [FEEDS] Loaded 10 patterns from financial_fraud.txt
+Nov 05 16:05:18 minifw-monday-financial python[79118]: 2026-11-05 16:05:18,268 - INFO - [FEEDS] Loaded 9 patterns from crypto_scams.txt
+Nov 05 16:05:18 minifw-monday-financial python[79118]: 2026-11-05 16:05:18,268 - INFO - [SECTOR_LOCK] Loaded 19 sector-specific feed patterns
+Nov 05 16:05:18 minifw-monday-financial python[79118]: 2026-11-05 16:05:18,268 - INFO - [FEEDS] Loaded 0 Tor exit node IPs from /opt/minifw_ai/config/feeds/tor_exit_nodes.txt
+Nov 05 16:05:18 minifw-monday-financial python[79118]: 2026-11-05 16:05:18,268 - INFO - [SECTOR_LOCK] Tor/anonymizer blocking enabled: loaded 0 exit IPs
+Nov 05 16:05:18 minifw-monday-financial python[79118]: 2026-11-05 16:05:18,268 - INFO - Loading MLP model from: /opt/minifw_ai/models/mlp_packet14.pkl
+Nov 05 16:05:18 minifw-monday-financial python[79118]: 2026-11-05 16:05:18,269 - INFO - Model trained on: unknown
+Nov 05 16:05:18 minifw-monday-financial python[79118]: 2026-11-05 16:05:18,269 - INFO - Training samples: 2000
+Nov 05 16:05:18 minifw-monday-financial python[79118]: 2026-11-05 16:05:18,269 - INFO - Training-data accuracy: unknown; provenance: synthetic (generate_pretrained_model.py; first 14 measured packet features)
+Nov 05 16:05:18 minifw-monday-financial python[79118]: 2026-11-05 16:05:18,269 - INFO - ✓ MLP model loaded successfully
+Nov 05 16:05:18 minifw-monday-financial python[79118]: 2026-11-05 16:05:18,269 - INFO - [MLP] Loaded model from: /opt/minifw_ai/models/mlp_packet14.pkl
+Nov 05 16:05:18 minifw-monday-financial python[79118]: 2026-11-05 16:05:18,269 - INFO - [MLP] Threshold: 0.5
+Nov 05 16:05:18 minifw-monday-financial python[79118]: 2026-11-05 16:05:18,269 - INFO - Compiling YARA rules from: /opt/minifw_ai/yara_rules
+Nov 05 16:05:18 minifw-monday-financial python[79118]: 2026-11-05 16:05:18,280 - INFO - ✓ Compiled 6 YARA rule namespaces
+Nov 05 16:05:18 minifw-monday-financial python[79118]: 2026-11-05 16:05:18,280 - INFO - [YARA] Loaded rules from: /opt/minifw_ai/yara_rules
+Nov 05 16:05:18 minifw-monday-financial python[79118]: 2026-11-05 16:05:18,280 - INFO - [YARA] Rules loaded: True
+Nov 05 16:05:18 minifw-monday-financial python[79118]: 2026-11-05 16:05:18,339 - WARNING - [PROTOCOL] TLS version/WireGuard metadata unavailable without MINIFW_PACKET_INTERFACE
+Nov 05 16:05:18 minifw-monday-financial python[79118]: 2026-11-05 16:05:18,340 - WARNING - [TELEMETRY] Conntrack provides counter deltas, not packet timing/size distributions; 24-feature MLP disabled for these observations
+Nov 05 16:05:18 minifw-monday-financial python[79118]: 2026-11-05 16:05:18,342 - WARNING - [AI_WINDOW] Model /var/tmp/minifw-monday-financial-20261105T090140Z/corrupt-window-model.json rejected (Unterminated string starting at: line 3 column 3 (char 36)); AI window scoring disabled
+Nov 05 16:05:59 minifw-monday-financial python[79118]: 2026-11-05 16:05:59,175 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:59 minifw-monday-financial python[79118]: 2026-11-05 16:05:59,315 - INFO - Caught SIGTERM, shutting down.
+Nov 05 16:05:59 minifw-monday-financial systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [*] DNS Collector reading from /var/tmp/minifw-monday-financial-20261105T090140Z/dns.log
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 100 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 200 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 300 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 400 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 456 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 462 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 466 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 468 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 469 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 470 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 470 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 471 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 475 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 482 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 491 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 493 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 499 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 506 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 513 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 529 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 540 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 548 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 565 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 575 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 585 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 594 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 600 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 606 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 614 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 621 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 631 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 641 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 649 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 660 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 663 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 674 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 684 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 696 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 703 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 710 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 718 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 725 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 733 flows, cleaned 0 old flows
+Nov 05 16:06:00 minifw-monday-financial systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 05 16:06:00 minifw-monday-financial systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 16:06:00 minifw-monday-financial systemd[1]: minifw-ai.service: Consumed 6.451s CPU time.
+Nov 05 16:06:01 minifw-monday-financial systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 16:06:02 minifw-monday-financial python[79533]: 2026-11-05 16:06:02,246 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Nov 05 16:06:02 minifw-monday-financial python[79533]: 2026-11-05 16:06:02,249 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Nov 05 16:06:02 minifw-monday-financial python[79533]: 2026-11-05 16:06:02,249 - INFO - [STATE] Initial protection state: AI_ENHANCED_PROTECTION
+Nov 05 16:06:02 minifw-monday-financial python[79533]: 2026-11-05 16:06:02,256 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_financial: sector=finance
+Nov 05 16:06:02 minifw-monday-financial python[79533]: 2026-11-05 16:06:02,256 - INFO - [SECTOR_LOCK] Loaded config for finance: ['description', 'block_tor', 'block_anonymizers', 'strict_tls', 'minimum_tls_version', 'pci_compliance_mode', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_retention_days']
+Nov 05 16:06:02 minifw-monday-financial python[79533]: 2026-11-05 16:06:02,256 - INFO - [SECTOR_LOCK] Device sector: finance (LOCKED)
+Nov 05 16:06:02 minifw-monday-financial python[79533]: 2026-11-05 16:06:02,257 - INFO - [SECTOR_LOCK] Config: Finance: metadata policies; TLS version control requires packet metadata; no compliance certification.
+Nov 05 16:06:02 minifw-monday-financial python[79533]: 2026-11-05 16:06:02,257 - INFO - [FEEDS] Loaded 10 patterns from financial_fraud.txt
+Nov 05 16:06:02 minifw-monday-financial python[79533]: 2026-11-05 16:06:02,257 - INFO - [FEEDS] Loaded 9 patterns from crypto_scams.txt
+Nov 05 16:06:02 minifw-monday-financial python[79533]: 2026-11-05 16:06:02,257 - INFO - [SECTOR_LOCK] Loaded 19 sector-specific feed patterns
+Nov 05 16:06:02 minifw-monday-financial python[79533]: 2026-11-05 16:06:02,257 - INFO - [FEEDS] Loaded 0 Tor exit node IPs from /opt/minifw_ai/config/feeds/tor_exit_nodes.txt
+Nov 05 16:06:02 minifw-monday-financial python[79533]: 2026-11-05 16:06:02,257 - INFO - [SECTOR_LOCK] Tor/anonymizer blocking enabled: loaded 0 exit IPs
+Nov 05 16:06:02 minifw-monday-financial python[79533]: 2026-11-05 16:06:02,257 - INFO - Loading MLP model from: /opt/minifw_ai/models/mlp_packet14.pkl
+Nov 05 16:06:02 minifw-monday-financial python[79533]: 2026-11-05 16:06:02,258 - INFO - Model trained on: unknown
+Nov 05 16:06:02 minifw-monday-financial python[79533]: 2026-11-05 16:06:02,258 - INFO - Training samples: 2000
+Nov 05 16:06:02 minifw-monday-financial python[79533]: 2026-11-05 16:06:02,258 - INFO - Training-data accuracy: unknown; provenance: synthetic (generate_pretrained_model.py; first 14 measured packet features)
+Nov 05 16:06:02 minifw-monday-financial python[79533]: 2026-11-05 16:06:02,258 - INFO - ✓ MLP model loaded successfully
+Nov 05 16:06:02 minifw-monday-financial python[79533]: 2026-11-05 16:06:02,258 - INFO - [MLP] Loaded model from: /opt/minifw_ai/models/mlp_packet14.pkl
+Nov 05 16:06:02 minifw-monday-financial python[79533]: 2026-11-05 16:06:02,258 - INFO - [MLP] Threshold: 0.5
+Nov 05 16:06:02 minifw-monday-financial python[79533]: 2026-11-05 16:06:02,258 - INFO - Compiling YARA rules from: /opt/minifw_ai/yara_rules
+Nov 05 16:06:02 minifw-monday-financial python[79533]: 2026-11-05 16:06:02,269 - INFO - ✓ Compiled 6 YARA rule namespaces
+Nov 05 16:06:02 minifw-monday-financial python[79533]: 2026-11-05 16:06:02,269 - INFO - [YARA] Loaded rules from: /opt/minifw_ai/yara_rules
+Nov 05 16:06:02 minifw-monday-financial python[79533]: 2026-11-05 16:06:02,269 - INFO - [YARA] Rules loaded: True
+Nov 05 16:06:02 minifw-monday-financial python[79533]: 2026-11-05 16:06:02,328 - WARNING - [PROTOCOL] TLS version/WireGuard metadata unavailable without MINIFW_PACKET_INTERFACE
+Nov 05 16:06:02 minifw-monday-financial python[79533]: 2026-11-05 16:06:02,328 - WARNING - [TELEMETRY] Conntrack provides counter deltas, not packet timing/size distributions; 24-feature MLP disabled for these observations
+Nov 05 16:06:02 minifw-monday-financial python[79533]: 2026-11-05 16:06:02,330 - INFO - [AI_WINDOW] No model at /var/tmp/minifw-monday-financial-20261105T090140Z/absent-window-model.json; AI window scoring disabled
+Nov 05 16:06:02 minifw-monday-financial python[79533]: 2026-11-05 16:06:02,739 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:07 minifw-monday-financial python[79533]: 2026-11-05 16:06:07,548 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:07 minifw-monday-financial python[79533]: 2026-11-05 16:06:07,634 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:07 minifw-monday-financial python[79533]: 2026-11-05 16:06:07,650 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:07 minifw-monday-financial python[79533]: 2026-11-05 16:06:07,657 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:07 minifw-monday-financial python[79533]: 2026-11-05 16:06:07,693 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:07 minifw-monday-financial python[79533]: 2026-11-05 16:06:07,742 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:07 minifw-monday-financial python[79533]: 2026-11-05 16:06:07,799 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:07 minifw-monday-financial python[79533]: 2026-11-05 16:06:07,839 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:07 minifw-monday-financial python[79533]: 2026-11-05 16:06:07,862 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:07 minifw-monday-financial python[79533]: 2026-11-05 16:06:07,877 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:07 minifw-monday-financial python[79533]: 2026-11-05 16:06:07,982 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:08 minifw-monday-financial python[79533]: 2026-11-05 16:06:08,003 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:08 minifw-monday-financial python[79533]: 2026-11-05 16:06:08,016 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:08 minifw-monday-financial python[79533]: 2026-11-05 16:06:08,037 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:08 minifw-monday-financial python[79533]: 2026-11-05 16:06:08,048 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:12 minifw-monday-financial python[79533]: 2026-11-05 16:06:12,603 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:12 minifw-monday-financial python[79533]: 2026-11-05 16:06:12,691 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:12 minifw-monday-financial python[79533]: 2026-11-05 16:06:12,707 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:12 minifw-monday-financial python[79533]: 2026-11-05 16:06:12,714 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:12 minifw-monday-financial python[79533]: 2026-11-05 16:06:12,751 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:12 minifw-monday-financial python[79533]: 2026-11-05 16:06:12,800 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:12 minifw-monday-financial python[79533]: 2026-11-05 16:06:12,856 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:12 minifw-monday-financial python[79533]: 2026-11-05 16:06:12,882 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:12 minifw-monday-financial python[79533]: 2026-11-05 16:06:12,898 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:12 minifw-monday-financial python[79533]: 2026-11-05 16:06:12,908 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:12 minifw-monday-financial python[79533]: 2026-11-05 16:06:12,990 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:13 minifw-monday-financial python[79533]: 2026-11-05 16:06:13,011 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:13 minifw-monday-financial python[79533]: 2026-11-05 16:06:13,024 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:13 minifw-monday-financial python[79533]: 2026-11-05 16:06:13,045 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:13 minifw-monday-financial python[79533]: 2026-11-05 16:06:13,056 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:17 minifw-monday-financial python[79533]: 2026-11-05 16:06:17,603 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:17 minifw-monday-financial python[79533]: 2026-11-05 16:06:17,714 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:17 minifw-monday-financial python[79533]: 2026-11-05 16:06:17,731 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:17 minifw-monday-financial python[79533]: 2026-11-05 16:06:17,738 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:17 minifw-monday-financial python[79533]: 2026-11-05 16:06:17,783 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:17 minifw-monday-financial python[79533]: 2026-11-05 16:06:17,846 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:17 minifw-monday-financial python[79533]: 2026-11-05 16:06:17,903 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:17 minifw-monday-financial python[79533]: 2026-11-05 16:06:17,929 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:17 minifw-monday-financial python[79533]: 2026-11-05 16:06:17,946 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:17 minifw-monday-financial python[79533]: 2026-11-05 16:06:17,957 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:18 minifw-monday-financial python[79533]: 2026-11-05 16:06:18,046 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:18 minifw-monday-financial python[79533]: 2026-11-05 16:06:18,067 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:18 minifw-monday-financial python[79533]: 2026-11-05 16:06:18,081 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:18 minifw-monday-financial python[79533]: 2026-11-05 16:06:18,102 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:18 minifw-monday-financial python[79533]: 2026-11-05 16:06:18,111 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:22 minifw-monday-financial python[79533]: 2026-11-05 16:06:22,646 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:22 minifw-monday-financial python[79533]: 2026-11-05 16:06:22,766 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:22 minifw-monday-financial python[79533]: 2026-11-05 16:06:22,786 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:22 minifw-monday-financial python[79533]: 2026-11-05 16:06:22,793 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:22 minifw-monday-financial python[79533]: 2026-11-05 16:06:22,867 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:22 minifw-monday-financial python[79533]: 2026-11-05 16:06:22,944 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:23 minifw-monday-financial python[79533]: 2026-11-05 16:06:23,015 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:23 minifw-monday-financial python[79533]: 2026-11-05 16:06:23,042 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:23 minifw-monday-financial python[79533]: 2026-11-05 16:06:23,060 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:23 minifw-monday-financial python[79533]: 2026-11-05 16:06:23,074 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:23 minifw-monday-financial python[79533]: 2026-11-05 16:06:23,171 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:23 minifw-monday-financial python[79533]: 2026-11-05 16:06:23,192 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:23 minifw-monday-financial python[79533]: 2026-11-05 16:06:23,209 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:23 minifw-monday-financial python[79533]: 2026-11-05 16:06:23,232 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:23 minifw-monday-financial python[79533]: 2026-11-05 16:06:23,243 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:27 minifw-monday-financial python[79533]: 2026-11-05 16:06:27,726 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:27 minifw-monday-financial python[79533]: 2026-11-05 16:06:27,826 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:27 minifw-monday-financial python[79533]: 2026-11-05 16:06:27,843 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:27 minifw-monday-financial python[79533]: 2026-11-05 16:06:27,851 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:27 minifw-monday-financial python[79533]: 2026-11-05 16:06:27,897 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:27 minifw-monday-financial python[79533]: 2026-11-05 16:06:27,963 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:28 minifw-monday-financial python[79533]: 2026-11-05 16:06:28,034 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:28 minifw-monday-financial python[79533]: 2026-11-05 16:06:28,064 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:28 minifw-monday-financial python[79533]: 2026-11-05 16:06:28,083 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:28 minifw-monday-financial python[79533]: 2026-11-05 16:06:28,095 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:28 minifw-monday-financial python[79533]: 2026-11-05 16:06:28,200 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:28 minifw-monday-financial python[79533]: 2026-11-05 16:06:28,222 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:28 minifw-monday-financial python[79533]: 2026-11-05 16:06:28,238 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:28 minifw-monday-financial python[79533]: 2026-11-05 16:06:28,262 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:28 minifw-monday-financial python[79533]: 2026-11-05 16:06:28,274 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:32 minifw-monday-financial python[79533]: 2026-11-05 16:06:32,749 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:32 minifw-monday-financial python[79533]: 2026-11-05 16:06:32,860 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:32 minifw-monday-financial python[79533]: 2026-11-05 16:06:32,880 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:32 minifw-monday-financial python[79533]: 2026-11-05 16:06:32,886 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:32 minifw-monday-financial python[79533]: 2026-11-05 16:06:32,933 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:33 minifw-monday-financial python[79533]: 2026-11-05 16:06:33,001 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:33 minifw-monday-financial python[79533]: 2026-11-05 16:06:33,074 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:33 minifw-monday-financial python[79533]: 2026-11-05 16:06:33,104 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:33 minifw-monday-financial python[79533]: 2026-11-05 16:06:33,123 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:33 minifw-monday-financial python[79533]: 2026-11-05 16:06:33,135 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:33 minifw-monday-financial python[79533]: 2026-11-05 16:06:33,248 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:33 minifw-monday-financial python[79533]: 2026-11-05 16:06:33,274 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:33 minifw-monday-financial python[79533]: 2026-11-05 16:06:33,290 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:33 minifw-monday-financial python[79533]: 2026-11-05 16:06:33,317 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:33 minifw-monday-financial python[79533]: 2026-11-05 16:06:33,327 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:37 minifw-monday-financial python[79533]: 2026-11-05 16:06:37,832 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:37 minifw-monday-financial python[79533]: 2026-11-05 16:06:37,942 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:37 minifw-monday-financial python[79533]: 2026-11-05 16:06:37,949 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:37 minifw-monday-financial python[79533]: 2026-11-05 16:06:37,994 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:38 minifw-monday-financial python[79533]: 2026-11-05 16:06:38,064 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:38 minifw-monday-financial python[79533]: 2026-11-05 16:06:38,143 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:38 minifw-monday-financial python[79533]: 2026-11-05 16:06:38,175 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:38 minifw-monday-financial python[79533]: 2026-11-05 16:06:38,195 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:38 minifw-monday-financial python[79533]: 2026-11-05 16:06:38,207 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:38 minifw-monday-financial python[79533]: 2026-11-05 16:06:38,327 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:38 minifw-monday-financial python[79533]: 2026-11-05 16:06:38,352 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:38 minifw-monday-financial python[79533]: 2026-11-05 16:06:38,368 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:38 minifw-monday-financial python[79533]: 2026-11-05 16:06:38,394 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:38 minifw-monday-financial python[79533]: 2026-11-05 16:06:38,408 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:40 minifw-monday-financial systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 05 16:06:40 minifw-monday-financial python[79533]: 2026-11-05 16:06:40,406 - INFO - Caught SIGTERM, shutting down.
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [*] DNS Collector reading from /var/tmp/minifw-monday-financial-20261105T090140Z/dns.log
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 100 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 200 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 300 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 400 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 500 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 579 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 582 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 583 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 583 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 585 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 585 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 586 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 586 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 586 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 586 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 586 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 586 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 587 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 592 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 600 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 604 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 609 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 611 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 618 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 623 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 634 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 644 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 649 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 657 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 664 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 673 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 680 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 687 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 694 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 701 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 711 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 719 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 727 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 729 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 736 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 744 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 752 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 758 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 769 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 775 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 781 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 790 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 795 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 803 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 809 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 05 16:06:41 minifw-monday-financial systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 16:06:41 minifw-monday-financial systemd[1]: minifw-ai.service: Consumed 7.869s CPU time.
+Nov 05 16:06:43 minifw-monday-financial systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 16:06:44 minifw-monday-financial python[80109]: 2026-11-05 16:06:44,403 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Nov 05 16:06:44 minifw-monday-financial python[80109]: 2026-11-05 16:06:44,407 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Nov 05 16:06:44 minifw-monday-financial python[80109]: 2026-11-05 16:06:44,407 - INFO - [STATE] Initial protection state: AI_ENHANCED_PROTECTION
+Nov 05 16:06:44 minifw-monday-financial python[80109]: 2026-11-05 16:06:44,414 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_financial: sector=finance
+Nov 05 16:06:44 minifw-monday-financial python[80109]: 2026-11-05 16:06:44,414 - INFO - [SECTOR_LOCK] Loaded config for finance: ['description', 'block_tor', 'block_anonymizers', 'strict_tls', 'minimum_tls_version', 'pci_compliance_mode', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_retention_days']
+Nov 05 16:06:44 minifw-monday-financial python[80109]: 2026-11-05 16:06:44,414 - INFO - [SECTOR_LOCK] Device sector: finance (LOCKED)
+Nov 05 16:06:44 minifw-monday-financial python[80109]: 2026-11-05 16:06:44,414 - INFO - [SECTOR_LOCK] Config: Finance: metadata policies; TLS version control requires packet metadata; no compliance certification.
+Nov 05 16:06:44 minifw-monday-financial python[80109]: 2026-11-05 16:06:44,414 - INFO - [FEEDS] Loaded 10 patterns from financial_fraud.txt
+Nov 05 16:06:44 minifw-monday-financial python[80109]: 2026-11-05 16:06:44,414 - INFO - [FEEDS] Loaded 9 patterns from crypto_scams.txt
+Nov 05 16:06:44 minifw-monday-financial python[80109]: 2026-11-05 16:06:44,415 - INFO - [SECTOR_LOCK] Loaded 19 sector-specific feed patterns
+Nov 05 16:06:44 minifw-monday-financial python[80109]: 2026-11-05 16:06:44,415 - INFO - [FEEDS] Loaded 0 Tor exit node IPs from /opt/minifw_ai/config/feeds/tor_exit_nodes.txt
+Nov 05 16:06:44 minifw-monday-financial python[80109]: 2026-11-05 16:06:44,415 - INFO - [SECTOR_LOCK] Tor/anonymizer blocking enabled: loaded 0 exit IPs
+Nov 05 16:06:44 minifw-monday-financial python[80109]: 2026-11-05 16:06:44,415 - INFO - Loading MLP model from: /opt/minifw_ai/models/mlp_packet14.pkl
+Nov 05 16:06:44 minifw-monday-financial python[80109]: 2026-11-05 16:06:44,416 - INFO - Model trained on: unknown
+Nov 05 16:06:44 minifw-monday-financial python[80109]: 2026-11-05 16:06:44,416 - INFO - Training samples: 2000
+Nov 05 16:06:44 minifw-monday-financial python[80109]: 2026-11-05 16:06:44,416 - INFO - Training-data accuracy: unknown; provenance: synthetic (generate_pretrained_model.py; first 14 measured packet features)
+Nov 05 16:06:44 minifw-monday-financial python[80109]: 2026-11-05 16:06:44,416 - INFO - ✓ MLP model loaded successfully
+Nov 05 16:06:44 minifw-monday-financial python[80109]: 2026-11-05 16:06:44,416 - INFO - [MLP] Loaded model from: /opt/minifw_ai/models/mlp_packet14.pkl
+Nov 05 16:06:44 minifw-monday-financial python[80109]: 2026-11-05 16:06:44,416 - INFO - [MLP] Threshold: 0.5
+Nov 05 16:06:44 minifw-monday-financial python[80109]: 2026-11-05 16:06:44,416 - INFO - Compiling YARA rules from: /opt/minifw_ai/yara_rules
+Nov 05 16:06:44 minifw-monday-financial python[80109]: 2026-11-05 16:06:44,426 - INFO - ✓ Compiled 6 YARA rule namespaces
+Nov 05 16:06:44 minifw-monday-financial python[80109]: 2026-11-05 16:06:44,427 - INFO - [YARA] Loaded rules from: /opt/minifw_ai/yara_rules
+Nov 05 16:06:44 minifw-monday-financial python[80109]: 2026-11-05 16:06:44,427 - INFO - [YARA] Rules loaded: True
+Nov 05 16:06:44 minifw-monday-financial python[80109]: 2026-11-05 16:06:44,479 - WARNING - [PROTOCOL] TLS version/WireGuard metadata unavailable without MINIFW_PACKET_INTERFACE
+Nov 05 16:06:44 minifw-monday-financial python[80109]: 2026-11-05 16:06:44,479 - WARNING - [TELEMETRY] Conntrack provides counter deltas, not packet timing/size distributions; 24-feature MLP disabled for these observations
+Nov 05 16:06:44 minifw-monday-financial python[80109]: 2026-11-05 16:06:44,482 - INFO - [AI_WINDOW] Loaded /opt/minifw_ai/models/client_window_v1.json sha256=d06ce40ea3276d2cedac9e354075c4aa74aa3987e08b35e40a95451d4e69d6ee
+Nov 05 16:07:25 minifw-monday-financial systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 05 16:07:25 minifw-monday-financial python[80109]: 2026-11-05 16:07:25,998 - INFO - Caught SIGTERM, shutting down.
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [*] DNS Collector reading from /var/tmp/minifw-monday-financial-20261105T090140Z/dns.log
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 100 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 200 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 300 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 400 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 500 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 600 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 700 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 748 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 751 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 753 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 754 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 759 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 761 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 761 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 761 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 761 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 761 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 761 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 762 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 762 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 763 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 763 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 763 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 763 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 764 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 764 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 764 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 765 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 765 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 765 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 765 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 765 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 766 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 766 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 766 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 766 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 766 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 766 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 767 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 767 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 767 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 767 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 767 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 768 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 768 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 769 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 769 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 769 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 769 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 769 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 769 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 769 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 770 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 770 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 05 16:07:26 minifw-monday-financial systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 16:07:26 minifw-monday-financial systemd[1]: minifw-ai.service: Consumed 7.612s CPU time.

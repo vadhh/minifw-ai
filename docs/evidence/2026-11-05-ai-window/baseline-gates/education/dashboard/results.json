@@ -1,0 +1,44 @@
+[
+  {
+    "test": "vendor_signed_licence_activation",
+    "actual": {
+      "actual_vendor_key": "minifw-vendor-2026",
+      "licence": {
+        "status": "valid",
+        "redacted": "licence object removed from public evidence"
+      },
+      "tampered_upload_http": 400,
+      "persists_after_web_restart": true,
+      "scope": "isolated lab deployment, actual vendor signature"
+    },
+    "time": "2026-11-05T09:16:24.047035+00:00"
+  },
+  {
+    "test": "dashboard_explicit_apply",
+    "actual": {
+      "response": {
+        "message": "Engine restarted; saved policy and feeds loaded. Check protection status on the dashboard.",
+        "engine_pid": 87007
+      },
+      "root_restart_after_save": false
+    },
+    "time": "2026-11-05T09:16:30.085445+00:00"
+  },
+  {
+    "test": "dashboard_to_engine_enforcement",
+    "actual": {
+      "authenticated_save": true,
+      "packaged_policy": "/opt/minifw_ai/config/modes/minifw_school/policy.json",
+      "restart_required": true,
+      "restart_requested_by": "authenticated dashboard apply button",
+      "previous_timeout_seconds": 86400,
+      "timeout_seconds": 11,
+      "added_domain": "wednesday-policy.lab.test",
+      "fixture_setup": "collector paths supplied directly by lab root; enforcement timeout and deny domain saved through dashboard",
+      "actual_kernel": "table inet minifw {\n\tset minifw_block_v4 {\n\t\ttype ipv4_addr\n\t\ttimeout 1h\n\t\telements = { 10.10.0.20 timeout 11s expires 10s868ms }\n\t}\n}\n",
+      "routed_before": "HTTP 200",
+      "routed_after": "blocked"
+    },
+    "time": "2026-11-05T09:16:32.665765+00:00"
+  }
+]

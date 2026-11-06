@@ -121,6 +121,7 @@ def _format_event(event: dict) -> dict:
         "segment": event.get("segment", "default"),
         "client_ip": client_ip,
         "domain": domain,
+        "decision_owner": event.get("decision_owner", "Policy Engine"),
     }
 
 

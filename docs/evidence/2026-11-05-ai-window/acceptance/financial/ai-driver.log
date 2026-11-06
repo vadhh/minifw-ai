@@ -1,0 +1,1830 @@
+$ dpkg-query -W minifw-ai
+minifw-ai	2.2.11-finance
+$ ip -j netns list
+[]
+$ systemctl stop minifw-ai minifw-ai-web dnsmasq
+$ nft -a list table inet minifw
+table inet minifw { # handle 78
+	set minifw_block_v4 { # handle 1
+		type ipv4_addr
+		timeout 1h
+	}
+
+	chain forward { # handle 2
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 0 bytes 0 comment "MiniFW-AI-Conntrack" # handle 3
+		ip saddr @minifw_block_v4 counter packets 0 bytes 0 drop comment "MiniFW-AI-Blocklist" # handle 4
+	}
+}
+$ nft delete table inet minifw
+$ modprobe nf_conntrack
+$ sysctl -w net.ipv4.ip_forward=1 net.ipv6.conf.all.forwarding=1 net.netfilter.nf_conntrack_acct=0
+net.ipv4.ip_forward = 1
+net.ipv6.conf.all.forwarding = 1
+net.netfilter.nf_conntrack_acct = 0
+$ ip netns add mf-client
+$ ip -n mf-client link set lo up
+$ ip netns add mf-server
+$ ip -n mf-server link set lo up
+$ ip link add mfcg type veth peer name mfc0
+$ ip link set mfc0 netns mf-client
+$ ip addr add 10.10.0.1/24 dev mfcg
+$ ip addr add fd42:10::1/64 dev mfcg
+$ ip link set mfcg up
+$ ip -n mf-client addr add 10.10.0.20/24 dev mfc0
+$ ip -n mf-client addr add fd42:10::20/64 dev mfc0
+$ ip -n mf-client link set mfc0 up
+$ ip -n mf-client route add default via 10.10.0.1
+$ ip -n mf-client -6 route add default via fd42:10::1
+$ ip link add mfsg type veth peer name mfs0
+$ ip link set mfs0 netns mf-server
+$ ip addr add 198.18.0.1/24 dev mfsg
+$ ip addr add fd42:18::1/64 dev mfsg
+$ ip link set mfsg up
+$ ip -n mf-server addr add 198.18.0.2/24 dev mfs0
+$ ip -n mf-server addr add fd42:18::2/64 dev mfs0
+$ ip -n mf-server link set mfs0 up
+$ ip -n mf-server route add default via 198.18.0.1
+$ ip -n mf-server -6 route add default via fd42:18::1
+$ ip -br address
+lo               UNKNOWN        127.0.0.1/8 ::1/128 
+ens3             UP             10.231.0.15/24 metric 100 fec0::5054:ff:fe22:1002/64 fe80::5054:ff:fe22:1002/64 
+mfcg@if243       UP             10.10.0.1/24 fd42:10::1/64 fe80::8494:6dff:fe33:f74/64 
+mfsg@if245       UP             198.18.0.1/24 fd42:18::1/64 fe80::f060:cbff:fed4:659/64
+$ ip -n mf-client route
+default via 10.10.0.1 dev mfc0 
+10.10.0.0/24 dev mfc0 proto kernel scope link src 10.10.0.20
+$ ip -n mf-server route
+default via 198.18.0.1 dev mfs0 
+198.18.0.0/24 dev mfs0 proto kernel scope link src 198.18.0.2
+$ openssl req -x509 -newkey rsa:2048 -nodes -days 1 -subj /CN=lab.test -keyout /var/tmp/minifw-monday-financial-20261105T090140Z/server.key -out /var/tmp/minifw-monday-financial-20261105T090140Z/server.crt
+....+.....+......+.+..+.......+......+...+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*.......+..+............+.......+.........+..+...+....+.................+..........+...+...+..+.............+..+............+.+..+.+..+...+....+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*...+......................+...+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+.....+.+.....+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*.......+...+..+...+.+.....+............+...................+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*......+........+............+...+..........+..+............+.+..+....+...+........+...+....+......+..............+................+.....+.+......+..+...+..................+....+..+....+...........+..........+......+.....+....+.........+.....+.......+.........+...+...+.....+....+.....+.........+.........+.......+...+..+.........+.+........+..........+.....+................+.....+......+...+...+.........................+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+-----
+VERIFIED {"test": "c20_policy_basis", "actual": {"active_policy_has_ai_enforcement": true, "ai_enforcement": {"segments": ["internal", "guest", "default"], "exempt": [], "block_timeout_seconds": 900}, "harness_changes": "ip_timeout_seconds=15 (baseline expiry), lab collector paths", "model_sha256": "d06ce40ea3276d2cedac9e354075c4aa74aa3987e08b35e40a95451d4e69d6ee"}, "time": "2026-11-05T09:01:42.841056+00:00"}
+$ ip -n mf-client addr add 10.10.0.81/24 dev mfc0
+$ ip -n mf-client addr add 10.10.0.82/24 dev mfc0
+$ ip -n mf-client addr add 10.10.0.83/24 dev mfc0
+$ ip -n mf-client addr add 10.10.0.84/24 dev mfc0
+$ ip -n mf-client addr add 10.10.0.85/24 dev mfc0
+$ ip -n mf-client addr add 10.10.0.86/24 dev mfc0
+$ ip -n mf-client addr add 10.10.0.87/24 dev mfc0
+$ ip -n mf-client addr add 10.10.0.88/24 dev mfc0
+$ ip -n mf-client addr add 10.10.0.89/24 dev mfc0
+$ ip -n mf-client addr add 10.10.0.90/24 dev mfc0
+$ ip -n mf-client addr add 10.10.0.91/24 dev mfc0
+$ ip -n mf-client addr add 10.10.0.92/24 dev mfc0
+$ ip -n mf-client addr add 10.10.0.93/24 dev mfc0
+$ ip -n mf-client addr add 10.10.0.94/24 dev mfc0
+$ ip -n mf-client addr add 10.10.0.95/24 dev mfc0
+$ ip -n mf-client addr add 10.10.0.96/24 dev mfc0
+$ ip -n mf-client addr add 10.10.0.97/24 dev mfc0
+$ ip -n mf-client addr add 10.10.0.98/24 dev mfc0
+$ ip -n mf-client addr add 10.10.0.99/24 dev mfc0
+$ ip -n mf-client addr add 10.10.0.70/24 dev mfc0
+$ systemctl stop minifw-ai
+$ conntrack -D -s 10.10.0.81
+conntrack v1.4.7 (conntrack-tools): 0 flow entries have been deleted.
+$ conntrack -D -s 10.10.0.82
+conntrack v1.4.7 (conntrack-tools): 0 flow entries have been deleted.
+$ conntrack -D -s 10.10.0.83
+conntrack v1.4.7 (conntrack-tools): 0 flow entries have been deleted.
+$ systemctl stop minifw-ai
+Warning: The unit file, source configuration file or drop-ins of minifw-ai.service changed on disk. Run 'systemctl daemon-reload' to reload units.
+$ nft flush set inet minifw minifw_block_v4
+Error: No such file or directory
+flush set inet minifw minifw_block_v4
+               ^^^^^^
+$ conntrack -D -s 10.10.0.20
+conntrack v1.4.7 (conntrack-tools): 0 flow entries have been deleted.
+$ systemctl daemon-reload
+$ systemctl start minifw-ai
+$ systemctl show minifw-ai -p ActiveState -p MainPID -p ExecMainStatus
+MainPID=76797
+ExecMainStatus=0
+ActiveState=active
+$ nft -a list table inet minifw
+table inet minifw { # handle 79
+	set minifw_block_v4 { # handle 1
+		type ipv4_addr
+		timeout 1h
+	}
+
+	chain forward { # handle 2
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 316 bytes 18960 comment "MiniFW-AI-Conntrack" # handle 3
+		ip saddr @minifw_block_v4 counter packets 0 bytes 0 drop comment "MiniFW-AI-Blocklist" # handle 4
+	}
+}
+$ ip netns exec mf-client /usr/bin/python3 -c 'import socket,sys
+try:
+ socket.create_connection(("198.18.0.2",8080),timeout=3,source_address=(sys.argv[1],0)).close(); print("allowed")
+except OSError as e: print("failed:"+type(e).__name__)
+' 10.10.0.81
+allowed
+$ journalctl -u minifw-ai --since '2026-11-05 16:01:42' --no-pager -o cat
+Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+2026-11-05 16:01:44,629 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+2026-11-05 16:01:44,633 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+2026-11-05 16:01:44,633 - INFO - [STATE] Initial protection state: AI_ENHANCED_PROTECTION
+2026-11-05 16:01:44,639 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_financial: sector=finance
+2026-11-05 16:01:44,639 - INFO - [SECTOR_LOCK] Loaded config for finance: ['description', 'block_tor', 'block_anonymizers', 'strict_tls', 'minimum_tls_version', 'pci_compliance_mode', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_retention_days']
+2026-11-05 16:01:44,640 - INFO - [SECTOR_LOCK] Device sector: finance (LOCKED)
+2026-11-05 16:01:44,640 - INFO - [SECTOR_LOCK] Config: Finance: metadata policies; TLS version control requires packet metadata; no compliance certification.
+2026-11-05 16:01:44,640 - INFO - [FEEDS] Loaded 10 patterns from financial_fraud.txt
+2026-11-05 16:01:44,640 - INFO - [FEEDS] Loaded 9 patterns from crypto_scams.txt
+2026-11-05 16:01:44,640 - INFO - [SECTOR_LOCK] Loaded 19 sector-specific feed patterns
+2026-11-05 16:01:44,640 - INFO - [FEEDS] Loaded 0 Tor exit node IPs from /opt/minifw_ai/config/feeds/tor_exit_nodes.txt
+2026-11-05 16:01:44,640 - INFO - [SECTOR_LOCK] Tor/anonymizer blocking enabled: loaded 0 exit IPs
+2026-11-05 16:01:44,640 - INFO - Loading MLP model from: /opt/minifw_ai/models/mlp_packet14.pkl
+2026-11-05 16:01:44,641 - INFO - Model trained on: unknown
+2026-11-05 16:01:44,641 - INFO - Training samples: 2000
+2026-11-05 16:01:44,641 - INFO - Training-data accuracy: unknown; provenance: synthetic (generate_pretrained_model.py; first 14 measured packet features)
+2026-11-05 16:01:44,641 - INFO - ✓ MLP model loaded successfully
+2026-11-05 16:01:44,641 - INFO - [MLP] Loaded model from: /opt/minifw_ai/models/mlp_packet14.pkl
+2026-11-05 16:01:44,641 - INFO - [MLP] Threshold: 0.5
+2026-11-05 16:01:44,642 - INFO - Compiling YARA rules from: /opt/minifw_ai/yara_rules
+2026-11-05 16:01:44,652 - INFO - ✓ Compiled 6 YARA rule namespaces
+2026-11-05 16:01:44,652 - INFO - [YARA] Loaded rules from: /opt/minifw_ai/yara_rules
+2026-11-05 16:01:44,652 - INFO - [YARA] Rules loaded: True
+2026-11-05 16:01:44,702 - WARNING - [PROTOCOL] TLS version/WireGuard metadata unavailable without MINIFW_PACKET_INTERFACE
+2026-11-05 16:01:44,702 - WARNING - [TELEMETRY] Conntrack provides counter deltas, not packet timing/size distributions; 24-feature MLP disabled for these observations
+2026-11-05 16:01:44,704 - INFO - [AI_WINDOW] Loaded /opt/minifw_ai/models/client_window_v1.json sha256=d06ce40ea3276d2cedac9e354075c4aa74aa3987e08b35e40a95451d4e69d6ee
+VERIFIED {"test": "c20_a_no_approval_shadow", "actual": {"tool": "10.10.0.81", "humans": ["10.10.0.82", "10.10.0.83"], "approval": "none", "mode": "shadow_only", "segment": "dmz", "max_n60": 295, "max_probability": 1.0, "tool_scored_events": 295, "isolated_ips": [], "tool_routed_after": "allowed", "decided_by": "tool n60>=295 p=1.000, mode shadow_only, no nft element for any actor", "ai_state": {"state_file_after": "absent (no transition since boot)", "journal": ["2026-11-05 16:01:44,633 - INFO - [STATE] Initial protection state: AI_ENHANCED_PROTECTION"], "stayed_ai_enhanced": true}}, "time": "2026-11-05T09:02:38.761797+00:00"}
+$ systemctl stop minifw-ai
+$ conntrack -D -s 10.10.0.84
+conntrack v1.4.7 (conntrack-tools): 0 flow entries have been deleted.
+$ conntrack -D -s 10.10.0.85
+conntrack v1.4.7 (conntrack-tools): 0 flow entries have been deleted.
+$ conntrack -D -s 10.10.0.86
+conntrack v1.4.7 (conntrack-tools): 0 flow entries have been deleted.
+$ systemctl stop minifw-ai
+Warning: The unit file, source configuration file or drop-ins of minifw-ai.service changed on disk. Run 'systemctl daemon-reload' to reload units.
+$ nft flush set inet minifw minifw_block_v4
+$ conntrack -D -s 10.10.0.20
+conntrack v1.4.7 (conntrack-tools): 0 flow entries have been deleted.
+$ systemctl daemon-reload
+$ systemctl start minifw-ai
+$ systemctl show minifw-ai -p ActiveState -p MainPID -p ExecMainStatus
+MainPID=77560
+ExecMainStatus=0
+ActiveState=active
+$ nft -a list table inet minifw
+table inet minifw { # handle 79
+	set minifw_block_v4 { # handle 1
+		type ipv4_addr
+		timeout 1h
+	}
+
+	chain forward { # handle 2
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 630 bytes 37800 comment "MiniFW-AI-Conntrack" # handle 3
+		ip saddr @minifw_block_v4 counter packets 0 bytes 0 drop comment "MiniFW-AI-Blocklist" # handle 4
+	}
+}
+$ ip netns exec mf-client /usr/bin/python3 -c 'import socket,sys
+try:
+ socket.create_connection(("198.18.0.2",8080),timeout=3,source_address=(sys.argv[1],0)).close(); print("allowed")
+except OSError as e: print("failed:"+type(e).__name__)
+' 10.10.0.84
+allowed
+$ journalctl -u minifw-ai --since '2026-11-05 16:02:39' --no-pager -o cat
+[*] DNS Collector reading from /var/tmp/minifw-monday-financial-20261105T090140Z/dns.log
+[FlowCollector] Exported 37 flows, cleaned 0 old flows
+[FlowCollector] Exported 79 flows, cleaned 0 old flows
+[FlowCollector] Exported 124 flows, cleaned 0 old flows
+[FlowCollector] Exported 155 flows, cleaned 0 old flows
+[FlowCollector] Exported 183 flows, cleaned 0 old flows
+[FlowCollector] Exported 205 flows, cleaned 0 old flows
+[FlowCollector] Exported 230 flows, cleaned 0 old flows
+[FlowCollector] Exported 245 flows, cleaned 0 old flows
+[FlowCollector] Exported 267 flows, cleaned 0 old flows
+[FlowCollector] Exported 284 flows, cleaned 0 old flows
+[FlowCollector] Exported 299 flows, cleaned 0 old flows
+[FlowCollector] Exported 316 flows, cleaned 0 old flows
+[FlowCollector] Exported 329 flows, cleaned 0 old flows
+[FlowCollector] Exported 340 flows, cleaned 0 old flows
+[FlowCollector] Exported 350 flows, cleaned 0 old flows
+[FlowCollector] Exported 357 flows, cleaned 0 old flows
+[FlowCollector] Exported 360 flows, cleaned 0 old flows
+[FlowCollector] Exported 360 flows, cleaned 0 old flows
+minifw-ai.service: Deactivated successfully.
+Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+minifw-ai.service: Consumed 3.837s CPU time.
+Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+2026-11-05 16:02:41,139 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+2026-11-05 16:02:41,142 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+2026-11-05 16:02:41,142 - INFO - [STATE] Initial protection state: AI_ENHANCED_PROTECTION
+2026-11-05 16:02:41,149 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_financial: sector=finance
+2026-11-05 16:02:41,149 - INFO - [SECTOR_LOCK] Loaded config for finance: ['description', 'block_tor', 'block_anonymizers', 'strict_tls', 'minimum_tls_version', 'pci_compliance_mode', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_retention_days']
+2026-11-05 16:02:41,149 - INFO - [SECTOR_LOCK] Device sector: finance (LOCKED)
+2026-11-05 16:02:41,149 - INFO - [SECTOR_LOCK] Config: Finance: metadata policies; TLS version control requires packet metadata; no compliance certification.
+2026-11-05 16:02:41,150 - INFO - [FEEDS] Loaded 10 patterns from financial_fraud.txt
+2026-11-05 16:02:41,150 - INFO - [FEEDS] Loaded 9 patterns from crypto_scams.txt
+2026-11-05 16:02:41,150 - INFO - [SECTOR_LOCK] Loaded 19 sector-specific feed patterns
+2026-11-05 16:02:41,150 - INFO - [FEEDS] Loaded 0 Tor exit node IPs from /opt/minifw_ai/config/feeds/tor_exit_nodes.txt
+2026-11-05 16:02:41,150 - INFO - [SECTOR_LOCK] Tor/anonymizer blocking enabled: loaded 0 exit IPs
+2026-11-05 16:02:41,150 - INFO - Loading MLP model from: /opt/minifw_ai/models/mlp_packet14.pkl
+2026-11-05 16:02:41,151 - INFO - Model trained on: unknown
+2026-11-05 16:02:41,151 - INFO - Training samples: 2000
+2026-11-05 16:02:41,151 - INFO - Training-data accuracy: unknown; provenance: synthetic (generate_pretrained_model.py; first 14 measured packet features)
+2026-11-05 16:02:41,151 - INFO - ✓ MLP model loaded successfully
+2026-11-05 16:02:41,151 - INFO - [MLP] Loaded model from: /opt/minifw_ai/models/mlp_packet14.pkl
+2026-11-05 16:02:41,151 - INFO - [MLP] Threshold: 0.5
+2026-11-05 16:02:41,151 - INFO - Compiling YARA rules from: /opt/minifw_ai/yara_rules
+2026-11-05 16:02:41,161 - INFO - ✓ Compiled 6 YARA rule namespaces
+2026-11-05 16:02:41,162 - INFO - [YARA] Loaded rules from: /opt/minifw_ai/yara_rules
+2026-11-05 16:02:41,162 - INFO - [YARA] Rules loaded: True
+2026-11-05 16:02:41,211 - WARNING - [PROTOCOL] TLS version/WireGuard metadata unavailable without MINIFW_PACKET_INTERFACE
+2026-11-05 16:02:41,212 - WARNING - [TELEMETRY] Conntrack provides counter deltas, not packet timing/size distributions; 24-feature MLP disabled for these observations
+2026-11-05 16:02:41,214 - INFO - [AI_WINDOW] Loaded /opt/minifw_ai/models/client_window_v1.json sha256=d06ce40ea3276d2cedac9e354075c4aa74aa3987e08b35e40a95451d4e69d6ee
+VERIFIED {"test": "c20_b_shipped_dmz_out_of_scope", "actual": {"tool": "10.10.0.84", "humans": ["10.10.0.85", "10.10.0.86"], "approval": "exact model SHA", "segment": "dmz", "ai_enforcement_segments": ["internal", "guest", "default"], "max_n60": 298, "max_probability": 1.0, "isolated_ips": [], "tool_routed_after": "allowed", "decided_by": "mode enforcing, p>=0.9, but segment dmz not listed: no block event, no nft element", "ai_state": {"state_file_after": "absent (no transition since boot)", "journal": ["2026-11-05 16:02:41,142 - INFO - [STATE] Initial protection state: AI_ENHANCED_PROTECTION"], "stayed_ai_enhanced": true}}, "time": "2026-11-05T09:03:35.343103+00:00"}
+$ systemctl stop minifw-ai
+$ conntrack -D -s 10.10.0.87
+conntrack v1.4.7 (conntrack-tools): 0 flow entries have been deleted.
+$ conntrack -D -s 10.10.0.88
+conntrack v1.4.7 (conntrack-tools): 0 flow entries have been deleted.
+$ conntrack -D -s 10.10.0.89
+conntrack v1.4.7 (conntrack-tools): 0 flow entries have been deleted.
+$ systemctl stop minifw-ai
+Warning: The unit file, source configuration file or drop-ins of minifw-ai.service changed on disk. Run 'systemctl daemon-reload' to reload units.
+$ nft flush set inet minifw minifw_block_v4
+$ conntrack -D -s 10.10.0.20
+conntrack v1.4.7 (conntrack-tools): 0 flow entries have been deleted.
+$ systemctl daemon-reload
+$ systemctl start minifw-ai
+$ systemctl show minifw-ai -p ActiveState -p MainPID -p ExecMainStatus
+MainPID=78215
+ExecMainStatus=0
+ActiveState=active
+$ nft get element inet minifw minifw_block_v4 '{' 10.10.0.87 '}'
+table inet minifw {
+	set minifw_block_v4 {
+		type ipv4_addr
+		timeout 1h
+		elements = { 10.10.0.87 timeout 15m expires 14m59s512ms }
+	}
+}
+$ ip netns exec mf-client /usr/bin/python3 -c 'import socket,sys
+try:
+ socket.create_connection(("198.18.0.2",8080),timeout=3,source_address=(sys.argv[1],0)).close(); print("allowed")
+except OSError as e: print("failed:"+type(e).__name__)
+' 10.10.0.87
+failed:TimeoutError
+$ ip netns exec mf-client /usr/bin/python3 -c 'import socket,sys
+try:
+ socket.create_connection(("198.18.0.2",8080),timeout=3,source_address=(sys.argv[1],0)).close(); print("allowed")
+except OSError as e: print("failed:"+type(e).__name__)
+' 10.10.0.88
+allowed
+$ ip netns exec mf-client /usr/bin/python3 -c 'import socket,sys
+try:
+ socket.create_connection(("198.18.0.2",8080),timeout=3,source_address=(sys.argv[1],0)).close(); print("allowed")
+except OSError as e: print("failed:"+type(e).__name__)
+' 10.10.0.89
+allowed
+$ nft -a list table inet minifw
+table inet minifw { # handle 79
+	set minifw_block_v4 { # handle 1
+		type ipv4_addr
+		timeout 1h
+		elements = { 10.10.0.87 timeout 15m expires 14m41s20ms }
+	}
+
+	chain forward { # handle 2
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 739 bytes 44340 comment "MiniFW-AI-Conntrack" # handle 3
+		ip saddr @minifw_block_v4 counter packets 14 bytes 840 drop comment "MiniFW-AI-Blocklist" # handle 4
+	}
+}
+$ journalctl -u minifw-ai --since '2026-11-05 16:03:36' --no-pager -o cat
+minifw-ai.service: Deactivated successfully.
+Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+minifw-ai.service: Consumed 6.923s CPU time.
+Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+2026-11-05 16:03:37,924 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+2026-11-05 16:03:37,927 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+2026-11-05 16:03:37,927 - INFO - [STATE] Initial protection state: AI_ENHANCED_PROTECTION
+2026-11-05 16:03:37,934 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_financial: sector=finance
+2026-11-05 16:03:37,934 - INFO - [SECTOR_LOCK] Loaded config for finance: ['description', 'block_tor', 'block_anonymizers', 'strict_tls', 'minimum_tls_version', 'pci_compliance_mode', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_retention_days']
+2026-11-05 16:03:37,934 - INFO - [SECTOR_LOCK] Device sector: finance (LOCKED)
+2026-11-05 16:03:37,934 - INFO - [SECTOR_LOCK] Config: Finance: metadata policies; TLS version control requires packet metadata; no compliance certification.
+2026-11-05 16:03:37,935 - INFO - [FEEDS] Loaded 10 patterns from financial_fraud.txt
+2026-11-05 16:03:37,935 - INFO - [FEEDS] Loaded 9 patterns from crypto_scams.txt
+2026-11-05 16:03:37,935 - INFO - [SECTOR_LOCK] Loaded 19 sector-specific feed patterns
+2026-11-05 16:03:37,935 - INFO - [FEEDS] Loaded 0 Tor exit node IPs from /opt/minifw_ai/config/feeds/tor_exit_nodes.txt
+2026-11-05 16:03:37,935 - INFO - [SECTOR_LOCK] Tor/anonymizer blocking enabled: loaded 0 exit IPs
+2026-11-05 16:03:37,935 - INFO - Loading MLP model from: /opt/minifw_ai/models/mlp_packet14.pkl
+2026-11-05 16:03:37,936 - INFO - Model trained on: unknown
+2026-11-05 16:03:37,936 - INFO - Training samples: 2000
+2026-11-05 16:03:37,936 - INFO - Training-data accuracy: unknown; provenance: synthetic (generate_pretrained_model.py; first 14 measured packet features)
+2026-11-05 16:03:37,936 - INFO - ✓ MLP model loaded successfully
+2026-11-05 16:03:37,936 - INFO - [MLP] Loaded model from: /opt/minifw_ai/models/mlp_packet14.pkl
+2026-11-05 16:03:37,936 - INFO - [MLP] Threshold: 0.5
+2026-11-05 16:03:37,936 - INFO - Compiling YARA rules from: /opt/minifw_ai/yara_rules
+2026-11-05 16:03:37,946 - INFO - ✓ Compiled 6 YARA rule namespaces
+2026-11-05 16:03:37,946 - INFO - [YARA] Loaded rules from: /opt/minifw_ai/yara_rules
+2026-11-05 16:03:37,947 - INFO - [YARA] Rules loaded: True
+2026-11-05 16:03:38,004 - WARNING - [PROTOCOL] TLS version/WireGuard metadata unavailable without MINIFW_PACKET_INTERFACE
+2026-11-05 16:03:38,005 - WARNING - [TELEMETRY] Conntrack provides counter deltas, not packet timing/size distributions; 24-feature MLP disabled for these observations
+2026-11-05 16:03:38,007 - INFO - [AI_WINDOW] Loaded /opt/minifw_ai/models/client_window_v1.json sha256=d06ce40ea3276d2cedac9e354075c4aa74aa3987e08b35e40a95451d4e69d6ee
+VERIFIED {"test": "c20_b_approved_isolation", "actual": {"tool": "10.10.0.87", "humans": ["10.10.0.88", "10.10.0.89"], "approval": "exact model SHA", "segment": "dmz", "ai_enforcement_segments": ["internal", "guest", "default", "dmz"], "lab_policy_change": "LAB POLICY COPY: \"dmz\" added to ai_enforcement.segments (shipped Financial policy leaves dmz out of AI scope)", "block_event": {"ts": "2026-11-05T09:03:58.435020+00:00", "client_ip": "10.10.0.87", "dst_ip": "198.18.0.2", "dst_port": 443, "segment": "dmz", "action": "block", "reasons": ["ai_window_rate"], "decision_owner": "AI Engine (client window)", "score": 90, "ai_window_n60": 39, "ai_window_probability": 0.9024045897511963, "ai_window_mode": "enforcing", "ai_window_model_sha256": "d06ce40ea3276d2cedac9e354075c4aa74aa3987e08b35e40a95451d4e69d6ee"}, "nft_element": "table inet minifw {\n\tset minifw_block_v4 {\n\t\ttype ipv4_addr\n\t\ttimeout 1h\n\t\telements = { 10.10.0.87 timeout 15m expires 14m59s512ms }\n\t}\n}", "tool_routed_after": "failed:TimeoutError", "humans_routed": {"10.10.0.88": "allowed", "10.10.0.89": "allowed"}, "isolated_ips": ["10.10.0.87"], "decided_by": "block event reason ai_window_rate + owner AI Engine (client window); nft element timeout 15m; tool routed connect failed; humans not in set", "ai_state": {"state_file_after": "absent (no transition since boot)", "journal": ["2026-11-05 16:03:37,927 - INFO - [STATE] Initial protection state: AI_ENHANCED_PROTECTION"], "stayed_ai_enhanced": true}}, "time": "2026-11-05T09:04:18.535712+00:00"}
+$ systemctl stop minifw-ai
+$ conntrack -D -s 10.10.0.90
+conntrack v1.4.7 (conntrack-tools): 0 flow entries have been deleted.
+$ conntrack -D -s 10.10.0.91
+conntrack v1.4.7 (conntrack-tools): 0 flow entries have been deleted.
+$ systemctl stop minifw-ai
+Warning: The unit file, source configuration file or drop-ins of minifw-ai.service changed on disk. Run 'systemctl daemon-reload' to reload units.
+$ nft flush set inet minifw minifw_block_v4
+$ conntrack -D -s 10.10.0.20
+conntrack v1.4.7 (conntrack-tools): 0 flow entries have been deleted.
+$ systemctl daemon-reload
+$ systemctl start minifw-ai
+$ systemctl show minifw-ai -p ActiveState -p MainPID -p ExecMainStatus
+MainPID=78547
+ExecMainStatus=0
+ActiveState=active
+$ nft -a list table inet minifw
+table inet minifw { # handle 79
+	set minifw_block_v4 { # handle 1
+		type ipv4_addr
+		timeout 1h
+	}
+
+	chain forward { # handle 2
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 1045 bytes 62700 comment "MiniFW-AI-Conntrack" # handle 3
+		ip saddr @minifw_block_v4 counter packets 14 bytes 840 drop comment "MiniFW-AI-Blocklist" # handle 4
+	}
+}
+$ ip netns exec mf-client /usr/bin/python3 -c 'import socket,sys
+try:
+ socket.create_connection(("198.18.0.2",8080),timeout=3,source_address=(sys.argv[1],0)).close(); print("allowed")
+except OSError as e: print("failed:"+type(e).__name__)
+' 10.10.0.90
+allowed
+$ journalctl -u minifw-ai --since '2026-11-05 16:04:19' --no-pager -o cat
+[*] DNS Collector reading from /var/tmp/minifw-monday-financial-20261105T090140Z/dns.log
+[FlowCollector] Exported 100 flows, cleaned 0 old flows
+[FlowCollector] Exported 200 flows, cleaned 0 old flows
+[FlowCollector] Exported 300 flows, cleaned 0 old flows
+[FlowCollector] Exported 400 flows, cleaned 0 old flows
+[FlowCollector] Exported 500 flows, cleaned 0 old flows
+[FlowCollector] Exported 600 flows, cleaned 0 old flows
+[FlowCollector] Exported 643 flows, cleaned 0 old flows
+[FlowCollector] Exported 643 flows, cleaned 0 old flows
+[FlowCollector] Exported 643 flows, cleaned 0 old flows
+[FlowCollector] Exported 644 flows, cleaned 0 old flows
+[FlowCollector] Exported 644 flows, cleaned 0 old flows
+[FlowCollector] Exported 644 flows, cleaned 0 old flows
+[FlowCollector] Exported 645 flows, cleaned 0 old flows
+[FlowCollector] Exported 645 flows, cleaned 0 old flows
+[FlowCollector] Exported 645 flows, cleaned 0 old flows
+[FlowCollector] Exported 646 flows, cleaned 0 old flows
+[FlowCollector] Exported 646 flows, cleaned 0 old flows
+[FlowCollector] Exported 646 flows, cleaned 0 old flows
+[FlowCollector] Exported 646 flows, cleaned 0 old flows
+[FlowCollector] Exported 652 flows, cleaned 0 old flows
+[FlowCollector] Exported 656 flows, cleaned 0 old flows
+[FlowCollector] Exported 662 flows, cleaned 0 old flows
+[FlowCollector] Exported 664 flows, cleaned 0 old flows
+[FlowCollector] Exported 667 flows, cleaned 0 old flows
+[FlowCollector] Exported 673 flows, cleaned 0 old flows
+[FlowCollector] Exported 675 flows, cleaned 0 old flows
+[FlowCollector] Exported 684 flows, cleaned 0 old flows
+[FlowCollector] Exported 692 flows, cleaned 0 old flows
+[FlowCollector] Exported 698 flows, cleaned 0 old flows
+[FlowCollector] Exported 702 flows, cleaned 0 old flows
+[FlowCollector] Exported 714 flows, cleaned 0 old flows
+[FlowCollector] Exported 723 flows, cleaned 0 old flows
+[FlowCollector] Exported 728 flows, cleaned 0 old flows
+[FlowCollector] Exported 730 flows, cleaned 0 old flows
+[FlowCollector] Exported 730 flows, cleaned 0 old flows
+[FlowCollector] Exported 731 flows, cleaned 0 old flows
+[FlowCollector] Exported 735 flows, cleaned 0 old flows
+[FlowCollector] Exported 735 flows, cleaned 0 old flows
+[FlowCollector] Exported 736 flows, cleaned 0 old flows
+[FlowCollector] Exported 736 flows, cleaned 0 old flows
+[FlowCollector] Exported 737 flows, cleaned 0 old flows
+[FlowCollector] Exported 737 flows, cleaned 0 old flows
+[FlowCollector] Exported 737 flows, cleaned 0 old flows
+[FlowCollector] Exported 737 flows, cleaned 0 old flows
+[FlowCollector] Exported 738 flows, cleaned 0 old flows
+[FlowCollector] Exported 738 flows, cleaned 0 old flows
+[FlowCollector] Exported 739 flows, cleaned 0 old flows
+[FlowCollector] Exported 740 flows, cleaned 0 old flows
+[FlowCollector] Exported 742 flows, cleaned 0 old flows
+[FlowCollector] Exported 742 flows, cleaned 0 old flows
+minifw-ai.service: Deactivated successfully.
+Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+minifw-ai.service: Consumed 7.519s CPU time.
+Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+2026-11-05 16:04:21,167 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+2026-11-05 16:04:21,171 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+2026-11-05 16:04:21,171 - INFO - [STATE] Initial protection state: AI_ENHANCED_PROTECTION
+2026-11-05 16:04:21,178 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_financial: sector=finance
+2026-11-05 16:04:21,178 - INFO - [SECTOR_LOCK] Loaded config for finance: ['description', 'block_tor', 'block_anonymizers', 'strict_tls', 'minimum_tls_version', 'pci_compliance_mode', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_retention_days']
+2026-11-05 16:04:21,178 - INFO - [SECTOR_LOCK] Device sector: finance (LOCKED)
+2026-11-05 16:04:21,178 - INFO - [SECTOR_LOCK] Config: Finance: metadata policies; TLS version control requires packet metadata; no compliance certification.
+2026-11-05 16:04:21,178 - INFO - [FEEDS] Loaded 10 patterns from financial_fraud.txt
+2026-11-05 16:04:21,178 - INFO - [FEEDS] Loaded 9 patterns from crypto_scams.txt
+2026-11-05 16:04:21,179 - INFO - [SECTOR_LOCK] Loaded 19 sector-specific feed patterns
+2026-11-05 16:04:21,179 - INFO - [FEEDS] Loaded 0 Tor exit node IPs from /opt/minifw_ai/config/feeds/tor_exit_nodes.txt
+2026-11-05 16:04:21,179 - INFO - [SECTOR_LOCK] Tor/anonymizer blocking enabled: loaded 0 exit IPs
+2026-11-05 16:04:21,179 - INFO - Loading MLP model from: /opt/minifw_ai/models/mlp_packet14.pkl
+2026-11-05 16:04:21,180 - INFO - Model trained on: unknown
+2026-11-05 16:04:21,180 - INFO - Training samples: 2000
+2026-11-05 16:04:21,180 - INFO - Training-data accuracy: unknown; provenance: synthetic (generate_pretrained_model.py; first 14 measured packet features)
+2026-11-05 16:04:21,180 - INFO - ✓ MLP model loaded successfully
+2026-11-05 16:04:21,180 - INFO - [MLP] Loaded model from: /opt/minifw_ai/models/mlp_packet14.pkl
+2026-11-05 16:04:21,180 - INFO - [MLP] Threshold: 0.5
+2026-11-05 16:04:21,180 - INFO - Compiling YARA rules from: /opt/minifw_ai/yara_rules
+2026-11-05 16:04:21,190 - INFO - ✓ Compiled 6 YARA rule namespaces
+2026-11-05 16:04:21,190 - INFO - [YARA] Loaded rules from: /opt/minifw_ai/yara_rules
+2026-11-05 16:04:21,190 - INFO - [YARA] Rules loaded: True
+2026-11-05 16:04:21,256 - WARNING - [PROTOCOL] TLS version/WireGuard metadata unavailable without MINIFW_PACKET_INTERFACE
+2026-11-05 16:04:21,256 - WARNING - [TELEMETRY] Conntrack provides counter deltas, not packet timing/size distributions; 24-feature MLP disabled for these observations
+2026-11-05 16:04:21,258 - INFO - [AI_WINDOW] Loaded /opt/minifw_ai/models/client_window_v1.json sha256=d06ce40ea3276d2cedac9e354075c4aa74aa3987e08b35e40a95451d4e69d6ee
+VERIFIED {"test": "c20_c_other_sha_shadow", "actual": {"tool": "10.10.0.90", "humans": ["10.10.0.91"], "approval": "98d4bf16c60e01e0e7780eaa581c3655e6483b7b17b7c15d3f524769666f489e", "mode": "shadow_only", "segment": "dmz", "max_n60": 297, "max_probability": 1.0, "tool_scored_events": 297, "isolated_ips": [], "tool_routed_after": "allowed", "decided_by": "tool n60>=297 p=1.000, mode shadow_only, no nft element for any actor", "ai_state": {"state_file_after": "absent (no transition since boot)", "journal": ["2026-11-05 16:04:21,171 - INFO - [STATE] Initial protection state: AI_ENHANCED_PROTECTION"], "stayed_ai_enhanced": true}}, "time": "2026-11-05T09:05:15.430873+00:00"}
+$ systemctl stop minifw-ai
+$ conntrack -D -s 10.10.0.92
+conntrack v1.4.7 (conntrack-tools): 0 flow entries have been deleted.
+$ conntrack -D -s 10.10.0.20
+conntrack v1.4.7 (conntrack-tools): 0 flow entries have been deleted.
+$ systemctl stop minifw-ai
+Warning: The unit file, source configuration file or drop-ins of minifw-ai.service changed on disk. Run 'systemctl daemon-reload' to reload units.
+$ nft flush set inet minifw minifw_block_v4
+$ conntrack -D -s 10.10.0.20
+conntrack v1.4.7 (conntrack-tools): 0 flow entries have been deleted.
+$ systemctl daemon-reload
+$ systemctl start minifw-ai
+$ systemctl show minifw-ai -p ActiveState -p MainPID -p ExecMainStatus
+MainPID=79118
+ExecMainStatus=0
+ActiveState=active
+$ systemctl is-active minifw-ai
+active
+$ journalctl -u minifw-ai --since '2026-11-05 16:05:16' --no-pager -o cat
+[*] DNS Collector reading from /var/tmp/minifw-monday-financial-20261105T090140Z/dns.log
+[FlowCollector] Exported 100 flows, cleaned 0 old flows
+[FlowCollector] Exported 200 flows, cleaned 0 old flows
+[FlowCollector] Exported 300 flows, cleaned 0 old flows
+[FlowCollector] Exported 400 flows, cleaned 0 old flows
+[FlowCollector] Exported 476 flows, cleaned 0 old flows
+[FlowCollector] Exported 482 flows, cleaned 0 old flows
+[FlowCollector] Exported 486 flows, cleaned 0 old flows
+[FlowCollector] Exported 491 flows, cleaned 0 old flows
+[FlowCollector] Exported 491 flows, cleaned 0 old flows
+[FlowCollector] Exported 491 flows, cleaned 0 old flows
+[FlowCollector] Exported 491 flows, cleaned 0 old flows
+[FlowCollector] Exported 491 flows, cleaned 0 old flows
+[FlowCollector] Exported 493 flows, cleaned 0 old flows
+[FlowCollector] Exported 501 flows, cleaned 0 old flows
+[FlowCollector] Exported 508 flows, cleaned 0 old flows
+[FlowCollector] Exported 512 flows, cleaned 0 old flows
+[FlowCollector] Exported 519 flows, cleaned 0 old flows
+[FlowCollector] Exported 527 flows, cleaned 0 old flows
+[FlowCollector] Exported 534 flows, cleaned 0 old flows
+[FlowCollector] Exported 544 flows, cleaned 0 old flows
+[FlowCollector] Exported 554 flows, cleaned 0 old flows
+[FlowCollector] Exported 567 flows, cleaned 0 old flows
+[FlowCollector] Exported 581 flows, cleaned 0 old flows
+[FlowCollector] Exported 593 flows, cleaned 0 old flows
+[FlowCollector] Exported 599 flows, cleaned 0 old flows
+[FlowCollector] Exported 606 flows, cleaned 0 old flows
+[FlowCollector] Exported 615 flows, cleaned 0 old flows
+[FlowCollector] Exported 625 flows, cleaned 0 old flows
+[FlowCollector] Exported 634 flows, cleaned 0 old flows
+[FlowCollector] Exported 646 flows, cleaned 0 old flows
+[FlowCollector] Exported 653 flows, cleaned 0 old flows
+[FlowCollector] Exported 667 flows, cleaned 0 old flows
+[FlowCollector] Exported 675 flows, cleaned 0 old flows
+[FlowCollector] Exported 680 flows, cleaned 0 old flows
+[FlowCollector] Exported 689 flows, cleaned 0 old flows
+[FlowCollector] Exported 693 flows, cleaned 0 old flows
+[FlowCollector] Exported 705 flows, cleaned 0 old flows
+[FlowCollector] Exported 715 flows, cleaned 0 old flows
+[FlowCollector] Exported 724 flows, cleaned 0 old flows
+[FlowCollector] Exported 730 flows, cleaned 0 old flows
+[FlowCollector] Exported 735 flows, cleaned 0 old flows
+[FlowCollector] Exported 742 flows, cleaned 0 old flows
+[FlowCollector] Exported 751 flows, cleaned 0 old flows
+[FlowCollector] Exported 759 flows, cleaned 0 old flows
+[FlowCollector] Exported 771 flows, cleaned 0 old flows
+[FlowCollector] Exported 780 flows, cleaned 0 old flows
+[FlowCollector] Exported 785 flows, cleaned 0 old flows
+[FlowCollector] Exported 788 flows, cleaned 0 old flows
+[FlowCollector] Exported 793 flows, cleaned 0 old flows
+[FlowCollector] Exported 801 flows, cleaned 0 old flows
+[FlowCollector] Exported 803 flows, cleaned 0 old flows
+[FlowCollector] Exported 805 flows, cleaned 0 old flows
+[FlowCollector] Exported 805 flows, cleaned 0 old flows
+[FlowCollector] Exported 806 flows, cleaned 0 old flows
+[FlowCollector] Exported 806 flows, cleaned 0 old flows
+minifw-ai.service: Deactivated successfully.
+Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+minifw-ai.service: Consumed 7.774s CPU time.
+Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+2026-11-05 16:05:18,257 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+2026-11-05 16:05:18,260 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+2026-11-05 16:05:18,260 - INFO - [STATE] Initial protection state: AI_ENHANCED_PROTECTION
+2026-11-05 16:05:18,267 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_financial: sector=finance
+2026-11-05 16:05:18,267 - INFO - [SECTOR_LOCK] Loaded config for finance: ['description', 'block_tor', 'block_anonymizers', 'strict_tls', 'minimum_tls_version', 'pci_compliance_mode', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_retention_days']
+2026-11-05 16:05:18,267 - INFO - [SECTOR_LOCK] Device sector: finance (LOCKED)
+2026-11-05 16:05:18,267 - INFO - [SECTOR_LOCK] Config: Finance: metadata policies; TLS version control requires packet metadata; no compliance certification.
+2026-11-05 16:05:18,268 - INFO - [FEEDS] Loaded 10 patterns from financial_fraud.txt
+2026-11-05 16:05:18,268 - INFO - [FEEDS] Loaded 9 patterns from crypto_scams.txt
+2026-11-05 16:05:18,268 - INFO - [SECTOR_LOCK] Loaded 19 sector-specific feed patterns
+2026-11-05 16:05:18,268 - INFO - [FEEDS] Loaded 0 Tor exit node IPs from /opt/minifw_ai/config/feeds/tor_exit_nodes.txt
+2026-11-05 16:05:18,268 - INFO - [SECTOR_LOCK] Tor/anonymizer blocking enabled: loaded 0 exit IPs
+2026-11-05 16:05:18,268 - INFO - Loading MLP model from: /opt/minifw_ai/models/mlp_packet14.pkl
+2026-11-05 16:05:18,269 - INFO - Model trained on: unknown
+2026-11-05 16:05:18,269 - INFO - Training samples: 2000
+2026-11-05 16:05:18,269 - INFO - Training-data accuracy: unknown; provenance: synthetic (generate_pretrained_model.py; first 14 measured packet features)
+2026-11-05 16:05:18,269 - INFO - ✓ MLP model loaded successfully
+2026-11-05 16:05:18,269 - INFO - [MLP] Loaded model from: /opt/minifw_ai/models/mlp_packet14.pkl
+2026-11-05 16:05:18,269 - INFO - [MLP] Threshold: 0.5
+2026-11-05 16:05:18,269 - INFO - Compiling YARA rules from: /opt/minifw_ai/yara_rules
+2026-11-05 16:05:18,280 - INFO - ✓ Compiled 6 YARA rule namespaces
+2026-11-05 16:05:18,280 - INFO - [YARA] Loaded rules from: /opt/minifw_ai/yara_rules
+2026-11-05 16:05:18,280 - INFO - [YARA] Rules loaded: True
+2026-11-05 16:05:18,339 - WARNING - [PROTOCOL] TLS version/WireGuard metadata unavailable without MINIFW_PACKET_INTERFACE
+2026-11-05 16:05:18,340 - WARNING - [TELEMETRY] Conntrack provides counter deltas, not packet timing/size distributions; 24-feature MLP disabled for these observations
+2026-11-05 16:05:18,342 - WARNING - [AI_WINDOW] Model /var/tmp/minifw-monday-financial-20261105T090140Z/corrupt-window-model.json rejected (Unterminated string starting at: line 3 column 3 (char 36)); AI window scoring disabled
+$ nft -a list table inet minifw
+table inet minifw { # handle 79
+	set minifw_block_v4 { # handle 1
+		type ipv4_addr
+		timeout 1h
+		elements = { 10.10.0.20 timeout 15s expires 14s980ms }
+	}
+
+	chain forward { # handle 2
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 1308 bytes 78480 comment "MiniFW-AI-Conntrack" # handle 3
+		ip saddr @minifw_block_v4 counter packets 14 bytes 840 drop comment "MiniFW-AI-Blocklist" # handle 4
+	}
+}
+$ journalctl -u minifw-ai --since '2026-11-05 16:05:16' --no-pager -o cat
+[*] DNS Collector reading from /var/tmp/minifw-monday-financial-20261105T090140Z/dns.log
+[FlowCollector] Exported 100 flows, cleaned 0 old flows
+[FlowCollector] Exported 200 flows, cleaned 0 old flows
+[FlowCollector] Exported 300 flows, cleaned 0 old flows
+[FlowCollector] Exported 400 flows, cleaned 0 old flows
+[FlowCollector] Exported 476 flows, cleaned 0 old flows
+[FlowCollector] Exported 482 flows, cleaned 0 old flows
+[FlowCollector] Exported 486 flows, cleaned 0 old flows
+[FlowCollector] Exported 491 flows, cleaned 0 old flows
+[FlowCollector] Exported 491 flows, cleaned 0 old flows
+[FlowCollector] Exported 491 flows, cleaned 0 old flows
+[FlowCollector] Exported 491 flows, cleaned 0 old flows
+[FlowCollector] Exported 491 flows, cleaned 0 old flows
+[FlowCollector] Exported 493 flows, cleaned 0 old flows
+[FlowCollector] Exported 501 flows, cleaned 0 old flows
+[FlowCollector] Exported 508 flows, cleaned 0 old flows
+[FlowCollector] Exported 512 flows, cleaned 0 old flows
+[FlowCollector] Exported 519 flows, cleaned 0 old flows
+[FlowCollector] Exported 527 flows, cleaned 0 old flows
+[FlowCollector] Exported 534 flows, cleaned 0 old flows
+[FlowCollector] Exported 544 flows, cleaned 0 old flows
+[FlowCollector] Exported 554 flows, cleaned 0 old flows
+[FlowCollector] Exported 567 flows, cleaned 0 old flows
+[FlowCollector] Exported 581 flows, cleaned 0 old flows
+[FlowCollector] Exported 593 flows, cleaned 0 old flows
+[FlowCollector] Exported 599 flows, cleaned 0 old flows
+[FlowCollector] Exported 606 flows, cleaned 0 old flows
+[FlowCollector] Exported 615 flows, cleaned 0 old flows
+[FlowCollector] Exported 625 flows, cleaned 0 old flows
+[FlowCollector] Exported 634 flows, cleaned 0 old flows
+[FlowCollector] Exported 646 flows, cleaned 0 old flows
+[FlowCollector] Exported 653 flows, cleaned 0 old flows
+[FlowCollector] Exported 667 flows, cleaned 0 old flows
+[FlowCollector] Exported 675 flows, cleaned 0 old flows
+[FlowCollector] Exported 680 flows, cleaned 0 old flows
+[FlowCollector] Exported 689 flows, cleaned 0 old flows
+[FlowCollector] Exported 693 flows, cleaned 0 old flows
+[FlowCollector] Exported 705 flows, cleaned 0 old flows
+[FlowCollector] Exported 715 flows, cleaned 0 old flows
+[FlowCollector] Exported 724 flows, cleaned 0 old flows
+[FlowCollector] Exported 730 flows, cleaned 0 old flows
+[FlowCollector] Exported 735 flows, cleaned 0 old flows
+[FlowCollector] Exported 742 flows, cleaned 0 old flows
+[FlowCollector] Exported 751 flows, cleaned 0 old flows
+[FlowCollector] Exported 759 flows, cleaned 0 old flows
+[FlowCollector] Exported 771 flows, cleaned 0 old flows
+[FlowCollector] Exported 780 flows, cleaned 0 old flows
+[FlowCollector] Exported 785 flows, cleaned 0 old flows
+[FlowCollector] Exported 788 flows, cleaned 0 old flows
+[FlowCollector] Exported 793 flows, cleaned 0 old flows
+[FlowCollector] Exported 801 flows, cleaned 0 old flows
+[FlowCollector] Exported 803 flows, cleaned 0 old flows
+[FlowCollector] Exported 805 flows, cleaned 0 old flows
+[FlowCollector] Exported 805 flows, cleaned 0 old flows
+[FlowCollector] Exported 806 flows, cleaned 0 old flows
+[FlowCollector] Exported 806 flows, cleaned 0 old flows
+minifw-ai.service: Deactivated successfully.
+Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+minifw-ai.service: Consumed 7.774s CPU time.
+Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+2026-11-05 16:05:18,257 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+2026-11-05 16:05:18,260 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+2026-11-05 16:05:18,260 - INFO - [STATE] Initial protection state: AI_ENHANCED_PROTECTION
+2026-11-05 16:05:18,267 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_financial: sector=finance
+2026-11-05 16:05:18,267 - INFO - [SECTOR_LOCK] Loaded config for finance: ['description', 'block_tor', 'block_anonymizers', 'strict_tls', 'minimum_tls_version', 'pci_compliance_mode', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_retention_days']
+2026-11-05 16:05:18,267 - INFO - [SECTOR_LOCK] Device sector: finance (LOCKED)
+2026-11-05 16:05:18,267 - INFO - [SECTOR_LOCK] Config: Finance: metadata policies; TLS version control requires packet metadata; no compliance certification.
+2026-11-05 16:05:18,268 - INFO - [FEEDS] Loaded 10 patterns from financial_fraud.txt
+2026-11-05 16:05:18,268 - INFO - [FEEDS] Loaded 9 patterns from crypto_scams.txt
+2026-11-05 16:05:18,268 - INFO - [SECTOR_LOCK] Loaded 19 sector-specific feed patterns
+2026-11-05 16:05:18,268 - INFO - [FEEDS] Loaded 0 Tor exit node IPs from /opt/minifw_ai/config/feeds/tor_exit_nodes.txt
+2026-11-05 16:05:18,268 - INFO - [SECTOR_LOCK] Tor/anonymizer blocking enabled: loaded 0 exit IPs
+2026-11-05 16:05:18,268 - INFO - Loading MLP model from: /opt/minifw_ai/models/mlp_packet14.pkl
+2026-11-05 16:05:18,269 - INFO - Model trained on: unknown
+2026-11-05 16:05:18,269 - INFO - Training samples: 2000
+2026-11-05 16:05:18,269 - INFO - Training-data accuracy: unknown; provenance: synthetic (generate_pretrained_model.py; first 14 measured packet features)
+2026-11-05 16:05:18,269 - INFO - ✓ MLP model loaded successfully
+2026-11-05 16:05:18,269 - INFO - [MLP] Loaded model from: /opt/minifw_ai/models/mlp_packet14.pkl
+2026-11-05 16:05:18,269 - INFO - [MLP] Threshold: 0.5
+2026-11-05 16:05:18,269 - INFO - Compiling YARA rules from: /opt/minifw_ai/yara_rules
+2026-11-05 16:05:18,280 - INFO - ✓ Compiled 6 YARA rule namespaces
+2026-11-05 16:05:18,280 - INFO - [YARA] Loaded rules from: /opt/minifw_ai/yara_rules
+2026-11-05 16:05:18,280 - INFO - [YARA] Rules loaded: True
+2026-11-05 16:05:18,339 - WARNING - [PROTOCOL] TLS version/WireGuard metadata unavailable without MINIFW_PACKET_INTERFACE
+2026-11-05 16:05:18,340 - WARNING - [TELEMETRY] Conntrack provides counter deltas, not packet timing/size distributions; 24-feature MLP disabled for these observations
+2026-11-05 16:05:18,342 - WARNING - [AI_WINDOW] Model /var/tmp/minifw-monday-financial-20261105T090140Z/corrupt-window-model.json rejected (Unterminated string starting at: line 3 column 3 (char 36)); AI window scoring disabled
+2026-11-05 16:05:59,175 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+VERIFIED {"test": "c20_d_corrupt_model", "actual": {"engine_active": true, "model_env": "/var/tmp/minifw-monday-financial-20261105T090140Z/corrupt-window-model.json", "tool": "10.10.0.92", "tool_events": 605, "ai_window_mode": "not_run", "tool_isolated": false, "journal_ai_window": ["2026-11-05 16:05:18,342 - WARNING - [AI_WINDOW] Model /var/tmp/minifw-monday-financial-20261105T090140Z/corrupt-window-model.json rejected (Unterminated string starting at: line 3 column 3 (char 36)); AI window scoring disabled"], "baseline_scan_isolation": true, "scan_reasons": ["port_scan", "hard_threat_gate_override"], "decided_by": "engine active; all tool events ai_window_mode not_run; port_scan block of 10.10.0.20", "ai_state": {"state_file_after": "absent (no transition since boot)", "journal": ["2026-11-05 16:05:18,260 - INFO - [STATE] Initial protection state: AI_ENHANCED_PROTECTION"], "stayed_ai_enhanced": true}}, "time": "2026-11-05T09:05:59.307459+00:00"}
+$ systemctl stop minifw-ai
+$ conntrack -D -s 10.10.0.93
+conntrack v1.4.7 (conntrack-tools): 0 flow entries have been deleted.
+$ conntrack -D -s 10.10.0.20
+tcp      6 29 LAST_ACK src=10.10.0.20 dst=198.18.0.2 sport=33746 dport=20006 packets=6 bytes=320 src=198.18.0.2 dst=10.10.0.20 sport=20006 dport=33746 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 29 LAST_ACK src=10.10.0.20 dst=198.18.0.2 sport=35314 dport=20014 packets=6 bytes=320 src=198.18.0.2 dst=10.10.0.20 sport=20014 dport=35314 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 29 LAST_ACK src=10.10.0.20 dst=198.18.0.2 sport=46518 dport=20008 packets=6 bytes=320 src=198.18.0.2 dst=10.10.0.20 sport=20008 dport=46518 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 29 LAST_ACK src=10.10.0.20 dst=198.18.0.2 sport=40694 dport=20005 packets=6 bytes=320 src=198.18.0.2 dst=10.10.0.20 sport=20005 dport=40694 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 29 LAST_ACK src=10.10.0.20 dst=198.18.0.2 sport=52398 dport=20010 packets=6 bytes=320 src=198.18.0.2 dst=10.10.0.20 sport=20010 dport=52398 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 29 LAST_ACK src=10.10.0.20 dst=198.18.0.2 sport=57812 dport=20007 packets=6 bytes=320 src=198.18.0.2 dst=10.10.0.20 sport=20007 dport=57812 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 29 LAST_ACK src=10.10.0.20 dst=198.18.0.2 sport=57466 dport=20003 packets=6 bytes=320 src=198.18.0.2 dst=10.10.0.20 sport=20003 dport=57466 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 29 LAST_ACK src=10.10.0.20 dst=198.18.0.2 sport=43900 dport=20004 packets=6 bytes=320 src=198.18.0.2 dst=10.10.0.20 sport=20004 dport=43900 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 29 LAST_ACK src=10.10.0.20 dst=198.18.0.2 sport=57178 dport=20012 packets=6 bytes=320 src=198.18.0.2 dst=10.10.0.20 sport=20012 dport=57178 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 29 LAST_ACK src=10.10.0.20 dst=198.18.0.2 sport=45970 dport=20001 packets=6 bytes=320 src=198.18.0.2 dst=10.10.0.20 sport=20001 dport=45970 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 29 LAST_ACK src=10.10.0.20 dst=198.18.0.2 sport=58558 dport=20011 packets=6 bytes=320 src=198.18.0.2 dst=10.10.0.20 sport=20011 dport=58558 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 29 LAST_ACK src=10.10.0.20 dst=198.18.0.2 sport=57634 dport=20009 packets=6 bytes=320 src=198.18.0.2 dst=10.10.0.20 sport=20009 dport=57634 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 29 LAST_ACK src=10.10.0.20 dst=198.18.0.2 sport=33042 dport=20013 packets=6 bytes=320 src=198.18.0.2 dst=10.10.0.20 sport=20013 dport=33042 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 29 LAST_ACK src=10.10.0.20 dst=198.18.0.2 sport=34378 dport=20002 packets=6 bytes=320 src=198.18.0.2 dst=10.10.0.20 sport=20002 dport=34378 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 29 LAST_ACK src=10.10.0.20 dst=198.18.0.2 sport=42318 dport=20000 packets=6 bytes=320 src=198.18.0.2 dst=10.10.0.20 sport=20000 dport=42318 packets=1 bytes=60 [ASSURED] mark=0 use=1
+conntrack v1.4.7 (conntrack-tools): 15 flow entries have been deleted.
+$ systemctl stop minifw-ai
+Warning: The unit file, source configuration file or drop-ins of minifw-ai.service changed on disk. Run 'systemctl daemon-reload' to reload units.
+$ nft flush set inet minifw minifw_block_v4
+$ conntrack -D -s 10.10.0.20
+conntrack v1.4.7 (conntrack-tools): 0 flow entries have been deleted.
+$ systemctl daemon-reload
+$ systemctl start minifw-ai
+$ systemctl show minifw-ai -p ActiveState -p MainPID -p ExecMainStatus
+MainPID=79533
+ExecMainStatus=0
+ActiveState=active
+$ systemctl is-active minifw-ai
+active
+$ journalctl -u minifw-ai --since '2026-11-05 16:06:00' --no-pager -o cat
+minifw-ai.service: Deactivated successfully.
+Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+minifw-ai.service: Consumed 6.451s CPU time.
+Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+2026-11-05 16:06:02,246 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+2026-11-05 16:06:02,249 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+2026-11-05 16:06:02,249 - INFO - [STATE] Initial protection state: AI_ENHANCED_PROTECTION
+2026-11-05 16:06:02,256 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_financial: sector=finance
+2026-11-05 16:06:02,256 - INFO - [SECTOR_LOCK] Loaded config for finance: ['description', 'block_tor', 'block_anonymizers', 'strict_tls', 'minimum_tls_version', 'pci_compliance_mode', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_retention_days']
+2026-11-05 16:06:02,256 - INFO - [SECTOR_LOCK] Device sector: finance (LOCKED)
+2026-11-05 16:06:02,257 - INFO - [SECTOR_LOCK] Config: Finance: metadata policies; TLS version control requires packet metadata; no compliance certification.
+2026-11-05 16:06:02,257 - INFO - [FEEDS] Loaded 10 patterns from financial_fraud.txt
+2026-11-05 16:06:02,257 - INFO - [FEEDS] Loaded 9 patterns from crypto_scams.txt
+2026-11-05 16:06:02,257 - INFO - [SECTOR_LOCK] Loaded 19 sector-specific feed patterns
+2026-11-05 16:06:02,257 - INFO - [FEEDS] Loaded 0 Tor exit node IPs from /opt/minifw_ai/config/feeds/tor_exit_nodes.txt
+2026-11-05 16:06:02,257 - INFO - [SECTOR_LOCK] Tor/anonymizer blocking enabled: loaded 0 exit IPs
+2026-11-05 16:06:02,257 - INFO - Loading MLP model from: /opt/minifw_ai/models/mlp_packet14.pkl
+2026-11-05 16:06:02,258 - INFO - Model trained on: unknown
+2026-11-05 16:06:02,258 - INFO - Training samples: 2000
+2026-11-05 16:06:02,258 - INFO - Training-data accuracy: unknown; provenance: synthetic (generate_pretrained_model.py; first 14 measured packet features)
+2026-11-05 16:06:02,258 - INFO - ✓ MLP model loaded successfully
+2026-11-05 16:06:02,258 - INFO - [MLP] Loaded model from: /opt/minifw_ai/models/mlp_packet14.pkl
+2026-11-05 16:06:02,258 - INFO - [MLP] Threshold: 0.5
+2026-11-05 16:06:02,258 - INFO - Compiling YARA rules from: /opt/minifw_ai/yara_rules
+2026-11-05 16:06:02,269 - INFO - ✓ Compiled 6 YARA rule namespaces
+2026-11-05 16:06:02,269 - INFO - [YARA] Loaded rules from: /opt/minifw_ai/yara_rules
+2026-11-05 16:06:02,269 - INFO - [YARA] Rules loaded: True
+2026-11-05 16:06:02,328 - WARNING - [PROTOCOL] TLS version/WireGuard metadata unavailable without MINIFW_PACKET_INTERFACE
+2026-11-05 16:06:02,328 - WARNING - [TELEMETRY] Conntrack provides counter deltas, not packet timing/size distributions; 24-feature MLP disabled for these observations
+2026-11-05 16:06:02,330 - INFO - [AI_WINDOW] No model at /var/tmp/minifw-monday-financial-20261105T090140Z/absent-window-model.json; AI window scoring disabled
+2026-11-05 16:06:02,739 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:07,548 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:07,634 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:07,650 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:07,657 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:07,693 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:07,742 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:07,799 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:07,839 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:07,862 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:07,877 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:07,982 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:08,003 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:08,016 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:08,037 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:08,048 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:12,603 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:12,691 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:12,707 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:12,714 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:12,751 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:12,800 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:12,856 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:12,882 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:12,898 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:12,908 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:12,990 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:13,011 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:13,024 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:13,045 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:13,056 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:17,603 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:17,714 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:17,731 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:17,738 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:17,783 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:17,846 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:17,903 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:17,929 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:17,946 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:17,957 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:18,046 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:18,067 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:18,081 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:18,102 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:18,111 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:22,646 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:22,766 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:22,786 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:22,793 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:22,867 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:22,944 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:23,015 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:23,042 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:23,060 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:23,074 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:23,171 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:23,192 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:23,209 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:23,232 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:23,243 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:27,726 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:27,826 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:27,843 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:27,851 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:27,897 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:27,963 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:28,034 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:28,064 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:28,083 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:28,095 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:28,200 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:28,222 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:28,238 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:28,262 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:28,274 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:32,749 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:32,860 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:32,880 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:32,886 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:32,933 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:33,001 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:33,074 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:33,104 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:33,123 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:33,135 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:33,248 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:33,274 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:33,290 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:33,317 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:33,327 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:37,832 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:37,942 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:37,949 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:37,994 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:38,064 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:38,143 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:38,175 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:38,195 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:38,207 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:38,327 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:38,352 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:38,368 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:38,394 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:38,408 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+$ nft -a list table inet minifw
+table inet minifw { # handle 79
+	set minifw_block_v4 { # handle 1
+		type ipv4_addr
+		timeout 1h
+		elements = { 10.10.0.20 timeout 15s expires 7s592ms }
+	}
+
+	chain forward { # handle 2
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 1569 bytes 94020 comment "MiniFW-AI-Conntrack" # handle 3
+		ip saddr @minifw_block_v4 counter packets 74 bytes 3960 drop comment "MiniFW-AI-Blocklist" # handle 4
+	}
+}
+$ journalctl -u minifw-ai --since '2026-11-05 16:06:00' --no-pager -o cat
+minifw-ai.service: Deactivated successfully.
+Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+minifw-ai.service: Consumed 6.451s CPU time.
+Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+2026-11-05 16:06:02,246 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+2026-11-05 16:06:02,249 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+2026-11-05 16:06:02,249 - INFO - [STATE] Initial protection state: AI_ENHANCED_PROTECTION
+2026-11-05 16:06:02,256 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_financial: sector=finance
+2026-11-05 16:06:02,256 - INFO - [SECTOR_LOCK] Loaded config for finance: ['description', 'block_tor', 'block_anonymizers', 'strict_tls', 'minimum_tls_version', 'pci_compliance_mode', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_retention_days']
+2026-11-05 16:06:02,256 - INFO - [SECTOR_LOCK] Device sector: finance (LOCKED)
+2026-11-05 16:06:02,257 - INFO - [SECTOR_LOCK] Config: Finance: metadata policies; TLS version control requires packet metadata; no compliance certification.
+2026-11-05 16:06:02,257 - INFO - [FEEDS] Loaded 10 patterns from financial_fraud.txt
+2026-11-05 16:06:02,257 - INFO - [FEEDS] Loaded 9 patterns from crypto_scams.txt
+2026-11-05 16:06:02,257 - INFO - [SECTOR_LOCK] Loaded 19 sector-specific feed patterns
+2026-11-05 16:06:02,257 - INFO - [FEEDS] Loaded 0 Tor exit node IPs from /opt/minifw_ai/config/feeds/tor_exit_nodes.txt
+2026-11-05 16:06:02,257 - INFO - [SECTOR_LOCK] Tor/anonymizer blocking enabled: loaded 0 exit IPs
+2026-11-05 16:06:02,257 - INFO - Loading MLP model from: /opt/minifw_ai/models/mlp_packet14.pkl
+2026-11-05 16:06:02,258 - INFO - Model trained on: unknown
+2026-11-05 16:06:02,258 - INFO - Training samples: 2000
+2026-11-05 16:06:02,258 - INFO - Training-data accuracy: unknown; provenance: synthetic (generate_pretrained_model.py; first 14 measured packet features)
+2026-11-05 16:06:02,258 - INFO - ✓ MLP model loaded successfully
+2026-11-05 16:06:02,258 - INFO - [MLP] Loaded model from: /opt/minifw_ai/models/mlp_packet14.pkl
+2026-11-05 16:06:02,258 - INFO - [MLP] Threshold: 0.5
+2026-11-05 16:06:02,258 - INFO - Compiling YARA rules from: /opt/minifw_ai/yara_rules
+2026-11-05 16:06:02,269 - INFO - ✓ Compiled 6 YARA rule namespaces
+2026-11-05 16:06:02,269 - INFO - [YARA] Loaded rules from: /opt/minifw_ai/yara_rules
+2026-11-05 16:06:02,269 - INFO - [YARA] Rules loaded: True
+2026-11-05 16:06:02,328 - WARNING - [PROTOCOL] TLS version/WireGuard metadata unavailable without MINIFW_PACKET_INTERFACE
+2026-11-05 16:06:02,328 - WARNING - [TELEMETRY] Conntrack provides counter deltas, not packet timing/size distributions; 24-feature MLP disabled for these observations
+2026-11-05 16:06:02,330 - INFO - [AI_WINDOW] No model at /var/tmp/minifw-monday-financial-20261105T090140Z/absent-window-model.json; AI window scoring disabled
+2026-11-05 16:06:02,739 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:07,548 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:07,634 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:07,650 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:07,657 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:07,693 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:07,742 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:07,799 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:07,839 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:07,862 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:07,877 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:07,982 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:08,003 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:08,016 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:08,037 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:08,048 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:12,603 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:12,691 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:12,707 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:12,714 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:12,751 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:12,800 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:12,856 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:12,882 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:12,898 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:12,908 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:12,990 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:13,011 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:13,024 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:13,045 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:13,056 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:17,603 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:17,714 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:17,731 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:17,738 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:17,783 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:17,846 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:17,903 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:17,929 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:17,946 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:17,957 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:18,046 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:18,067 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:18,081 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:18,102 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:18,111 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:22,646 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:22,766 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:22,786 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:22,793 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:22,867 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:22,944 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:23,015 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:23,042 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:23,060 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:23,074 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:23,171 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:23,192 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:23,209 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:23,232 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:23,243 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:27,726 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:27,826 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:27,843 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:27,851 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:27,897 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:27,963 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:28,034 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:28,064 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:28,083 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:28,095 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:28,200 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:28,222 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:28,238 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:28,262 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:28,274 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:32,749 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:32,860 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:32,880 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:32,886 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:32,933 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:33,001 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:33,074 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:33,104 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:33,123 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:33,135 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:33,248 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:33,274 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:33,290 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:33,317 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:33,327 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:37,832 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:37,942 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:37,949 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:37,994 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:38,064 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:38,143 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:38,175 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:38,195 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:38,207 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:38,327 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:38,352 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:38,368 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:38,394 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+2026-11-05 16:06:38,408 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+VERIFIED {"test": "c20_d_missing_model", "actual": {"engine_active": true, "model_env": "/var/tmp/minifw-monday-financial-20261105T090140Z/absent-window-model.json", "tool": "10.10.0.93", "tool_events": 593, "ai_window_mode": "not_run", "tool_isolated": false, "journal_ai_window": ["2026-11-05 16:06:02,330 - INFO - [AI_WINDOW] No model at /var/tmp/minifw-monday-financial-20261105T090140Z/absent-window-model.json; AI window scoring disabled"], "baseline_scan_isolation": true, "scan_reasons": ["port_scan", "hard_threat_gate_override"], "decided_by": "engine active; all tool events ai_window_mode not_run; port_scan block of 10.10.0.20", "ai_state": {"state_file_after": "absent (no transition since boot)", "journal": ["2026-11-05 16:06:02,249 - INFO - [STATE] Initial protection state: AI_ENHANCED_PROTECTION"], "stayed_ai_enhanced": true}}, "time": "2026-11-05T09:06:40.395200+00:00"}
+$ systemctl stop minifw-ai
+$ conntrack -D -s 10.10.0.95
+conntrack v1.4.7 (conntrack-tools): 0 flow entries have been deleted.
+$ conntrack -L -s 10.10.0.95 -p tcp --dport 20001
+tcp      6 431998 ESTABLISHED src=10.10.0.95 dst=198.18.0.2 sport=37375 dport=20001 packets=2 bytes=112 src=198.18.0.2 dst=10.10.0.95 sport=20001 dport=37375 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 431998 ESTABLISHED src=10.10.0.95 dst=198.18.0.2 sport=49293 dport=20001 packets=2 bytes=112 src=198.18.0.2 dst=10.10.0.95 sport=20001 dport=49293 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 431998 ESTABLISHED src=10.10.0.95 dst=198.18.0.2 sport=46625 dport=20001 packets=2 bytes=112 src=198.18.0.2 dst=10.10.0.95 sport=20001 dport=46625 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 431998 ESTABLISHED src=10.10.0.95 dst=198.18.0.2 sport=54009 dport=20001 packets=2 bytes=112 src=198.18.0.2 dst=10.10.0.95 sport=20001 dport=54009 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 431999 ESTABLISHED src=10.10.0.95 dst=198.18.0.2 sport=48121 dport=20001 packets=2 bytes=112 src=198.18.0.2 dst=10.10.0.95 sport=20001 dport=48121 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 431999 ESTABLISHED src=10.10.0.95 dst=198.18.0.2 sport=57103 dport=20001 packets=2 bytes=112 src=198.18.0.2 dst=10.10.0.95 sport=20001 dport=57103 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 431998 ESTABLISHED src=10.10.0.95 dst=198.18.0.2 sport=48555 dport=20001 packets=2 bytes=112 src=198.18.0.2 dst=10.10.0.95 sport=20001 dport=48555 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 431998 ESTABLISHED src=10.10.0.95 dst=198.18.0.2 sport=32841 dport=20001 packets=2 bytes=112 src=198.18.0.2 dst=10.10.0.95 sport=20001 dport=32841 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 431999 ESTABLISHED src=10.10.0.95 dst=198.18.0.2 sport=58367 dport=20001 packets=2 bytes=112 src=198.18.0.2 dst=10.10.0.95 sport=20001 dport=58367 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 431998 ESTABLISHED src=10.10.0.95 dst=198.18.0.2 sport=35079 dport=20001 packets=2 bytes=112 src=198.18.0.2 dst=10.10.0.95 sport=20001 dport=35079 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 431999 ESTABLISHED src=10.10.0.95 dst=198.18.0.2 sport=37127 dport=20001 packets=2 bytes=112 src=198.18.0.2 dst=10.10.0.95 sport=20001 dport=37127 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 431998 ESTABLISHED src=10.10.0.95 dst=198.18.0.2 sport=55815 dport=20001 packets=2 bytes=112 src=198.18.0.2 dst=10.10.0.95 sport=20001 dport=55815 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 431998 ESTABLISHED src=10.10.0.95 dst=198.18.0.2 sport=37365 dport=20001 packets=2 bytes=112 src=198.18.0.2 dst=10.10.0.95 sport=20001 dport=37365 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 431999 ESTABLISHED src=10.10.0.95 dst=198.18.0.2 sport=47633 dport=20001 packets=2 bytes=112 src=198.18.0.2 dst=10.10.0.95 sport=20001 dport=47633 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 431999 ESTABLISHED src=10.10.0.95 dst=198.18.0.2 sport=33903 dport=20001 packets=2 bytes=112 src=198.18.0.2 dst=10.10.0.95 sport=20001 dport=33903 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 431999 ESTABLISHED src=10.10.0.95 dst=198.18.0.2 sport=34163 dport=20001 packets=2 bytes=112 src=198.18.0.2 dst=10.10.0.95 sport=20001 dport=34163 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 431998 ESTABLISHED src=10.10.0.95 dst=198.18.0.2 sport=54311 dport=20001 packets=2 bytes=112 src=198.18.0.2 dst=10.10.0.95 sport=20001 dport=54311 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 431998 ESTABLISHED src=10.10.0.95 dst=198.18.0.2 sport=44359 dport=20001 packets=2 bytes=112 src=198.18.0.2 dst=10.10.0.95 sport=20001 dport=44359 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 431999 ESTABLISHED src=10.10.0.95 dst=198.18.0.2 sport=60571 dport=20001 packets=2 bytes=112 src=198.18.0.2 dst=10.10.0.95 sport=20001 dport=60571 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 431998 ESTABLISHED src=10.10.0.95 dst=198.18.0.2 sport=33225 dport=20001 packets=2 bytes=112 src=198.18.0.2 dst=10.10.0.95 sport=20001 dport=33225 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 431998 ESTABLISHED src=10.10.0.95 dst=198.18.0.2 sport=43325 dport=20001 packets=2 bytes=112 src=198.18.0.2 dst=10.10.0.95 sport=20001 dport=43325 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 431998 ESTABLISHED src=10.10.0.95 dst=198.18.0.2 sport=44853 dport=20001 packets=2 bytes=112 src=198.18.0.2 dst=10.10.0.95 sport=20001 dport=44853 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 431999 ESTABLISHED src=10.10.0.95 dst=198.18.0.2 sport=50863 dport=20001 packets=2 bytes=112 src=198.18.0.2 dst=10.10.0.95 sport=20001 dport=50863 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 431998 ESTABLISHED src=10.10.0.95 dst=198.18.0.2 sport=33605 dport=20001 packets=2 bytes=112 src=198.18.0.2 dst=10.10.0.95 sport=20001 dport=33605 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 431998 ESTABLISHED src=10.10.0.95 dst=198.18.0.2 sport=48303 dport=20001 packets=2 bytes=112 src=198.18.0.2 dst=10.10.0.95 sport=20001 dport=48303 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 431998 ESTABLISHED src=10.10.0.95 dst=198.18.0.2 sport=49955 dport=20001 packets=2 bytes=112 src=198.18.0.2 dst=10.10.0.95 sport=20001 dport=49955 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 431999 ESTABLISHED src=10.10.0.95 dst=198.18.0.2 sport=55965 dport=20001 packets=2 bytes=112 src=198.18.0.2 dst=10.10.0.95 sport=20001 dport=55965 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 431999 ESTABLISHED src=10.10.0.95 dst=198.18.0.2 sport=35307 dport=20001 packets=2 bytes=112 src=198.18.0.2 dst=10.10.0.95 sport=20001 dport=35307 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 431998 ESTABLISHED src=10.10.0.95 dst=198.18.0.2 sport=44641 dport=20001 packets=2 bytes=112 src=198.18.0.2 dst=10.10.0.95 sport=20001 dport=44641 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 431998 ESTABLISHED src=10.10.0.95 dst=198.18.0.2 sport=50667 dport=20001 packets=2 bytes=112 src=198.18.0.2 dst=10.10.0.95 sport=20001 dport=50667 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 431999 ESTABLISHED src=10.10.0.95 dst=198.18.0.2 sport=39905 dport=20001 packets=2 bytes=112 src=198.18.0.2 dst=10.10.0.95 sport=20001 dport=39905 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 431998 ESTABLISHED src=10.10.0.95 dst=198.18.0.2 sport=56711 dport=20001 packets=2 bytes=112 src=198.18.0.2 dst=10.10.0.95 sport=20001 dport=56711 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 431998 ESTABLISHED src=10.10.0.95 dst=198.18.0.2 sport=49471 dport=20001 packets=2 bytes=112 src=198.18.0.2 dst=10.10.0.95 sport=20001 dport=49471 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 431998 ESTABLISHED src=10.10.0.95 dst=198.18.0.2 sport=37499 dport=20001 packets=2 bytes=112 src=198.18.0.2 dst=10.10.0.95 sport=20001 dport=37499 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 431998 ESTABLISHED src=10.10.0.95 dst=198.18.0.2 sport=51577 dport=20001 packets=2 bytes=112 src=198.18.0.2 dst=10.10.0.95 sport=20001 dport=51577 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 431998 ESTABLISHED src=10.10.0.95 dst=198.18.0.2 sport=50047 dport=20001 packets=2 bytes=112 src=198.18.0.2 dst=10.10.0.95 sport=20001 dport=50047 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 431998 ESTABLISHED src=10.10.0.95 dst=198.18.0.2 sport=59361 dport=20001 packets=2 bytes=112 src=198.18.0.2 dst=10.10.0.95 sport=20001 dport=59361 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 431998 ESTABLISHED src=10.10.0.95 dst=198.18.0.2 sport=45481 dport=20001 packets=2 bytes=112 src=198.18.0.2 dst=10.10.0.95 sport=20001 dport=45481 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 431999 ESTABLISHED src=10.10.0.95 dst=198.18.0.2 sport=42529 dport=20001 packets=2 bytes=112 src=198.18.0.2 dst=10.10.0.95 sport=20001 dport=42529 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 431998 ESTABLISHED src=10.10.0.95 dst=198.18.0.2 sport=59665 dport=20001 packets=2 bytes=112 src=198.18.0.2 dst=10.10.0.95 sport=20001 dport=59665 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 431998 ESTABLISHED src=10.10.0.95 dst=198.18.0.2 sport=53745 dport=20001 packets=2 bytes=112 src=198.18.0.2 dst=10.10.0.95 sport=20001 dport=53745 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 431998 ESTABLISHED src=10.10.0.95 dst=198.18.0.2 sport=49589 dport=20001 packets=2 bytes=112 src=198.18.0.2 dst=10.10.0.95 sport=20001 dport=49589 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 431999 ESTABLISHED src=10.10.0.95 dst=198.18.0.2 sport=53491 dport=20001 packets=2 bytes=112 src=198.18.0.2 dst=10.10.0.95 sport=20001 dport=53491 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 431998 ESTABLISHED src=10.10.0.95 dst=198.18.0.2 sport=45551 dport=20001 packets=2 bytes=112 src=198.18.0.2 dst=10.10.0.95 sport=20001 dport=45551 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 431998 ESTABLISHED src=10.10.0.95 dst=198.18.0.2 sport=50213 dport=20001 packets=2 bytes=112 src=198.18.0.2 dst=10.10.0.95 sport=20001 dport=50213 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 431999 ESTABLISHED src=10.10.0.95 dst=198.18.0.2 sport=46595 dport=20001 packets=2 bytes=112 src=198.18.0.2 dst=10.10.0.95 sport=20001 dport=46595 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 431999 ESTABLISHED src=10.10.0.95 dst=198.18.0.2 sport=57539 dport=20001 packets=2 bytes=112 src=198.18.0.2 dst=10.10.0.95 sport=20001 dport=57539 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 431998 ESTABLISHED src=10.10.0.95 dst=198.18.0.2 sport=36803 dport=20001 packets=2 bytes=112 src=198.18.0.2 dst=10.10.0.95 sport=20001 dport=36803 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 431999 ESTABLISHED src=10.10.0.95 dst=198.18.0.2 sport=59249 dport=20001 packets=2 bytes=112 src=198.18.0.2 dst=10.10.0.95 sport=20001 dport=59249 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 431998 ESTABLISHED src=10.10.0.95 dst=198.18.0.2 sport=51127 dport=20001 packets=2 bytes=112 src=198.18.0.2 dst=10.10.0.95 sport=20001 dport=51127 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 431998 ESTABLISHED src=10.10.0.95 dst=198.18.0.2 sport=50187 dport=20001 packets=2 bytes=112 src=198.18.0.2 dst=10.10.0.95 sport=20001 dport=50187 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 431999 ESTABLISHED src=10.10.0.95 dst=198.18.0.2 sport=43613 dport=20001 packets=2 bytes=112 src=198.18.0.2 dst=10.10.0.95 sport=20001 dport=43613 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 431998 ESTABLISHED src=10.10.0.95 dst=198.18.0.2 sport=41229 dport=20001 packets=2 bytes=112 src=198.18.0.2 dst=10.10.0.95 sport=20001 dport=41229 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 431999 ESTABLISHED src=10.10.0.95 dst=198.18.0.2 sport=54809 dport=20001 packets=2 bytes=112 src=198.18.0.2 dst=10.10.0.95 sport=20001 dport=54809 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 431999 ESTABLISHED src=10.10.0.95 dst=198.18.0.2 sport=50089 dport=20001 packets=2 bytes=112 src=198.18.0.2 dst=10.10.0.95 sport=20001 dport=50089 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 431999 ESTABLISHED src=10.10.0.95 dst=198.18.0.2 sport=43965 dport=20001 packets=2 bytes=112 src=198.18.0.2 dst=10.10.0.95 sport=20001 dport=43965 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 431998 ESTABLISHED src=10.10.0.95 dst=198.18.0.2 sport=46805 dport=20001 packets=2 bytes=112 src=198.18.0.2 dst=10.10.0.95 sport=20001 dport=46805 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 431998 ESTABLISHED src=10.10.0.95 dst=198.18.0.2 sport=46497 dport=20001 packets=2 bytes=112 src=198.18.0.2 dst=10.10.0.95 sport=20001 dport=46497 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 431999 ESTABLISHED src=10.10.0.95 dst=198.18.0.2 sport=57311 dport=20001 packets=2 bytes=112 src=198.18.0.2 dst=10.10.0.95 sport=20001 dport=57311 packets=1 bytes=60 [ASSURED] mark=0 use=1
+tcp      6 431998 ESTABLISHED src=10.10.0.95 dst=198.18.0.2 sport=53529 dport=20001 packets=2 bytes=112 src=198.18.0.2 dst=10.10.0.95 sport=20001 dport=53529 packets=1 bytes=60 [ASSURED] mark=0 use=1
+conntrack v1.4.7 (conntrack-tools): 60 flow entries have been shown.
+$ systemctl stop minifw-ai
+$ systemctl stop minifw-ai
+Warning: The unit file, source configuration file or drop-ins of minifw-ai.service changed on disk. Run 'systemctl daemon-reload' to reload units.
+$ nft flush set inet minifw minifw_block_v4
+$ conntrack -D -s 10.10.0.20
+tcp      6 258 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=33746 dport=20006 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20006 dport=33746 packets=0 bytes=0 mark=0 use=1
+tcp      6 258 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=35314 dport=20014 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20014 dport=35314 packets=0 bytes=0 mark=0 use=1
+tcp      6 258 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=46518 dport=20008 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20008 dport=46518 packets=0 bytes=0 mark=0 use=1
+tcp      6 258 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=40694 dport=20005 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20005 dport=40694 packets=0 bytes=0 mark=0 use=1
+tcp      6 258 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=52398 dport=20010 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20010 dport=52398 packets=0 bytes=0 mark=0 use=1
+tcp      6 258 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=57812 dport=20007 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20007 dport=57812 packets=0 bytes=0 mark=0 use=1
+tcp      6 258 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=57466 dport=20003 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20003 dport=57466 packets=0 bytes=0 mark=0 use=1
+tcp      6 258 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=43900 dport=20004 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20004 dport=43900 packets=0 bytes=0 mark=0 use=1
+tcp      6 258 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=57178 dport=20012 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20012 dport=57178 packets=0 bytes=0 mark=0 use=1
+tcp      6 258 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=45970 dport=20001 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20001 dport=45970 packets=0 bytes=0 mark=0 use=1
+tcp      6 258 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=58558 dport=20011 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20011 dport=58558 packets=0 bytes=0 mark=0 use=1
+tcp      6 258 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=57634 dport=20009 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20009 dport=57634 packets=0 bytes=0 mark=0 use=1
+tcp      6 258 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=33042 dport=20013 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20013 dport=33042 packets=0 bytes=0 mark=0 use=1
+tcp      6 258 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=34378 dport=20002 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20002 dport=34378 packets=0 bytes=0 mark=0 use=1
+tcp      6 258 ESTABLISHED src=10.10.0.20 dst=198.18.0.2 sport=42318 dport=20000 packets=1 bytes=52 [UNREPLIED] src=198.18.0.2 dst=10.10.0.20 sport=20000 dport=42318 packets=0 bytes=0 mark=0 use=1
+conntrack v1.4.7 (conntrack-tools): 15 flow entries have been deleted.
+$ systemctl daemon-reload
+$ systemctl start minifw-ai
+$ systemctl show minifw-ai -p ActiveState -p MainPID -p ExecMainStatus
+MainPID=80109
+ExecMainStatus=0
+ActiveState=active
+$ nft -a list table inet minifw
+table inet minifw { # handle 79
+	set minifw_block_v4 { # handle 1
+		type ipv4_addr
+		timeout 1h
+	}
+
+	chain forward { # handle 2
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 1630 bytes 97680 comment "MiniFW-AI-Conntrack" # handle 3
+		ip saddr @minifw_block_v4 counter packets 74 bytes 3960 drop comment "MiniFW-AI-Blocklist" # handle 4
+	}
+}
+$ journalctl -u minifw-ai --since '2026-11-05 16:06:42' --no-pager -o cat
+Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+2026-11-05 16:06:44,403 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+2026-11-05 16:06:44,407 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+2026-11-05 16:06:44,407 - INFO - [STATE] Initial protection state: AI_ENHANCED_PROTECTION
+2026-11-05 16:06:44,414 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_financial: sector=finance
+2026-11-05 16:06:44,414 - INFO - [SECTOR_LOCK] Loaded config for finance: ['description', 'block_tor', 'block_anonymizers', 'strict_tls', 'minimum_tls_version', 'pci_compliance_mode', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_retention_days']
+2026-11-05 16:06:44,414 - INFO - [SECTOR_LOCK] Device sector: finance (LOCKED)
+2026-11-05 16:06:44,414 - INFO - [SECTOR_LOCK] Config: Finance: metadata policies; TLS version control requires packet metadata; no compliance certification.
+2026-11-05 16:06:44,414 - INFO - [FEEDS] Loaded 10 patterns from financial_fraud.txt
+2026-11-05 16:06:44,414 - INFO - [FEEDS] Loaded 9 patterns from crypto_scams.txt
+2026-11-05 16:06:44,415 - INFO - [SECTOR_LOCK] Loaded 19 sector-specific feed patterns
+2026-11-05 16:06:44,415 - INFO - [FEEDS] Loaded 0 Tor exit node IPs from /opt/minifw_ai/config/feeds/tor_exit_nodes.txt
+2026-11-05 16:06:44,415 - INFO - [SECTOR_LOCK] Tor/anonymizer blocking enabled: loaded 0 exit IPs
+2026-11-05 16:06:44,415 - INFO - Loading MLP model from: /opt/minifw_ai/models/mlp_packet14.pkl
+2026-11-05 16:06:44,416 - INFO - Model trained on: unknown
+2026-11-05 16:06:44,416 - INFO - Training samples: 2000
+2026-11-05 16:06:44,416 - INFO - Training-data accuracy: unknown; provenance: synthetic (generate_pretrained_model.py; first 14 measured packet features)
+2026-11-05 16:06:44,416 - INFO - ✓ MLP model loaded successfully
+2026-11-05 16:06:44,416 - INFO - [MLP] Loaded model from: /opt/minifw_ai/models/mlp_packet14.pkl
+2026-11-05 16:06:44,416 - INFO - [MLP] Threshold: 0.5
+2026-11-05 16:06:44,416 - INFO - Compiling YARA rules from: /opt/minifw_ai/yara_rules
+2026-11-05 16:06:44,426 - INFO - ✓ Compiled 6 YARA rule namespaces
+2026-11-05 16:06:44,427 - INFO - [YARA] Loaded rules from: /opt/minifw_ai/yara_rules
+2026-11-05 16:06:44,427 - INFO - [YARA] Rules loaded: True
+2026-11-05 16:06:44,479 - WARNING - [PROTOCOL] TLS version/WireGuard metadata unavailable without MINIFW_PACKET_INTERFACE
+2026-11-05 16:06:44,479 - WARNING - [TELEMETRY] Conntrack provides counter deltas, not packet timing/size distributions; 24-feature MLP disabled for these observations
+2026-11-05 16:06:44,482 - INFO - [AI_WINDOW] Loaded /opt/minifw_ai/models/client_window_v1.json sha256=d06ce40ea3276d2cedac9e354075c4aa74aa3987e08b35e40a95451d4e69d6ee
+VERIFIED {"test": "c20_e_restart_snapshot", "actual": {"holder": "10.10.0.95", "held_connections": 60, "conntrack_established_before_start": 60, "events": 531, "counted_n60": [], "isolated": false, "observed_seconds": 40, "decided_by": "no nft element and no block event for the holder in 40 s after start; flows from the start snapshot not counted", "ai_state": {"state_file_after": "absent (no transition since boot)", "journal": ["2026-11-05 16:06:44,407 - INFO - [STATE] Initial protection state: AI_ENHANCED_PROTECTION"], "stayed_ai_enhanced": true}}, "time": "2026-11-05T09:07:25.646396+00:00"}
+$ systemctl daemon-reload
+$ journalctl -u minifw-ai --since '2026-11-05 16:06:42' --no-pager -o cat
+Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+2026-11-05 16:06:44,403 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+2026-11-05 16:06:44,407 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+2026-11-05 16:06:44,407 - INFO - [STATE] Initial protection state: AI_ENHANCED_PROTECTION
+2026-11-05 16:06:44,414 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_financial: sector=finance
+2026-11-05 16:06:44,414 - INFO - [SECTOR_LOCK] Loaded config for finance: ['description', 'block_tor', 'block_anonymizers', 'strict_tls', 'minimum_tls_version', 'pci_compliance_mode', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_retention_days']
+2026-11-05 16:06:44,414 - INFO - [SECTOR_LOCK] Device sector: finance (LOCKED)
+2026-11-05 16:06:44,414 - INFO - [SECTOR_LOCK] Config: Finance: metadata policies; TLS version control requires packet metadata; no compliance certification.
+2026-11-05 16:06:44,414 - INFO - [FEEDS] Loaded 10 patterns from financial_fraud.txt
+2026-11-05 16:06:44,414 - INFO - [FEEDS] Loaded 9 patterns from crypto_scams.txt
+2026-11-05 16:06:44,415 - INFO - [SECTOR_LOCK] Loaded 19 sector-specific feed patterns
+2026-11-05 16:06:44,415 - INFO - [FEEDS] Loaded 0 Tor exit node IPs from /opt/minifw_ai/config/feeds/tor_exit_nodes.txt
+2026-11-05 16:06:44,415 - INFO - [SECTOR_LOCK] Tor/anonymizer blocking enabled: loaded 0 exit IPs
+2026-11-05 16:06:44,415 - INFO - Loading MLP model from: /opt/minifw_ai/models/mlp_packet14.pkl
+2026-11-05 16:06:44,416 - INFO - Model trained on: unknown
+2026-11-05 16:06:44,416 - INFO - Training samples: 2000
+2026-11-05 16:06:44,416 - INFO - Training-data accuracy: unknown; provenance: synthetic (generate_pretrained_model.py; first 14 measured packet features)
+2026-11-05 16:06:44,416 - INFO - ✓ MLP model loaded successfully
+2026-11-05 16:06:44,416 - INFO - [MLP] Loaded model from: /opt/minifw_ai/models/mlp_packet14.pkl
+2026-11-05 16:06:44,416 - INFO - [MLP] Threshold: 0.5
+2026-11-05 16:06:44,416 - INFO - Compiling YARA rules from: /opt/minifw_ai/yara_rules
+2026-11-05 16:06:44,426 - INFO - ✓ Compiled 6 YARA rule namespaces
+2026-11-05 16:06:44,427 - INFO - [YARA] Loaded rules from: /opt/minifw_ai/yara_rules
+2026-11-05 16:06:44,427 - INFO - [YARA] Rules loaded: True
+2026-11-05 16:06:44,479 - WARNING - [PROTOCOL] TLS version/WireGuard metadata unavailable without MINIFW_PACKET_INTERFACE
+2026-11-05 16:06:44,479 - WARNING - [TELEMETRY] Conntrack provides counter deltas, not packet timing/size distributions; 24-feature MLP disabled for these observations
+2026-11-05 16:06:44,482 - INFO - [AI_WINDOW] Loaded /opt/minifw_ai/models/client_window_v1.json sha256=d06ce40ea3276d2cedac9e354075c4aa74aa3987e08b35e40a95451d4e69d6ee
+VERIFIED {"test": "c20_summary", "actual": {"failed": [], "scenarios": ["a_no_approval_shadow", "b_shipped_dmz_out_of_scope", "b_approved_isolation", "c_other_sha_shadow", "d_corrupt_model", "d_missing_model", "e_restart_snapshot"], "ai_state": {"state_file_after": "absent (no transition since boot)", "journal": ["2026-11-05 16:06:44,407 - INFO - [STATE] Initial protection state: AI_ENHANCED_PROTECTION"], "stayed_ai_enhanced": true}}, "time": "2026-11-05T09:07:25.988303+00:00"}
+$ systemctl stop minifw-ai
+$ journalctl -u minifw-ai --no-pager --since '2026-11-05 09:01:40 UTC'
+Nov 05 16:01:40 minifw-monday-financial python[76568]: 2026-11-05 16:01:40,120 - INFO - Caught SIGTERM, shutting down.
+Nov 05 16:01:40 minifw-monday-financial systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 05 16:01:40 minifw-monday-financial python[76568]: [*] DNS Collector reading from /var/log/dnsmasq.log
+Nov 05 16:01:40 minifw-monday-financial python[76568]: [FlowCollector] Exported 30 flows, cleaned 0 old flows
+Nov 05 16:01:40 minifw-monday-financial python[76568]: [FlowCollector] Exported 30 flows, cleaned 0 old flows
+Nov 05 16:01:40 minifw-monday-financial systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 05 16:01:40 minifw-monday-financial systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 16:01:40 minifw-monday-financial systemd[1]: minifw-ai.service: Consumed 2.284s CPU time.
+Nov 05 16:01:43 minifw-monday-financial systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 16:01:44 minifw-monday-financial python[76797]: 2026-11-05 16:01:44,629 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Nov 05 16:01:44 minifw-monday-financial python[76797]: 2026-11-05 16:01:44,633 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Nov 05 16:01:44 minifw-monday-financial python[76797]: 2026-11-05 16:01:44,633 - INFO - [STATE] Initial protection state: AI_ENHANCED_PROTECTION
+Nov 05 16:01:44 minifw-monday-financial python[76797]: 2026-11-05 16:01:44,639 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_financial: sector=finance
+Nov 05 16:01:44 minifw-monday-financial python[76797]: 2026-11-05 16:01:44,639 - INFO - [SECTOR_LOCK] Loaded config for finance: ['description', 'block_tor', 'block_anonymizers', 'strict_tls', 'minimum_tls_version', 'pci_compliance_mode', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_retention_days']
+Nov 05 16:01:44 minifw-monday-financial python[76797]: 2026-11-05 16:01:44,640 - INFO - [SECTOR_LOCK] Device sector: finance (LOCKED)
+Nov 05 16:01:44 minifw-monday-financial python[76797]: 2026-11-05 16:01:44,640 - INFO - [SECTOR_LOCK] Config: Finance: metadata policies; TLS version control requires packet metadata; no compliance certification.
+Nov 05 16:01:44 minifw-monday-financial python[76797]: 2026-11-05 16:01:44,640 - INFO - [FEEDS] Loaded 10 patterns from financial_fraud.txt
+Nov 05 16:01:44 minifw-monday-financial python[76797]: 2026-11-05 16:01:44,640 - INFO - [FEEDS] Loaded 9 patterns from crypto_scams.txt
+Nov 05 16:01:44 minifw-monday-financial python[76797]: 2026-11-05 16:01:44,640 - INFO - [SECTOR_LOCK] Loaded 19 sector-specific feed patterns
+Nov 05 16:01:44 minifw-monday-financial python[76797]: 2026-11-05 16:01:44,640 - INFO - [FEEDS] Loaded 0 Tor exit node IPs from /opt/minifw_ai/config/feeds/tor_exit_nodes.txt
+Nov 05 16:01:44 minifw-monday-financial python[76797]: 2026-11-05 16:01:44,640 - INFO - [SECTOR_LOCK] Tor/anonymizer blocking enabled: loaded 0 exit IPs
+Nov 05 16:01:44 minifw-monday-financial python[76797]: 2026-11-05 16:01:44,640 - INFO - Loading MLP model from: /opt/minifw_ai/models/mlp_packet14.pkl
+Nov 05 16:01:44 minifw-monday-financial python[76797]: 2026-11-05 16:01:44,641 - INFO - Model trained on: unknown
+Nov 05 16:01:44 minifw-monday-financial python[76797]: 2026-11-05 16:01:44,641 - INFO - Training samples: 2000
+Nov 05 16:01:44 minifw-monday-financial python[76797]: 2026-11-05 16:01:44,641 - INFO - Training-data accuracy: unknown; provenance: synthetic (generate_pretrained_model.py; first 14 measured packet features)
+Nov 05 16:01:44 minifw-monday-financial python[76797]: 2026-11-05 16:01:44,641 - INFO - ✓ MLP model loaded successfully
+Nov 05 16:01:44 minifw-monday-financial python[76797]: 2026-11-05 16:01:44,641 - INFO - [MLP] Loaded model from: /opt/minifw_ai/models/mlp_packet14.pkl
+Nov 05 16:01:44 minifw-monday-financial python[76797]: 2026-11-05 16:01:44,641 - INFO - [MLP] Threshold: 0.5
+Nov 05 16:01:44 minifw-monday-financial python[76797]: 2026-11-05 16:01:44,642 - INFO - Compiling YARA rules from: /opt/minifw_ai/yara_rules
+Nov 05 16:01:44 minifw-monday-financial python[76797]: 2026-11-05 16:01:44,652 - INFO - ✓ Compiled 6 YARA rule namespaces
+Nov 05 16:01:44 minifw-monday-financial python[76797]: 2026-11-05 16:01:44,652 - INFO - [YARA] Loaded rules from: /opt/minifw_ai/yara_rules
+Nov 05 16:01:44 minifw-monday-financial python[76797]: 2026-11-05 16:01:44,652 - INFO - [YARA] Rules loaded: True
+Nov 05 16:01:44 minifw-monday-financial python[76797]: 2026-11-05 16:01:44,702 - WARNING - [PROTOCOL] TLS version/WireGuard metadata unavailable without MINIFW_PACKET_INTERFACE
+Nov 05 16:01:44 minifw-monday-financial python[76797]: 2026-11-05 16:01:44,702 - WARNING - [TELEMETRY] Conntrack provides counter deltas, not packet timing/size distributions; 24-feature MLP disabled for these observations
+Nov 05 16:01:44 minifw-monday-financial python[76797]: 2026-11-05 16:01:44,704 - INFO - [AI_WINDOW] Loaded /opt/minifw_ai/models/client_window_v1.json sha256=d06ce40ea3276d2cedac9e354075c4aa74aa3987e08b35e40a95451d4e69d6ee
+Nov 05 16:02:38 minifw-monday-financial systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 05 16:02:38 minifw-monday-financial python[76797]: 2026-11-05 16:02:38,777 - INFO - Caught SIGTERM, shutting down.
+Nov 05 16:02:39 minifw-monday-financial python[76797]: [*] DNS Collector reading from /var/tmp/minifw-monday-financial-20261105T090140Z/dns.log
+Nov 05 16:02:39 minifw-monday-financial python[76797]: [FlowCollector] Exported 37 flows, cleaned 0 old flows
+Nov 05 16:02:39 minifw-monday-financial python[76797]: [FlowCollector] Exported 79 flows, cleaned 0 old flows
+Nov 05 16:02:39 minifw-monday-financial python[76797]: [FlowCollector] Exported 124 flows, cleaned 0 old flows
+Nov 05 16:02:39 minifw-monday-financial python[76797]: [FlowCollector] Exported 155 flows, cleaned 0 old flows
+Nov 05 16:02:39 minifw-monday-financial python[76797]: [FlowCollector] Exported 183 flows, cleaned 0 old flows
+Nov 05 16:02:39 minifw-monday-financial python[76797]: [FlowCollector] Exported 205 flows, cleaned 0 old flows
+Nov 05 16:02:39 minifw-monday-financial python[76797]: [FlowCollector] Exported 230 flows, cleaned 0 old flows
+Nov 05 16:02:39 minifw-monday-financial python[76797]: [FlowCollector] Exported 245 flows, cleaned 0 old flows
+Nov 05 16:02:39 minifw-monday-financial python[76797]: [FlowCollector] Exported 267 flows, cleaned 0 old flows
+Nov 05 16:02:39 minifw-monday-financial python[76797]: [FlowCollector] Exported 284 flows, cleaned 0 old flows
+Nov 05 16:02:39 minifw-monday-financial python[76797]: [FlowCollector] Exported 299 flows, cleaned 0 old flows
+Nov 05 16:02:39 minifw-monday-financial python[76797]: [FlowCollector] Exported 316 flows, cleaned 0 old flows
+Nov 05 16:02:39 minifw-monday-financial python[76797]: [FlowCollector] Exported 329 flows, cleaned 0 old flows
+Nov 05 16:02:39 minifw-monday-financial python[76797]: [FlowCollector] Exported 340 flows, cleaned 0 old flows
+Nov 05 16:02:39 minifw-monday-financial python[76797]: [FlowCollector] Exported 350 flows, cleaned 0 old flows
+Nov 05 16:02:39 minifw-monday-financial python[76797]: [FlowCollector] Exported 357 flows, cleaned 0 old flows
+Nov 05 16:02:39 minifw-monday-financial python[76797]: [FlowCollector] Exported 360 flows, cleaned 0 old flows
+Nov 05 16:02:39 minifw-monday-financial python[76797]: [FlowCollector] Exported 360 flows, cleaned 0 old flows
+Nov 05 16:02:39 minifw-monday-financial systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 05 16:02:39 minifw-monday-financial systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 16:02:39 minifw-monday-financial systemd[1]: minifw-ai.service: Consumed 3.837s CPU time.
+Nov 05 16:02:39 minifw-monday-financial systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 16:02:41 minifw-monday-financial python[77560]: 2026-11-05 16:02:41,139 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Nov 05 16:02:41 minifw-monday-financial python[77560]: 2026-11-05 16:02:41,142 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Nov 05 16:02:41 minifw-monday-financial python[77560]: 2026-11-05 16:02:41,142 - INFO - [STATE] Initial protection state: AI_ENHANCED_PROTECTION
+Nov 05 16:02:41 minifw-monday-financial python[77560]: 2026-11-05 16:02:41,149 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_financial: sector=finance
+Nov 05 16:02:41 minifw-monday-financial python[77560]: 2026-11-05 16:02:41,149 - INFO - [SECTOR_LOCK] Loaded config for finance: ['description', 'block_tor', 'block_anonymizers', 'strict_tls', 'minimum_tls_version', 'pci_compliance_mode', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_retention_days']
+Nov 05 16:02:41 minifw-monday-financial python[77560]: 2026-11-05 16:02:41,149 - INFO - [SECTOR_LOCK] Device sector: finance (LOCKED)
+Nov 05 16:02:41 minifw-monday-financial python[77560]: 2026-11-05 16:02:41,149 - INFO - [SECTOR_LOCK] Config: Finance: metadata policies; TLS version control requires packet metadata; no compliance certification.
+Nov 05 16:02:41 minifw-monday-financial python[77560]: 2026-11-05 16:02:41,150 - INFO - [FEEDS] Loaded 10 patterns from financial_fraud.txt
+Nov 05 16:02:41 minifw-monday-financial python[77560]: 2026-11-05 16:02:41,150 - INFO - [FEEDS] Loaded 9 patterns from crypto_scams.txt
+Nov 05 16:02:41 minifw-monday-financial python[77560]: 2026-11-05 16:02:41,150 - INFO - [SECTOR_LOCK] Loaded 19 sector-specific feed patterns
+Nov 05 16:02:41 minifw-monday-financial python[77560]: 2026-11-05 16:02:41,150 - INFO - [FEEDS] Loaded 0 Tor exit node IPs from /opt/minifw_ai/config/feeds/tor_exit_nodes.txt
+Nov 05 16:02:41 minifw-monday-financial python[77560]: 2026-11-05 16:02:41,150 - INFO - [SECTOR_LOCK] Tor/anonymizer blocking enabled: loaded 0 exit IPs
+Nov 05 16:02:41 minifw-monday-financial python[77560]: 2026-11-05 16:02:41,150 - INFO - Loading MLP model from: /opt/minifw_ai/models/mlp_packet14.pkl
+Nov 05 16:02:41 minifw-monday-financial python[77560]: 2026-11-05 16:02:41,151 - INFO - Model trained on: unknown
+Nov 05 16:02:41 minifw-monday-financial python[77560]: 2026-11-05 16:02:41,151 - INFO - Training samples: 2000
+Nov 05 16:02:41 minifw-monday-financial python[77560]: 2026-11-05 16:02:41,151 - INFO - Training-data accuracy: unknown; provenance: synthetic (generate_pretrained_model.py; first 14 measured packet features)
+Nov 05 16:02:41 minifw-monday-financial python[77560]: 2026-11-05 16:02:41,151 - INFO - ✓ MLP model loaded successfully
+Nov 05 16:02:41 minifw-monday-financial python[77560]: 2026-11-05 16:02:41,151 - INFO - [MLP] Loaded model from: /opt/minifw_ai/models/mlp_packet14.pkl
+Nov 05 16:02:41 minifw-monday-financial python[77560]: 2026-11-05 16:02:41,151 - INFO - [MLP] Threshold: 0.5
+Nov 05 16:02:41 minifw-monday-financial python[77560]: 2026-11-05 16:02:41,151 - INFO - Compiling YARA rules from: /opt/minifw_ai/yara_rules
+Nov 05 16:02:41 minifw-monday-financial python[77560]: 2026-11-05 16:02:41,161 - INFO - ✓ Compiled 6 YARA rule namespaces
+Nov 05 16:02:41 minifw-monday-financial python[77560]: 2026-11-05 16:02:41,162 - INFO - [YARA] Loaded rules from: /opt/minifw_ai/yara_rules
+Nov 05 16:02:41 minifw-monday-financial python[77560]: 2026-11-05 16:02:41,162 - INFO - [YARA] Rules loaded: True
+Nov 05 16:02:41 minifw-monday-financial python[77560]: 2026-11-05 16:02:41,211 - WARNING - [PROTOCOL] TLS version/WireGuard metadata unavailable without MINIFW_PACKET_INTERFACE
+Nov 05 16:02:41 minifw-monday-financial python[77560]: 2026-11-05 16:02:41,212 - WARNING - [TELEMETRY] Conntrack provides counter deltas, not packet timing/size distributions; 24-feature MLP disabled for these observations
+Nov 05 16:02:41 minifw-monday-financial python[77560]: 2026-11-05 16:02:41,214 - INFO - [AI_WINDOW] Loaded /opt/minifw_ai/models/client_window_v1.json sha256=d06ce40ea3276d2cedac9e354075c4aa74aa3987e08b35e40a95451d4e69d6ee
+Nov 05 16:03:35 minifw-monday-financial systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 05 16:03:35 minifw-monday-financial python[77560]: 2026-11-05 16:03:35,358 - INFO - Caught SIGTERM, shutting down.
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [*] DNS Collector reading from /var/tmp/minifw-monday-financial-20261105T090140Z/dns.log
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 100 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 200 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 300 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 333 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 334 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 334 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 334 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 335 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 336 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 336 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 346 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 356 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 361 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 368 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 382 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 399 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 410 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 421 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 433 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 440 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 450 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 464 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 472 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 486 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 497 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 507 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 518 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 527 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 536 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 548 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 558 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 564 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 572 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 576 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 581 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 591 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 599 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 610 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 619 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 624 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 630 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 636 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 638 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 647 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 654 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 656 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 656 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 656 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 656 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 656 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 656 flows, cleaned 0 old flows
+Nov 05 16:03:35 minifw-monday-financial python[77560]: [FlowCollector] Exported 657 flows, cleaned 0 old flows
+Nov 05 16:03:36 minifw-monday-financial systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 05 16:03:36 minifw-monday-financial systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 16:03:36 minifw-monday-financial systemd[1]: minifw-ai.service: Consumed 6.923s CPU time.
+Nov 05 16:03:36 minifw-monday-financial systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 16:03:37 minifw-monday-financial python[78215]: 2026-11-05 16:03:37,924 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Nov 05 16:03:37 minifw-monday-financial python[78215]: 2026-11-05 16:03:37,927 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Nov 05 16:03:37 minifw-monday-financial python[78215]: 2026-11-05 16:03:37,927 - INFO - [STATE] Initial protection state: AI_ENHANCED_PROTECTION
+Nov 05 16:03:37 minifw-monday-financial python[78215]: 2026-11-05 16:03:37,934 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_financial: sector=finance
+Nov 05 16:03:37 minifw-monday-financial python[78215]: 2026-11-05 16:03:37,934 - INFO - [SECTOR_LOCK] Loaded config for finance: ['description', 'block_tor', 'block_anonymizers', 'strict_tls', 'minimum_tls_version', 'pci_compliance_mode', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_retention_days']
+Nov 05 16:03:37 minifw-monday-financial python[78215]: 2026-11-05 16:03:37,934 - INFO - [SECTOR_LOCK] Device sector: finance (LOCKED)
+Nov 05 16:03:37 minifw-monday-financial python[78215]: 2026-11-05 16:03:37,934 - INFO - [SECTOR_LOCK] Config: Finance: metadata policies; TLS version control requires packet metadata; no compliance certification.
+Nov 05 16:03:37 minifw-monday-financial python[78215]: 2026-11-05 16:03:37,935 - INFO - [FEEDS] Loaded 10 patterns from financial_fraud.txt
+Nov 05 16:03:37 minifw-monday-financial python[78215]: 2026-11-05 16:03:37,935 - INFO - [FEEDS] Loaded 9 patterns from crypto_scams.txt
+Nov 05 16:03:37 minifw-monday-financial python[78215]: 2026-11-05 16:03:37,935 - INFO - [SECTOR_LOCK] Loaded 19 sector-specific feed patterns
+Nov 05 16:03:37 minifw-monday-financial python[78215]: 2026-11-05 16:03:37,935 - INFO - [FEEDS] Loaded 0 Tor exit node IPs from /opt/minifw_ai/config/feeds/tor_exit_nodes.txt
+Nov 05 16:03:37 minifw-monday-financial python[78215]: 2026-11-05 16:03:37,935 - INFO - [SECTOR_LOCK] Tor/anonymizer blocking enabled: loaded 0 exit IPs
+Nov 05 16:03:37 minifw-monday-financial python[78215]: 2026-11-05 16:03:37,935 - INFO - Loading MLP model from: /opt/minifw_ai/models/mlp_packet14.pkl
+Nov 05 16:03:37 minifw-monday-financial python[78215]: 2026-11-05 16:03:37,936 - INFO - Model trained on: unknown
+Nov 05 16:03:37 minifw-monday-financial python[78215]: 2026-11-05 16:03:37,936 - INFO - Training samples: 2000
+Nov 05 16:03:37 minifw-monday-financial python[78215]: 2026-11-05 16:03:37,936 - INFO - Training-data accuracy: unknown; provenance: synthetic (generate_pretrained_model.py; first 14 measured packet features)
+Nov 05 16:03:37 minifw-monday-financial python[78215]: 2026-11-05 16:03:37,936 - INFO - ✓ MLP model loaded successfully
+Nov 05 16:03:37 minifw-monday-financial python[78215]: 2026-11-05 16:03:37,936 - INFO - [MLP] Loaded model from: /opt/minifw_ai/models/mlp_packet14.pkl
+Nov 05 16:03:37 minifw-monday-financial python[78215]: 2026-11-05 16:03:37,936 - INFO - [MLP] Threshold: 0.5
+Nov 05 16:03:37 minifw-monday-financial python[78215]: 2026-11-05 16:03:37,936 - INFO - Compiling YARA rules from: /opt/minifw_ai/yara_rules
+Nov 05 16:03:37 minifw-monday-financial python[78215]: 2026-11-05 16:03:37,946 - INFO - ✓ Compiled 6 YARA rule namespaces
+Nov 05 16:03:37 minifw-monday-financial python[78215]: 2026-11-05 16:03:37,946 - INFO - [YARA] Loaded rules from: /opt/minifw_ai/yara_rules
+Nov 05 16:03:37 minifw-monday-financial python[78215]: 2026-11-05 16:03:37,947 - INFO - [YARA] Rules loaded: True
+Nov 05 16:03:38 minifw-monday-financial python[78215]: 2026-11-05 16:03:38,004 - WARNING - [PROTOCOL] TLS version/WireGuard metadata unavailable without MINIFW_PACKET_INTERFACE
+Nov 05 16:03:38 minifw-monday-financial python[78215]: 2026-11-05 16:03:38,005 - WARNING - [TELEMETRY] Conntrack provides counter deltas, not packet timing/size distributions; 24-feature MLP disabled for these observations
+Nov 05 16:03:38 minifw-monday-financial python[78215]: 2026-11-05 16:03:38,007 - INFO - [AI_WINDOW] Loaded /opt/minifw_ai/models/client_window_v1.json sha256=d06ce40ea3276d2cedac9e354075c4aa74aa3987e08b35e40a95451d4e69d6ee
+Nov 05 16:04:18 minifw-monday-financial systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 05 16:04:18 minifw-monday-financial python[78215]: 2026-11-05 16:04:18,544 - INFO - Caught SIGTERM, shutting down.
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [*] DNS Collector reading from /var/tmp/minifw-monday-financial-20261105T090140Z/dns.log
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 100 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 200 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 300 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 400 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 500 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 600 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 643 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 643 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 643 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 644 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 644 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 644 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 645 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 645 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 645 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 646 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 646 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 646 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 646 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 652 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 656 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 662 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 664 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 667 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 673 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 675 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 684 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 692 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 698 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 702 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 714 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 723 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 728 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 730 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 730 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 731 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 735 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 735 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 736 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 736 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 737 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 737 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 737 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 737 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 738 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 738 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 739 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 740 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 742 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial python[78215]: [FlowCollector] Exported 742 flows, cleaned 0 old flows
+Nov 05 16:04:19 minifw-monday-financial systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 05 16:04:19 minifw-monday-financial systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 16:04:19 minifw-monday-financial systemd[1]: minifw-ai.service: Consumed 7.519s CPU time.
+Nov 05 16:04:19 minifw-monday-financial systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 16:04:21 minifw-monday-financial python[78547]: 2026-11-05 16:04:21,167 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Nov 05 16:04:21 minifw-monday-financial python[78547]: 2026-11-05 16:04:21,171 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Nov 05 16:04:21 minifw-monday-financial python[78547]: 2026-11-05 16:04:21,171 - INFO - [STATE] Initial protection state: AI_ENHANCED_PROTECTION
+Nov 05 16:04:21 minifw-monday-financial python[78547]: 2026-11-05 16:04:21,178 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_financial: sector=finance
+Nov 05 16:04:21 minifw-monday-financial python[78547]: 2026-11-05 16:04:21,178 - INFO - [SECTOR_LOCK] Loaded config for finance: ['description', 'block_tor', 'block_anonymizers', 'strict_tls', 'minimum_tls_version', 'pci_compliance_mode', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_retention_days']
+Nov 05 16:04:21 minifw-monday-financial python[78547]: 2026-11-05 16:04:21,178 - INFO - [SECTOR_LOCK] Device sector: finance (LOCKED)
+Nov 05 16:04:21 minifw-monday-financial python[78547]: 2026-11-05 16:04:21,178 - INFO - [SECTOR_LOCK] Config: Finance: metadata policies; TLS version control requires packet metadata; no compliance certification.
+Nov 05 16:04:21 minifw-monday-financial python[78547]: 2026-11-05 16:04:21,178 - INFO - [FEEDS] Loaded 10 patterns from financial_fraud.txt
+Nov 05 16:04:21 minifw-monday-financial python[78547]: 2026-11-05 16:04:21,178 - INFO - [FEEDS] Loaded 9 patterns from crypto_scams.txt
+Nov 05 16:04:21 minifw-monday-financial python[78547]: 2026-11-05 16:04:21,179 - INFO - [SECTOR_LOCK] Loaded 19 sector-specific feed patterns
+Nov 05 16:04:21 minifw-monday-financial python[78547]: 2026-11-05 16:04:21,179 - INFO - [FEEDS] Loaded 0 Tor exit node IPs from /opt/minifw_ai/config/feeds/tor_exit_nodes.txt
+Nov 05 16:04:21 minifw-monday-financial python[78547]: 2026-11-05 16:04:21,179 - INFO - [SECTOR_LOCK] Tor/anonymizer blocking enabled: loaded 0 exit IPs
+Nov 05 16:04:21 minifw-monday-financial python[78547]: 2026-11-05 16:04:21,179 - INFO - Loading MLP model from: /opt/minifw_ai/models/mlp_packet14.pkl
+Nov 05 16:04:21 minifw-monday-financial python[78547]: 2026-11-05 16:04:21,180 - INFO - Model trained on: unknown
+Nov 05 16:04:21 minifw-monday-financial python[78547]: 2026-11-05 16:04:21,180 - INFO - Training samples: 2000
+Nov 05 16:04:21 minifw-monday-financial python[78547]: 2026-11-05 16:04:21,180 - INFO - Training-data accuracy: unknown; provenance: synthetic (generate_pretrained_model.py; first 14 measured packet features)
+Nov 05 16:04:21 minifw-monday-financial python[78547]: 2026-11-05 16:04:21,180 - INFO - ✓ MLP model loaded successfully
+Nov 05 16:04:21 minifw-monday-financial python[78547]: 2026-11-05 16:04:21,180 - INFO - [MLP] Loaded model from: /opt/minifw_ai/models/mlp_packet14.pkl
+Nov 05 16:04:21 minifw-monday-financial python[78547]: 2026-11-05 16:04:21,180 - INFO - [MLP] Threshold: 0.5
+Nov 05 16:04:21 minifw-monday-financial python[78547]: 2026-11-05 16:04:21,180 - INFO - Compiling YARA rules from: /opt/minifw_ai/yara_rules
+Nov 05 16:04:21 minifw-monday-financial python[78547]: 2026-11-05 16:04:21,190 - INFO - ✓ Compiled 6 YARA rule namespaces
+Nov 05 16:04:21 minifw-monday-financial python[78547]: 2026-11-05 16:04:21,190 - INFO - [YARA] Loaded rules from: /opt/minifw_ai/yara_rules
+Nov 05 16:04:21 minifw-monday-financial python[78547]: 2026-11-05 16:04:21,190 - INFO - [YARA] Rules loaded: True
+Nov 05 16:04:21 minifw-monday-financial python[78547]: 2026-11-05 16:04:21,256 - WARNING - [PROTOCOL] TLS version/WireGuard metadata unavailable without MINIFW_PACKET_INTERFACE
+Nov 05 16:04:21 minifw-monday-financial python[78547]: 2026-11-05 16:04:21,256 - WARNING - [TELEMETRY] Conntrack provides counter deltas, not packet timing/size distributions; 24-feature MLP disabled for these observations
+Nov 05 16:04:21 minifw-monday-financial python[78547]: 2026-11-05 16:04:21,258 - INFO - [AI_WINDOW] Loaded /opt/minifw_ai/models/client_window_v1.json sha256=d06ce40ea3276d2cedac9e354075c4aa74aa3987e08b35e40a95451d4e69d6ee
+Nov 05 16:05:15 minifw-monday-financial systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 05 16:05:15 minifw-monday-financial python[78547]: 2026-11-05 16:05:15,447 - INFO - Caught SIGTERM, shutting down.
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [*] DNS Collector reading from /var/tmp/minifw-monday-financial-20261105T090140Z/dns.log
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 100 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 200 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 300 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 400 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 476 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 482 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 486 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 491 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 491 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 491 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 491 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 491 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 493 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 501 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 508 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 512 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 519 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 527 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 534 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 544 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 554 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 567 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 581 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 593 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 599 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 606 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 615 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 625 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 634 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 646 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 653 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 667 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 675 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 680 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 689 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 693 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 705 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 715 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 724 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 730 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 735 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 742 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 751 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 759 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 771 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 780 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 785 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 788 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 793 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 801 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 803 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 805 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 805 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 806 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial python[78547]: [FlowCollector] Exported 806 flows, cleaned 0 old flows
+Nov 05 16:05:16 minifw-monday-financial systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 05 16:05:16 minifw-monday-financial systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 16:05:16 minifw-monday-financial systemd[1]: minifw-ai.service: Consumed 7.774s CPU time.
+Nov 05 16:05:17 minifw-monday-financial systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 16:05:18 minifw-monday-financial python[79118]: 2026-11-05 16:05:18,257 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Nov 05 16:05:18 minifw-monday-financial python[79118]: 2026-11-05 16:05:18,260 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Nov 05 16:05:18 minifw-monday-financial python[79118]: 2026-11-05 16:05:18,260 - INFO - [STATE] Initial protection state: AI_ENHANCED_PROTECTION
+Nov 05 16:05:18 minifw-monday-financial python[79118]: 2026-11-05 16:05:18,267 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_financial: sector=finance
+Nov 05 16:05:18 minifw-monday-financial python[79118]: 2026-11-05 16:05:18,267 - INFO - [SECTOR_LOCK] Loaded config for finance: ['description', 'block_tor', 'block_anonymizers', 'strict_tls', 'minimum_tls_version', 'pci_compliance_mode', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_retention_days']
+Nov 05 16:05:18 minifw-monday-financial python[79118]: 2026-11-05 16:05:18,267 - INFO - [SECTOR_LOCK] Device sector: finance (LOCKED)
+Nov 05 16:05:18 minifw-monday-financial python[79118]: 2026-11-05 16:05:18,267 - INFO - [SECTOR_LOCK] Config: Finance: metadata policies; TLS version control requires packet metadata; no compliance certification.
+Nov 05 16:05:18 minifw-monday-financial python[79118]: 2026-11-05 16:05:18,268 - INFO - [FEEDS] Loaded 10 patterns from financial_fraud.txt
+Nov 05 16:05:18 minifw-monday-financial python[79118]: 2026-11-05 16:05:18,268 - INFO - [FEEDS] Loaded 9 patterns from crypto_scams.txt
+Nov 05 16:05:18 minifw-monday-financial python[79118]: 2026-11-05 16:05:18,268 - INFO - [SECTOR_LOCK] Loaded 19 sector-specific feed patterns
+Nov 05 16:05:18 minifw-monday-financial python[79118]: 2026-11-05 16:05:18,268 - INFO - [FEEDS] Loaded 0 Tor exit node IPs from /opt/minifw_ai/config/feeds/tor_exit_nodes.txt
+Nov 05 16:05:18 minifw-monday-financial python[79118]: 2026-11-05 16:05:18,268 - INFO - [SECTOR_LOCK] Tor/anonymizer blocking enabled: loaded 0 exit IPs
+Nov 05 16:05:18 minifw-monday-financial python[79118]: 2026-11-05 16:05:18,268 - INFO - Loading MLP model from: /opt/minifw_ai/models/mlp_packet14.pkl
+Nov 05 16:05:18 minifw-monday-financial python[79118]: 2026-11-05 16:05:18,269 - INFO - Model trained on: unknown
+Nov 05 16:05:18 minifw-monday-financial python[79118]: 2026-11-05 16:05:18,269 - INFO - Training samples: 2000
+Nov 05 16:05:18 minifw-monday-financial python[79118]: 2026-11-05 16:05:18,269 - INFO - Training-data accuracy: unknown; provenance: synthetic (generate_pretrained_model.py; first 14 measured packet features)
+Nov 05 16:05:18 minifw-monday-financial python[79118]: 2026-11-05 16:05:18,269 - INFO - ✓ MLP model loaded successfully
+Nov 05 16:05:18 minifw-monday-financial python[79118]: 2026-11-05 16:05:18,269 - INFO - [MLP] Loaded model from: /opt/minifw_ai/models/mlp_packet14.pkl
+Nov 05 16:05:18 minifw-monday-financial python[79118]: 2026-11-05 16:05:18,269 - INFO - [MLP] Threshold: 0.5
+Nov 05 16:05:18 minifw-monday-financial python[79118]: 2026-11-05 16:05:18,269 - INFO - Compiling YARA rules from: /opt/minifw_ai/yara_rules
+Nov 05 16:05:18 minifw-monday-financial python[79118]: 2026-11-05 16:05:18,280 - INFO - ✓ Compiled 6 YARA rule namespaces
+Nov 05 16:05:18 minifw-monday-financial python[79118]: 2026-11-05 16:05:18,280 - INFO - [YARA] Loaded rules from: /opt/minifw_ai/yara_rules
+Nov 05 16:05:18 minifw-monday-financial python[79118]: 2026-11-05 16:05:18,280 - INFO - [YARA] Rules loaded: True
+Nov 05 16:05:18 minifw-monday-financial python[79118]: 2026-11-05 16:05:18,339 - WARNING - [PROTOCOL] TLS version/WireGuard metadata unavailable without MINIFW_PACKET_INTERFACE
+Nov 05 16:05:18 minifw-monday-financial python[79118]: 2026-11-05 16:05:18,340 - WARNING - [TELEMETRY] Conntrack provides counter deltas, not packet timing/size distributions; 24-feature MLP disabled for these observations
+Nov 05 16:05:18 minifw-monday-financial python[79118]: 2026-11-05 16:05:18,342 - WARNING - [AI_WINDOW] Model /var/tmp/minifw-monday-financial-20261105T090140Z/corrupt-window-model.json rejected (Unterminated string starting at: line 3 column 3 (char 36)); AI window scoring disabled
+Nov 05 16:05:59 minifw-monday-financial python[79118]: 2026-11-05 16:05:59,175 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:59 minifw-monday-financial python[79118]: 2026-11-05 16:05:59,315 - INFO - Caught SIGTERM, shutting down.
+Nov 05 16:05:59 minifw-monday-financial systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [*] DNS Collector reading from /var/tmp/minifw-monday-financial-20261105T090140Z/dns.log
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 100 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 200 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 300 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 400 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 456 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 462 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 466 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 468 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 469 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 470 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 470 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 471 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 475 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 482 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 491 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 493 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 499 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 506 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 513 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 529 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 540 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 548 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 565 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 575 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 585 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 594 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 600 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 606 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 614 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 621 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 631 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 641 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 649 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 660 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 663 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 674 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 684 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 696 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 703 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 710 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 718 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 725 flows, cleaned 0 old flows
+Nov 05 16:05:59 minifw-monday-financial python[79118]: [FlowCollector] Exported 733 flows, cleaned 0 old flows
+Nov 05 16:06:00 minifw-monday-financial systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 05 16:06:00 minifw-monday-financial systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 16:06:00 minifw-monday-financial systemd[1]: minifw-ai.service: Consumed 6.451s CPU time.
+Nov 05 16:06:01 minifw-monday-financial systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 16:06:02 minifw-monday-financial python[79533]: 2026-11-05 16:06:02,246 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Nov 05 16:06:02 minifw-monday-financial python[79533]: 2026-11-05 16:06:02,249 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Nov 05 16:06:02 minifw-monday-financial python[79533]: 2026-11-05 16:06:02,249 - INFO - [STATE] Initial protection state: AI_ENHANCED_PROTECTION
+Nov 05 16:06:02 minifw-monday-financial python[79533]: 2026-11-05 16:06:02,256 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_financial: sector=finance
+Nov 05 16:06:02 minifw-monday-financial python[79533]: 2026-11-05 16:06:02,256 - INFO - [SECTOR_LOCK] Loaded config for finance: ['description', 'block_tor', 'block_anonymizers', 'strict_tls', 'minimum_tls_version', 'pci_compliance_mode', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_retention_days']
+Nov 05 16:06:02 minifw-monday-financial python[79533]: 2026-11-05 16:06:02,256 - INFO - [SECTOR_LOCK] Device sector: finance (LOCKED)
+Nov 05 16:06:02 minifw-monday-financial python[79533]: 2026-11-05 16:06:02,257 - INFO - [SECTOR_LOCK] Config: Finance: metadata policies; TLS version control requires packet metadata; no compliance certification.
+Nov 05 16:06:02 minifw-monday-financial python[79533]: 2026-11-05 16:06:02,257 - INFO - [FEEDS] Loaded 10 patterns from financial_fraud.txt
+Nov 05 16:06:02 minifw-monday-financial python[79533]: 2026-11-05 16:06:02,257 - INFO - [FEEDS] Loaded 9 patterns from crypto_scams.txt
+Nov 05 16:06:02 minifw-monday-financial python[79533]: 2026-11-05 16:06:02,257 - INFO - [SECTOR_LOCK] Loaded 19 sector-specific feed patterns
+Nov 05 16:06:02 minifw-monday-financial python[79533]: 2026-11-05 16:06:02,257 - INFO - [FEEDS] Loaded 0 Tor exit node IPs from /opt/minifw_ai/config/feeds/tor_exit_nodes.txt
+Nov 05 16:06:02 minifw-monday-financial python[79533]: 2026-11-05 16:06:02,257 - INFO - [SECTOR_LOCK] Tor/anonymizer blocking enabled: loaded 0 exit IPs
+Nov 05 16:06:02 minifw-monday-financial python[79533]: 2026-11-05 16:06:02,257 - INFO - Loading MLP model from: /opt/minifw_ai/models/mlp_packet14.pkl
+Nov 05 16:06:02 minifw-monday-financial python[79533]: 2026-11-05 16:06:02,258 - INFO - Model trained on: unknown
+Nov 05 16:06:02 minifw-monday-financial python[79533]: 2026-11-05 16:06:02,258 - INFO - Training samples: 2000
+Nov 05 16:06:02 minifw-monday-financial python[79533]: 2026-11-05 16:06:02,258 - INFO - Training-data accuracy: unknown; provenance: synthetic (generate_pretrained_model.py; first 14 measured packet features)
+Nov 05 16:06:02 minifw-monday-financial python[79533]: 2026-11-05 16:06:02,258 - INFO - ✓ MLP model loaded successfully
+Nov 05 16:06:02 minifw-monday-financial python[79533]: 2026-11-05 16:06:02,258 - INFO - [MLP] Loaded model from: /opt/minifw_ai/models/mlp_packet14.pkl
+Nov 05 16:06:02 minifw-monday-financial python[79533]: 2026-11-05 16:06:02,258 - INFO - [MLP] Threshold: 0.5
+Nov 05 16:06:02 minifw-monday-financial python[79533]: 2026-11-05 16:06:02,258 - INFO - Compiling YARA rules from: /opt/minifw_ai/yara_rules
+Nov 05 16:06:02 minifw-monday-financial python[79533]: 2026-11-05 16:06:02,269 - INFO - ✓ Compiled 6 YARA rule namespaces
+Nov 05 16:06:02 minifw-monday-financial python[79533]: 2026-11-05 16:06:02,269 - INFO - [YARA] Loaded rules from: /opt/minifw_ai/yara_rules
+Nov 05 16:06:02 minifw-monday-financial python[79533]: 2026-11-05 16:06:02,269 - INFO - [YARA] Rules loaded: True
+Nov 05 16:06:02 minifw-monday-financial python[79533]: 2026-11-05 16:06:02,328 - WARNING - [PROTOCOL] TLS version/WireGuard metadata unavailable without MINIFW_PACKET_INTERFACE
+Nov 05 16:06:02 minifw-monday-financial python[79533]: 2026-11-05 16:06:02,328 - WARNING - [TELEMETRY] Conntrack provides counter deltas, not packet timing/size distributions; 24-feature MLP disabled for these observations
+Nov 05 16:06:02 minifw-monday-financial python[79533]: 2026-11-05 16:06:02,330 - INFO - [AI_WINDOW] No model at /var/tmp/minifw-monday-financial-20261105T090140Z/absent-window-model.json; AI window scoring disabled
+Nov 05 16:06:02 minifw-monday-financial python[79533]: 2026-11-05 16:06:02,739 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:07 minifw-monday-financial python[79533]: 2026-11-05 16:06:07,548 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:07 minifw-monday-financial python[79533]: 2026-11-05 16:06:07,634 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:07 minifw-monday-financial python[79533]: 2026-11-05 16:06:07,650 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:07 minifw-monday-financial python[79533]: 2026-11-05 16:06:07,657 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:07 minifw-monday-financial python[79533]: 2026-11-05 16:06:07,693 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:07 minifw-monday-financial python[79533]: 2026-11-05 16:06:07,742 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:07 minifw-monday-financial python[79533]: 2026-11-05 16:06:07,799 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:07 minifw-monday-financial python[79533]: 2026-11-05 16:06:07,839 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:07 minifw-monday-financial python[79533]: 2026-11-05 16:06:07,862 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:07 minifw-monday-financial python[79533]: 2026-11-05 16:06:07,877 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:07 minifw-monday-financial python[79533]: 2026-11-05 16:06:07,982 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:08 minifw-monday-financial python[79533]: 2026-11-05 16:06:08,003 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:08 minifw-monday-financial python[79533]: 2026-11-05 16:06:08,016 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:08 minifw-monday-financial python[79533]: 2026-11-05 16:06:08,037 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:08 minifw-monday-financial python[79533]: 2026-11-05 16:06:08,048 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:12 minifw-monday-financial python[79533]: 2026-11-05 16:06:12,603 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:12 minifw-monday-financial python[79533]: 2026-11-05 16:06:12,691 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:12 minifw-monday-financial python[79533]: 2026-11-05 16:06:12,707 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:12 minifw-monday-financial python[79533]: 2026-11-05 16:06:12,714 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:12 minifw-monday-financial python[79533]: 2026-11-05 16:06:12,751 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:12 minifw-monday-financial python[79533]: 2026-11-05 16:06:12,800 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:12 minifw-monday-financial python[79533]: 2026-11-05 16:06:12,856 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:12 minifw-monday-financial python[79533]: 2026-11-05 16:06:12,882 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:12 minifw-monday-financial python[79533]: 2026-11-05 16:06:12,898 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:12 minifw-monday-financial python[79533]: 2026-11-05 16:06:12,908 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:12 minifw-monday-financial python[79533]: 2026-11-05 16:06:12,990 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:13 minifw-monday-financial python[79533]: 2026-11-05 16:06:13,011 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:13 minifw-monday-financial python[79533]: 2026-11-05 16:06:13,024 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:13 minifw-monday-financial python[79533]: 2026-11-05 16:06:13,045 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:13 minifw-monday-financial python[79533]: 2026-11-05 16:06:13,056 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:17 minifw-monday-financial python[79533]: 2026-11-05 16:06:17,603 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:17 minifw-monday-financial python[79533]: 2026-11-05 16:06:17,714 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:17 minifw-monday-financial python[79533]: 2026-11-05 16:06:17,731 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:17 minifw-monday-financial python[79533]: 2026-11-05 16:06:17,738 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:17 minifw-monday-financial python[79533]: 2026-11-05 16:06:17,783 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:17 minifw-monday-financial python[79533]: 2026-11-05 16:06:17,846 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:17 minifw-monday-financial python[79533]: 2026-11-05 16:06:17,903 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:17 minifw-monday-financial python[79533]: 2026-11-05 16:06:17,929 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:17 minifw-monday-financial python[79533]: 2026-11-05 16:06:17,946 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:17 minifw-monday-financial python[79533]: 2026-11-05 16:06:17,957 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:18 minifw-monday-financial python[79533]: 2026-11-05 16:06:18,046 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:18 minifw-monday-financial python[79533]: 2026-11-05 16:06:18,067 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:18 minifw-monday-financial python[79533]: 2026-11-05 16:06:18,081 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:18 minifw-monday-financial python[79533]: 2026-11-05 16:06:18,102 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:18 minifw-monday-financial python[79533]: 2026-11-05 16:06:18,111 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:22 minifw-monday-financial python[79533]: 2026-11-05 16:06:22,646 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:22 minifw-monday-financial python[79533]: 2026-11-05 16:06:22,766 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:22 minifw-monday-financial python[79533]: 2026-11-05 16:06:22,786 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:22 minifw-monday-financial python[79533]: 2026-11-05 16:06:22,793 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:22 minifw-monday-financial python[79533]: 2026-11-05 16:06:22,867 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:22 minifw-monday-financial python[79533]: 2026-11-05 16:06:22,944 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:23 minifw-monday-financial python[79533]: 2026-11-05 16:06:23,015 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:23 minifw-monday-financial python[79533]: 2026-11-05 16:06:23,042 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:23 minifw-monday-financial python[79533]: 2026-11-05 16:06:23,060 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:23 minifw-monday-financial python[79533]: 2026-11-05 16:06:23,074 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:23 minifw-monday-financial python[79533]: 2026-11-05 16:06:23,171 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:23 minifw-monday-financial python[79533]: 2026-11-05 16:06:23,192 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:23 minifw-monday-financial python[79533]: 2026-11-05 16:06:23,209 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:23 minifw-monday-financial python[79533]: 2026-11-05 16:06:23,232 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:23 minifw-monday-financial python[79533]: 2026-11-05 16:06:23,243 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:27 minifw-monday-financial python[79533]: 2026-11-05 16:06:27,726 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:27 minifw-monday-financial python[79533]: 2026-11-05 16:06:27,826 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:27 minifw-monday-financial python[79533]: 2026-11-05 16:06:27,843 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:27 minifw-monday-financial python[79533]: 2026-11-05 16:06:27,851 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:27 minifw-monday-financial python[79533]: 2026-11-05 16:06:27,897 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:27 minifw-monday-financial python[79533]: 2026-11-05 16:06:27,963 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:28 minifw-monday-financial python[79533]: 2026-11-05 16:06:28,034 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:28 minifw-monday-financial python[79533]: 2026-11-05 16:06:28,064 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:28 minifw-monday-financial python[79533]: 2026-11-05 16:06:28,083 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:28 minifw-monday-financial python[79533]: 2026-11-05 16:06:28,095 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:28 minifw-monday-financial python[79533]: 2026-11-05 16:06:28,200 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:28 minifw-monday-financial python[79533]: 2026-11-05 16:06:28,222 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:28 minifw-monday-financial python[79533]: 2026-11-05 16:06:28,238 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:28 minifw-monday-financial python[79533]: 2026-11-05 16:06:28,262 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:28 minifw-monday-financial python[79533]: 2026-11-05 16:06:28,274 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:32 minifw-monday-financial python[79533]: 2026-11-05 16:06:32,749 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:32 minifw-monday-financial python[79533]: 2026-11-05 16:06:32,860 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:32 minifw-monday-financial python[79533]: 2026-11-05 16:06:32,880 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:32 minifw-monday-financial python[79533]: 2026-11-05 16:06:32,886 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:32 minifw-monday-financial python[79533]: 2026-11-05 16:06:32,933 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:33 minifw-monday-financial python[79533]: 2026-11-05 16:06:33,001 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:33 minifw-monday-financial python[79533]: 2026-11-05 16:06:33,074 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:33 minifw-monday-financial python[79533]: 2026-11-05 16:06:33,104 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:33 minifw-monday-financial python[79533]: 2026-11-05 16:06:33,123 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:33 minifw-monday-financial python[79533]: 2026-11-05 16:06:33,135 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:33 minifw-monday-financial python[79533]: 2026-11-05 16:06:33,248 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:33 minifw-monday-financial python[79533]: 2026-11-05 16:06:33,274 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:33 minifw-monday-financial python[79533]: 2026-11-05 16:06:33,290 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:33 minifw-monday-financial python[79533]: 2026-11-05 16:06:33,317 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:33 minifw-monday-financial python[79533]: 2026-11-05 16:06:33,327 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:37 minifw-monday-financial python[79533]: 2026-11-05 16:06:37,832 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:37 minifw-monday-financial python[79533]: 2026-11-05 16:06:37,942 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:37 minifw-monday-financial python[79533]: 2026-11-05 16:06:37,949 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:37 minifw-monday-financial python[79533]: 2026-11-05 16:06:37,994 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:38 minifw-monday-financial python[79533]: 2026-11-05 16:06:38,064 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:38 minifw-monday-financial python[79533]: 2026-11-05 16:06:38,143 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:38 minifw-monday-financial python[79533]: 2026-11-05 16:06:38,175 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:38 minifw-monday-financial python[79533]: 2026-11-05 16:06:38,195 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:38 minifw-monday-financial python[79533]: 2026-11-05 16:06:38,207 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:38 minifw-monday-financial python[79533]: 2026-11-05 16:06:38,327 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:38 minifw-monday-financial python[79533]: 2026-11-05 16:06:38,352 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:38 minifw-monday-financial python[79533]: 2026-11-05 16:06:38,368 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:38 minifw-monday-financial python[79533]: 2026-11-05 16:06:38,394 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:38 minifw-monday-financial python[79533]: 2026-11-05 16:06:38,408 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:06:40 minifw-monday-financial systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 05 16:06:40 minifw-monday-financial python[79533]: 2026-11-05 16:06:40,406 - INFO - Caught SIGTERM, shutting down.
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [*] DNS Collector reading from /var/tmp/minifw-monday-financial-20261105T090140Z/dns.log
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 100 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 200 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 300 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 400 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 500 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 579 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 582 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 583 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 583 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 585 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 585 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 586 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 586 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 586 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 586 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 586 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 586 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 587 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 592 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 600 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 604 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 609 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 611 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 618 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 623 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 634 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 644 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 649 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 657 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 664 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 673 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 680 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 687 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 694 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 701 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 711 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 719 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 727 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 729 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 736 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 744 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 752 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 758 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 769 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 775 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 781 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 790 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 795 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 803 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial python[79533]: [FlowCollector] Exported 809 flows, cleaned 0 old flows
+Nov 05 16:06:41 minifw-monday-financial systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 05 16:06:41 minifw-monday-financial systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 16:06:41 minifw-monday-financial systemd[1]: minifw-ai.service: Consumed 7.869s CPU time.
+Nov 05 16:06:43 minifw-monday-financial systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 16:06:44 minifw-monday-financial python[80109]: 2026-11-05 16:06:44,403 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Nov 05 16:06:44 minifw-monday-financial python[80109]: 2026-11-05 16:06:44,407 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Nov 05 16:06:44 minifw-monday-financial python[80109]: 2026-11-05 16:06:44,407 - INFO - [STATE] Initial protection state: AI_ENHANCED_PROTECTION
+Nov 05 16:06:44 minifw-monday-financial python[80109]: 2026-11-05 16:06:44,414 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_financial: sector=finance
+Nov 05 16:06:44 minifw-monday-financial python[80109]: 2026-11-05 16:06:44,414 - INFO - [SECTOR_LOCK] Loaded config for finance: ['description', 'block_tor', 'block_anonymizers', 'strict_tls', 'minimum_tls_version', 'pci_compliance_mode', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_retention_days']
+Nov 05 16:06:44 minifw-monday-financial python[80109]: 2026-11-05 16:06:44,414 - INFO - [SECTOR_LOCK] Device sector: finance (LOCKED)
+Nov 05 16:06:44 minifw-monday-financial python[80109]: 2026-11-05 16:06:44,414 - INFO - [SECTOR_LOCK] Config: Finance: metadata policies; TLS version control requires packet metadata; no compliance certification.
+Nov 05 16:06:44 minifw-monday-financial python[80109]: 2026-11-05 16:06:44,414 - INFO - [FEEDS] Loaded 10 patterns from financial_fraud.txt
+Nov 05 16:06:44 minifw-monday-financial python[80109]: 2026-11-05 16:06:44,414 - INFO - [FEEDS] Loaded 9 patterns from crypto_scams.txt
+Nov 05 16:06:44 minifw-monday-financial python[80109]: 2026-11-05 16:06:44,415 - INFO - [SECTOR_LOCK] Loaded 19 sector-specific feed patterns
+Nov 05 16:06:44 minifw-monday-financial python[80109]: 2026-11-05 16:06:44,415 - INFO - [FEEDS] Loaded 0 Tor exit node IPs from /opt/minifw_ai/config/feeds/tor_exit_nodes.txt
+Nov 05 16:06:44 minifw-monday-financial python[80109]: 2026-11-05 16:06:44,415 - INFO - [SECTOR_LOCK] Tor/anonymizer blocking enabled: loaded 0 exit IPs
+Nov 05 16:06:44 minifw-monday-financial python[80109]: 2026-11-05 16:06:44,415 - INFO - Loading MLP model from: /opt/minifw_ai/models/mlp_packet14.pkl
+Nov 05 16:06:44 minifw-monday-financial python[80109]: 2026-11-05 16:06:44,416 - INFO - Model trained on: unknown
+Nov 05 16:06:44 minifw-monday-financial python[80109]: 2026-11-05 16:06:44,416 - INFO - Training samples: 2000
+Nov 05 16:06:44 minifw-monday-financial python[80109]: 2026-11-05 16:06:44,416 - INFO - Training-data accuracy: unknown; provenance: synthetic (generate_pretrained_model.py; first 14 measured packet features)
+Nov 05 16:06:44 minifw-monday-financial python[80109]: 2026-11-05 16:06:44,416 - INFO - ✓ MLP model loaded successfully
+Nov 05 16:06:44 minifw-monday-financial python[80109]: 2026-11-05 16:06:44,416 - INFO - [MLP] Loaded model from: /opt/minifw_ai/models/mlp_packet14.pkl
+Nov 05 16:06:44 minifw-monday-financial python[80109]: 2026-11-05 16:06:44,416 - INFO - [MLP] Threshold: 0.5
+Nov 05 16:06:44 minifw-monday-financial python[80109]: 2026-11-05 16:06:44,416 - INFO - Compiling YARA rules from: /opt/minifw_ai/yara_rules
+Nov 05 16:06:44 minifw-monday-financial python[80109]: 2026-11-05 16:06:44,426 - INFO - ✓ Compiled 6 YARA rule namespaces
+Nov 05 16:06:44 minifw-monday-financial python[80109]: 2026-11-05 16:06:44,427 - INFO - [YARA] Loaded rules from: /opt/minifw_ai/yara_rules
+Nov 05 16:06:44 minifw-monday-financial python[80109]: 2026-11-05 16:06:44,427 - INFO - [YARA] Rules loaded: True
+Nov 05 16:06:44 minifw-monday-financial python[80109]: 2026-11-05 16:06:44,479 - WARNING - [PROTOCOL] TLS version/WireGuard metadata unavailable without MINIFW_PACKET_INTERFACE
+Nov 05 16:06:44 minifw-monday-financial python[80109]: 2026-11-05 16:06:44,479 - WARNING - [TELEMETRY] Conntrack provides counter deltas, not packet timing/size distributions; 24-feature MLP disabled for these observations
+Nov 05 16:06:44 minifw-monday-financial python[80109]: 2026-11-05 16:06:44,482 - INFO - [AI_WINDOW] Loaded /opt/minifw_ai/models/client_window_v1.json sha256=d06ce40ea3276d2cedac9e354075c4aa74aa3987e08b35e40a95451d4e69d6ee
+Nov 05 16:07:25 minifw-monday-financial systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 05 16:07:25 minifw-monday-financial python[80109]: 2026-11-05 16:07:25,998 - INFO - Caught SIGTERM, shutting down.
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [*] DNS Collector reading from /var/tmp/minifw-monday-financial-20261105T090140Z/dns.log
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 100 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 200 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 300 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 400 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 500 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 600 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 700 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 748 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 751 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 753 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 754 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 759 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 761 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 761 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 761 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 761 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 761 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 761 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 762 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 762 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 763 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 763 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 763 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 763 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 764 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 764 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 764 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 765 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 765 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 765 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 765 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 765 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 766 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 766 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 766 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 766 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 766 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 766 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 767 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 767 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 767 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 767 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 767 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 768 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 768 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 769 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 769 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 769 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 769 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 769 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 769 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 769 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 770 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial python[80109]: [FlowCollector] Exported 770 flows, cleaned 0 old flows
+Nov 05 16:07:26 minifw-monday-financial systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 05 16:07:26 minifw-monday-financial systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 16:07:26 minifw-monday-financial systemd[1]: minifw-ai.service: Consumed 7.612s CPU time.
+$ nft -a list table inet minifw
+table inet minifw { # handle 79
+	set minifw_block_v4 { # handle 1
+		type ipv4_addr
+		timeout 1h
+	}
+
+	chain forward { # handle 2
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 1630 bytes 97680 comment "MiniFW-AI-Conntrack" # handle 3
+		ip saddr @minifw_block_v4 counter packets 74 bytes 3960 drop comment "MiniFW-AI-Blocklist" # handle 4
+	}
+}
+$ systemctl daemon-reload
+$ ip netns delete mf-client
+$ ip netns delete mf-server
+$ ip link delete mfcg
+$ ip link delete mfsg
+EVIDENCE_DIRECTORY /var/tmp/minifw-monday-financial-20261105T090140Z
+DEPLOYMENT_STATE_RESTORED db908063c504a440d014842577100064c5146635b3f80d1a0239c86948dda3ba RESTARTED ['minifw-ai', 'minifw-ai-web']

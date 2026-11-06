@@ -1,0 +1,636 @@
+Nov 05 16:01:39 minifw-monday-education systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 05 16:01:39 minifw-monday-education python[82931]: 2026-11-05 16:01:39,970 - INFO - Caught SIGTERM, shutting down.
+Nov 05 16:01:40 minifw-monday-education python[82931]: [*] DNS Collector reading from /var/log/dnsmasq.log
+Nov 05 16:01:40 minifw-monday-education python[82931]: [FlowCollector] Exported 31 flows, cleaned 0 old flows
+Nov 05 16:01:40 minifw-monday-education python[82931]: [FlowCollector] Exported 32 flows, cleaned 0 old flows
+Nov 05 16:01:40 minifw-monday-education python[82931]: [FlowCollector] Exported 35 flows, cleaned 0 old flows
+Nov 05 16:01:40 minifw-monday-education systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 05 16:01:40 minifw-monday-education systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 16:01:40 minifw-monday-education systemd[1]: minifw-ai.service: Consumed 2.237s CPU time.
+Nov 05 16:01:43 minifw-monday-education systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 16:01:44 minifw-monday-education python[83199]: 2026-11-05 16:01:44,436 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Nov 05 16:01:44 minifw-monday-education python[83199]: 2026-11-05 16:01:44,440 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Nov 05 16:01:44 minifw-monday-education python[83199]: 2026-11-05 16:01:44,440 - INFO - [STATE] Initial protection state: AI_ENHANCED_PROTECTION
+Nov 05 16:01:44 minifw-monday-education python[83199]: 2026-11-05 16:01:44,447 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_school: sector=education
+Nov 05 16:01:44 minifw-monday-education python[83199]: 2026-11-05 16:01:44,447 - INFO - [SECTOR_LOCK] Loaded config for education: ['description', 'force_safesearch', 'safesearch_domains', 'block_vpns', 'block_proxies', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_student_activity']
+Nov 05 16:01:44 minifw-monday-education python[83199]: 2026-11-05 16:01:44,447 - INFO - [SECTOR_LOCK] Device sector: education (LOCKED)
+Nov 05 16:01:44 minifw-monday-education python[83199]: 2026-11-05 16:01:44,448 - INFO - [SECTOR_LOCK] Config: Education: domain policies; restricted DNS configuration and optional WireGuard metadata.
+Nov 05 16:01:44 minifw-monday-education python[83199]: 2026-11-05 16:01:44,448 - INFO - [FEEDS] Loaded 14 patterns from school_blacklist.txt
+Nov 05 16:01:44 minifw-monday-education python[83199]: 2026-11-05 16:01:44,448 - INFO - [SECTOR_LOCK] Loaded 14 sector-specific feed patterns
+Nov 05 16:01:44 minifw-monday-education python[83199]: 2026-11-05 16:01:44,448 - INFO - [SECTOR_LOCK] Search-domain allowlist: 8 patterns; restricted search requires the generated dnsmasq overrides
+Nov 05 16:01:44 minifw-monday-education python[83199]: 2026-11-05 16:01:44,448 - INFO - [SECTOR_LOCK] VPN/proxy provider domain matching enabled; optional packet metadata detects WireGuard patterns
+Nov 05 16:01:44 minifw-monday-education python[83199]: 2026-11-05 16:01:44,448 - INFO - Loading MLP model from: /opt/minifw_ai/models/mlp_packet14.pkl
+Nov 05 16:01:44 minifw-monday-education python[83199]: 2026-11-05 16:01:44,449 - INFO - Model trained on: unknown
+Nov 05 16:01:44 minifw-monday-education python[83199]: 2026-11-05 16:01:44,449 - INFO - Training samples: 2000
+Nov 05 16:01:44 minifw-monday-education python[83199]: 2026-11-05 16:01:44,449 - INFO - Training-data accuracy: unknown; provenance: synthetic (generate_pretrained_model.py; first 14 measured packet features)
+Nov 05 16:01:44 minifw-monday-education python[83199]: 2026-11-05 16:01:44,449 - INFO - ✓ MLP model loaded successfully
+Nov 05 16:01:44 minifw-monday-education python[83199]: 2026-11-05 16:01:44,449 - INFO - [MLP] Loaded model from: /opt/minifw_ai/models/mlp_packet14.pkl
+Nov 05 16:01:44 minifw-monday-education python[83199]: 2026-11-05 16:01:44,449 - INFO - [MLP] Threshold: 0.5
+Nov 05 16:01:44 minifw-monday-education python[83199]: 2026-11-05 16:01:44,449 - INFO - Compiling YARA rules from: /opt/minifw_ai/yara_rules
+Nov 05 16:01:44 minifw-monday-education python[83199]: 2026-11-05 16:01:44,459 - INFO - ✓ Compiled 6 YARA rule namespaces
+Nov 05 16:01:44 minifw-monday-education python[83199]: 2026-11-05 16:01:44,460 - INFO - [YARA] Loaded rules from: /opt/minifw_ai/yara_rules
+Nov 05 16:01:44 minifw-monday-education python[83199]: 2026-11-05 16:01:44,460 - INFO - [YARA] Rules loaded: True
+Nov 05 16:01:44 minifw-monday-education python[83199]: 2026-11-05 16:01:44,489 - WARNING - [PROTOCOL] TLS version/WireGuard metadata unavailable without MINIFW_PACKET_INTERFACE
+Nov 05 16:01:44 minifw-monday-education python[83199]: 2026-11-05 16:01:44,489 - WARNING - [TELEMETRY] Conntrack provides counter deltas, not packet timing/size distributions; 24-feature MLP disabled for these observations
+Nov 05 16:01:44 minifw-monday-education python[83199]: 2026-11-05 16:01:44,490 - INFO - [AI_WINDOW] Loaded /opt/minifw_ai/models/client_window_v1.json sha256=d06ce40ea3276d2cedac9e354075c4aa74aa3987e08b35e40a95451d4e69d6ee
+Nov 05 16:01:54 minifw-monday-education python[83199]: 2026-11-05 16:01:54,514 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:01:54 minifw-monday-education python[83199]: 2026-11-05 16:01:54,535 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:01:54 minifw-monday-education python[83199]: 2026-11-05 16:01:54,550 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:01:54 minifw-monday-education python[83199]: 2026-11-05 16:01:54,560 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:01:54 minifw-monday-education python[83199]: 2026-11-05 16:01:54,569 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:01:54 minifw-monday-education python[83199]: 2026-11-05 16:01:54,580 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:01:59 minifw-monday-education python[83199]: 2026-11-05 16:01:59,528 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:01:59 minifw-monday-education python[83199]: 2026-11-05 16:01:59,545 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:01:59 minifw-monday-education python[83199]: 2026-11-05 16:01:59,554 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:01:59 minifw-monday-education python[83199]: 2026-11-05 16:01:59,562 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:01:59 minifw-monday-education python[83199]: 2026-11-05 16:01:59,572 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:01:59 minifw-monday-education python[83199]: 2026-11-05 16:01:59,583 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:01:59 minifw-monday-education python[83199]: 2026-11-05 16:01:59,599 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:01:59 minifw-monday-education python[83199]: 2026-11-05 16:01:59,608 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:01:59 minifw-monday-education python[83199]: 2026-11-05 16:01:59,618 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:01:59 minifw-monday-education python[83199]: 2026-11-05 16:01:59,631 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:01:59 minifw-monday-education python[83199]: 2026-11-05 16:01:59,641 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:02:04 minifw-monday-education python[83199]: 2026-11-05 16:02:04,540 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:02:04 minifw-monday-education python[83199]: 2026-11-05 16:02:04,564 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:02:04 minifw-monday-education python[83199]: 2026-11-05 16:02:04,573 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:02:04 minifw-monday-education python[83199]: 2026-11-05 16:02:04,580 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:02:04 minifw-monday-education python[83199]: 2026-11-05 16:02:04,585 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:02:04 minifw-monday-education python[83199]: 2026-11-05 16:02:04,591 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:02:04 minifw-monday-education python[83199]: 2026-11-05 16:02:04,600 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:02:04 minifw-monday-education python[83199]: 2026-11-05 16:02:04,606 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:02:04 minifw-monday-education python[83199]: 2026-11-05 16:02:04,611 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:02:04 minifw-monday-education python[83199]: 2026-11-05 16:02:04,616 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:02:04 minifw-monday-education python[83199]: 2026-11-05 16:02:04,624 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:02:04 minifw-monday-education python[83199]: 2026-11-05 16:02:04,633 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:02:04 minifw-monday-education python[83199]: 2026-11-05 16:02:04,637 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:02:04 minifw-monday-education python[83199]: 2026-11-05 16:02:04,645 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:02:04 minifw-monday-education python[83199]: 2026-11-05 16:02:04,652 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:02:04 minifw-monday-education python[83199]: 2026-11-05 16:02:04,661 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:02:04 minifw-monday-education python[83199]: 2026-11-05 16:02:04,670 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:02:04 minifw-monday-education python[83199]: 2026-11-05 16:02:04,680 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:02:09 minifw-monday-education python[83199]: 2026-11-05 16:02:09,555 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:02:09 minifw-monday-education python[83199]: 2026-11-05 16:02:09,593 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:02:09 minifw-monday-education python[83199]: 2026-11-05 16:02:09,601 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:02:09 minifw-monday-education python[83199]: 2026-11-05 16:02:09,612 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:02:09 minifw-monday-education python[83199]: 2026-11-05 16:02:09,623 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:02:09 minifw-monday-education python[83199]: 2026-11-05 16:02:09,634 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:02:09 minifw-monday-education python[83199]: 2026-11-05 16:02:09,647 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:02:09 minifw-monday-education python[83199]: 2026-11-05 16:02:09,663 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:02:09 minifw-monday-education python[83199]: 2026-11-05 16:02:09,674 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:02:09 minifw-monday-education python[83199]: 2026-11-05 16:02:09,686 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:02:09 minifw-monday-education python[83199]: 2026-11-05 16:02:09,693 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:02:09 minifw-monday-education python[83199]: 2026-11-05 16:02:09,705 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:02:09 minifw-monday-education python[83199]: 2026-11-05 16:02:09,728 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:02:09 minifw-monday-education python[83199]: 2026-11-05 16:02:09,744 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:02:09 minifw-monday-education python[83199]: 2026-11-05 16:02:09,760 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:02:09 minifw-monday-education python[83199]: 2026-11-05 16:02:09,786 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:02:09 minifw-monday-education python[83199]: 2026-11-05 16:02:09,802 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:02:09 minifw-monday-education python[83199]: 2026-11-05 16:02:09,825 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:02:14 minifw-monday-education python[83199]: 2026-11-05 16:02:14,605 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:02:14 minifw-monday-education python[83199]: 2026-11-05 16:02:14,642 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:02:14 minifw-monday-education python[83199]: 2026-11-05 16:02:14,651 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:02:14 minifw-monday-education python[83199]: 2026-11-05 16:02:14,663 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:02:14 minifw-monday-education python[83199]: 2026-11-05 16:02:14,672 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:02:14 minifw-monday-education python[83199]: 2026-11-05 16:02:14,684 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:02:14 minifw-monday-education python[83199]: 2026-11-05 16:02:14,698 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:02:14 minifw-monday-education python[83199]: 2026-11-05 16:02:14,717 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:02:14 minifw-monday-education python[83199]: 2026-11-05 16:02:14,733 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:02:14 minifw-monday-education python[83199]: 2026-11-05 16:02:14,747 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:02:14 minifw-monday-education python[83199]: 2026-11-05 16:02:14,754 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:02:14 minifw-monday-education python[83199]: 2026-11-05 16:02:14,763 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:02:14 minifw-monday-education python[83199]: 2026-11-05 16:02:14,780 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:02:14 minifw-monday-education python[83199]: 2026-11-05 16:02:14,785 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:02:14 minifw-monday-education python[83199]: 2026-11-05 16:02:14,796 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:02:14 minifw-monday-education python[83199]: 2026-11-05 16:02:14,814 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:02:14 minifw-monday-education python[83199]: 2026-11-05 16:02:14,819 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:02:14 minifw-monday-education python[83199]: 2026-11-05 16:02:14,828 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:02:14 minifw-monday-education python[83199]: 2026-11-05 16:02:14,839 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:02:19 minifw-monday-education python[83199]: 2026-11-05 16:02:19,614 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:02:19 minifw-monday-education python[83199]: 2026-11-05 16:02:19,663 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:02:19 minifw-monday-education python[83199]: 2026-11-05 16:02:19,673 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:02:19 minifw-monday-education python[83199]: 2026-11-05 16:02:19,686 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:02:19 minifw-monday-education python[83199]: 2026-11-05 16:02:19,700 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:02:19 minifw-monday-education python[83199]: 2026-11-05 16:02:19,716 - WARNING - [HARD_GATE] Triggered: 10.231.0.2 - pps_saturation
+Nov 05 16:02:38 minifw-monday-education systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 05 16:02:38 minifw-monday-education python[83199]: 2026-11-05 16:02:38,676 - INFO - Caught SIGTERM, shutting down.
+Nov 05 16:02:38 minifw-monday-education python[83199]: [*] DNS Collector reading from /var/tmp/minifw-monday-education-20261105T090139Z/dns.log
+Nov 05 16:02:38 minifw-monday-education python[83199]: [FlowCollector] Exported 37 flows, cleaned 0 old flows
+Nov 05 16:02:38 minifw-monday-education python[83199]: [FlowCollector] Exported 83 flows, cleaned 0 old flows
+Nov 05 16:02:38 minifw-monday-education python[83199]: [FlowCollector] Exported 133 flows, cleaned 0 old flows
+Nov 05 16:02:38 minifw-monday-education python[83199]: [FlowCollector] Exported 167 flows, cleaned 0 old flows
+Nov 05 16:02:38 minifw-monday-education python[83199]: [FlowCollector] Exported 196 flows, cleaned 0 old flows
+Nov 05 16:02:38 minifw-monday-education python[83199]: [FlowCollector] Exported 219 flows, cleaned 0 old flows
+Nov 05 16:02:38 minifw-monday-education python[83199]: [FlowCollector] Exported 237 flows, cleaned 0 old flows
+Nov 05 16:02:38 minifw-monday-education python[83199]: [FlowCollector] Exported 261 flows, cleaned 0 old flows
+Nov 05 16:02:38 minifw-monday-education python[83199]: [FlowCollector] Exported 276 flows, cleaned 0 old flows
+Nov 05 16:02:38 minifw-monday-education python[83199]: [FlowCollector] Exported 291 flows, cleaned 0 old flows
+Nov 05 16:02:38 minifw-monday-education python[83199]: [FlowCollector] Exported 305 flows, cleaned 0 old flows
+Nov 05 16:02:38 minifw-monday-education python[83199]: [FlowCollector] Exported 322 flows, cleaned 0 old flows
+Nov 05 16:02:38 minifw-monday-education python[83199]: [FlowCollector] Exported 336 flows, cleaned 0 old flows
+Nov 05 16:02:38 minifw-monday-education python[83199]: [FlowCollector] Exported 344 flows, cleaned 0 old flows
+Nov 05 16:02:38 minifw-monday-education python[83199]: [FlowCollector] Exported 359 flows, cleaned 0 old flows
+Nov 05 16:02:38 minifw-monday-education python[83199]: [FlowCollector] Exported 364 flows, cleaned 0 old flows
+Nov 05 16:02:38 minifw-monday-education python[83199]: [FlowCollector] Exported 366 flows, cleaned 0 old flows
+Nov 05 16:02:38 minifw-monday-education python[83199]: [FlowCollector] Exported 367 flows, cleaned 0 old flows
+Nov 05 16:02:39 minifw-monday-education systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 05 16:02:39 minifw-monday-education systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 16:02:39 minifw-monday-education systemd[1]: minifw-ai.service: Consumed 4.307s CPU time.
+Nov 05 16:02:39 minifw-monday-education systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 16:02:40 minifw-monday-education python[84040]: 2026-11-05 16:02:40,794 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Nov 05 16:02:40 minifw-monday-education python[84040]: 2026-11-05 16:02:40,797 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Nov 05 16:02:40 minifw-monday-education python[84040]: 2026-11-05 16:02:40,797 - INFO - [STATE] Initial protection state: AI_ENHANCED_PROTECTION
+Nov 05 16:02:40 minifw-monday-education python[84040]: 2026-11-05 16:02:40,804 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_school: sector=education
+Nov 05 16:02:40 minifw-monday-education python[84040]: 2026-11-05 16:02:40,805 - INFO - [SECTOR_LOCK] Loaded config for education: ['description', 'force_safesearch', 'safesearch_domains', 'block_vpns', 'block_proxies', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_student_activity']
+Nov 05 16:02:40 minifw-monday-education python[84040]: 2026-11-05 16:02:40,805 - INFO - [SECTOR_LOCK] Device sector: education (LOCKED)
+Nov 05 16:02:40 minifw-monday-education python[84040]: 2026-11-05 16:02:40,805 - INFO - [SECTOR_LOCK] Config: Education: domain policies; restricted DNS configuration and optional WireGuard metadata.
+Nov 05 16:02:40 minifw-monday-education python[84040]: 2026-11-05 16:02:40,805 - INFO - [FEEDS] Loaded 14 patterns from school_blacklist.txt
+Nov 05 16:02:40 minifw-monday-education python[84040]: 2026-11-05 16:02:40,805 - INFO - [SECTOR_LOCK] Loaded 14 sector-specific feed patterns
+Nov 05 16:02:40 minifw-monday-education python[84040]: 2026-11-05 16:02:40,805 - INFO - [SECTOR_LOCK] Search-domain allowlist: 8 patterns; restricted search requires the generated dnsmasq overrides
+Nov 05 16:02:40 minifw-monday-education python[84040]: 2026-11-05 16:02:40,805 - INFO - [SECTOR_LOCK] VPN/proxy provider domain matching enabled; optional packet metadata detects WireGuard patterns
+Nov 05 16:02:40 minifw-monday-education python[84040]: 2026-11-05 16:02:40,805 - INFO - Loading MLP model from: /opt/minifw_ai/models/mlp_packet14.pkl
+Nov 05 16:02:40 minifw-monday-education python[84040]: 2026-11-05 16:02:40,806 - INFO - Model trained on: unknown
+Nov 05 16:02:40 minifw-monday-education python[84040]: 2026-11-05 16:02:40,806 - INFO - Training samples: 2000
+Nov 05 16:02:40 minifw-monday-education python[84040]: 2026-11-05 16:02:40,806 - INFO - Training-data accuracy: unknown; provenance: synthetic (generate_pretrained_model.py; first 14 measured packet features)
+Nov 05 16:02:40 minifw-monday-education python[84040]: 2026-11-05 16:02:40,806 - INFO - ✓ MLP model loaded successfully
+Nov 05 16:02:40 minifw-monday-education python[84040]: 2026-11-05 16:02:40,806 - INFO - [MLP] Loaded model from: /opt/minifw_ai/models/mlp_packet14.pkl
+Nov 05 16:02:40 minifw-monday-education python[84040]: 2026-11-05 16:02:40,806 - INFO - [MLP] Threshold: 0.5
+Nov 05 16:02:40 minifw-monday-education python[84040]: 2026-11-05 16:02:40,806 - INFO - Compiling YARA rules from: /opt/minifw_ai/yara_rules
+Nov 05 16:02:40 minifw-monday-education python[84040]: 2026-11-05 16:02:40,817 - INFO - ✓ Compiled 6 YARA rule namespaces
+Nov 05 16:02:40 minifw-monday-education python[84040]: 2026-11-05 16:02:40,817 - INFO - [YARA] Loaded rules from: /opt/minifw_ai/yara_rules
+Nov 05 16:02:40 minifw-monday-education python[84040]: 2026-11-05 16:02:40,817 - INFO - [YARA] Rules loaded: True
+Nov 05 16:02:40 minifw-monday-education python[84040]: 2026-11-05 16:02:40,857 - WARNING - [PROTOCOL] TLS version/WireGuard metadata unavailable without MINIFW_PACKET_INTERFACE
+Nov 05 16:02:40 minifw-monday-education python[84040]: 2026-11-05 16:02:40,857 - WARNING - [TELEMETRY] Conntrack provides counter deltas, not packet timing/size distributions; 24-feature MLP disabled for these observations
+Nov 05 16:02:40 minifw-monday-education python[84040]: 2026-11-05 16:02:40,859 - INFO - [AI_WINDOW] Loaded /opt/minifw_ai/models/client_window_v1.json sha256=d06ce40ea3276d2cedac9e354075c4aa74aa3987e08b35e40a95451d4e69d6ee
+Nov 05 16:03:20 minifw-monday-education python[84040]: 2026-11-05 16:03:20,822 - INFO - Caught SIGTERM, shutting down.
+Nov 05 16:03:20 minifw-monday-education systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 05 16:03:21 minifw-monday-education python[84040]: [*] DNS Collector reading from /var/tmp/minifw-monday-education-20261105T090139Z/dns.log
+Nov 05 16:03:21 minifw-monday-education python[84040]: [FlowCollector] Exported 100 flows, cleaned 0 old flows
+Nov 05 16:03:21 minifw-monday-education python[84040]: [FlowCollector] Exported 200 flows, cleaned 0 old flows
+Nov 05 16:03:21 minifw-monday-education python[84040]: [FlowCollector] Exported 300 flows, cleaned 0 old flows
+Nov 05 16:03:21 minifw-monday-education python[84040]: [FlowCollector] Exported 336 flows, cleaned 0 old flows
+Nov 05 16:03:21 minifw-monday-education python[84040]: [FlowCollector] Exported 336 flows, cleaned 0 old flows
+Nov 05 16:03:21 minifw-monday-education python[84040]: [FlowCollector] Exported 336 flows, cleaned 0 old flows
+Nov 05 16:03:21 minifw-monday-education python[84040]: [FlowCollector] Exported 337 flows, cleaned 0 old flows
+Nov 05 16:03:21 minifw-monday-education python[84040]: [FlowCollector] Exported 337 flows, cleaned 0 old flows
+Nov 05 16:03:21 minifw-monday-education python[84040]: [FlowCollector] Exported 338 flows, cleaned 0 old flows
+Nov 05 16:03:21 minifw-monday-education python[84040]: [FlowCollector] Exported 339 flows, cleaned 0 old flows
+Nov 05 16:03:21 minifw-monday-education python[84040]: [FlowCollector] Exported 345 flows, cleaned 0 old flows
+Nov 05 16:03:21 minifw-monday-education python[84040]: [FlowCollector] Exported 353 flows, cleaned 0 old flows
+Nov 05 16:03:21 minifw-monday-education python[84040]: [FlowCollector] Exported 361 flows, cleaned 0 old flows
+Nov 05 16:03:21 minifw-monday-education python[84040]: [FlowCollector] Exported 371 flows, cleaned 0 old flows
+Nov 05 16:03:21 minifw-monday-education python[84040]: [FlowCollector] Exported 381 flows, cleaned 0 old flows
+Nov 05 16:03:21 minifw-monday-education python[84040]: [FlowCollector] Exported 396 flows, cleaned 0 old flows
+Nov 05 16:03:21 minifw-monday-education python[84040]: [FlowCollector] Exported 409 flows, cleaned 0 old flows
+Nov 05 16:03:21 minifw-monday-education python[84040]: [FlowCollector] Exported 416 flows, cleaned 0 old flows
+Nov 05 16:03:21 minifw-monday-education python[84040]: [FlowCollector] Exported 419 flows, cleaned 0 old flows
+Nov 05 16:03:21 minifw-monday-education python[84040]: [FlowCollector] Exported 421 flows, cleaned 0 old flows
+Nov 05 16:03:21 minifw-monday-education python[84040]: [FlowCollector] Exported 424 flows, cleaned 0 old flows
+Nov 05 16:03:21 minifw-monday-education python[84040]: [FlowCollector] Exported 424 flows, cleaned 0 old flows
+Nov 05 16:03:21 minifw-monday-education python[84040]: [FlowCollector] Exported 425 flows, cleaned 0 old flows
+Nov 05 16:03:21 minifw-monday-education python[84040]: [FlowCollector] Exported 426 flows, cleaned 0 old flows
+Nov 05 16:03:21 minifw-monday-education python[84040]: [FlowCollector] Exported 426 flows, cleaned 0 old flows
+Nov 05 16:03:21 minifw-monday-education python[84040]: [FlowCollector] Exported 428 flows, cleaned 0 old flows
+Nov 05 16:03:21 minifw-monday-education python[84040]: [FlowCollector] Exported 431 flows, cleaned 0 old flows
+Nov 05 16:03:21 minifw-monday-education python[84040]: [FlowCollector] Exported 432 flows, cleaned 0 old flows
+Nov 05 16:03:21 minifw-monday-education python[84040]: [FlowCollector] Exported 433 flows, cleaned 0 old flows
+Nov 05 16:03:21 minifw-monday-education python[84040]: [FlowCollector] Exported 433 flows, cleaned 0 old flows
+Nov 05 16:03:21 minifw-monday-education systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 05 16:03:21 minifw-monday-education systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 16:03:21 minifw-monday-education systemd[1]: minifw-ai.service: Consumed 4.440s CPU time.
+Nov 05 16:03:21 minifw-monday-education systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 16:03:23 minifw-monday-education python[84364]: 2026-11-05 16:03:23,115 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Nov 05 16:03:23 minifw-monday-education python[84364]: 2026-11-05 16:03:23,118 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Nov 05 16:03:23 minifw-monday-education python[84364]: 2026-11-05 16:03:23,118 - INFO - [STATE] Initial protection state: AI_ENHANCED_PROTECTION
+Nov 05 16:03:23 minifw-monday-education python[84364]: 2026-11-05 16:03:23,125 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_school: sector=education
+Nov 05 16:03:23 minifw-monday-education python[84364]: 2026-11-05 16:03:23,125 - INFO - [SECTOR_LOCK] Loaded config for education: ['description', 'force_safesearch', 'safesearch_domains', 'block_vpns', 'block_proxies', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_student_activity']
+Nov 05 16:03:23 minifw-monday-education python[84364]: 2026-11-05 16:03:23,125 - INFO - [SECTOR_LOCK] Device sector: education (LOCKED)
+Nov 05 16:03:23 minifw-monday-education python[84364]: 2026-11-05 16:03:23,125 - INFO - [SECTOR_LOCK] Config: Education: domain policies; restricted DNS configuration and optional WireGuard metadata.
+Nov 05 16:03:23 minifw-monday-education python[84364]: 2026-11-05 16:03:23,125 - INFO - [FEEDS] Loaded 14 patterns from school_blacklist.txt
+Nov 05 16:03:23 minifw-monday-education python[84364]: 2026-11-05 16:03:23,126 - INFO - [SECTOR_LOCK] Loaded 14 sector-specific feed patterns
+Nov 05 16:03:23 minifw-monday-education python[84364]: 2026-11-05 16:03:23,126 - INFO - [SECTOR_LOCK] Search-domain allowlist: 8 patterns; restricted search requires the generated dnsmasq overrides
+Nov 05 16:03:23 minifw-monday-education python[84364]: 2026-11-05 16:03:23,126 - INFO - [SECTOR_LOCK] VPN/proxy provider domain matching enabled; optional packet metadata detects WireGuard patterns
+Nov 05 16:03:23 minifw-monday-education python[84364]: 2026-11-05 16:03:23,126 - INFO - Loading MLP model from: /opt/minifw_ai/models/mlp_packet14.pkl
+Nov 05 16:03:23 minifw-monday-education python[84364]: 2026-11-05 16:03:23,127 - INFO - Model trained on: unknown
+Nov 05 16:03:23 minifw-monday-education python[84364]: 2026-11-05 16:03:23,127 - INFO - Training samples: 2000
+Nov 05 16:03:23 minifw-monday-education python[84364]: 2026-11-05 16:03:23,127 - INFO - Training-data accuracy: unknown; provenance: synthetic (generate_pretrained_model.py; first 14 measured packet features)
+Nov 05 16:03:23 minifw-monday-education python[84364]: 2026-11-05 16:03:23,127 - INFO - ✓ MLP model loaded successfully
+Nov 05 16:03:23 minifw-monday-education python[84364]: 2026-11-05 16:03:23,127 - INFO - [MLP] Loaded model from: /opt/minifw_ai/models/mlp_packet14.pkl
+Nov 05 16:03:23 minifw-monday-education python[84364]: 2026-11-05 16:03:23,127 - INFO - [MLP] Threshold: 0.5
+Nov 05 16:03:23 minifw-monday-education python[84364]: 2026-11-05 16:03:23,127 - INFO - Compiling YARA rules from: /opt/minifw_ai/yara_rules
+Nov 05 16:03:23 minifw-monday-education python[84364]: 2026-11-05 16:03:23,137 - INFO - ✓ Compiled 6 YARA rule namespaces
+Nov 05 16:03:23 minifw-monday-education python[84364]: 2026-11-05 16:03:23,137 - INFO - [YARA] Loaded rules from: /opt/minifw_ai/yara_rules
+Nov 05 16:03:23 minifw-monday-education python[84364]: 2026-11-05 16:03:23,137 - INFO - [YARA] Rules loaded: True
+Nov 05 16:03:23 minifw-monday-education python[84364]: 2026-11-05 16:03:23,189 - WARNING - [PROTOCOL] TLS version/WireGuard metadata unavailable without MINIFW_PACKET_INTERFACE
+Nov 05 16:03:23 minifw-monday-education python[84364]: 2026-11-05 16:03:23,189 - WARNING - [TELEMETRY] Conntrack provides counter deltas, not packet timing/size distributions; 24-feature MLP disabled for these observations
+Nov 05 16:03:23 minifw-monday-education python[84364]: 2026-11-05 16:03:23,191 - INFO - [AI_WINDOW] Loaded /opt/minifw_ai/models/client_window_v1.json sha256=d06ce40ea3276d2cedac9e354075c4aa74aa3987e08b35e40a95451d4e69d6ee
+Nov 05 16:04:17 minifw-monday-education python[84364]: 2026-11-05 16:04:17,362 - INFO - Caught SIGTERM, shutting down.
+Nov 05 16:04:17 minifw-monday-education systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 05 16:04:17 minifw-monday-education python[84364]: [*] DNS Collector reading from /var/tmp/minifw-monday-education-20261105T090139Z/dns.log
+Nov 05 16:04:17 minifw-monday-education python[84364]: [FlowCollector] Exported 100 flows, cleaned 0 old flows
+Nov 05 16:04:17 minifw-monday-education python[84364]: [FlowCollector] Exported 200 flows, cleaned 0 old flows
+Nov 05 16:04:17 minifw-monday-education python[84364]: [FlowCollector] Exported 300 flows, cleaned 0 old flows
+Nov 05 16:04:17 minifw-monday-education python[84364]: [FlowCollector] Exported 400 flows, cleaned 0 old flows
+Nov 05 16:04:17 minifw-monday-education python[84364]: [FlowCollector] Exported 422 flows, cleaned 0 old flows
+Nov 05 16:04:17 minifw-monday-education python[84364]: [FlowCollector] Exported 422 flows, cleaned 0 old flows
+Nov 05 16:04:17 minifw-monday-education python[84364]: [FlowCollector] Exported 424 flows, cleaned 0 old flows
+Nov 05 16:04:17 minifw-monday-education python[84364]: [FlowCollector] Exported 424 flows, cleaned 0 old flows
+Nov 05 16:04:17 minifw-monday-education python[84364]: [FlowCollector] Exported 424 flows, cleaned 0 old flows
+Nov 05 16:04:17 minifw-monday-education python[84364]: [FlowCollector] Exported 425 flows, cleaned 0 old flows
+Nov 05 16:04:17 minifw-monday-education python[84364]: [FlowCollector] Exported 425 flows, cleaned 0 old flows
+Nov 05 16:04:17 minifw-monday-education python[84364]: [FlowCollector] Exported 425 flows, cleaned 0 old flows
+Nov 05 16:04:17 minifw-monday-education python[84364]: [FlowCollector] Exported 426 flows, cleaned 0 old flows
+Nov 05 16:04:17 minifw-monday-education python[84364]: [FlowCollector] Exported 429 flows, cleaned 0 old flows
+Nov 05 16:04:17 minifw-monday-education python[84364]: [FlowCollector] Exported 435 flows, cleaned 0 old flows
+Nov 05 16:04:17 minifw-monday-education python[84364]: [FlowCollector] Exported 446 flows, cleaned 0 old flows
+Nov 05 16:04:17 minifw-monday-education python[84364]: [FlowCollector] Exported 452 flows, cleaned 0 old flows
+Nov 05 16:04:17 minifw-monday-education python[84364]: [FlowCollector] Exported 462 flows, cleaned 0 old flows
+Nov 05 16:04:17 minifw-monday-education python[84364]: [FlowCollector] Exported 470 flows, cleaned 0 old flows
+Nov 05 16:04:17 minifw-monday-education python[84364]: [FlowCollector] Exported 480 flows, cleaned 0 old flows
+Nov 05 16:04:17 minifw-monday-education python[84364]: [FlowCollector] Exported 494 flows, cleaned 0 old flows
+Nov 05 16:04:17 minifw-monday-education python[84364]: [FlowCollector] Exported 504 flows, cleaned 0 old flows
+Nov 05 16:04:17 minifw-monday-education python[84364]: [FlowCollector] Exported 511 flows, cleaned 0 old flows
+Nov 05 16:04:17 minifw-monday-education python[84364]: [FlowCollector] Exported 517 flows, cleaned 0 old flows
+Nov 05 16:04:17 minifw-monday-education python[84364]: [FlowCollector] Exported 528 flows, cleaned 0 old flows
+Nov 05 16:04:17 minifw-monday-education python[84364]: [FlowCollector] Exported 541 flows, cleaned 0 old flows
+Nov 05 16:04:17 minifw-monday-education python[84364]: [FlowCollector] Exported 548 flows, cleaned 0 old flows
+Nov 05 16:04:17 minifw-monday-education python[84364]: [FlowCollector] Exported 560 flows, cleaned 0 old flows
+Nov 05 16:04:17 minifw-monday-education python[84364]: [FlowCollector] Exported 572 flows, cleaned 0 old flows
+Nov 05 16:04:17 minifw-monday-education python[84364]: [FlowCollector] Exported 579 flows, cleaned 0 old flows
+Nov 05 16:04:17 minifw-monday-education python[84364]: [FlowCollector] Exported 593 flows, cleaned 0 old flows
+Nov 05 16:04:17 minifw-monday-education python[84364]: [FlowCollector] Exported 600 flows, cleaned 0 old flows
+Nov 05 16:04:17 minifw-monday-education python[84364]: [FlowCollector] Exported 604 flows, cleaned 0 old flows
+Nov 05 16:04:17 minifw-monday-education python[84364]: [FlowCollector] Exported 613 flows, cleaned 0 old flows
+Nov 05 16:04:17 minifw-monday-education python[84364]: [FlowCollector] Exported 619 flows, cleaned 0 old flows
+Nov 05 16:04:17 minifw-monday-education python[84364]: [FlowCollector] Exported 626 flows, cleaned 0 old flows
+Nov 05 16:04:17 minifw-monday-education python[84364]: [FlowCollector] Exported 635 flows, cleaned 0 old flows
+Nov 05 16:04:17 minifw-monday-education python[84364]: [FlowCollector] Exported 642 flows, cleaned 0 old flows
+Nov 05 16:04:17 minifw-monday-education python[84364]: [FlowCollector] Exported 649 flows, cleaned 0 old flows
+Nov 05 16:04:17 minifw-monday-education python[84364]: [FlowCollector] Exported 654 flows, cleaned 0 old flows
+Nov 05 16:04:17 minifw-monday-education python[84364]: [FlowCollector] Exported 657 flows, cleaned 0 old flows
+Nov 05 16:04:17 minifw-monday-education python[84364]: [FlowCollector] Exported 669 flows, cleaned 0 old flows
+Nov 05 16:04:17 minifw-monday-education python[84364]: [FlowCollector] Exported 682 flows, cleaned 0 old flows
+Nov 05 16:04:17 minifw-monday-education python[84364]: [FlowCollector] Exported 687 flows, cleaned 0 old flows
+Nov 05 16:04:17 minifw-monday-education python[84364]: [FlowCollector] Exported 697 flows, cleaned 0 old flows
+Nov 05 16:04:17 minifw-monday-education python[84364]: [FlowCollector] Exported 700 flows, cleaned 0 old flows
+Nov 05 16:04:17 minifw-monday-education python[84364]: [FlowCollector] Exported 709 flows, cleaned 0 old flows
+Nov 05 16:04:17 minifw-monday-education python[84364]: [FlowCollector] Exported 714 flows, cleaned 0 old flows
+Nov 05 16:04:17 minifw-monday-education python[84364]: [FlowCollector] Exported 722 flows, cleaned 0 old flows
+Nov 05 16:04:17 minifw-monday-education python[84364]: [FlowCollector] Exported 726 flows, cleaned 0 old flows
+Nov 05 16:04:17 minifw-monday-education python[84364]: [FlowCollector] Exported 734 flows, cleaned 0 old flows
+Nov 05 16:04:17 minifw-monday-education python[84364]: [FlowCollector] Exported 735 flows, cleaned 0 old flows
+Nov 05 16:04:17 minifw-monday-education python[84364]: [FlowCollector] Exported 737 flows, cleaned 0 old flows
+Nov 05 16:04:17 minifw-monday-education python[84364]: [FlowCollector] Exported 738 flows, cleaned 0 old flows
+Nov 05 16:04:17 minifw-monday-education python[84364]: [FlowCollector] Exported 738 flows, cleaned 0 old flows
+Nov 05 16:04:17 minifw-monday-education python[84364]: [FlowCollector] Exported 739 flows, cleaned 0 old flows
+Nov 05 16:04:17 minifw-monday-education systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 05 16:04:17 minifw-monday-education systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 16:04:17 minifw-monday-education systemd[1]: minifw-ai.service: Consumed 6.284s CPU time.
+Nov 05 16:04:18 minifw-monday-education systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 16:04:19 minifw-monday-education python[84931]: 2026-11-05 16:04:19,892 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Nov 05 16:04:19 minifw-monday-education python[84931]: 2026-11-05 16:04:19,896 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Nov 05 16:04:19 minifw-monday-education python[84931]: 2026-11-05 16:04:19,896 - INFO - [STATE] Initial protection state: AI_ENHANCED_PROTECTION
+Nov 05 16:04:19 minifw-monday-education python[84931]: 2026-11-05 16:04:19,903 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_school: sector=education
+Nov 05 16:04:19 minifw-monday-education python[84931]: 2026-11-05 16:04:19,903 - INFO - [SECTOR_LOCK] Loaded config for education: ['description', 'force_safesearch', 'safesearch_domains', 'block_vpns', 'block_proxies', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_student_activity']
+Nov 05 16:04:19 minifw-monday-education python[84931]: 2026-11-05 16:04:19,903 - INFO - [SECTOR_LOCK] Device sector: education (LOCKED)
+Nov 05 16:04:19 minifw-monday-education python[84931]: 2026-11-05 16:04:19,903 - INFO - [SECTOR_LOCK] Config: Education: domain policies; restricted DNS configuration and optional WireGuard metadata.
+Nov 05 16:04:19 minifw-monday-education python[84931]: 2026-11-05 16:04:19,903 - INFO - [FEEDS] Loaded 14 patterns from school_blacklist.txt
+Nov 05 16:04:19 minifw-monday-education python[84931]: 2026-11-05 16:04:19,903 - INFO - [SECTOR_LOCK] Loaded 14 sector-specific feed patterns
+Nov 05 16:04:19 minifw-monday-education python[84931]: 2026-11-05 16:04:19,903 - INFO - [SECTOR_LOCK] Search-domain allowlist: 8 patterns; restricted search requires the generated dnsmasq overrides
+Nov 05 16:04:19 minifw-monday-education python[84931]: 2026-11-05 16:04:19,903 - INFO - [SECTOR_LOCK] VPN/proxy provider domain matching enabled; optional packet metadata detects WireGuard patterns
+Nov 05 16:04:19 minifw-monday-education python[84931]: 2026-11-05 16:04:19,903 - INFO - Loading MLP model from: /opt/minifw_ai/models/mlp_packet14.pkl
+Nov 05 16:04:19 minifw-monday-education python[84931]: 2026-11-05 16:04:19,904 - INFO - Model trained on: unknown
+Nov 05 16:04:19 minifw-monday-education python[84931]: 2026-11-05 16:04:19,904 - INFO - Training samples: 2000
+Nov 05 16:04:19 minifw-monday-education python[84931]: 2026-11-05 16:04:19,904 - INFO - Training-data accuracy: unknown; provenance: synthetic (generate_pretrained_model.py; first 14 measured packet features)
+Nov 05 16:04:19 minifw-monday-education python[84931]: 2026-11-05 16:04:19,904 - INFO - ✓ MLP model loaded successfully
+Nov 05 16:04:19 minifw-monday-education python[84931]: 2026-11-05 16:04:19,905 - INFO - [MLP] Loaded model from: /opt/minifw_ai/models/mlp_packet14.pkl
+Nov 05 16:04:19 minifw-monday-education python[84931]: 2026-11-05 16:04:19,905 - INFO - [MLP] Threshold: 0.5
+Nov 05 16:04:19 minifw-monday-education python[84931]: 2026-11-05 16:04:19,905 - INFO - Compiling YARA rules from: /opt/minifw_ai/yara_rules
+Nov 05 16:04:19 minifw-monday-education python[84931]: 2026-11-05 16:04:19,915 - INFO - ✓ Compiled 6 YARA rule namespaces
+Nov 05 16:04:19 minifw-monday-education python[84931]: 2026-11-05 16:04:19,915 - INFO - [YARA] Loaded rules from: /opt/minifw_ai/yara_rules
+Nov 05 16:04:19 minifw-monday-education python[84931]: 2026-11-05 16:04:19,915 - INFO - [YARA] Rules loaded: True
+Nov 05 16:04:19 minifw-monday-education python[84931]: 2026-11-05 16:04:19,953 - WARNING - [PROTOCOL] TLS version/WireGuard metadata unavailable without MINIFW_PACKET_INTERFACE
+Nov 05 16:04:19 minifw-monday-education python[84931]: 2026-11-05 16:04:19,953 - WARNING - [TELEMETRY] Conntrack provides counter deltas, not packet timing/size distributions; 24-feature MLP disabled for these observations
+Nov 05 16:04:19 minifw-monday-education python[84931]: 2026-11-05 16:04:19,955 - WARNING - [AI_WINDOW] Model /var/tmp/minifw-monday-education-20261105T090139Z/corrupt-window-model.json rejected (Unterminated string starting at: line 3 column 3 (char 36)); AI window scoring disabled
+Nov 05 16:05:05 minifw-monday-education python[84931]: 2026-11-05 16:05:05,490 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:05 minifw-monday-education python[84931]: 2026-11-05 16:05:05,613 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:05 minifw-monday-education python[84931]: 2026-11-05 16:05:05,638 - INFO - Caught SIGTERM, shutting down.
+Nov 05 16:05:05 minifw-monday-education systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 05 16:05:06 minifw-monday-education python[84931]: [*] DNS Collector reading from /var/tmp/minifw-monday-education-20261105T090139Z/dns.log
+Nov 05 16:05:06 minifw-monday-education python[84931]: [FlowCollector] Exported 100 flows, cleaned 0 old flows
+Nov 05 16:05:06 minifw-monday-education python[84931]: [FlowCollector] Exported 200 flows, cleaned 0 old flows
+Nov 05 16:05:06 minifw-monday-education python[84931]: [FlowCollector] Exported 300 flows, cleaned 0 old flows
+Nov 05 16:05:06 minifw-monday-education python[84931]: [FlowCollector] Exported 400 flows, cleaned 0 old flows
+Nov 05 16:05:06 minifw-monday-education python[84931]: [FlowCollector] Exported 477 flows, cleaned 0 old flows
+Nov 05 16:05:06 minifw-monday-education python[84931]: [FlowCollector] Exported 484 flows, cleaned 0 old flows
+Nov 05 16:05:06 minifw-monday-education python[84931]: [FlowCollector] Exported 487 flows, cleaned 0 old flows
+Nov 05 16:05:06 minifw-monday-education python[84931]: [FlowCollector] Exported 490 flows, cleaned 0 old flows
+Nov 05 16:05:06 minifw-monday-education python[84931]: [FlowCollector] Exported 490 flows, cleaned 0 old flows
+Nov 05 16:05:06 minifw-monday-education python[84931]: [FlowCollector] Exported 491 flows, cleaned 0 old flows
+Nov 05 16:05:06 minifw-monday-education python[84931]: [FlowCollector] Exported 491 flows, cleaned 0 old flows
+Nov 05 16:05:06 minifw-monday-education python[84931]: [FlowCollector] Exported 491 flows, cleaned 0 old flows
+Nov 05 16:05:06 minifw-monday-education python[84931]: [FlowCollector] Exported 493 flows, cleaned 0 old flows
+Nov 05 16:05:06 minifw-monday-education python[84931]: [FlowCollector] Exported 502 flows, cleaned 0 old flows
+Nov 05 16:05:06 minifw-monday-education python[84931]: [FlowCollector] Exported 505 flows, cleaned 0 old flows
+Nov 05 16:05:06 minifw-monday-education python[84931]: [FlowCollector] Exported 507 flows, cleaned 0 old flows
+Nov 05 16:05:06 minifw-monday-education python[84931]: [FlowCollector] Exported 516 flows, cleaned 0 old flows
+Nov 05 16:05:06 minifw-monday-education python[84931]: [FlowCollector] Exported 530 flows, cleaned 0 old flows
+Nov 05 16:05:06 minifw-monday-education python[84931]: [FlowCollector] Exported 542 flows, cleaned 0 old flows
+Nov 05 16:05:06 minifw-monday-education python[84931]: [FlowCollector] Exported 546 flows, cleaned 0 old flows
+Nov 05 16:05:06 minifw-monday-education python[84931]: [FlowCollector] Exported 560 flows, cleaned 0 old flows
+Nov 05 16:05:06 minifw-monday-education python[84931]: [FlowCollector] Exported 570 flows, cleaned 0 old flows
+Nov 05 16:05:06 minifw-monday-education python[84931]: [FlowCollector] Exported 577 flows, cleaned 0 old flows
+Nov 05 16:05:06 minifw-monday-education python[84931]: [FlowCollector] Exported 585 flows, cleaned 0 old flows
+Nov 05 16:05:06 minifw-monday-education python[84931]: [FlowCollector] Exported 594 flows, cleaned 0 old flows
+Nov 05 16:05:06 minifw-monday-education python[84931]: [FlowCollector] Exported 608 flows, cleaned 0 old flows
+Nov 05 16:05:06 minifw-monday-education python[84931]: [FlowCollector] Exported 616 flows, cleaned 0 old flows
+Nov 05 16:05:06 minifw-monday-education python[84931]: [FlowCollector] Exported 622 flows, cleaned 0 old flows
+Nov 05 16:05:06 minifw-monday-education python[84931]: [FlowCollector] Exported 631 flows, cleaned 0 old flows
+Nov 05 16:05:06 minifw-monday-education python[84931]: [FlowCollector] Exported 642 flows, cleaned 0 old flows
+Nov 05 16:05:06 minifw-monday-education python[84931]: [FlowCollector] Exported 649 flows, cleaned 0 old flows
+Nov 05 16:05:06 minifw-monday-education python[84931]: [FlowCollector] Exported 658 flows, cleaned 0 old flows
+Nov 05 16:05:06 minifw-monday-education python[84931]: [FlowCollector] Exported 669 flows, cleaned 0 old flows
+Nov 05 16:05:06 minifw-monday-education python[84931]: [FlowCollector] Exported 683 flows, cleaned 0 old flows
+Nov 05 16:05:06 minifw-monday-education python[84931]: [FlowCollector] Exported 693 flows, cleaned 0 old flows
+Nov 05 16:05:06 minifw-monday-education python[84931]: [FlowCollector] Exported 697 flows, cleaned 0 old flows
+Nov 05 16:05:06 minifw-monday-education python[84931]: [FlowCollector] Exported 702 flows, cleaned 0 old flows
+Nov 05 16:05:06 minifw-monday-education python[84931]: [FlowCollector] Exported 710 flows, cleaned 0 old flows
+Nov 05 16:05:06 minifw-monday-education python[84931]: [FlowCollector] Exported 717 flows, cleaned 0 old flows
+Nov 05 16:05:06 minifw-monday-education python[84931]: [FlowCollector] Exported 728 flows, cleaned 0 old flows
+Nov 05 16:05:06 minifw-monday-education python[84931]: [FlowCollector] Exported 736 flows, cleaned 0 old flows
+Nov 05 16:05:06 minifw-monday-education python[84931]: [FlowCollector] Exported 741 flows, cleaned 0 old flows
+Nov 05 16:05:06 minifw-monday-education python[84931]: [FlowCollector] Exported 746 flows, cleaned 0 old flows
+Nov 05 16:05:06 minifw-monday-education python[84931]: [FlowCollector] Exported 754 flows, cleaned 0 old flows
+Nov 05 16:05:06 minifw-monday-education python[84931]: [FlowCollector] Exported 755 flows, cleaned 0 old flows
+Nov 05 16:05:06 minifw-monday-education python[84931]: [FlowCollector] Exported 756 flows, cleaned 0 old flows
+Nov 05 16:05:06 minifw-monday-education systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 05 16:05:06 minifw-monday-education systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 16:05:06 minifw-monday-education systemd[1]: minifw-ai.service: Consumed 5.884s CPU time.
+Nov 05 16:05:07 minifw-monday-education systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 16:05:08 minifw-monday-education python[85385]: 2026-11-05 16:05:08,177 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Nov 05 16:05:08 minifw-monday-education python[85385]: 2026-11-05 16:05:08,180 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Nov 05 16:05:08 minifw-monday-education python[85385]: 2026-11-05 16:05:08,180 - INFO - [STATE] Initial protection state: AI_ENHANCED_PROTECTION
+Nov 05 16:05:08 minifw-monday-education python[85385]: 2026-11-05 16:05:08,187 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_school: sector=education
+Nov 05 16:05:08 minifw-monday-education python[85385]: 2026-11-05 16:05:08,187 - INFO - [SECTOR_LOCK] Loaded config for education: ['description', 'force_safesearch', 'safesearch_domains', 'block_vpns', 'block_proxies', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_student_activity']
+Nov 05 16:05:08 minifw-monday-education python[85385]: 2026-11-05 16:05:08,187 - INFO - [SECTOR_LOCK] Device sector: education (LOCKED)
+Nov 05 16:05:08 minifw-monday-education python[85385]: 2026-11-05 16:05:08,187 - INFO - [SECTOR_LOCK] Config: Education: domain policies; restricted DNS configuration and optional WireGuard metadata.
+Nov 05 16:05:08 minifw-monday-education python[85385]: 2026-11-05 16:05:08,187 - INFO - [FEEDS] Loaded 14 patterns from school_blacklist.txt
+Nov 05 16:05:08 minifw-monday-education python[85385]: 2026-11-05 16:05:08,187 - INFO - [SECTOR_LOCK] Loaded 14 sector-specific feed patterns
+Nov 05 16:05:08 minifw-monday-education python[85385]: 2026-11-05 16:05:08,187 - INFO - [SECTOR_LOCK] Search-domain allowlist: 8 patterns; restricted search requires the generated dnsmasq overrides
+Nov 05 16:05:08 minifw-monday-education python[85385]: 2026-11-05 16:05:08,188 - INFO - [SECTOR_LOCK] VPN/proxy provider domain matching enabled; optional packet metadata detects WireGuard patterns
+Nov 05 16:05:08 minifw-monday-education python[85385]: 2026-11-05 16:05:08,188 - INFO - Loading MLP model from: /opt/minifw_ai/models/mlp_packet14.pkl
+Nov 05 16:05:08 minifw-monday-education python[85385]: 2026-11-05 16:05:08,188 - INFO - Model trained on: unknown
+Nov 05 16:05:08 minifw-monday-education python[85385]: 2026-11-05 16:05:08,188 - INFO - Training samples: 2000
+Nov 05 16:05:08 minifw-monday-education python[85385]: 2026-11-05 16:05:08,189 - INFO - Training-data accuracy: unknown; provenance: synthetic (generate_pretrained_model.py; first 14 measured packet features)
+Nov 05 16:05:08 minifw-monday-education python[85385]: 2026-11-05 16:05:08,189 - INFO - ✓ MLP model loaded successfully
+Nov 05 16:05:08 minifw-monday-education python[85385]: 2026-11-05 16:05:08,189 - INFO - [MLP] Loaded model from: /opt/minifw_ai/models/mlp_packet14.pkl
+Nov 05 16:05:08 minifw-monday-education python[85385]: 2026-11-05 16:05:08,189 - INFO - [MLP] Threshold: 0.5
+Nov 05 16:05:08 minifw-monday-education python[85385]: 2026-11-05 16:05:08,189 - INFO - Compiling YARA rules from: /opt/minifw_ai/yara_rules
+Nov 05 16:05:08 minifw-monday-education python[85385]: 2026-11-05 16:05:08,199 - INFO - ✓ Compiled 6 YARA rule namespaces
+Nov 05 16:05:08 minifw-monday-education python[85385]: 2026-11-05 16:05:08,199 - INFO - [YARA] Loaded rules from: /opt/minifw_ai/yara_rules
+Nov 05 16:05:08 minifw-monday-education python[85385]: 2026-11-05 16:05:08,199 - INFO - [YARA] Rules loaded: True
+Nov 05 16:05:08 minifw-monday-education python[85385]: 2026-11-05 16:05:08,251 - WARNING - [PROTOCOL] TLS version/WireGuard metadata unavailable without MINIFW_PACKET_INTERFACE
+Nov 05 16:05:08 minifw-monday-education python[85385]: 2026-11-05 16:05:08,251 - WARNING - [TELEMETRY] Conntrack provides counter deltas, not packet timing/size distributions; 24-feature MLP disabled for these observations
+Nov 05 16:05:08 minifw-monday-education python[85385]: 2026-11-05 16:05:08,253 - INFO - [AI_WINDOW] No model at /var/tmp/minifw-monday-education-20261105T090139Z/absent-window-model.json; AI window scoring disabled
+Nov 05 16:05:08 minifw-monday-education python[85385]: 2026-11-05 16:05:08,630 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:13 minifw-monday-education python[85385]: 2026-11-05 16:05:13,392 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:13 minifw-monday-education python[85385]: 2026-11-05 16:05:13,405 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:13 minifw-monday-education python[85385]: 2026-11-05 16:05:13,448 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:13 minifw-monday-education python[85385]: 2026-11-05 16:05:13,585 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:13 minifw-monday-education python[85385]: 2026-11-05 16:05:13,640 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:13 minifw-monday-education python[85385]: 2026-11-05 16:05:13,650 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:13 minifw-monday-education python[85385]: 2026-11-05 16:05:13,716 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:13 minifw-monday-education python[85385]: 2026-11-05 16:05:13,734 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:13 minifw-monday-education python[85385]: 2026-11-05 16:05:13,799 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:13 minifw-monday-education python[85385]: 2026-11-05 16:05:13,811 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:13 minifw-monday-education python[85385]: 2026-11-05 16:05:13,833 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:13 minifw-monday-education python[85385]: 2026-11-05 16:05:13,843 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:13 minifw-monday-education python[85385]: 2026-11-05 16:05:13,865 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:18 minifw-monday-education python[85385]: 2026-11-05 16:05:18,447 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:18 minifw-monday-education python[85385]: 2026-11-05 16:05:18,458 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:18 minifw-monday-education python[85385]: 2026-11-05 16:05:18,491 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:18 minifw-monday-education python[85385]: 2026-11-05 16:05:18,529 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:18 minifw-monday-education python[85385]: 2026-11-05 16:05:18,612 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:18 minifw-monday-education python[85385]: 2026-11-05 16:05:18,665 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:18 minifw-monday-education python[85385]: 2026-11-05 16:05:18,671 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:18 minifw-monday-education python[85385]: 2026-11-05 16:05:18,734 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:18 minifw-monday-education python[85385]: 2026-11-05 16:05:18,750 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:18 minifw-monday-education python[85385]: 2026-11-05 16:05:18,783 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:18 minifw-monday-education python[85385]: 2026-11-05 16:05:18,828 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:18 minifw-monday-education python[85385]: 2026-11-05 16:05:18,842 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:18 minifw-monday-education python[85385]: 2026-11-05 16:05:18,862 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:18 minifw-monday-education python[85385]: 2026-11-05 16:05:18,869 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:18 minifw-monday-education python[85385]: 2026-11-05 16:05:18,892 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:23 minifw-monday-education python[85385]: 2026-11-05 16:05:23,461 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:23 minifw-monday-education python[85385]: 2026-11-05 16:05:23,469 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:23 minifw-monday-education python[85385]: 2026-11-05 16:05:23,494 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:23 minifw-monday-education python[85385]: 2026-11-05 16:05:23,533 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:23 minifw-monday-education python[85385]: 2026-11-05 16:05:23,623 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:23 minifw-monday-education python[85385]: 2026-11-05 16:05:23,682 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:23 minifw-monday-education python[85385]: 2026-11-05 16:05:23,692 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:23 minifw-monday-education python[85385]: 2026-11-05 16:05:23,759 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:23 minifw-monday-education python[85385]: 2026-11-05 16:05:23,778 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:23 minifw-monday-education python[85385]: 2026-11-05 16:05:23,811 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:23 minifw-monday-education python[85385]: 2026-11-05 16:05:23,853 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:23 minifw-monday-education python[85385]: 2026-11-05 16:05:23,864 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:23 minifw-monday-education python[85385]: 2026-11-05 16:05:23,899 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:23 minifw-monday-education python[85385]: 2026-11-05 16:05:23,908 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:23 minifw-monday-education python[85385]: 2026-11-05 16:05:23,945 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:28 minifw-monday-education python[85385]: 2026-11-05 16:05:28,520 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:28 minifw-monday-education python[85385]: 2026-11-05 16:05:28,534 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:28 minifw-monday-education python[85385]: 2026-11-05 16:05:28,582 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:28 minifw-monday-education python[85385]: 2026-11-05 16:05:28,626 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:28 minifw-monday-education python[85385]: 2026-11-05 16:05:28,733 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:28 minifw-monday-education python[85385]: 2026-11-05 16:05:28,795 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:28 minifw-monday-education python[85385]: 2026-11-05 16:05:28,802 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:28 minifw-monday-education python[85385]: 2026-11-05 16:05:28,875 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:28 minifw-monday-education python[85385]: 2026-11-05 16:05:28,898 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:28 minifw-monday-education python[85385]: 2026-11-05 16:05:28,933 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:28 minifw-monday-education python[85385]: 2026-11-05 16:05:28,982 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:29 minifw-monday-education python[85385]: 2026-11-05 16:05:28,999 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:29 minifw-monday-education python[85385]: 2026-11-05 16:05:29,027 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:29 minifw-monday-education python[85385]: 2026-11-05 16:05:29,039 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:29 minifw-monday-education python[85385]: 2026-11-05 16:05:29,071 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:33 minifw-monday-education python[85385]: 2026-11-05 16:05:33,560 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:33 minifw-monday-education python[85385]: 2026-11-05 16:05:33,568 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:33 minifw-monday-education python[85385]: 2026-11-05 16:05:33,599 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:33 minifw-monday-education python[85385]: 2026-11-05 16:05:33,648 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:33 minifw-monday-education python[85385]: 2026-11-05 16:05:33,778 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:33 minifw-monday-education python[85385]: 2026-11-05 16:05:33,873 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:33 minifw-monday-education python[85385]: 2026-11-05 16:05:33,881 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:33 minifw-monday-education python[85385]: 2026-11-05 16:05:33,959 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:33 minifw-monday-education python[85385]: 2026-11-05 16:05:33,981 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:34 minifw-monday-education python[85385]: 2026-11-05 16:05:34,018 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:34 minifw-monday-education python[85385]: 2026-11-05 16:05:34,070 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:34 minifw-monday-education python[85385]: 2026-11-05 16:05:34,084 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:34 minifw-monday-education python[85385]: 2026-11-05 16:05:34,109 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:34 minifw-monday-education python[85385]: 2026-11-05 16:05:34,120 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:34 minifw-monday-education python[85385]: 2026-11-05 16:05:34,147 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:38 minifw-monday-education python[85385]: 2026-11-05 16:05:38,613 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:38 minifw-monday-education python[85385]: 2026-11-05 16:05:38,621 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:38 minifw-monday-education python[85385]: 2026-11-05 16:05:38,657 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:38 minifw-monday-education python[85385]: 2026-11-05 16:05:38,704 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:38 minifw-monday-education python[85385]: 2026-11-05 16:05:38,850 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:38 minifw-monday-education python[85385]: 2026-11-05 16:05:38,922 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:38 minifw-monday-education python[85385]: 2026-11-05 16:05:38,930 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:39 minifw-monday-education python[85385]: 2026-11-05 16:05:39,017 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:39 minifw-monday-education python[85385]: 2026-11-05 16:05:39,047 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:39 minifw-monday-education python[85385]: 2026-11-05 16:05:39,098 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:39 minifw-monday-education python[85385]: 2026-11-05 16:05:39,157 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:39 minifw-monday-education python[85385]: 2026-11-05 16:05:39,171 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:39 minifw-monday-education python[85385]: 2026-11-05 16:05:39,197 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:39 minifw-monday-education python[85385]: 2026-11-05 16:05:39,207 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:39 minifw-monday-education python[85385]: 2026-11-05 16:05:39,235 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:43 minifw-monday-education python[85385]: 2026-11-05 16:05:43,654 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:43 minifw-monday-education python[85385]: 2026-11-05 16:05:43,660 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:43 minifw-monday-education python[85385]: 2026-11-05 16:05:43,695 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:43 minifw-monday-education python[85385]: 2026-11-05 16:05:43,748 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:43 minifw-monday-education python[85385]: 2026-11-05 16:05:43,875 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:43 minifw-monday-education python[85385]: 2026-11-05 16:05:43,950 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:43 minifw-monday-education python[85385]: 2026-11-05 16:05:43,958 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:44 minifw-monday-education python[85385]: 2026-11-05 16:05:44,044 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:44 minifw-monday-education python[85385]: 2026-11-05 16:05:44,063 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:44 minifw-monday-education python[85385]: 2026-11-05 16:05:44,099 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:44 minifw-monday-education python[85385]: 2026-11-05 16:05:44,181 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:44 minifw-monday-education python[85385]: 2026-11-05 16:05:44,196 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:44 minifw-monday-education python[85385]: 2026-11-05 16:05:44,231 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:44 minifw-monday-education python[85385]: 2026-11-05 16:05:44,242 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:44 minifw-monday-education python[85385]: 2026-11-05 16:05:44,274 - WARNING - [HARD_GATE] Triggered: 10.10.0.20 - port_scan
+Nov 05 16:05:46 minifw-monday-education systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 05 16:05:46 minifw-monday-education python[85385]: 2026-11-05 16:05:46,437 - INFO - Caught SIGTERM, shutting down.
+Nov 05 16:05:46 minifw-monday-education python[85385]: [*] DNS Collector reading from /var/tmp/minifw-monday-education-20261105T090139Z/dns.log
+Nov 05 16:05:46 minifw-monday-education python[85385]: [FlowCollector] Exported 100 flows, cleaned 0 old flows
+Nov 05 16:05:46 minifw-monday-education python[85385]: [FlowCollector] Exported 200 flows, cleaned 0 old flows
+Nov 05 16:05:46 minifw-monday-education python[85385]: [FlowCollector] Exported 300 flows, cleaned 0 old flows
+Nov 05 16:05:46 minifw-monday-education python[85385]: [FlowCollector] Exported 400 flows, cleaned 0 old flows
+Nov 05 16:05:46 minifw-monday-education python[85385]: [FlowCollector] Exported 500 flows, cleaned 0 old flows
+Nov 05 16:05:46 minifw-monday-education python[85385]: [FlowCollector] Exported 579 flows, cleaned 0 old flows
+Nov 05 16:05:46 minifw-monday-education python[85385]: [FlowCollector] Exported 579 flows, cleaned 0 old flows
+Nov 05 16:05:46 minifw-monday-education python[85385]: [FlowCollector] Exported 579 flows, cleaned 0 old flows
+Nov 05 16:05:46 minifw-monday-education python[85385]: [FlowCollector] Exported 579 flows, cleaned 0 old flows
+Nov 05 16:05:46 minifw-monday-education python[85385]: [FlowCollector] Exported 580 flows, cleaned 0 old flows
+Nov 05 16:05:46 minifw-monday-education python[85385]: [FlowCollector] Exported 580 flows, cleaned 0 old flows
+Nov 05 16:05:46 minifw-monday-education python[85385]: [FlowCollector] Exported 581 flows, cleaned 0 old flows
+Nov 05 16:05:46 minifw-monday-education python[85385]: [FlowCollector] Exported 581 flows, cleaned 0 old flows
+Nov 05 16:05:46 minifw-monday-education python[85385]: [FlowCollector] Exported 581 flows, cleaned 0 old flows
+Nov 05 16:05:46 minifw-monday-education python[85385]: [FlowCollector] Exported 581 flows, cleaned 0 old flows
+Nov 05 16:05:46 minifw-monday-education python[85385]: [FlowCollector] Exported 581 flows, cleaned 0 old flows
+Nov 05 16:05:46 minifw-monday-education python[85385]: [FlowCollector] Exported 581 flows, cleaned 0 old flows
+Nov 05 16:05:46 minifw-monday-education python[85385]: [FlowCollector] Exported 584 flows, cleaned 0 old flows
+Nov 05 16:05:46 minifw-monday-education python[85385]: [FlowCollector] Exported 591 flows, cleaned 0 old flows
+Nov 05 16:05:46 minifw-monday-education python[85385]: [FlowCollector] Exported 596 flows, cleaned 0 old flows
+Nov 05 16:05:46 minifw-monday-education python[85385]: [FlowCollector] Exported 600 flows, cleaned 0 old flows
+Nov 05 16:05:46 minifw-monday-education python[85385]: [FlowCollector] Exported 605 flows, cleaned 0 old flows
+Nov 05 16:05:46 minifw-monday-education python[85385]: [FlowCollector] Exported 609 flows, cleaned 0 old flows
+Nov 05 16:05:46 minifw-monday-education python[85385]: [FlowCollector] Exported 618 flows, cleaned 0 old flows
+Nov 05 16:05:46 minifw-monday-education python[85385]: [FlowCollector] Exported 630 flows, cleaned 0 old flows
+Nov 05 16:05:46 minifw-monday-education python[85385]: [FlowCollector] Exported 634 flows, cleaned 0 old flows
+Nov 05 16:05:46 minifw-monday-education python[85385]: [FlowCollector] Exported 639 flows, cleaned 0 old flows
+Nov 05 16:05:46 minifw-monday-education python[85385]: [FlowCollector] Exported 648 flows, cleaned 0 old flows
+Nov 05 16:05:46 minifw-monday-education python[85385]: [FlowCollector] Exported 656 flows, cleaned 0 old flows
+Nov 05 16:05:46 minifw-monday-education python[85385]: [FlowCollector] Exported 661 flows, cleaned 0 old flows
+Nov 05 16:05:46 minifw-monday-education python[85385]: [FlowCollector] Exported 670 flows, cleaned 0 old flows
+Nov 05 16:05:46 minifw-monday-education python[85385]: [FlowCollector] Exported 676 flows, cleaned 0 old flows
+Nov 05 16:05:46 minifw-monday-education python[85385]: [FlowCollector] Exported 684 flows, cleaned 0 old flows
+Nov 05 16:05:46 minifw-monday-education python[85385]: [FlowCollector] Exported 690 flows, cleaned 0 old flows
+Nov 05 16:05:46 minifw-monday-education python[85385]: [FlowCollector] Exported 698 flows, cleaned 0 old flows
+Nov 05 16:05:46 minifw-monday-education python[85385]: [FlowCollector] Exported 706 flows, cleaned 0 old flows
+Nov 05 16:05:46 minifw-monday-education python[85385]: [FlowCollector] Exported 711 flows, cleaned 0 old flows
+Nov 05 16:05:46 minifw-monday-education python[85385]: [FlowCollector] Exported 717 flows, cleaned 0 old flows
+Nov 05 16:05:46 minifw-monday-education python[85385]: [FlowCollector] Exported 723 flows, cleaned 0 old flows
+Nov 05 16:05:46 minifw-monday-education python[85385]: [FlowCollector] Exported 731 flows, cleaned 0 old flows
+Nov 05 16:05:46 minifw-monday-education python[85385]: [FlowCollector] Exported 738 flows, cleaned 0 old flows
+Nov 05 16:05:46 minifw-monday-education python[85385]: [FlowCollector] Exported 750 flows, cleaned 0 old flows
+Nov 05 16:05:46 minifw-monday-education python[85385]: [FlowCollector] Exported 758 flows, cleaned 0 old flows
+Nov 05 16:05:46 minifw-monday-education python[85385]: [FlowCollector] Exported 762 flows, cleaned 0 old flows
+Nov 05 16:05:46 minifw-monday-education python[85385]: [FlowCollector] Exported 769 flows, cleaned 0 old flows
+Nov 05 16:05:46 minifw-monday-education python[85385]: [FlowCollector] Exported 779 flows, cleaned 0 old flows
+Nov 05 16:05:46 minifw-monday-education python[85385]: [FlowCollector] Exported 786 flows, cleaned 0 old flows
+Nov 05 16:05:46 minifw-monday-education python[85385]: [FlowCollector] Exported 793 flows, cleaned 0 old flows
+Nov 05 16:05:46 minifw-monday-education python[85385]: [FlowCollector] Exported 801 flows, cleaned 0 old flows
+Nov 05 16:05:47 minifw-monday-education systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 05 16:05:47 minifw-monday-education systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 16:05:47 minifw-monday-education systemd[1]: minifw-ai.service: Consumed 6.796s CPU time.
+Nov 05 16:05:49 minifw-monday-education systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 16:05:50 minifw-monday-education python[85932]: 2026-11-05 16:05:50,444 - INFO - [METRICS] Prometheus metrics server started on 127.0.0.1:9090
+Nov 05 16:05:50 minifw-monday-education python[85932]: 2026-11-05 16:05:50,448 - INFO - [ASN] Loaded 141 prefix-to-ASN mappings from /opt/minifw_ai/config/feeds/asn_prefixes.txt
+Nov 05 16:05:50 minifw-monday-education python[85932]: 2026-11-05 16:05:50,448 - INFO - [STATE] Initial protection state: AI_ENHANCED_PROTECTION
+Nov 05 16:05:50 minifw-monday-education python[85932]: 2026-11-05 16:05:50,455 - INFO - [SECTOR_LOCK] Loaded from PRODUCT_MODE=minifw_school: sector=education
+Nov 05 16:05:50 minifw-monday-education python[85932]: 2026-11-05 16:05:50,455 - INFO - [SECTOR_LOCK] Loaded config for education: ['description', 'force_safesearch', 'safesearch_domains', 'block_vpns', 'block_proxies', 'extra_feeds', 'block_threshold_adjustment', 'monitor_threshold_adjustment', 'strict_logging', 'log_student_activity']
+Nov 05 16:05:50 minifw-monday-education python[85932]: 2026-11-05 16:05:50,455 - INFO - [SECTOR_LOCK] Device sector: education (LOCKED)
+Nov 05 16:05:50 minifw-monday-education python[85932]: 2026-11-05 16:05:50,455 - INFO - [SECTOR_LOCK] Config: Education: domain policies; restricted DNS configuration and optional WireGuard metadata.
+Nov 05 16:05:50 minifw-monday-education python[85932]: 2026-11-05 16:05:50,455 - INFO - [FEEDS] Loaded 14 patterns from school_blacklist.txt
+Nov 05 16:05:50 minifw-monday-education python[85932]: 2026-11-05 16:05:50,455 - INFO - [SECTOR_LOCK] Loaded 14 sector-specific feed patterns
+Nov 05 16:05:50 minifw-monday-education python[85932]: 2026-11-05 16:05:50,455 - INFO - [SECTOR_LOCK] Search-domain allowlist: 8 patterns; restricted search requires the generated dnsmasq overrides
+Nov 05 16:05:50 minifw-monday-education python[85932]: 2026-11-05 16:05:50,455 - INFO - [SECTOR_LOCK] VPN/proxy provider domain matching enabled; optional packet metadata detects WireGuard patterns
+Nov 05 16:05:50 minifw-monday-education python[85932]: 2026-11-05 16:05:50,455 - INFO - Loading MLP model from: /opt/minifw_ai/models/mlp_packet14.pkl
+Nov 05 16:05:50 minifw-monday-education python[85932]: 2026-11-05 16:05:50,456 - INFO - Model trained on: unknown
+Nov 05 16:05:50 minifw-monday-education python[85932]: 2026-11-05 16:05:50,456 - INFO - Training samples: 2000
+Nov 05 16:05:50 minifw-monday-education python[85932]: 2026-11-05 16:05:50,456 - INFO - Training-data accuracy: unknown; provenance: synthetic (generate_pretrained_model.py; first 14 measured packet features)
+Nov 05 16:05:50 minifw-monday-education python[85932]: 2026-11-05 16:05:50,456 - INFO - ✓ MLP model loaded successfully
+Nov 05 16:05:50 minifw-monday-education python[85932]: 2026-11-05 16:05:50,456 - INFO - [MLP] Loaded model from: /opt/minifw_ai/models/mlp_packet14.pkl
+Nov 05 16:05:50 minifw-monday-education python[85932]: 2026-11-05 16:05:50,456 - INFO - [MLP] Threshold: 0.5
+Nov 05 16:05:50 minifw-monday-education python[85932]: 2026-11-05 16:05:50,457 - INFO - Compiling YARA rules from: /opt/minifw_ai/yara_rules
+Nov 05 16:05:50 minifw-monday-education python[85932]: 2026-11-05 16:05:50,467 - INFO - ✓ Compiled 6 YARA rule namespaces
+Nov 05 16:05:50 minifw-monday-education python[85932]: 2026-11-05 16:05:50,467 - INFO - [YARA] Loaded rules from: /opt/minifw_ai/yara_rules
+Nov 05 16:05:50 minifw-monday-education python[85932]: 2026-11-05 16:05:50,467 - INFO - [YARA] Rules loaded: True
+Nov 05 16:05:50 minifw-monday-education python[85932]: 2026-11-05 16:05:50,509 - WARNING - [PROTOCOL] TLS version/WireGuard metadata unavailable without MINIFW_PACKET_INTERFACE
+Nov 05 16:05:50 minifw-monday-education python[85932]: 2026-11-05 16:05:50,509 - WARNING - [TELEMETRY] Conntrack provides counter deltas, not packet timing/size distributions; 24-feature MLP disabled for these observations
+Nov 05 16:05:50 minifw-monday-education python[85932]: 2026-11-05 16:05:50,512 - INFO - [AI_WINDOW] Loaded /opt/minifw_ai/models/client_window_v1.json sha256=d06ce40ea3276d2cedac9e354075c4aa74aa3987e08b35e40a95451d4e69d6ee
+Nov 05 16:06:32 minifw-monday-education systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+Nov 05 16:06:32 minifw-monday-education python[85932]: 2026-11-05 16:06:32,056 - INFO - Caught SIGTERM, shutting down.
+Nov 05 16:06:32 minifw-monday-education python[85932]: [*] DNS Collector reading from /var/tmp/minifw-monday-education-20261105T090139Z/dns.log
+Nov 05 16:06:32 minifw-monday-education python[85932]: [FlowCollector] Exported 100 flows, cleaned 0 old flows
+Nov 05 16:06:32 minifw-monday-education python[85932]: [FlowCollector] Exported 200 flows, cleaned 0 old flows
+Nov 05 16:06:32 minifw-monday-education python[85932]: [FlowCollector] Exported 300 flows, cleaned 0 old flows
+Nov 05 16:06:32 minifw-monday-education python[85932]: [FlowCollector] Exported 400 flows, cleaned 0 old flows
+Nov 05 16:06:32 minifw-monday-education python[85932]: [FlowCollector] Exported 500 flows, cleaned 0 old flows
+Nov 05 16:06:32 minifw-monday-education python[85932]: [FlowCollector] Exported 599 flows, cleaned 0 old flows
+Nov 05 16:06:32 minifw-monday-education python[85932]: [FlowCollector] Exported 699 flows, cleaned 0 old flows
+Nov 05 16:06:32 minifw-monday-education python[85932]: [FlowCollector] Exported 703 flows, cleaned 0 old flows
+Nov 05 16:06:32 minifw-monday-education python[85932]: [FlowCollector] Exported 707 flows, cleaned 0 old flows
+Nov 05 16:06:32 minifw-monday-education python[85932]: [FlowCollector] Exported 710 flows, cleaned 0 old flows
+Nov 05 16:06:32 minifw-monday-education python[85932]: [FlowCollector] Exported 713 flows, cleaned 0 old flows
+Nov 05 16:06:32 minifw-monday-education python[85932]: [FlowCollector] Exported 713 flows, cleaned 0 old flows
+Nov 05 16:06:32 minifw-monday-education python[85932]: [FlowCollector] Exported 716 flows, cleaned 0 old flows
+Nov 05 16:06:32 minifw-monday-education python[85932]: [FlowCollector] Exported 716 flows, cleaned 0 old flows
+Nov 05 16:06:32 minifw-monday-education python[85932]: [FlowCollector] Exported 717 flows, cleaned 0 old flows
+Nov 05 16:06:32 minifw-monday-education python[85932]: [FlowCollector] Exported 717 flows, cleaned 0 old flows
+Nov 05 16:06:32 minifw-monday-education python[85932]: [FlowCollector] Exported 717 flows, cleaned 0 old flows
+Nov 05 16:06:32 minifw-monday-education python[85932]: [FlowCollector] Exported 717 flows, cleaned 0 old flows
+Nov 05 16:06:32 minifw-monday-education python[85932]: [FlowCollector] Exported 717 flows, cleaned 0 old flows
+Nov 05 16:06:32 minifw-monday-education python[85932]: [FlowCollector] Exported 717 flows, cleaned 0 old flows
+Nov 05 16:06:32 minifw-monday-education python[85932]: [FlowCollector] Exported 717 flows, cleaned 0 old flows
+Nov 05 16:06:32 minifw-monday-education python[85932]: [FlowCollector] Exported 717 flows, cleaned 0 old flows
+Nov 05 16:06:32 minifw-monday-education python[85932]: [FlowCollector] Exported 718 flows, cleaned 0 old flows
+Nov 05 16:06:32 minifw-monday-education python[85932]: [FlowCollector] Exported 718 flows, cleaned 0 old flows
+Nov 05 16:06:32 minifw-monday-education python[85932]: [FlowCollector] Exported 718 flows, cleaned 0 old flows
+Nov 05 16:06:32 minifw-monday-education python[85932]: [FlowCollector] Exported 718 flows, cleaned 0 old flows
+Nov 05 16:06:32 minifw-monday-education python[85932]: [FlowCollector] Exported 718 flows, cleaned 0 old flows
+Nov 05 16:06:32 minifw-monday-education python[85932]: [FlowCollector] Exported 718 flows, cleaned 0 old flows
+Nov 05 16:06:32 minifw-monday-education python[85932]: [FlowCollector] Exported 718 flows, cleaned 0 old flows
+Nov 05 16:06:32 minifw-monday-education python[85932]: [FlowCollector] Exported 719 flows, cleaned 0 old flows
+Nov 05 16:06:32 minifw-monday-education python[85932]: [FlowCollector] Exported 719 flows, cleaned 0 old flows
+Nov 05 16:06:32 minifw-monday-education python[85932]: [FlowCollector] Exported 719 flows, cleaned 0 old flows
+Nov 05 16:06:32 minifw-monday-education python[85932]: [FlowCollector] Exported 719 flows, cleaned 0 old flows
+Nov 05 16:06:32 minifw-monday-education python[85932]: [FlowCollector] Exported 719 flows, cleaned 0 old flows
+Nov 05 16:06:32 minifw-monday-education python[85932]: [FlowCollector] Exported 721 flows, cleaned 0 old flows
+Nov 05 16:06:32 minifw-monday-education python[85932]: [FlowCollector] Exported 721 flows, cleaned 0 old flows
+Nov 05 16:06:32 minifw-monday-education python[85932]: [FlowCollector] Exported 721 flows, cleaned 0 old flows
+Nov 05 16:06:32 minifw-monday-education python[85932]: [FlowCollector] Exported 721 flows, cleaned 0 old flows
+Nov 05 16:06:32 minifw-monday-education python[85932]: [FlowCollector] Exported 721 flows, cleaned 0 old flows
+Nov 05 16:06:32 minifw-monday-education python[85932]: [FlowCollector] Exported 722 flows, cleaned 0 old flows
+Nov 05 16:06:32 minifw-monday-education python[85932]: [FlowCollector] Exported 722 flows, cleaned 0 old flows
+Nov 05 16:06:32 minifw-monday-education python[85932]: [FlowCollector] Exported 722 flows, cleaned 0 old flows
+Nov 05 16:06:32 minifw-monday-education python[85932]: [FlowCollector] Exported 722 flows, cleaned 0 old flows
+Nov 05 16:06:32 minifw-monday-education python[85932]: [FlowCollector] Exported 723 flows, cleaned 0 old flows
+Nov 05 16:06:32 minifw-monday-education python[85932]: [FlowCollector] Exported 724 flows, cleaned 0 old flows
+Nov 05 16:06:32 minifw-monday-education python[85932]: [FlowCollector] Exported 724 flows, cleaned 0 old flows
+Nov 05 16:06:32 minifw-monday-education python[85932]: [FlowCollector] Exported 724 flows, cleaned 0 old flows
+Nov 05 16:06:32 minifw-monday-education python[85932]: [FlowCollector] Exported 724 flows, cleaned 0 old flows
+Nov 05 16:06:32 minifw-monday-education python[85932]: [FlowCollector] Exported 724 flows, cleaned 0 old flows
+Nov 05 16:06:32 minifw-monday-education python[85932]: [FlowCollector] Exported 726 flows, cleaned 0 old flows
+Nov 05 16:06:32 minifw-monday-education python[85932]: [FlowCollector] Exported 726 flows, cleaned 0 old flows
+Nov 05 16:06:32 minifw-monday-education python[85932]: [FlowCollector] Exported 726 flows, cleaned 0 old flows
+Nov 05 16:06:32 minifw-monday-education systemd[1]: minifw-ai.service: Deactivated successfully.
+Nov 05 16:06:32 minifw-monday-education systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+Nov 05 16:06:32 minifw-monday-education systemd[1]: minifw-ai.service: Consumed 6.308s CPU time.

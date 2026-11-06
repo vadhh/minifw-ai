@@ -90,6 +90,9 @@ cp "${REPO_DIR}/models/mlp_model.pkl" "${BUILD_DIR}/opt/minifw_ai/models/"
 if [ -f "${REPO_DIR}/models/mlp_packet14.pkl" ]; then
     cp "${REPO_DIR}/models/mlp_packet14.pkl" "${BUILD_DIR}/opt/minifw_ai/models/"
 fi
+if [ -f "${REPO_DIR}/models/client_window_v1.json" ]; then
+    cp "${REPO_DIR}/models/client_window_v1.json" "${BUILD_DIR}/opt/minifw_ai/models/"
+fi
 
 # --- Copy YARA rules ---
 echo "[4/7] Copying YARA rules..."
@@ -236,6 +239,12 @@ if [ ! -f "${ENV_FILE}" ]; then
     cat > "${ENV_FILE}" <<EOF
 MINIFW_SECRET_KEY=${SECRET_KEY}
 MINIFW_ADMIN_PASSWORD=${ADMIN_PASS}
+# Client-window AI (fast password guessing) scores in shadow until the line below names the
+# SHA-256 of the exact model file (sha256sum /opt/minifw_ai/models/client_window_v1.json).
+# Fill policy ai_enforcement segments/exempt first, then restart minifw-ai.
+#MINIFW_AI_ENFORCE_MODEL_SHA256=
+# Model path override; default /opt/minifw_ai/models/client_window_v1.json
+#MINIFW_AI_WINDOW_MODEL=
 EOF
     chmod 600 "${ENV_FILE}"
     echo "  Generated new secrets."

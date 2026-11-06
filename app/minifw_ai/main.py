@@ -2,6 +2,7 @@ from __future__ import annotations
 import os
 import signal
 import sys
+import time
 import uuid
 
 import json
@@ -21,6 +22,9 @@ from minifw_ai.collector_runtime import stream_collector_events
 from minifw_ai.collector_zeek import stream_zeek_sni_events
 from minifw_ai.collector_packets import stream_packet_events, observe_packet, protocol_policy
 from minifw_ai.burst import BurstTracker
+from minifw_ai.client_window import (
+    DEFAULT_BLOCK_TIMEOUT, ClientWindow, enforcement_approved, load_model, may_isolate,
+)
 from minifw_ai.audit import (
     audit_daemon_start, audit_daemon_stop, audit_config_loaded,
     audit_firewall_init, audit_firewall_init_failed,
@@ -320,6 +324,9 @@ def init_yara_scanner(ai_enabled: bool) -> tuple[Any, bool]:
 
 
 def _resolve_decision_owner(reasons: list[str]) -> str:
+    # First: an AI block can land on an event already carrying monitor-level protocol/MLP/YARA reasons.
+    if "ai_window_rate" in reasons:
+        return "AI Engine (client window)"
     if any(reason.startswith(("tls_version_below_minimum:", "vpn_tunnel:")) for reason in reasons):
         return "Protocol Policy"
     if any(reason.startswith("hard_threat_gate") for reason in reasons):
@@ -572,9 +579,15 @@ def run():
     from minifw_ai.runtime_health import RuntimeHealth
     health = RuntimeHealth(os.environ.get("MINIFW_HEALTH_FILE", str(Path(log_path).with_name("runtime-health.json"))),
                            sources, table_name, chain, set_name)
+    # Client-window AI: may isolate on its own only for fast password guessing (see client_window.py).
+    window_model = load_model()
+    ai_cfg = pol.cfg.get("ai_enforcement", {}) or {}
+    ai_timeout = _safe_int_cast(ai_cfg.get("block_timeout_seconds"), DEFAULT_BLOCK_TIMEOUT)
+    # The first conntrack snapshot after a (re)start, e.g. Save->Apply, reports every open connection as new.
+    ai_window = ClientWindow(ignore_before=time.time() + 10)
     for source, observation in stream_collector_events(sources):
         health.observe("tick")
-        client_ip, domain, flow_for_event = None, "", None
+        client_ip, domain, flow_for_event, new_flow = None, "", None, None
         if source == "dns":
             client_ip, domain = observation
             if client_ip is not None and domain is not None:
@@ -585,6 +598,7 @@ def run():
             client_ip = observation.client_ip
             if is_new:
                 flow_freq_tracker.add(client_ip)
+                new_flow = flow_for_event
         elif source == "packet":
             flow_for_event, is_new = observe_packet(flow_tracker, observation, client_subnets)
             if flow_for_event is not None:
@@ -592,6 +606,7 @@ def run():
                 client_ip = flow_for_event.client_ip
                 if is_new:
                     flow_freq_tracker.add(client_ip)
+                    new_flow = flow_for_event
         elif source == "zeek":
             evt = observation
             if evt.dst_ip and evt.dst_port and evt.src_port:
@@ -602,6 +617,7 @@ def run():
                     flow_for_event.packet_timing_available = False
                 if existing is None:
                     flow_freq_tracker.add(client_ip)
+                    new_flow = flow_for_event
                 flow_tracker.enrich_with_sni(client_ip, evt.sni, evt.handshake_ms,
                     evt.alpn_h2, evt.cert_self_signed, dst_ip=evt.dst_ip,
                     dst_port=evt.dst_port, src_port=evt.src_port)
@@ -638,7 +654,14 @@ def run():
         score = 0
         action = "allow"
         reasons = []
+        window_features = None
+        ai_window_probability = None
+        ai_window_mode = "not_run"
         try:
+            # Count each new TCP connection once, in any protection state so the window is warm when AI turns on.
+            # TCP only: per-query UDP 5-tuples (DNS to the gateway resolver) would reach 30+/min in normal use.
+            if new_flow is not None and new_flow.proto == "tcp":
+                window_features = ai_window.add(client_ip, new_flow.dst_ip, new_flow.dst_port, new_flow.first_seen)
             segment = segment_for_ip(client_ip, seg_map)
             thr = pol.thresholds(segment)
 
@@ -794,11 +817,24 @@ def run():
                     action = "monitor"
                     reasons.append(f"sector_rule:{_s_decision.get('trigger_type', 'sector_alert')}")
 
+            # AI-only decision: blocks only what the rules above left unblocked; without approval it is shadow scoring.
+            if state_manager.is_ai_enabled() and window_model and window_features:
+                try:
+                    ai_window_probability = window_model.probability(window_features)
+                    ai_window_mode = "enforcing" if enforcement_approved(window_model) else "shadow_only"
+                    if action != "block" and may_isolate(window_model, ai_window_probability, segment, client_ip, ai_cfg):
+                        action = "block"
+                        score = max(score, int(ai_window_probability * 100))
+                        reasons.append("ai_window_rate")
+                except Exception:
+                    logging.warning("[AI_WINDOW] Scoring failed; continuing without client-window AI", exc_info=True)
+
             if action == "block" and ipaddress.ip_address(client_ip).version != 4:
                 action = "monitor"
                 reasons.append("ipv6_enforcement_unsupported")
             if action == "block":
-                added = ipset_add(set_name, client_ip, timeout, family=table, table_name=table_name,
+                block_timeout = ai_timeout if "ai_window_rate" in reasons else timeout
+                added = ipset_add(set_name, client_ip, block_timeout, family=table, table_name=table_name,
                                   refresh=bool(denied or sni_denied))
                 if added is False:
                     continue
@@ -843,6 +879,10 @@ def run():
                 mlp_schema=mlp_detector.feature_schema if mlp_ran else "",
                 mlp_features=mlp_detector.last_features if mlp_ran else None,
                 mlp_mode=("shadow_only" if mlp_detector.feature_schema == "packet14-v1" else "scoring") if mlp_ran else "not_run",
+                ai_window_n60=window_features["n60"] if window_features else None,
+                ai_window_probability=ai_window_probability,
+                ai_window_mode=ai_window_mode,
+                ai_window_model_sha256=window_model.sha256 if ai_window_probability is not None else "",
             )
 
             # HIPAA: Redact domain/SNI from event logs when sector requires it
