@@ -182,7 +182,7 @@ def test_approved_deny_match_isolates_client_without_threshold_changes(dns, sni)
 
 def test_numeric_model_reason_retains_model_attribution():
     from minifw_ai.main import _resolve_decision_owner
-    assert _resolve_decision_owner(["mlp_threat_score_90"]) == "AI Engine (MLP)"
+    assert _resolve_decision_owner(["mlp_threat_score_90"]) == "Policy score (MLP contributed)"
 
 
 @pytest.mark.parametrize("sector,mode,scenario", [

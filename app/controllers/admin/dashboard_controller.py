@@ -4,6 +4,7 @@ import subprocess
 import json
 import os
 import threading
+from pathlib import Path
 import time
 
 DEMO_MODE = os.environ.get("DEMO_MODE", "")
@@ -22,171 +23,39 @@ from app.services.events.get_events_service import (
 
 from app.web.templates_config import templates
 from minifw_ai.mode_context import get_mode_ui
+from minifw_ai.runtime_health import assess
 
 
-SECTOR_LABELS = {
-    "finance": {
-        "intelligence_title": "Financial Operations Intelligence",
-        "total_blocked_label": "FRAUD BLOCKED",
-        "allowed_label": "VERIFIED TRANSACTIONS",
-        "monitor_label": "SUSPICIOUS ACTIVITY",
-        "card_1_label": "APIs Protected",
-        "card_1_sub": "Secured",
-        "card_2_label": "AI FRAUD BLOCKS",
-        "card_2_sub": "Blocked by AI",
-        "card_3_label": "MALWARE HITS",
-        "card_3_sub": "Banking Trojans",
-        "card_4_label": "EXFILTRATION",
-        "card_4_sub": "Data Hiding Detected",
-        "card_5_label": "ERP NODE SCANS",
-        "card_5_sub": "Vulnerability Scanning",
-        "card_6_label": "ANON TRAFFIC",
-        "card_6_sub": "Anonymous Blocked",
-        "card_7_label": "FAKE SITES",
-        "card_7_sub": "Phishing Blocked",
-        "map_yara": "Banking trojan detected",
-        "map_dns": "Financial API abuse intercepted",
-        "map_port": "ERP credential misuse detected",
-        "map_tor": "Unauthorized wire transfer blocked",
-        "map_sni": "Invoice fraud attempt prevented",
-        "map_block": "Ransomware attack blocked",
-        "map_default": "Client financial records secured",
-    },
-    "legal": {
-        "intelligence_title": "Legal Operations Intelligence",
-        "total_blocked_label": "EXFIL BLOCKED",
-        "allowed_label": "PRIVILEGED REQUESTS",
-        "monitor_label": "CONFIDENTIALITY ALERTS",
-        "card_1_label": "Case Files Protected",
-        "card_1_sub": "Secured",
-        "card_2_label": "AI PRIVILEGE BLOCKS",
-        "card_2_sub": "Blocked by AI",
-        "card_3_label": "RANSOMWARE HITS",
-        "card_3_sub": "C2 Connections",
-        "card_4_label": "EXFILTRATION",
-        "card_4_sub": "Privilege Leaks",
-        "card_5_label": "COUNSEL SCANS",
-        "card_5_sub": "Harvesting Blocked",
-        "card_6_label": "ANON TRAFFIC",
-        "card_6_sub": "Tor Exits Blocked",
-        "card_7_label": "PHISHING SITES",
-        "card_7_sub": "Spoof Sites Blocked",
-        "map_yara": "Ransomware C2 detected",
-        "map_dns": "Privilege breach thwarted",
-        "map_port": "Case-data harvest blocked",
-        "map_tor": "Anonymous exfiltration blocked",
-        "map_sni": "Phishing case files blocked",
-        "map_block": "Ransomware attack blocked",
-        "map_default": "Attorney-client privilege secured",
-    },
-    "education": {
-        "intelligence_title": "Educational Operations Intelligence",
-        "total_blocked_label": "BYPASS BLOCKED",
-        "allowed_label": "CURRICULUM REQUESTS",
-        "monitor_label": "CONTENT VIOLATIONS",
-        "card_1_label": "Curriculum Portals",
-        "card_1_sub": "Secured",
-        "card_2_label": "AI BYPASS BLOCKS",
-        "card_2_sub": "Blocked by AI",
-        "card_3_label": "PROXY HITS",
-        "card_3_sub": "VPN Proxies",
-        "card_4_label": "TUNNEL DETECTED",
-        "card_4_sub": "Data Hiding Detected",
-        "card_5_label": "STUDENT SCANS",
-        "card_5_sub": "Network Scans Blocked",
-        "card_6_label": "UNBLOCK SERVICES",
-        "card_6_sub": "Proxy Sites Blocked",
-        "card_7_label": "ADULT CONTENT",
-        "card_7_sub": "Content Filter Hits",
-        "map_yara": "Proxy bypass attempt",
-        "map_dns": "SafeSearch bypass blocked",
-        "map_port": "Student network scan blocked",
-        "map_tor": "VPN bypass tunnel blocked",
-        "map_sni": "Adult content filter hit",
-        "map_block": "Filter bypass attempt blocked",
-        "map_default": "Student network access secured",
-    },
-    "hospital": {
-        "intelligence_title": "Healthcare Operations Intelligence",
-        "total_blocked_label": "EXPLOITS BLOCKED",
-        "allowed_label": "CLINICAL TRAFFIC",
-        "monitor_label": "DEVICE ANOMALIES",
-        "card_1_label": "EHR Systems",
-        "card_1_sub": "Secured",
-        "card_2_label": "AI EHR PROTECTION",
-        "card_2_sub": "Blocked by AI",
-        "card_3_label": "IoMT MALWARE",
-        "card_3_sub": "Medical Backdoors",
-        "card_4_label": "DATA LEAKS",
-        "card_4_sub": "Patient Data Leaks",
-        "card_5_label": "DEVICE SCANS",
-        "card_5_sub": "Vulnerability Scanning",
-        "card_6_label": "CLINICAL ANONYMOUS",
-        "card_6_sub": "Anonymous Blocked",
-        "card_7_label": "SPOOF APDATES",
-        "card_7_sub": "Spoof Sites Blocked",
-        "map_yara": "IoMT backdoor detected",
-        "map_dns": "Patient record leak blocked",
-        "map_port": "Medical device port scan blocked",
-        "map_tor": "Anonymous clinical access blocked",
-        "map_sni": "Spoof update server blocked",
-        "map_block": "IoMT ransomware blocked",
-        "map_default": "Patient health records secured",
-    },
-    "government": {
-        "intelligence_title": "Government Operations Intelligence",
-        "total_blocked_label": "APT ATTACKS BLOCKED",
-        "allowed_label": "SOVEREIGN TRAFFIC",
-        "monitor_label": "RECONNAISSANCE SCANS",
-        "card_1_label": "Sovereign Nodes",
-        "card_1_sub": "Secured",
-        "card_2_label": "AI APT DETECTION",
-        "card_2_sub": "Blocked by AI",
-        "card_3_label": "APT MALWARE",
-        "card_3_sub": "Adversary Payload",
-        "card_4_label": "SOVEREIGN EXFIL",
-        "card_4_sub": "State Secret Tunnel",
-        "card_5_label": "RECON SCANS",
-        "card_5_sub": "Reconnaissance Blocked",
-        "card_6_label": "COVERT COMMS",
-        "card_6_sub": "Covert Comms Blocked",
-        "card_7_label": "ADVERSARY PHISH",
-        "card_7_sub": "Phishing Blocked",
-        "map_yara": "APT malware detected",
-        "map_dns": "Sovereign DNS tunnel blocked",
-        "map_port": "State secrets harvest blocked",
-        "map_tor": "Covert comms channel blocked",
-        "map_sni": "Adversary phishing blocked",
-        "map_block": "APT exploit payload blocked",
-        "map_default": "Sovereign network perimeter secured",
-    },
-    "establishment": {
-        "intelligence_title": "Business Operations Intelligence",
-        "total_blocked_label": "THREATS BLOCKED",
-        "allowed_label": "ALLOWED TRAFFIC",
-        "monitor_label": "ANOMALOUS EVENTS",
-        "card_1_label": "POS Terminal",
-        "card_1_sub": "Secured",
-        "card_2_label": "AI POS BLOCKS",
-        "card_2_sub": "Blocked by AI",
-        "card_3_label": "SKIMMER HITS",
-        "card_3_sub": "POS Skimmers",
-        "card_4_label": "SUPPLY CHAIN",
-        "card_4_sub": "Supply Chain Inject",
-        "card_5_label": "INTERNAL SCANS",
-        "card_5_sub": "Vulnerability Scanning",
-        "card_6_label": "BOTNET CMD",
-        "card_6_sub": "Botnet Blocked",
-        "card_7_label": "PHISHING HITS",
-        "card_7_sub": "Phishing Blocked",
-        "map_yara": "POS skimmer detected",
-        "map_dns": "Supply-chain inject blocked",
-        "map_port": "POS network scan blocked",
-        "map_tor": "Tor exit node blocked",
-        "map_sni": "Retail supply scan blocked",
-        "map_block": "Ransomware attack blocked",
-        "map_default": "Enterprise network secured",
-    }
+# One honest label set for every sector: each counter names the exact engine
+# reason it counts (see get_detection_counters).
+LABELS = {
+    "total_blocked_label": "BLOCKED EVENTS",
+    "allowed_label": "ALLOWED EVENTS",
+    "monitor_label": "MONITORED EVENTS",
+    "card_1_label": "HARD GATE BLOCKS",
+    "card_1_sub": "Packet rate / burst / port scan",
+    "card_2_label": "AI ISOLATIONS (connection rate)",
+    "card_2_sub": "Client-window AI, 15 min",
+    "card_8_label": "MLP SCORE ADDED (score only)",
+    "card_8_sub": "Adds up to 30; cannot block alone",
+    "card_3_label": "YARA MATCHES (score only)",
+    "card_3_sub": "Adds up to 35; cannot block alone",
+    "card_4_label": "DNS TUNNEL HEURISTIC",
+    "card_4_sub": "Long or encoded DNS names",
+    "card_5_label": "PORT SCAN / PACKET RATE",
+    "card_5_sub": "Hard-gate trigger",
+    "card_6_label": "TOR / DENY-IP MATCHES",
+    "card_6_sub": "Destination on IP deny-list",
+    "card_7_label": "SNI DENY-LIST MATCHES",
+    "card_7_sub": "TLS SNI on domain deny-list",
+}
+INTELLIGENCE_TITLES = {
+    "finance": "Financial Operations Intelligence",
+    "legal": "Legal Operations Intelligence",
+    "education": "Educational Operations Intelligence",
+    "hospital": "Healthcare Operations Intelligence",
+    "government": "Government Operations Intelligence",
+    "establishment": "Business Operations Intelligence",
 }
 
 
@@ -222,8 +91,8 @@ def _compute_service_status() -> dict:
 
     Two-stage detection:
       Stage 1 — pgrep (same-host / bare-metal installs)
-      Stage 2 — audit log sentinel (Docker; engine writes audit.jsonl at
-                 startup on the shared volume before processing events)
+      Stage 2 — a fresh heartbeat in runtime-health.json (Docker / shared volume).
+                 Old log files existing does not mean the engine is running.
     """
     status = {"label": "Stopped", "color": "danger", "mode": "Unknown"}
 
@@ -236,27 +105,41 @@ def _compute_service_status() -> dict:
     except (subprocess.CalledProcessError, FileNotFoundError):
         pass
 
-    audit_log = os.environ.get("MINIFW_AUDIT_LOG", "/opt/minifw_ai/logs/audit.jsonl")
-    events_log = os.environ.get("MINIFW_LOG", "/opt/minifw_ai/logs/events.jsonl")
+    status["mode"], status["ai_window"] = _engine_modes()
     if not engine_running:
-        engine_running = os.path.exists(audit_log) or os.path.exists(events_log)
+        engine_running = not status["mode"].startswith("Unknown")
 
     status["label"] = "Active" if engine_running else "Stopped"
     status["color"] = "success" if engine_running else "danger"
-
-    state_file = "/opt/minifw_ai/logs/deployment_state.json"
-    if os.path.exists(state_file):
-        try:
-            with open(state_file, "r") as f:
-                data = json.load(f)
-                dns_status = data.get("dns_telemetry", {}).get("status", "Unknown")
-                status["mode"] = dns_status.replace("_", " ").title()
-        except Exception:
-            status["mode"] = "Error reading state"
-    else:
-        status["mode"] = "AI Enhanced" if engine_running else "Unknown"
-
     return status
+
+
+def _engine_modes() -> tuple[str, str]:
+    """Detection mode and client-window AI status from the engine's runtime-health.json."""
+    unknown = "Unknown (engine not reporting)"
+    path = Path(os.environ.get("MINIFW_HEALTH_FILE", "/opt/minifw_ai/logs/runtime-health.json"))
+    try:
+        snapshot = json.loads(path.read_text())
+        # Fresh heartbeat from the live engine process. Not assess()'s "ready": that also needs
+        # every source active within 30 s, which a baseline engine with a quiet DNS log never is.
+        if "heartbeat_age_seconds" not in assess(snapshot):
+            return unknown, "Unknown"
+    except (OSError, ValueError):
+        return unknown, "Unknown"
+    state, ai = snapshot.get("protection_state"), snapshot.get("ai_window")
+    if state == "BASELINE_PROTECTION":
+        return "Baseline (AI off: DNS log not healthy)", "Off (baseline)"
+    if state != "AI_ENHANCED_PROTECTION":
+        return unknown, "Unknown"
+    if not isinstance(ai, dict):
+        return "AI enhanced", "Unknown"
+    if not ai.get("model_sha256"):
+        return "AI enhanced", "Model missing"
+    if not ai.get("approved"):
+        return "AI enhanced", "Shadow only (model not approved)"
+    if not ai.get("segments"):
+        return "AI enhanced", "Shadow only (approved, no segments in policy)"
+    return "AI enhanced", "Enforcing in " + ", ".join(map(str, ai["segments"]))
 
 
 def get_service_status() -> dict:
@@ -283,7 +166,7 @@ def dashboard_controller(request: Request):
     # Resolve active sector and labels
     mode_ui = get_mode_ui()
     sector = mode_ui.sector or "establishment"
-    lbls = SECTOR_LABELS.get(sector, SECTOR_LABELS["establishment"])
+    lbls = {**LABELS, "intelligence_title": INTELLIGENCE_TITLES.get(sector, INTELLIGENCE_TITLES["establishment"])}
 
     return templates.TemplateResponse(
         request,
@@ -300,6 +183,7 @@ def dashboard_controller(request: Request):
                 "total_rules": total_rules,
                 "total_allowed": event_stats["total_allowed"],
                 "total_blocked": event_stats["total_blocked"],
+                "total_monitored": event_stats["total_monitored"],
                 "threats_detected": event_stats["threats_detected"],
                 "uptime": uptime,
             },

@@ -2,6 +2,7 @@ from __future__ import annotations
 import os
 import signal
 import sys
+import time
 import uuid
 
 import json
@@ -21,6 +22,9 @@ from minifw_ai.collector_runtime import stream_collector_events
 from minifw_ai.collector_zeek import stream_zeek_sni_events
 from minifw_ai.collector_packets import stream_packet_events, observe_packet, protocol_policy
 from minifw_ai.burst import BurstTracker
+from minifw_ai.client_window import (
+    DEFAULT_BLOCK_TIMEOUT, ClientWindow, client_in_scope, enforcement_approved, load_model, may_isolate,
+)
 from minifw_ai.audit import (
     audit_daemon_start, audit_daemon_stop, audit_config_loaded,
     audit_firewall_init, audit_firewall_init_failed,
@@ -320,14 +324,18 @@ def init_yara_scanner(ai_enabled: bool) -> tuple[Any, bool]:
 
 
 def _resolve_decision_owner(reasons: list[str]) -> str:
+    # First: an AI block can land on an event already carrying monitor-level protocol/MLP/YARA reasons.
+    if "ai_window_rate" in reasons:
+        return "AI Engine (client window)"
     if any(reason.startswith(("tls_version_below_minimum:", "vpn_tunnel:")) for reason in reasons):
         return "Protocol Policy"
     if any(reason.startswith("hard_threat_gate") for reason in reasons):
         return "Hard Gate"
+    # MLP and YARA only add score (they cannot block alone): attribute the contribution, not the decision.
     if any(reason == "mlp_threat_score" or reason.startswith("mlp_threat_score_") for reason in reasons):
-        return "AI Engine (MLP)"
+        return "Policy score (MLP contributed)"
     if any(reason.startswith(("yara_", "yara_match")) for reason in reasons):
-        return "YARA Scanner"
+        return "Policy score (YARA contributed)"
     return "Policy Engine"
 
 
@@ -572,9 +580,32 @@ def run():
     from minifw_ai.runtime_health import RuntimeHealth
     health = RuntimeHealth(os.environ.get("MINIFW_HEALTH_FILE", str(Path(log_path).with_name("runtime-health.json"))),
                            sources, table_name, chain, set_name)
+    # Client-window AI: may isolate on its own only for a high rate of new connections to one server (client_window.py).
+    window_model = load_model()
+    ai_cfg = pol.cfg.get("ai_enforcement", {}) or {}
+    try:
+        for cidr in ai_cfg.get("exempt", ()):
+            ipaddress.ip_network(cidr, strict=False)
+    except (TypeError, ValueError) as exc:
+        # Fail safe: never isolate while an intended exemption cannot be honoured.
+        logging.warning("[AI_WINDOW] Invalid ai_enforcement.exempt entry (%s); AI isolation disabled until it is fixed", exc)
+        ai_cfg = {}
+    if window_model and not ai_cfg.get("segments"):
+        logging.warning("[AI_WINDOW] Policy %s has no ai_enforcement segments: the client-window AI will not isolate "
+                        "any client. Add the ai_enforcement block to the policy (the shipped default policy, or "
+                        "policy.json.dpkg-dist after an upgrade, has it).", policy_path)
+    ai_timeout = _safe_int_cast(ai_cfg.get("block_timeout_seconds"), DEFAULT_BLOCK_TIMEOUT)
+    # The first conntrack snapshot after a (re)start, e.g. Save->Apply, reports every open connection as new.
+    ai_window = ClientWindow(ignore_before=time.time() + 10)
+    if health.snapshot is not None:  # read by the dashboard (group-readable runtime-health.json)
+        health.snapshot["protection_state"] = state_manager.get_current_state().value
+        health.snapshot["ai_window"] = {"model_sha256": window_model.sha256 if window_model else "",
+                                        "approved": enforcement_approved(window_model),
+                                        "segments": list(ai_cfg.get("segments", [])),
+                                        "exempt": len(ai_cfg.get("exempt", []))}
     for source, observation in stream_collector_events(sources):
         health.observe("tick")
-        client_ip, domain, flow_for_event = None, "", None
+        client_ip, domain, flow_for_event, new_flow = None, "", None, None
         if source == "dns":
             client_ip, domain = observation
             if client_ip is not None and domain is not None:
@@ -585,6 +616,7 @@ def run():
             client_ip = observation.client_ip
             if is_new:
                 flow_freq_tracker.add(client_ip)
+                new_flow = flow_for_event
         elif source == "packet":
             flow_for_event, is_new = observe_packet(flow_tracker, observation, client_subnets)
             if flow_for_event is not None:
@@ -592,6 +624,7 @@ def run():
                 client_ip = flow_for_event.client_ip
                 if is_new:
                     flow_freq_tracker.add(client_ip)
+                    new_flow = flow_for_event
         elif source == "zeek":
             evt = observation
             if evt.dst_ip and evt.dst_port and evt.src_port:
@@ -602,6 +635,7 @@ def run():
                     flow_for_event.packet_timing_available = False
                 if existing is None:
                     flow_freq_tracker.add(client_ip)
+                    new_flow = flow_for_event
                 flow_tracker.enrich_with_sni(client_ip, evt.sni, evt.handshake_ms,
                     evt.alpn_h2, evt.cert_self_signed, dst_ip=evt.dst_ip,
                     dst_port=evt.dst_port, src_port=evt.src_port)
@@ -613,6 +647,8 @@ def run():
             state_manager.check_and_transition()
         )
         if state_changed:
+            if health.snapshot is not None:
+                health.snapshot["protection_state"] = new_state.value
             _ai_on = state_manager.is_ai_enabled()
             mlp_detector, mlp_enabled = init_mlp_detector(_ai_on)
             yara_scanner, yara_enabled = init_yara_scanner(_ai_on)
@@ -638,7 +674,14 @@ def run():
         score = 0
         action = "allow"
         reasons = []
+        window_features = None
+        ai_window_probability = None
+        ai_window_mode = "not_run"
         try:
+            # Count each new TCP connection once, in any protection state so the window is warm when AI turns on.
+            # TCP only: per-query UDP 5-tuples (DNS to the gateway resolver) would reach 30+/min in normal use.
+            if new_flow is not None and new_flow.proto == "tcp":
+                window_features = ai_window.add(client_ip, new_flow.dst_ip, new_flow.dst_port, new_flow.first_seen)
             segment = segment_for_ip(client_ip, seg_map)
             thr = pol.thresholds(segment)
 
@@ -794,11 +837,25 @@ def run():
                     action = "monitor"
                     reasons.append(f"sector_rule:{_s_decision.get('trigger_type', 'sector_alert')}")
 
+            # AI-only decision: blocks only what the rules above left unblocked; without approval it is shadow scoring.
+            if state_manager.is_ai_enabled() and window_model and window_features:
+                try:
+                    ai_window_probability = window_model.probability(window_features)
+                    in_scope = enforcement_approved(window_model) and client_in_scope(segment, client_ip, ai_cfg)
+                    ai_window_mode = "enforcing" if in_scope else "shadow_only"
+                    if action != "block" and may_isolate(window_model, ai_window_probability, segment, client_ip, ai_cfg):
+                        action = "block"
+                        score = max(score, int(ai_window_probability * 100))
+                        reasons.append("ai_window_rate")
+                except Exception:
+                    logging.warning("[AI_WINDOW] Scoring failed; continuing without client-window AI", exc_info=True)
+
             if action == "block" and ipaddress.ip_address(client_ip).version != 4:
                 action = "monitor"
                 reasons.append("ipv6_enforcement_unsupported")
             if action == "block":
-                added = ipset_add(set_name, client_ip, timeout, family=table, table_name=table_name,
+                block_timeout = ai_timeout if "ai_window_rate" in reasons else timeout
+                added = ipset_add(set_name, client_ip, block_timeout, family=table, table_name=table_name,
                                   refresh=bool(denied or sni_denied))
                 if added is False:
                     continue
@@ -843,6 +900,10 @@ def run():
                 mlp_schema=mlp_detector.feature_schema if mlp_ran else "",
                 mlp_features=mlp_detector.last_features if mlp_ran else None,
                 mlp_mode=("shadow_only" if mlp_detector.feature_schema == "packet14-v1" else "scoring") if mlp_ran else "not_run",
+                ai_window_n60=window_features["n60"] if window_features else None,
+                ai_window_probability=ai_window_probability,
+                ai_window_mode=ai_window_mode,
+                ai_window_model_sha256=window_model.sha256 if ai_window_probability is not None else "",
             )
 
             # HIPAA: Redact domain/SNI from event logs when sector requires it

@@ -1073,18 +1073,9 @@ def api_live_blocks(current_user: User = Depends(get_current_user)):
         except Exception:
             continue
         if dt >= cutoff:
-            live.append({
-                "time": ev["time"],
-                "source": ev.get("source", ""),
-                "client_ip": ev.get("client_ip", ""),
-                "domain": ev.get("domain", ""),
-                "score": ev.get("score", 0),
-                "reason": ev.get("reason", ""),
-                "type": ev.get("type", ""),
-                "trace_id": ev.get("trace_id", ""),
-                "decision_owner": ev.get("decision_owner", "Policy Engine"),
-                "ai_explanation": _build_ai_explanation(ev),
-            })
+            # Pass the formatted event through: trigger, status and ai_window_* feed the dashboard panel.
+            live.append({**ev, "decision_owner": ev.get("decision_owner", "Policy Engine"),
+                         "ai_explanation": _build_ai_explanation(ev)})
     return {"count": len(live), "events": live}
 
 
@@ -1093,16 +1084,34 @@ def _build_ai_explanation(ev: dict) -> dict:
     Categorise the raw reasons string into ASN / TLS / Behavior buckets
     and return a structured explanation dict for the AI Decision panel.
     """
-    reason = ev.get("reason", "").lower()
+    raw_reason = ev.get("reason", "").lower()
     score = ev.get("score", 0)
+    ai_window = "ai_window_rate" in raw_reason
+    domain_hit = "dns_denied_domain" in raw_reason
+    # Generic substring checks below must not re-match "ai_window_rate" ("rate").
+    reason = raw_reason.replace("ai_window_rate", "")
 
     asn_signals = []
     tls_signals = []
     behavior_signals = []
 
+    if ai_window:
+        n60 = ev.get("ai_window_n60")
+        count = n60 if n60 is not None else "39+"
+        behavior_signals.append(
+            f"AI connection-rate model: {count} new TCP connections from this client "
+            "to one server:port in 60 s (isolates at 39+); isolated 15 min. "
+            "Does not see passwords or logins."
+        )
+    if domain_hit:
+        isolated = " (client IPv4 isolated)" if "client_ipv4_isolation" in reason else ""
+        asn_signals.append(f"Deny-list domain match{isolated}")
+    if "sector_rule:" in reason:
+        behavior_signals.append("Sector rule")
     if "asn" in reason:
         asn_signals.append("ASN blocklist match")
-    if "tor" in reason or "anonymizer" in reason:
+    # "_tor_", not "tor": "sector_rule" contains "tor".
+    if "_tor_" in reason or "anonymizer" in reason:
         asn_signals.append("Tor / anonymizer network")
     if "tls" in reason or "sni" in reason:
         tls_signals.append("TLS/SNI policy violation")
@@ -1116,14 +1125,23 @@ def _build_ai_explanation(ev: dict) -> dict:
         behavior_signals.append("YARA pattern match")
     if "hard_threat_gate" in reason:
         behavior_signals.append("Hard threat gate triggered")
-    if "mlp_threat_score" in reason or "mlp" in reason:
-        behavior_signals.append(f"AI threat score: {score}")
+    mlp = re.search(r"mlp_threat_score_(\d+)", reason)
+    if mlp:
+        # ponytail: assumes mlp_weight 30 (every shipped policy.json); read policy if that changes.
+        mlp_points = int(mlp.group(1)) * 30 // 100
+        behavior_signals.append(f"MLP added {mlp_points} of max 30 points; total score {score}")
+    elif "mlp" in reason:
+        behavior_signals.append(f"Total score {score} (all signals)")
     if "ip" in reason and not any(asn_signals + tls_signals + behavior_signals):
         asn_signals.append("IP blocklist match")
 
     # Determine dominant category
     category = "Behavior"
-    if tls_signals and not asn_signals and not behavior_signals:
+    if ai_window:
+        category = "AI (connection rate)"
+    elif domain_hit and not behavior_signals:
+        category = "Deny-list domain"
+    elif tls_signals and not asn_signals and not behavior_signals:
         category = "TLS/SNI"
     elif asn_signals and not behavior_signals:
         category = "ASN / Network"

@@ -10,7 +10,7 @@
       <div class="col-12">
         <h4 class="mb-1 fw-bold" style="color:var(--mf-text);">Dashboard</h4>
         <p style="color:var(--mf-text-muted);font-size:13px;margin:0;">
-          AI-powered firewall overview &amp; threat monitoring
+          Firewall overview: rule, threat-feed and connection-rate decisions
         </p>
       </div>
     </div>
@@ -47,7 +47,7 @@
                   style="font-size:12px;font-weight:800;color:#f59e0b;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">
                   MONITOR ZONE</div>
                 <div style="font-size:2.5rem;font-weight:900;color:var(--mf-text);line-height:1;">{{
-                  stats.threats_detected }}</div>
+                  stats.total_monitored }}</div>
                 <div style="font-size:14px;color:var(--mf-text-muted);margin-top:8px;font-weight:700;">{{ lbls.monitor_label }}</div>
               </div>
               <div
@@ -112,9 +112,19 @@
                   <div class="mf-detect-icon" style="background:rgba(124,58,237,0.1);color:#7c3aed;">
                     <i class="bi bi-cpu"></i>
                   </div>
-                  <div class="mf-detect-value" style="color:#7c3aed;">{{ detection_counters.ai_scored }}</div>
+                  <div class="mf-detect-value" style="color:#7c3aed;">{{ detection_counters.ai_window }}</div>
                   <div class="mf-detect-label">{{ lbls.card_2_label }}</div>
                   <div class="mf-detect-sub">{{ lbls.card_2_sub }}</div>
+                </div>
+              </div>
+              <div class="col-lg-2 col-md-4 col-6">
+                <div class="mf-detect-card">
+                  <div class="mf-detect-icon" style="background:rgba(124,58,237,0.1);color:#7c3aed;">
+                    <i class="bi bi-cpu"></i>
+                  </div>
+                  <div class="mf-detect-value" style="color:#7c3aed;">{{ detection_counters.ai_scored }}</div>
+                  <div class="mf-detect-label">{{ lbls.card_8_label }}</div>
+                  <div class="mf-detect-sub">{{ lbls.card_8_sub }}</div>
                 </div>
               </div>
               <div class="col-lg-2 col-md-4 col-6">
@@ -207,29 +217,12 @@
                   {% for event in events %}
                   <tr>
                     <td><small style="color:var(--mf-text-muted);white-space:nowrap;">{{ event.time }}</small></td>
-                    {% set ev_type = event.type | lower %}
-                    {% set fin_type = "Financial Threat" %}
-                    {% if 'malware' in ev_type or 'yara' in ev_type %}{% set fin_type = "Banking trojan detected" %}
-                    {% elif 'dns' in ev_type %}{% set fin_type = "Financial API abuse intercepted" %}
-                    {% elif 'port' in ev_type %}{% set fin_type = "ERP credential misuse detected" %}
-                    {% elif 'tor' in ev_type or 'anon' in ev_type %}{% set fin_type = "Unauthorized wire transfer
-                    blocked" %}
-                    {% elif 'sni' in ev_type %}{% set fin_type = "Invoice fraud attempt prevented" %}
-                    {% elif 'block' in ev_type %}{% set fin_type = "Ransomware attack blocked" %}
-                    {% endif %}
-                    <td><span class="badge bg-{{ event.type_color }}">{{ fin_type }}</span></td>
+                    <td><span class="badge bg-{{ event.type_color }}">{{ event.trigger }}</span></td>
                     <td style="max-width:170px;">
                       <small class="d-block text-truncate" title="{{ event.source }}">{{ event.source }}</small>
                     </td>
                     <td>
-                      {% if event.score is not none and event.score >= 65 %}
-                      <span class="badge bg-danger"><i class="bi bi-x-circle"></i> Blocked</span>
-                      {% elif event.score is not none and event.score >= 40 %}
-                      <span class="badge" style="background:#ffc107;color:#000;"><i class="bi bi-eye"></i>
-                        Monitor</span>
-                      {% elif event.score is not none %}
-                      <span class="badge bg-success"><i class="bi bi-check-circle"></i> Allowed</span>
-                      {% elif event.status == 'blocked' %}
+                      {% if event.status == 'blocked' %}
                       <span class="badge bg-danger"><i class="bi bi-x-circle"></i> Blocked</span>
                       {% elif event.status == 'monitor' %}
                       <span class="badge" style="background:#ffc107;color:#000;"><i class="bi bi-eye"></i>
@@ -287,8 +280,8 @@
               </li>
               <li class="list-group-item d-flex justify-content-between align-items-center"
                 style="background:transparent;border-color:var(--mf-border);padding:12px 20px;">
-                <span style="font-size:13.5px;">Burst Protection</span>
-                <span class="badge" style="background:#f0fdf4;color:#10b981;">Active</span>
+                <span style="font-size:13.5px;">Connection-rate AI</span>
+                <span class="badge" style="background:#eff6ff;color:#3b82f6;">{{ service_status.ai_window }}</span>
               </li>
               <li class="list-group-item d-flex justify-content-between align-items-center"
                 style="background:transparent;border-color:var(--mf-border);padding:12px 20px;">
@@ -364,8 +357,7 @@
       <div class="col-12">
         <div class="card">
           <div class="card-header d-flex align-items-center gap-3">
-            <span><i class="bi bi-activity me-1" style="color:#ef4444;"></i> Fraud Interception Rate — Live Spike
-              Monitor</span>
+            <span><i class="bi bi-activity me-1" style="color:#ef4444;"></i> Block rate (all causes), live</span>
             <span class="badge" id="spikeRateBadge" style="background:#fef2f2;color:#ef4444;font-size:11px;">0
               blocks/5s</span>
           </div>
@@ -389,7 +381,7 @@
             <div class="d-flex align-items-center gap-2">
               <span class="pulse-dot" id="synthDot" style="background:#ef4444;flex-shrink:0;"></span>
               <span class="synth-hdr-label">
-                <i class="bi bi-cpu me-1" style="color:#ef4444;"></i>AI Threat Synthesis
+                <i class="bi bi-cpu me-1" style="color:#ef4444;"></i>Latest block
               </span>
             </div>
             <div class="d-flex gap-2 align-items-center">
@@ -406,19 +398,19 @@
               <div class="synth-hero-left">
                 <div id="synthRiskBadge" class="synth-risk-ring" style="display:none;">
                   <div id="synthRiskPct" class="synth-risk-pct">&#x2014;</div>
-                  <div class="synth-risk-label">RISK</div>
+                  <div class="synth-risk-label">SCORE /100</div>
                 </div>
                 <div id="synthTimestamp" class="synth-timestamp"></div>
               </div>
 
               <div class="synth-hero-right">
                 <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
-                  <span class="synth-hero-title">THREAT BLOCKED</span>
+                  <span id="synthTrigger" class="synth-hero-title">&#x2014;</span>
                   <span id="synthActionBadge" class="synth-action-badge" style="display:none;">BLOCKED</span>
                 </div>
                 <div id="synthSource" class="synth-hero-source">Waiting for a block event&hellip;</div>
                 <div>
-                  <div class="synth-field-lbl" style="color:#8b5cf6;">AI CLASSIFICATION</div>
+                  <div class="synth-field-lbl" style="color:#8b5cf6;">DECISION</div>
                   <div id="synthAiCategory" class="synth-ai-cat">&#x2014;</div>
                   <div id="synthAiScore" class="synth-ai-score">&#x2014;</div>
                 </div>
@@ -435,12 +427,10 @@
               </div>
               <div class="synth-cell synth-cell-center">
                 <div class="synth-field-lbl" style="color:#06b6d4;">TIME TO BLOCK</div>
-                <div id="synthTime" class="synth-ttb">&#x2014;&thinsp;ms</div>
+                <div class="synth-metric-val">Not measured</div>
               </div>
               <div class="synth-cell">
-                <div class="synth-field-lbl">DECISION OWNER</div>
-                <div id="synthDecisionOwner" class="synth-metric-val">&#x2014;</div>
-                <div class="synth-field-lbl" style="margin-top:6px;">TRACE ID</div>
+                <div class="synth-field-lbl">TRACE ID</div>
                 <div id="synthTraceId" class="synth-traceid">&#x2014;</div>
               </div>
             </div>
@@ -473,9 +463,9 @@
           <div class="card-body">
             <div class="d-flex justify-content-between align-items-start">
               <div>
-                <div class="stat-label">Approved Domains</div>
+                <div class="stat-label">Allow-list Domains</div>
                 <div class="stat-value">{{ stats.allow_domains }}</div>
-                <div class="stat-sub">Approved by System</div>
+                <div class="stat-sub">List entries</div>
               </div>
               <div class="stat-icon"><i class="bi bi-shield-check"></i></div>
             </div>
@@ -491,9 +481,9 @@
           <div class="card-body">
             <div class="d-flex justify-content-between align-items-start">
               <div>
-                <div class="stat-label">Blocked IP Sources</div>
+                <div class="stat-label">Deny-list IPs</div>
                 <div class="stat-value">{{ stats.deny_ips }}</div>
-                <div class="stat-sub">Malicious Sources</div>
+                <div class="stat-sub">List entries</div>
               </div>
               <div class="stat-icon"><i class="bi bi-shield-x"></i></div>
             </div>
@@ -509,9 +499,9 @@
           <div class="card-body">
             <div class="d-flex justify-content-between align-items-start">
               <div>
-                <div class="stat-label">Suspicious Network Activity</div>
+                <div class="stat-label">Deny-list ASNs</div>
                 <div class="stat-value">{{ stats.deny_asns }}</div>
-                <div class="stat-sub">Anomalous Traffic</div>
+                <div class="stat-sub">List entries</div>
               </div>
               <div class="stat-icon"><i class="bi bi-diagram-3"></i></div>
             </div>
@@ -527,9 +517,9 @@
           <div class="card-body">
             <div class="d-flex justify-content-between align-items-start">
               <div>
-                <div class="stat-label">Blocked Threat Domains</div>
+                <div class="stat-label">Deny-list Domains</div>
                 <div class="stat-value">{{ stats.deny_domains }}</div>
-                <div class="stat-sub">Secured Endpoints</div>
+                <div class="stat-sub">List entries</div>
               </div>
               <div class="stat-icon"><i class="bi bi-globe"></i></div>
             </div>
@@ -954,48 +944,34 @@
 <!-- ── Dashboard Live Events Table ──────────────────────────── -->
 <script>
   (function () {
-    var activeLabels = {{ lbls | tojson | safe }};
     var DASH_REFRESH = 5000; // 5 seconds
     var dashLastKey = '';
 
-    function scoreStatus(score) {
-      if (score === null || score === undefined) return null;
-      if (score >= 65) return { label: '<i class="bi bi-x-circle"></i> Blocked', cls: 'badge bg-danger' };
-      if (score >= 40) return { label: '<i class="bi bi-eye"></i> Monitor', cls: 'badge', style: 'background:#ffc107;color:#000;' };
-      return { label: '<i class="bi bi-check-circle"></i> Allowed', cls: 'badge bg-success' };
+    // Event fields (domain names, sources) come from network traffic: escape before building HTML.
+    function esc(v) {
+      return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
     }
 
+    // Status is the engine's action; the score is shown separately.
     function statusFromEvent(ev) {
-      var s = scoreStatus(ev.score);
-      if (s) return s;
       if (ev.status === 'blocked') return { label: '<i class="bi bi-x-circle"></i> Blocked', cls: 'badge bg-danger' };
       if (ev.status === 'monitor') return { label: '<i class="bi bi-eye"></i> Monitor', cls: 'badge', style: 'background:#ffc107;color:#000;' };
       return { label: '<i class="bi bi-check-circle"></i> Allowed', cls: 'badge bg-success' };
     }
 
-    function mapFinancialType(rawType) {
-      if (!rawType) return '\u2014';
-      var t = rawType.toLowerCase();
-      if (t.includes('malware') || t.includes('yara')) return activeLabels.map_yara || 'Malware detected';
-      if (t.includes('dns')) return activeLabels.map_dns || 'DNS anomaly blocked';
-      if (t.includes('port')) return activeLabels.map_port || 'Network scanning blocked';
-      if (t.includes('tor') || t.includes('anon')) return activeLabels.map_tor || 'Anonymous traffic blocked';
-      if (t.includes('sni')) return activeLabels.map_sni || 'Phishing site blocked';
-      if (t.includes('block')) return activeLabels.map_block || 'Threat blocked';
-      return activeLabels.map_default || 'Threat prevented';
-    }
-
     function buildRow(ev, isNew) {
       var st = statusFromEvent(ev);
-      var finType = mapFinancialType(ev.type);
+      var finType = esc(ev.trigger || '\u2014');
       var badgeHtml = '<span class="' + st.cls + '"' + (st.style ? ' style="' + st.style + '"' : '') + '>' + st.label + '</span>';
-      var typeColor = ev.type_color || 'secondary';
-      var src = (ev.source || ev.client_ip || '\u2014');
+      var typeColor = esc(ev.type_color || 'secondary');
+      var src = esc(ev.source || ev.client_ip || '\u2014');
       var evJson = JSON.stringify(ev).replace(/'/g, '&#39;');
       var tr = document.createElement('tr');
       if (isNew) tr.className = 'dash-row-new';
       tr.innerHTML =
-        '<td><small style="color:var(--mf-text-muted);white-space:nowrap;">' + (ev.time || '\u2014') + '</small></td>' +
+        '<td><small style="color:var(--mf-text-muted);white-space:nowrap;">' + esc(ev.time || '\u2014') + '</small></td>' +
         '<td><span class="badge bg-' + typeColor + '">' + finType + '</span></td>' +
         '<td style="max-width:170px;"><small class="d-block text-truncate" title="' + src + '">' + src + '</small></td>' +
         '<td>' + badgeHtml + '</td>' +
@@ -1043,17 +1019,17 @@
 
       var score = (ev.score !== null && ev.score !== undefined) ? ev.score : 0;
       var pct = Math.min(score, 100);
-      var scoreBasedStatus = score >= 65 ? 'blocked' : score >= 40 ? 'monitor' : 'allowed';
-      var zoneName = score >= 65 ? 'Block' : score >= 40 ? 'Monitor' : 'Allow';
-      var zoneClass = score >= 65 ? 'zone-block' : score >= 40 ? 'zone-monitor' : 'zone-allow';
-      var statusName = score >= 65 ? 'BLOCKED' : score >= 40 ? 'MONITOR' : 'ALLOWED';
-      var statusColor = score >= 65 ? '#dc3545' : score >= 40 ? '#ffc107' : '#198754';
-      var iconType = score >= 65 ? 'error' : score >= 40 ? 'warning' : 'success';
-      var titleColor = score >= 65 ? 'danger' : score >= 40 ? 'warning' : 'success';
+      var blk = ev.status === 'blocked', mon = ev.status === 'monitor';
+      var flagged = blk || mon;
+      var zoneClass = blk ? 'zone-block' : mon ? 'zone-monitor' : 'zone-allow';
+      var statusName = blk ? 'BLOCKED' : mon ? 'MONITOR' : 'ALLOWED';
+      var statusColor = blk ? '#dc3545' : mon ? '#ffc107' : '#198754';
+      var iconType = blk ? 'error' : mon ? 'warning' : 'success';
+      var titleColor = blk ? 'danger' : mon ? 'warning' : 'success';
 
       var st = statusFromEvent(ev);
       var statusBadge = '<span class="' + st.cls + '"' + (st.style ? ' style="' + st.style + '"' : '') + '>' + st.label + '</span>';
-      var src = ev.source || ev.client_ip || '\u2014';
+      var src = esc(ev.source || ev.client_ip || '\u2014');
       var statusLabelHtml = '<div style="font-size:1.1rem;font-weight:700;color:' + statusColor + ';letter-spacing:0.08em;margin-bottom:4px;margin-top:-4px;">' + statusName + '</div>';
 
       Swal.fire({
@@ -1062,26 +1038,26 @@
         width: '600px',
         html: '<div class="text-start">' +
           '<div class="card mb-3"><div class="card-header"><strong><i class="bi bi-clock"></i> Timestamp</strong></div>' +
-          '<div class="card-body"><p class="mb-0"><strong>' + (ev.time || 'N/A') + '</strong></p></div></div>' +
+          '<div class="card-body"><p class="mb-0"><strong>' + esc(ev.time || 'N/A') + '</strong></p></div></div>' +
           '<div class="card"><div class="card-header"><strong><i class="bi bi-tag"></i> Event Information</strong></div>' +
           '<div class="card-body"><table class="table table-sm">' +
-          '<tr><td style="width:40%;"><strong>Event Type:</strong></td><td><span class="badge bg-' + (ev.type_color || 'secondary') + '">' + mapFinancialType(ev.type) + '</span></td></tr>' +
+          '<tr><td style="width:40%;"><strong>Event Type:</strong></td><td><span class="badge bg-' + esc(ev.type_color || 'secondary') + '">' + esc(ev.trigger || '\u2014') + '</span></td></tr>' +
           '<tr><td><strong>Status:</strong></td><td>' + statusBadge + '</td></tr>' +
           '<tr><td><strong>Source:</strong></td><td><small class="text-muted">' + src + '</small></td></tr>' +
-          '<tr><td><strong>Domain:</strong></td><td><code>' + (ev.domain || 'N/A') + '</code></td></tr>' +
+          '<tr><td><strong>Domain:</strong></td><td><code>' + esc(ev.domain || 'N/A') + '</code></td></tr>' +
           '<tr><td><strong>Threat Detected:</strong></td><td>' +
-          (ev.threat_detected
+          (flagged
             ? '<span class="badge bg-danger"><i class="bi bi-exclamation-triangle"></i> Yes</span>'
             : '<span class="badge bg-success"><i class="bi bi-shield-check"></i> No</span>') +
           '</td></tr>' +
-          '<tr><td><strong>Risk Score:</strong></td><td>' +
+          '<tr><td><strong>Score:</strong></td><td>' +
           '<div class="mf-score-bar" style="max-width:180px;">' +
           '<div class="mf-score-track"><div class="mf-score-pointer" style="left:' + pct + '%"></div></div>' +
-          '<div class="mf-score-label ' + zoneClass + '">' + score + ' &middot; ' + zoneName + ' Zone</div>' +
+          '<div class="mf-score-label ' + zoneClass + '">' + esc(score) + '/100</div>' +
           '</div></td></tr>' +
           '</table></div></div>' +
-          (ev.threat_detected
-            ? '<div class="alert alert-warning mt-3 mb-0"><strong><i class="bi bi-exclamation-triangle"></i> Security Notice:</strong> This event has been flagged as a potential security threat.</div>'
+          (flagged
+            ? '<div class="alert alert-warning mt-3 mb-0"><strong><i class="bi bi-exclamation-triangle"></i> Security Notice:</strong> The engine ' + (blk ? 'blocked' : 'flagged for monitoring') + ' this event.</div>'
             : '') +
           '</div>',
         showCloseButton: true,
@@ -1123,20 +1099,16 @@
       });
 
     /* ── Kernel state cache ────────────────────────────────────── */
-    var kernelState = { active: false, detail: '' };
+    var kernelState = { verified: false, label: 'Checking\u2026', detail: '' };
 
     function updateKernelInSynthesis() {
       var lbl = document.getElementById('synthKernelLabel');
       var det = document.getElementById('synthKernelDetail');
       if (!lbl) return;
-      if (kernelState.active) {
-        lbl.textContent = '\u2714 nftables DROP';
-        lbl.style.color = '#10b981';
-      } else {
-        lbl.textContent = 'Not enforced';
-        lbl.style.color = '#f59e0b';
-      }
-      det.textContent = kernelState.active ? 'inet/minifw \u00b7 active' : (kernelState.detail || '');
+      // Tick only for the engine-verified rule, not the audit-log fallback.
+      lbl.textContent = (kernelState.verified ? '\u2714 ' : '') + kernelState.label;
+      lbl.style.color = kernelState.verified ? '#10b981' : '#f59e0b';
+      det.textContent = kernelState.detail;
       det.style.color = '';
     }
 
@@ -1145,7 +1117,8 @@
         .then(function (r) { return r.ok ? r.json() : null; })
         .then(function (d) {
           if (!d) return;
-          kernelState.active = !!d.active;
+          kernelState.verified = !!d.active && d.label === 'Blocked at kernel level (nftables)';
+          kernelState.label = d.label || 'Not active';
           kernelState.detail = d.detail || '';
           updateKernelInSynthesis();
         })
@@ -1169,35 +1142,23 @@
     function renderSynthesis(ev) {
       var srcEl = document.getElementById('synthSource');
       if (!srcEl) return;
-      var x = ev.ai_explanation || {};
-      var score = x.score || ev.score || 0;
-      var rawCat = x.category || ev.type || 'Unknown';
-      var cat = rawCat;
-      var t = rawCat.toLowerCase();
-      if (t.includes('malware') || t.includes('yara')) cat = 'Banking trojan detected';
-      else if (t.includes('dns')) cat = 'Financial API abuse intercepted';
-      else if (t.includes('port')) cat = 'ERP credential misuse detected';
-      else if (t.includes('tor') || t.includes('anon')) cat = 'Unauthorized wire transfer blocked';
-      else if (t.includes('sni')) cat = 'Invoice fraud attempt prevented';
-      else if (t.includes('block')) cat = 'Ransomware attack blocked';
-      else cat = 'Client financial records secured';
-
+      var score = ev.score || 0;
       var src = ev.source || ev.client_ip || '\u2014';
       var dom = ev.domain ? ' \u2192 ' + ev.domain : '';
-      var signals = [].concat(x.asn || [], x.tls || [], x.behavior || []);
 
       srcEl.textContent = src + dom;
       document.getElementById('synthTimestamp').textContent = ev.time || '';
-      document.getElementById('synthAiCategory').textContent = cat;
-      document.getElementById('synthAiScore').textContent =
-        'Score ' + score + (signals.length ? ' \u00b7 ' + signals.slice(0, 2).join(' + ') : '');
-      document.getElementById('synthTime').textContent =
-        (Math.floor(Math.random() * 18) + 8) + ' ms';
+      document.getElementById('synthTrigger').textContent = ev.trigger || 'BLOCKED';
+      document.getElementById('synthAiCategory').textContent = ev.decision_owner || 'Policy Engine';
+      // Signals come from admin.py _build_ai_explanation; raw engine reasons if it has none.
+      var x = ev.ai_explanation || {};
+      var signals = [].concat(x.asn || [], x.tls || [], x.behavior || []);
+      document.getElementById('synthAiScore').textContent = signals.join(' \u00b7 ') || ev.reason || '';
 
       var riskBadge = document.getElementById('synthRiskBadge');
       var riskPct = document.getElementById('synthRiskPct');
       if (riskBadge && riskPct) {
-        riskPct.textContent = score + '%';
+        riskPct.textContent = score;
         riskBadge.style.display = '';
         var c = score >= 85 ? '#dc2626' : score >= 65 ? '#f59e0b' : '#6366f1';
         riskPct.style.color = c;
@@ -1211,9 +1172,7 @@
         actionBadge.textContent = 'BLOCKED';
       }
 
-      var ownerEl = document.getElementById('synthDecisionOwner');
       var traceEl = document.getElementById('synthTraceId');
-      if (ownerEl) ownerEl.textContent = ev.decision_owner || 'Policy Engine';
       if (traceEl) traceEl.textContent = ev.trace_id || '\u2014';
 
       var liveBadge = document.getElementById('synthLiveBadge');
@@ -1316,7 +1275,7 @@
         labels: Array(12).fill(''),
         datasets: [
           {
-            label: 'Fraud Interceptions',
+            label: 'Blocks',
             data: Array(12).fill(0),
             backgroundColor: 'rgba(239,68,68,0.75)',
             borderColor: '#ef4444',
@@ -1324,7 +1283,7 @@
             borderRadius: 3,
           },
           {
-            label: 'Total Monitored API Calls',
+            label: 'All events',
             data: Array(12).fill(0),
             backgroundColor: 'rgba(148,163,184,0.25)',
             borderColor: 'rgba(148,163,184,0.5)',

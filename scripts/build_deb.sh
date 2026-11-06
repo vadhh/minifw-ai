@@ -88,6 +88,9 @@ cp "${REPO_DIR}/models/mlp_model.pkl" "${BUILD_DIR}/opt/minifw_ai/models/"
 if [ -f "${REPO_DIR}/models/mlp_packet14.pkl" ]; then
     cp "${REPO_DIR}/models/mlp_packet14.pkl" "${BUILD_DIR}/opt/minifw_ai/models/"
 fi
+if [ -f "${REPO_DIR}/models/client_window_v1.json" ]; then
+    cp "${REPO_DIR}/models/client_window_v1.json" "${BUILD_DIR}/opt/minifw_ai/models/"
+fi
 
 # --- Copy YARA rules ---
 echo "[4/7] Copying YARA rules..."
@@ -153,10 +156,10 @@ Architecture: ${ARCH}
 Depends: python3 (>= 3.10), python3-venv, nftables, openssl, conntrack, logrotate, adduser
 Recommends: dnsmasq, zeek
 Maintainer: Afridho Ikhsan <afridho@minifw.local>
-Description: MiniFW-AI Behavioral Firewall Engine (ARCHANGEL 2.0) [${SECTOR}]
- AI-powered network behavioral firewall for gateway appliances.
- Features: DNS/flow analysis, MLP threat detection, YARA scanning,
- nftables enforcement, sector-specific policies, web admin dashboard.
+Description: MiniFW-AI gateway firewall engine (ARCHANGEL 2.0) [${SECTOR}]
+ Gateway firewall: DNS and flow rules, threat feeds, nftables enforcement,
+ sector-specific policies, web admin dashboard. Optional connection-rate AI
+ isolation (root must approve the exact model); MLP and YARA add score only.
  Sector: ${SECTOR}
  Supports 6 deployment sectors: education, hospital, government,
  finance, legal, establishment.
@@ -241,6 +244,23 @@ EOF
     echo ""
 else
     echo "  Secrets exist: ${ENV_FILE}"
+fi
+# New installs and upgrades both get the AI approval instructions once (comments only; nothing is enabled).
+if ! grep -q 'MINIFW_AI_ENFORCE_MODEL_SHA256' "${ENV_FILE}"; then
+    cat >> "${ENV_FILE}" <<'AIEOF'
+# Client-window AI (high rate of new connections from one client to one server) scores in shadow until
+# the line below names the SHA-256 of the exact model file (sha256sum /opt/minifw_ai/models/client_window_v1.json).
+# Fill policy ai_enforcement segments/exempt first, then restart minifw-ai.
+#MINIFW_AI_ENFORCE_MODEL_SHA256=
+# Model path override; default /opt/minifw_ai/models/client_window_v1.json
+#MINIFW_AI_WINDOW_MODEL=
+AIEOF
+fi
+# Check the policy the engine actually reads (the sector policy named in the unit), e.g. one kept from before an upgrade.
+POLICY_IN_USE=$(sed -n 's/^Environment=MINIFW_POLICY=//p' /etc/systemd/system/minifw-ai.service 2>/dev/null | head -n 1)
+if [ -n "${POLICY_IN_USE}" ] && [ -f "${POLICY_IN_USE}" ] && ! grep -q '"ai_enforcement"' "${POLICY_IN_USE}"; then
+    echo "  WARNING: ${POLICY_IN_USE} has no ai_enforcement block, so the AI will not isolate any client."
+    echo "           Copy the block from ${POLICY_IN_USE}.dpkg-dist (or the shipped policy) before enabling AI enforcement."
 fi
 
 

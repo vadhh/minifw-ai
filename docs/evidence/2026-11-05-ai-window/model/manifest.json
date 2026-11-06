@@ -1,0 +1,41 @@
+{
+  "written_utc": "2026-11-05T08:41:06+00:00",
+  "purpose": "Pre-commitment for the client-window-v1 held-out evaluation; written before any held-out data.",
+  "model_file": "models/client_window_v1.json",
+  "model_sha256": "d06ce40ea3276d2cedac9e354075c4aa74aa3987e08b35e40a95451d4e69d6ee",
+  "schema": "client-window-v1",
+  "features": [
+    "n60"
+  ],
+  "coef": 0.16600915769055902,
+  "intercept": -4.250124649214461,
+  "block_probability": 0.9,
+  "implied_n60_threshold": 38.83731064143182,
+  "smallest_integer_n60_flagged": 39,
+  "training_input_sha256": {
+    "education/actor-10.10.0.31.jsonl": "aa7fd659a8035a26c3c96c780bb8f3cafb2679373c7a9ee2bd3437271becccd7",
+    "education/actor-10.10.0.32.jsonl": "580c6c41ca86af54ce558fc223deefb06587dae4820b8ece43d9041b54958d90",
+    "education/actor-10.10.0.33.jsonl": "f8fd95a890189b9607604c6c1bef4dbb5cb9d3f03ae88b94acbdf0cfdb1f051b",
+    "education/actor-10.10.0.34.jsonl": "311357dd293dd6844cf0e432decb5b102c04dd77502027d1b68c50f35bb18b6f",
+    "education/actor-10.10.0.41.jsonl": "1f2bcf53d02c1ead036f3441429365e8e8ef25e6a1685aaa45894375969a1e19",
+    "education/actor-10.10.0.42.jsonl": "52a1c6866fa58d034974c9533b15ccb053efd881f9ed4139406e945f4c39ff06",
+    "education/actor-10.10.0.43.jsonl": "6e5ba32f60d237ac3edb3584faca81781be2c4d1504979932904e3e327635fba",
+    "education/actor-10.10.0.44.jsonl": "0cd245ca113b7a78c817a3d11e909121cb4ea6658e7dc7827c6827dcd46943e5",
+    "education/flows.jsonl.gz": "4f5d6633606429d58d451c83374c238f23d38b2ca6a93b68cb9f2d6095553816",
+    "financial/actor-10.10.0.31.jsonl": "6c1351b55c3df89cbe250d369a07ba080c272cf0f314d8dbf23562cca9d5d93f",
+    "financial/actor-10.10.0.32.jsonl": "0a567bc4a7cbf366f1fb587d78a2121cee9d498e4c9d0c8ba104b9074f3559ed",
+    "financial/actor-10.10.0.33.jsonl": "760784f06455f89dd5ce1d4bf4a74de47a61dd7a8714b3b153a73768fde0ffe2",
+    "financial/actor-10.10.0.34.jsonl": "501ef4d93541355636a6b19fc42ee1684e081b14033e10a6c6765ec921d76f4d",
+    "financial/actor-10.10.0.41.jsonl": "be8fc5a5e70a82d13ed0848e5299833fa61351653dd0e94993c4e1579f6d1b7e",
+    "financial/actor-10.10.0.42.jsonl": "c8d13a88ee876fc4b7b0012f770659e18e3617082bf940c11fc6ba276ea13c60",
+    "financial/actor-10.10.0.43.jsonl": "f54585e2eab5e8aa3b93307f9b3a9170100443d780fd79296f17105f369c598b",
+    "financial/actor-10.10.0.44.jsonl": "f63211ebca85a49b6d0b03076f5251ff003a839086f0a9512346d0727090f05b",
+    "financial/flows.jsonl.gz": "d7b783fb2089cde8c85f8d17cd144a851180590c46e7c7e61f2f8db09eb10401"
+  },
+  "scripts_sha256": {
+    "train_window_model.py": "a0876f2524f6fe61825b525361a8a32344a3ba6eebbf93fa086aad1e57c3934b",
+    "evaluate_window_model.py": "8932c2cc2eaf28140a1889fd8eacdda23add69207a1fcc6b7b91d42c43adf348"
+  },
+  "evaluation_command": "python3 -I docs/evidence/2026-11-05-ai-window/model/evaluate_window_model.py <run-dir> [...]",
+  "acceptance_rule": "Held-out pass requires: 0 human clients isolated, and at least 90% of fast-guesser clients (kind tool and tool1) isolated within 60 s of their first connection. The benign automated poller is expected to be flagged; it is reported separately and shows why servers/pollers must be exempt or out of AI segments. Slow guessers are out of scope (D3) and reported. If held-out fails, C20 ships with AI shadow-only and the report says so. No retraining or threshold change on held-out results."
+}

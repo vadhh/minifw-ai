@@ -29,12 +29,12 @@ def test_resolve_decision_owner_hard_gate():
 
 def test_resolve_decision_owner_mlp():
     from minifw_ai.main import _resolve_decision_owner
-    assert _resolve_decision_owner(["mlp_threat_score"]) == "AI Engine (MLP)"
+    assert _resolve_decision_owner(["mlp_threat_score"]) == "Policy score (MLP contributed)"
 
 
 def test_resolve_decision_owner_yara():
     from minifw_ai.main import _resolve_decision_owner
-    assert _resolve_decision_owner(["yara_match"]) == "YARA Scanner"
+    assert _resolve_decision_owner(["yara_match"]) == "Policy score (YARA contributed)"
 
 
 def test_resolve_decision_owner_default():
@@ -84,7 +84,7 @@ def test_simulator_event_has_decision_owner(monkeypatch):
     monkeypatch.delenv("PRODUCT_MODE", raising=False)
     m = _reload_simulator()
     ev = m._make_event("block")
-    assert ev["decision_owner"] in ("Hard Gate", "AI Engine (MLP)", "YARA Scanner", "Policy Engine")
+    assert ev["decision_owner"] in ("Hard Gate", "Policy score (MLP contributed)", "Policy score (YARA contributed)", "Policy Engine")
 
 
 def test_simulator_resolves_education_sector(monkeypatch):

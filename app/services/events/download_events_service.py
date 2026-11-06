@@ -299,6 +299,9 @@ def _load_events(action_filter: str = None):
     if len(df) == 0:
         return df
     df["ts"] = pd.to_datetime(df["ts"])
+    # Older events.jsonl rows predate these fields.
+    for col, default in (("decision_owner", "Policy Engine"), ("ai_window_mode", "not_run")):
+        df[col] = df[col].fillna(default) if col in df else default
     if action_filter and action_filter.lower() != "all":
         df = df[df["action"].str.lower() == action_filter.lower()].copy()
     return df
@@ -313,12 +316,13 @@ def generate_evidence_csv_report(action_filter: str = None, kernel_status: dict 
     detail = kernel_status.get("detail", "")
     buf.write(f"# MiniFW-AI Evidence Report\n")
     buf.write(f"# Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-    buf.write(f"# Kernel: {label} — {detail}\n")
+    buf.write(f"# Kernel status at export time (not per event): {label} — {detail}\n")
+    buf.write("# score: total of all signals, 0-100 (not an AI score)\n")
     if action_filter and action_filter.lower() != "all":
         buf.write(f"# Filter: {action_filter.upper()} events only\n")
 
     writer = csv.writer(buf)
-    writer.writerow(["timestamp", "client_ip", "domain", "action", "ai_score", "reasons", "kernel_status"])
+    writer.writerow(["timestamp", "client_ip", "domain", "action", "score", "decision_owner", "ai_window_mode", "reasons", "kernel_status_at_export"])
 
     if len(df) > 0:
         for _, row in df.iterrows():
@@ -329,6 +333,8 @@ def generate_evidence_csv_report(action_filter: str = None, kernel_status: dict 
                 row.get("domain", ""),
                 row.get("action", ""),
                 row.get("score", ""),
+                row.get("decision_owner", ""),
+                row.get("ai_window_mode", ""),
                 reasons,
                 label,
             ])
@@ -340,7 +346,7 @@ def generate_evidence_csv_report(action_filter: str = None, kernel_status: dict 
 
 class _EvidencePDF(FPDF):
     def __init__(self, kernel_status: dict):
-        super().__init__()
+        super().__init__(orientation="L")  # landscape: room for owner / AI-window columns
         self._kernel = kernel_status
 
     def header(self):
@@ -408,13 +414,13 @@ def generate_evidence_pdf_report(action_filter: str = None, kernel_status: dict 
         pdf.set_text_color(146, 64, 14)
     pdf.set_font("Helvetica", "B", 9)
     status_icon = "[OK]" if active else "[!]"
-    pdf.cell(0, 7, f"  {status_icon}  Kernel Enforcement: {label}  -  {detail}", ln=True, fill=True)
+    pdf.cell(0, 7, f"  {status_icon}  Kernel Enforcement (at export time): {label}  -  {detail}", ln=True, fill=True)
     pdf.set_text_color(0, 0, 0)
     pdf.ln(4)
 
     # ── Table ────────────────────────────────────────────────────
-    col_widths = [38, 28, 52, 16, 16, 0]  # last column takes remaining
-    headers = ["Timestamp", "Client IP", "Domain", "Action", "AI Score", "Reasons"]
+    col_widths = [38, 28, 52, 16, 42, 36, 20, 0]  # last column takes remaining
+    headers = ["Timestamp", "Client IP", "Domain", "Action", "Score (all signals, 0-100)", "Decision owner", "AI window", "Reasons"]
     usable = pdf.w - pdf.l_margin - pdf.r_margin
     col_widths[-1] = usable - sum(col_widths[:-1])
 
@@ -449,6 +455,8 @@ def generate_evidence_pdf_report(action_filter: str = None, kernel_status: dict 
             domain = str(ev.get("domain", ""))
             action = str(ev.get("action", ""))
             score = str(ev.get("score", ""))
+            owner = str(ev.get("decision_owner", ""))
+            ai_mode = str(ev.get("ai_window_mode", ""))
             reasons = ", ".join(ev["reasons"]) if isinstance(ev.get("reasons"), list) else str(ev.get("reasons", ""))
 
             # Truncate domain/reasons for cell fit
@@ -470,7 +478,9 @@ def generate_evidence_pdf_report(action_filter: str = None, kernel_status: dict 
             pdf.set_fill_color(*bg)
 
             pdf.cell(col_widths[4], 5, score, border=0, fill=True, align="C")
-            pdf.cell(col_widths[5], 5, reasons, border=0, fill=True)
+            pdf.cell(col_widths[5], 5, owner, border=0, fill=True)
+            pdf.cell(col_widths[6], 5, ai_mode, border=0, fill=True, align="C")
+            pdf.cell(col_widths[7], 5, reasons, border=0, fill=True)
             pdf.ln()
 
     output = BytesIO(bytes(pdf.output()))

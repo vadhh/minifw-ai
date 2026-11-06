@@ -1,0 +1,227 @@
+[
+  {
+    "test": "c20_policy_basis",
+    "actual": {
+      "active_policy_has_ai_enforcement": true,
+      "ai_enforcement": {
+        "segments": [
+          "student",
+          "staff",
+          "guest",
+          "default"
+        ],
+        "exempt": [],
+        "block_timeout_seconds": 900
+      },
+      "harness_changes": "ip_timeout_seconds=15 (baseline expiry), lab collector paths",
+      "model_sha256": "d06ce40ea3276d2cedac9e354075c4aa74aa3987e08b35e40a95451d4e69d6ee"
+    },
+    "time": "2026-11-05T09:01:42.633774+00:00"
+  },
+  {
+    "test": "c20_a_no_approval_shadow",
+    "actual": {
+      "tool": "10.10.0.81",
+      "humans": [
+        "10.10.0.82",
+        "10.10.0.83"
+      ],
+      "approval": "none",
+      "mode": "shadow_only",
+      "segment": "student",
+      "max_n60": 297,
+      "max_probability": 1.0,
+      "tool_scored_events": 297,
+      "isolated_ips": [],
+      "tool_routed_after": "allowed",
+      "decided_by": "tool n60>=297 p=1.000, mode shadow_only, no nft element for any actor",
+      "ai_state": {
+        "state_file_after": "absent (no transition since boot)",
+        "journal": [
+          "2026-11-05 16:01:44,440 - INFO - [STATE] Initial protection state: AI_ENHANCED_PROTECTION"
+        ],
+        "stayed_ai_enhanced": true
+      }
+    },
+    "time": "2026-11-05T09:02:38.664092+00:00"
+  },
+  {
+    "test": "c20_b_approved_isolation",
+    "actual": {
+      "tool": "10.10.0.87",
+      "humans": [
+        "10.10.0.88",
+        "10.10.0.89"
+      ],
+      "approval": "exact model SHA",
+      "segment": "student",
+      "ai_enforcement_segments": [
+        "student",
+        "staff",
+        "guest",
+        "default"
+      ],
+      "lab_policy_change": null,
+      "block_event": {
+        "ts": "2026-11-05T09:03:01.151908+00:00",
+        "client_ip": "10.10.0.87",
+        "dst_ip": "198.18.0.2",
+        "dst_port": 443,
+        "segment": "student",
+        "action": "block",
+        "reasons": [
+          "ai_window_rate"
+        ],
+        "decision_owner": "AI Engine (client window)",
+        "score": 90,
+        "ai_window_n60": 39,
+        "ai_window_probability": 0.9024045897511963,
+        "ai_window_mode": "enforcing",
+        "ai_window_model_sha256": "d06ce40ea3276d2cedac9e354075c4aa74aa3987e08b35e40a95451d4e69d6ee"
+      },
+      "nft_element": "table inet minifw {\n\tset minifw_block_v4 {\n\t\ttype ipv4_addr\n\t\ttimeout 1h\n\t\telements = { 10.10.0.87 timeout 15m expires 14m59s940ms }\n\t}\n}",
+      "tool_routed_after": "failed:TimeoutError",
+      "humans_routed": {
+        "10.10.0.88": "allowed",
+        "10.10.0.89": "allowed"
+      },
+      "isolated_ips": [
+        "10.10.0.87"
+      ],
+      "decided_by": "block event reason ai_window_rate + owner AI Engine (client window); nft element timeout 15m; tool routed connect failed; humans not in set",
+      "ai_state": {
+        "state_file_after": "absent (no transition since boot)",
+        "journal": [
+          "2026-11-05 16:02:40,797 - INFO - [STATE] Initial protection state: AI_ENHANCED_PROTECTION"
+        ],
+        "stayed_ai_enhanced": true
+      }
+    },
+    "time": "2026-11-05T09:03:20.808449+00:00"
+  },
+  {
+    "test": "c20_c_other_sha_shadow",
+    "actual": {
+      "tool": "10.10.0.90",
+      "humans": [
+        "10.10.0.91"
+      ],
+      "approval": "98d4bf16c60e01e0e7780eaa581c3655e6483b7b17b7c15d3f524769666f489e",
+      "mode": "shadow_only",
+      "segment": "student",
+      "max_n60": 298,
+      "max_probability": 1.0,
+      "tool_scored_events": 298,
+      "isolated_ips": [],
+      "tool_routed_after": "allowed",
+      "decided_by": "tool n60>=298 p=1.000, mode shadow_only, no nft element for any actor",
+      "ai_state": {
+        "state_file_after": "absent (no transition since boot)",
+        "journal": [
+          "2026-11-05 16:03:23,118 - INFO - [STATE] Initial protection state: AI_ENHANCED_PROTECTION"
+        ],
+        "stayed_ai_enhanced": true
+      }
+    },
+    "time": "2026-11-05T09:04:17.353006+00:00"
+  },
+  {
+    "test": "c20_d_corrupt_model",
+    "actual": {
+      "engine_active": true,
+      "model_env": "/var/tmp/minifw-monday-education-20261105T090139Z/corrupt-window-model.json",
+      "tool": "10.10.0.92",
+      "tool_events": 600,
+      "ai_window_mode": "not_run",
+      "tool_isolated": false,
+      "journal_ai_window": [
+        "2026-11-05 16:04:19,955 - WARNING - [AI_WINDOW] Model /var/tmp/minifw-monday-education-20261105T090139Z/corrupt-window-model.json rejected (Unterminated string starting at: line 3 column 3 (char 36)); AI window scoring disabled"
+      ],
+      "baseline_scan_isolation": true,
+      "scan_reasons": [
+        "port_scan",
+        "hard_threat_gate_override"
+      ],
+      "decided_by": "engine active; all tool events ai_window_mode not_run; port_scan block of 10.10.0.20",
+      "ai_state": {
+        "state_file_after": "absent (no transition since boot)",
+        "journal": [
+          "2026-11-05 16:04:19,896 - INFO - [STATE] Initial protection state: AI_ENHANCED_PROTECTION"
+        ],
+        "stayed_ai_enhanced": true
+      }
+    },
+    "time": "2026-11-05T09:05:05.630523+00:00"
+  },
+  {
+    "test": "c20_d_missing_model",
+    "actual": {
+      "engine_active": true,
+      "model_env": "/var/tmp/minifw-monday-education-20261105T090139Z/absent-window-model.json",
+      "tool": "10.10.0.93",
+      "tool_events": 588,
+      "ai_window_mode": "not_run",
+      "tool_isolated": false,
+      "journal_ai_window": [
+        "2026-11-05 16:05:08,253 - INFO - [AI_WINDOW] No model at /var/tmp/minifw-monday-education-20261105T090139Z/absent-window-model.json; AI window scoring disabled"
+      ],
+      "baseline_scan_isolation": true,
+      "scan_reasons": [
+        "port_scan",
+        "hard_threat_gate_override"
+      ],
+      "decided_by": "engine active; all tool events ai_window_mode not_run; port_scan block of 10.10.0.20",
+      "ai_state": {
+        "state_file_after": "absent (no transition since boot)",
+        "journal": [
+          "2026-11-05 16:05:08,180 - INFO - [STATE] Initial protection state: AI_ENHANCED_PROTECTION"
+        ],
+        "stayed_ai_enhanced": true
+      }
+    },
+    "time": "2026-11-05T09:05:46.424102+00:00"
+  },
+  {
+    "test": "c20_e_restart_snapshot",
+    "actual": {
+      "holder": "10.10.0.95",
+      "held_connections": 60,
+      "conntrack_established_before_start": 60,
+      "events": 526,
+      "counted_n60": [],
+      "isolated": false,
+      "observed_seconds": 40,
+      "decided_by": "no nft element and no block event for the holder in 40 s after start; flows from the start snapshot not counted",
+      "ai_state": {
+        "state_file_after": "absent (no transition since boot)",
+        "journal": [
+          "2026-11-05 16:05:50,448 - INFO - [STATE] Initial protection state: AI_ENHANCED_PROTECTION"
+        ],
+        "stayed_ai_enhanced": true
+      }
+    },
+    "time": "2026-11-05T09:06:31.665193+00:00"
+  },
+  {
+    "test": "c20_summary",
+    "actual": {
+      "failed": [],
+      "scenarios": [
+        "a_no_approval_shadow",
+        "b_approved_isolation",
+        "c_other_sha_shadow",
+        "d_corrupt_model",
+        "d_missing_model",
+        "e_restart_snapshot"
+      ],
+      "ai_state": {
+        "state_file_after": "absent (no transition since boot)",
+        "journal": [
+          "2026-11-05 16:05:50,448 - INFO - [STATE] Initial protection state: AI_ENHANCED_PROTECTION"
+        ],
+        "stayed_ai_enhanced": true
+      }
+    },
+    "time": "2026-11-05T09:06:32.043884+00:00"
+  }
+]

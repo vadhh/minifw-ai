@@ -7,6 +7,7 @@ import tarfile
 
 import pytest
 
+from minifw_ai import maintenance
 from minifw_ai.maintenance import allowed, database_copy, validate_archive
 
 
@@ -93,3 +94,13 @@ def test_read_regular_rejects_fifo_without_blocking(tmp_path):
     os.mkfifo(fifo)
     with pytest.raises(ValueError):
         read_regular(fifo)
+
+
+@pytest.mark.parametrize("installed,ok", [("2.2.12-finance", True), ("2.2.11-education", True), ("2.2.12-hospital", False)])
+def test_backup_supports_current_financial_and_education_releases(monkeypatch, installed, ok):
+    monkeypatch.setattr(maintenance.subprocess, "check_output", lambda *a, **k: installed + "\n")
+    if ok:
+        assert maintenance.package_version() == installed
+    else:
+        with pytest.raises(ValueError):
+            maintenance.package_version()

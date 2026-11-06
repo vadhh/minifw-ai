@@ -121,7 +121,38 @@ def _format_event(event: dict) -> dict:
         "segment": event.get("segment", "default"),
         "client_ip": client_ip,
         "domain": domain,
+        "decision_owner": event.get("decision_owner", "Policy Engine"),
+        "trigger": _trigger_label(status, reasons),
+        "ai_window_mode": event.get("ai_window_mode", "not_run"),
+        "ai_window_n60": event.get("ai_window_n60"),
+        "ai_window_probability": event.get("ai_window_probability"),
     }
+
+
+def _trigger_label(status: str, reasons: list) -> str:
+    """What decided this event, from exact engine reason tokens (precedence as in main.py)."""
+    if status == "allowed":
+        return "Allowed"
+    toks = set(reasons)
+    if "ai_window_rate" in toks:
+        return "AI connection-rate isolation (15 min)"
+    if "hard_threat_gate_override" in toks:
+        return "Hard gate (packet rate/burst/port scan)"
+    if any(str(t).startswith("sector_rule:") for t in toks):
+        return "Sector rule"
+    if toks & {"dns_denied_domain", "tls_sni_denied_domain", "deny_domain_client_ipv4_isolation"}:
+        return "Deny-list domain match"
+    if "ip_denied_tor_anonymizer" in toks:
+        return "Deny-list IP/Tor match"
+    if "asn_denied" in toks:
+        return "ASN deny-list match"
+    if status == "monitor":
+        return "Monitored"
+    if any(str(t).startswith(("tls_version_below_minimum:", "vpn_tunnel:")) for t in toks):
+        return "Protocol policy (TLS version/VPN)"
+    # Remaining blocks: summed score (DNS tunnel, burst, MLP, YARA) reached the block threshold.
+    # Not decision_owner: it names MLP/YARA, which only add score.
+    return "Score threshold"
 
 
 def _determine_event_type(action: str, reasons: list, event: dict) -> str:
@@ -156,13 +187,15 @@ def _get_sample_events():
 def get_event_statistics(events=None):
     if events is None:
         events = get_recent_events(limit=500)
-    stats = {"total_allowed": 0, "total_blocked": 0, "threats_detected": 0}
+    stats = {"total_allowed": 0, "total_blocked": 0, "total_monitored": 0, "threats_detected": 0}
     for ev in events:
         s = ev.get("status")
         if s == "allowed":
             stats["total_allowed"] += 1
         elif s == "blocked":
             stats["total_blocked"] += 1
+        elif s == "monitor":
+            stats["total_monitored"] += 1
         if ev.get("threat_detected"):
             stats["threats_detected"] += 1
     return stats
@@ -172,18 +205,20 @@ def get_detection_counters(events=None):
     if events is None:
         events = get_recent_events(limit=500)
     counters = {
-        "hard_gate": 0, "ai_scored": 0, "yara": 0,
+        "hard_gate": 0, "ai_window": 0, "ai_scored": 0, "yara": 0,
         "dns_tunnel": 0, "port_scan": 0, "tor_anon": 0, "sni_hits": 0,
     }
     for ev in events:
-        r = ev.get("reason", "").lower()
-        if "hard_threat_gate" in r:   counters["hard_gate"]  += 1
-        if "mlp_threat_score" in r:   counters["ai_scored"]  += 1
-        if "yara" in r:               counters["yara"]       += 1
-        if "dns_tunnel" in r:         counters["dns_tunnel"] += 1
-        if "port_scan" in r or "pps" in r: counters["port_scan"] += 1
-        if "tor" in r or "anonymizer" in r: counters["tor_anon"] += 1
-        if "tls_sni" in r or "sni_deny" in r or "sni" in r: counters["sni_hits"] += 1
+        # Exact engine reason tokens: substrings would count "tor" in "sector_rule:", "ip" in "ipv6_...".
+        toks = ev.get("reason", "").split(", ")
+        if "hard_threat_gate_override" in toks: counters["hard_gate"] += 1
+        if "ai_window_rate" in toks: counters["ai_window"] += 1
+        if any(t.startswith("mlp_threat_score") for t in toks): counters["ai_scored"] += 1
+        if any(t.startswith("yara_") for t in toks): counters["yara"] += 1
+        if any(t.startswith("dns_tunnel_") for t in toks): counters["dns_tunnel"] += 1
+        if {"port_scan", "pps_saturation", "burst_flood"} & set(toks): counters["port_scan"] += 1
+        if "ip_denied_tor_anonymizer" in toks: counters["tor_anon"] += 1
+        if "tls_sni_denied_domain" in toks: counters["sni_hits"] += 1
     return counters
 
 
@@ -248,8 +283,7 @@ def _compute_collector_status() -> dict:
 def get_system_uptime() -> str:
     try:
         with open("/proc/uptime") as f:
-            uptime_seconds = float(f.read().split()[0])
-        pct = min(uptime_seconds / (30 * 24 * 3600) * 100, 100.0)
-        return f"{pct:.1f}%"
+            uptime_seconds = int(float(f.read().split()[0]))
+        return f"{uptime_seconds // 86400}d {uptime_seconds % 86400 // 3600}h"
     except Exception:
         return "N/A"
