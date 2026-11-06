@@ -245,8 +245,10 @@ def evaluate_hard_threat(
         if getattr(flow, "packet_metadata_only", False) and flow.get_duration() < 1.0:
             continue
 
-        # Rule 1: PPS Saturation (>200 packets/sec)
-        if flow.pkts_per_sec > 200:
+        # Rule 1: PPS Saturation (>200 packets/sec). Packet sensor only, like rules 2-4: on conntrack
+        # counters one ordinary download or stream over ~2.3 Mbit/s exceeds it, while floods that open a
+        # new connection per packet never do, so it would isolate legitimate clients for 24 h.
+        if flow.packet_timing_available and flow.pkts_per_sec > 200:
             return True, "pps_saturation"
 
         # Rule 2: Burst Flood (>300 packets in 1 second)
