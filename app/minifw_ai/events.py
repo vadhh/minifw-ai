@@ -36,7 +36,7 @@ class Event:
     mlp_features: list[float] | None = None
     ai_window_n60: int | None = None  # client-window AI: new TCP connections to this server:port in 60 s
     ai_window_probability: float | None = None
-    ai_window_mode: str = "not_run"  # not_run | shadow_only | enforcing (model approved; decision is in action/reasons)
+    ai_window_mode: str = "not_run"  # not_run | shadow_only | enforcing (model approved and this client in AI scope; decision is in action/reasons)
     ai_window_model_sha256: str = ""
 
 

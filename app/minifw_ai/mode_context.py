@@ -49,7 +49,7 @@ _MODE_UI: dict[str, ModeUI] = {
     "minifw_financial": ModeUI(
         product_mode="minifw_financial",
         label="Financial",
-        sublabel="PCI-DSS · Tor Blocking · Strict TLS",
+        sublabel="Financial policy · Tor/deny-list blocking · TLS checks need packet sensor",
         color="#10b981",
         bg="rgba(16,185,129,0.10)",
         css_class="mode-financial",

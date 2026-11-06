@@ -63,14 +63,14 @@ def test_one_connection_is_new_once_across_conntrack_zeek_and_packets():
     assert not observe_packet(tracker, request, subnets)[1]
 
 
-def _run_engine(tmp_path, monkeypatch, observations, *, approve, sector="education", mode="minifw_school"):
+def _run_engine(tmp_path, monkeypatch, observations, *, approve, sector="education", mode="minifw_school", policy=None):
     from minifw_ai import main
     from minifw_ai.state_manager import ProtectionState, StateManager
 
     model_path = tmp_path / "client_window_v1.json"
     model_path.write_bytes(MODEL)
     env = {
-        "MINIFW_POLICY": str(ROOT / f"config/modes/{mode}/policy.json"),
+        "MINIFW_POLICY": str(policy or ROOT / f"config/modes/{mode}/policy.json"),
         "MINIFW_FEEDS": str(tmp_path / "feeds"), "MINIFW_LOG": str(tmp_path / "events.jsonl"),
         "MINIFW_FLOW_RECORDS": str(tmp_path / "flows.jsonl"), "MINIFW_AUDIT_LOG": str(tmp_path / "audit.jsonl"),
         "MINIFW_DNS_SOURCE": "none", "AI_ENABLED": "1", "DEGRADED_MODE": "0", "DEMO_MODE": "1",
@@ -149,7 +149,18 @@ def test_engine_ai_only_isolation(tmp_path, monkeypatch, scenario):
         enforce.assert_not_called()
         assert not any("ai_window_rate" in e["reasons"] for e in events)
         assert last["action"] == "allow" and last["score"] == 0
-        assert {e["ai_window_mode"] for e in events} == {"shadow_only" if scenario == "shadow" else "enforcing"}
+        assert {e["ai_window_mode"] for e in events} == {"shadow_only"}  # not approved, or admin out of AI scope
+
+
+def test_policy_without_ai_enforcement_is_shadow_only_and_warns(tmp_path, monkeypatch, caplog):
+    policy = json.loads((ROOT / "config/modes/minifw_school/policy.json").read_text())
+    del policy["ai_enforcement"]  # a customised policy kept from before the upgrade
+    (tmp_path / "policy.json").write_text(json.dumps(policy))
+    enforce, events = _run_engine(tmp_path, monkeypatch, guesses(), approve=True, policy=tmp_path / "policy.json")
+    enforce.assert_not_called()
+    assert events[-1]["ai_window_probability"] > 0.9 and events[-1]["action"] == "allow"
+    assert {e["ai_window_mode"] for e in events} == {"shadow_only"}
+    assert "will not isolate any client" in caplog.text
 
 
 @pytest.mark.parametrize("mode,excluded", [("minifw_financial", {"dmz", "trading"}), ("minifw_school", {"admin"})])
@@ -176,3 +187,55 @@ def test_policy_save_keeps_ai_enforcement(tmp_path, monkeypatch, mode, excluded)
     ]:
         save()
         assert json.loads(policy.read_text())["ai_enforcement"] == block
+
+
+def test_only_the_first_conntrack_poll_is_initial(tmp_path, monkeypatch):
+    from itertools import islice
+    from minifw_ai import collector_flow
+    path = tmp_path / "nf_conntrack"
+    path.write_text(f"ipv4 2 tcp 6 117 TIME_WAIT src={CLIENT} dst={SERVER} sport=40000 dport=22 "
+                    f"src={SERVER} dst={CLIENT} sport=22 dport=40000 [ASSURED] mark=0 use=2\n")
+    monkeypatch.setattr(collector_flow.time, "sleep", lambda _: None)
+    assert [s.initial for s in islice(collector_flow.stream_conntrack_flows(str(path)), 3)] == [True, False, False]
+
+
+@pytest.mark.parametrize("new_ports", [0, 15])
+def test_restart_snapshot_does_not_trigger_port_scan(tmp_path, monkeypatch, new_ports):
+    # Connections already open when the engine (re)starts, e.g. left by an earlier scan, as after Save -> Apply.
+    stale = [("flow", ConntrackFlow(CLIENT, SERVER, 1000 + i, "tcp", 30000 + i, initial=True)) for i in range(20)]
+    scan = [("flow", ConntrackFlow(CLIENT, SERVER, 2000 + i, "tcp", 31000 + i)) for i in range(new_ports)]
+    enforce, events = _run_engine(tmp_path, monkeypatch, stale + guesses(n=1) + scan, approve=False)
+    assert all(e["ai_window_n60"] is None for e in events[:20])  # snapshot is not counted as new connections
+    if new_ports:
+        assert "port_scan" in events[-1]["reasons"] and enforce.called  # a real scan after the restart still blocks
+    else:
+        enforce.assert_not_called()
+        assert not any("port_scan" in e["reasons"] for e in events)
+
+
+def test_invalid_exempt_entry_disables_ai_isolation(tmp_path, monkeypatch, caplog):
+    policy = json.loads((ROOT / "config/modes/minifw_school/policy.json").read_text())
+    policy["ai_enforcement"]["exempt"] = ["10.10.0.0/33"]  # typo: the operator's exemption cannot be honoured
+    (tmp_path / "policy.json").write_text(json.dumps(policy))
+    enforce, events = _run_engine(tmp_path, monkeypatch, guesses(), approve=True, policy=tmp_path / "policy.json")
+    enforce.assert_not_called()
+    assert {e["ai_window_mode"] for e in events} == {"shadow_only"}
+    assert "AI isolation disabled" in caplog.text
+
+
+def test_engine_publishes_protection_state_and_ai_status_for_dashboard(tmp_path, monkeypatch):
+    from minifw_ai import runtime_health
+    published = {}
+
+    class FakeHealth:
+        def __init__(self, *args):
+            self.snapshot = published
+
+        def observe(self, source):
+            pass
+
+    monkeypatch.setattr(runtime_health, "RuntimeHealth", FakeHealth)
+    _run_engine(tmp_path, monkeypatch, guesses(n=1), approve=True)
+    assert published["protection_state"] == "AI_ENHANCED_PROTECTION"
+    assert published["ai_window"] == {"model_sha256": hashlib.sha256(MODEL).hexdigest(), "approved": True,
+                                      "segments": ["student", "staff", "guest", "default"], "exempt": 0}

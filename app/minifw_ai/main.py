@@ -23,7 +23,7 @@ from minifw_ai.collector_zeek import stream_zeek_sni_events
 from minifw_ai.collector_packets import stream_packet_events, observe_packet, protocol_policy
 from minifw_ai.burst import BurstTracker
 from minifw_ai.client_window import (
-    DEFAULT_BLOCK_TIMEOUT, ClientWindow, enforcement_approved, load_model, may_isolate,
+    DEFAULT_BLOCK_TIMEOUT, ClientWindow, client_in_scope, enforcement_approved, load_model, may_isolate,
 )
 from minifw_ai.audit import (
     audit_daemon_start, audit_daemon_stop, audit_config_loaded,
@@ -331,10 +331,11 @@ def _resolve_decision_owner(reasons: list[str]) -> str:
         return "Protocol Policy"
     if any(reason.startswith("hard_threat_gate") for reason in reasons):
         return "Hard Gate"
+    # MLP and YARA only add score (they cannot block alone): attribute the contribution, not the decision.
     if any(reason == "mlp_threat_score" or reason.startswith("mlp_threat_score_") for reason in reasons):
-        return "AI Engine (MLP)"
+        return "Policy score (MLP contributed)"
     if any(reason.startswith(("yara_", "yara_match")) for reason in reasons):
-        return "YARA Scanner"
+        return "Policy score (YARA contributed)"
     return "Policy Engine"
 
 
@@ -579,12 +580,29 @@ def run():
     from minifw_ai.runtime_health import RuntimeHealth
     health = RuntimeHealth(os.environ.get("MINIFW_HEALTH_FILE", str(Path(log_path).with_name("runtime-health.json"))),
                            sources, table_name, chain, set_name)
-    # Client-window AI: may isolate on its own only for fast password guessing (see client_window.py).
+    # Client-window AI: may isolate on its own only for a high rate of new connections to one server (client_window.py).
     window_model = load_model()
     ai_cfg = pol.cfg.get("ai_enforcement", {}) or {}
+    try:
+        for cidr in ai_cfg.get("exempt", ()):
+            ipaddress.ip_network(cidr, strict=False)
+    except (TypeError, ValueError) as exc:
+        # Fail safe: never isolate while an intended exemption cannot be honoured.
+        logging.warning("[AI_WINDOW] Invalid ai_enforcement.exempt entry (%s); AI isolation disabled until it is fixed", exc)
+        ai_cfg = {}
+    if window_model and not ai_cfg.get("segments"):
+        logging.warning("[AI_WINDOW] Policy %s has no ai_enforcement segments: the client-window AI will not isolate "
+                        "any client. Add the ai_enforcement block to the policy (the shipped default policy, or "
+                        "policy.json.dpkg-dist after an upgrade, has it).", policy_path)
     ai_timeout = _safe_int_cast(ai_cfg.get("block_timeout_seconds"), DEFAULT_BLOCK_TIMEOUT)
     # The first conntrack snapshot after a (re)start, e.g. Save->Apply, reports every open connection as new.
     ai_window = ClientWindow(ignore_before=time.time() + 10)
+    if health.snapshot is not None:  # read by the dashboard (group-readable runtime-health.json)
+        health.snapshot["protection_state"] = state_manager.get_current_state().value
+        health.snapshot["ai_window"] = {"model_sha256": window_model.sha256 if window_model else "",
+                                        "approved": enforcement_approved(window_model),
+                                        "segments": list(ai_cfg.get("segments", [])),
+                                        "exempt": len(ai_cfg.get("exempt", []))}
     for source, observation in stream_collector_events(sources):
         health.observe("tick")
         client_ip, domain, flow_for_event, new_flow = None, "", None, None
@@ -629,6 +647,8 @@ def run():
             state_manager.check_and_transition()
         )
         if state_changed:
+            if health.snapshot is not None:
+                health.snapshot["protection_state"] = new_state.value
             _ai_on = state_manager.is_ai_enabled()
             mlp_detector, mlp_enabled = init_mlp_detector(_ai_on)
             yara_scanner, yara_enabled = init_yara_scanner(_ai_on)
@@ -821,7 +841,8 @@ def run():
             if state_manager.is_ai_enabled() and window_model and window_features:
                 try:
                     ai_window_probability = window_model.probability(window_features)
-                    ai_window_mode = "enforcing" if enforcement_approved(window_model) else "shadow_only"
+                    in_scope = enforcement_approved(window_model) and client_in_scope(segment, client_ip, ai_cfg)
+                    ai_window_mode = "enforcing" if in_scope else "shadow_only"
                     if action != "block" and may_isolate(window_model, ai_window_probability, segment, client_ip, ai_cfg):
                         action = "block"
                         score = max(score, int(ai_window_probability * 100))

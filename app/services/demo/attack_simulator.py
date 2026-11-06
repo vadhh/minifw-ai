@@ -148,9 +148,9 @@ def _resolve_decision_owner(reasons: list[str]) -> str:
     if "hard_threat_gate" in reasons:
         return "Hard Gate"
     if "mlp_threat_score" in reasons:
-        return "AI Engine (MLP)"
+        return "Policy score (MLP contributed)"
     if "yara_match" in reasons:
-        return "YARA Scanner"
+        return "Policy score (YARA contributed)"
     return "Policy Engine"
 
 

@@ -118,10 +118,17 @@
                   <td><small class="text-muted">{{ e.time }}</small></td>
                   <td>
                     <span class="badge bg-{{ e.type_color }}">{{ e.type }}</span>
-                    {% if "hard_threat_gate" in (e.reason or "") %}
-                    <span class="badge mf-badge-hardgate ms-1"><i class="bi bi-lightning-fill"></i> HARD GATE</span>
-                    {% elif e.status == "blocked" and e.score %}
-                    <span class="badge mf-badge-ai-block ms-1"><i class="bi bi-cpu"></i> AI SCORED</span>
+                    {% set r = e.reason or "" %}
+                    {% if e.status == "blocked" and "ai_window_rate" in r %}
+                    <span class="badge mf-badge-ai-block ms-1" title="AI Engine (client window): isolated 15 min for 39+ new TCP connections to one server:port in 60 s"><i class="bi bi-cpu"></i> AI CLIENT WINDOW</span>
+                    {% elif "hard_threat_gate" in r %}
+                    <span class="badge mf-badge-hardgate ms-1" title="Hard gate: packet rate / burst / port scan"><i class="bi bi-lightning-fill"></i> HARD GATE</span>
+                    {% elif e.status == "blocked" and "sector_rule:" in r %}
+                    <span class="badge bg-secondary ms-1" title="Sector rule"><i class="bi bi-diagram-3"></i> SECTOR RULE</span>
+                    {% elif e.status == "blocked" and ("mlp_threat_score" in r or "yara" in r) %}
+                    <span class="badge bg-secondary ms-1" title="MLP/YARA added score; block reached with other signals"><i class="bi bi-calculator"></i> SCORE + MLP/YARA</span>
+                    {% elif e.status == "blocked" %}
+                    <span class="badge bg-secondary ms-1" title="Policy Engine: deny-list / threat-feed score"><i class="bi bi-shield-x"></i> POLICY</span>
                     {% endif %}
                   </td>
                   <td style="max-width:200px;">
@@ -135,13 +142,8 @@
                     {% endif %}
                   </td>
                   <td>
-                    {% if e.score is not none and e.score >= 65 %}
-                    <span class="badge bg-danger"><i class="bi bi-x-circle"></i> Blocked</span>
-                    {% elif e.score is not none and e.score >= 40 %}
-                    <span class="badge mf-badge-monitor"><i class="bi bi-eye"></i> Monitor</span>
-                    {% elif e.score is not none %}
-                    <span class="badge bg-success"><i class="bi bi-check-circle"></i> Allowed</span>
-                    {% elif e.status == "blocked" %}
+                    {# The engine's action; block thresholds differ per segment, so the score alone cannot tell. #}
+                    {% if e.status == "blocked" %}
                     <span class="badge bg-danger"><i class="bi bi-x-circle"></i> Blocked</span>
                     {% elif e.status == "monitor" %}
                     <span class="badge mf-badge-monitor"><i class="bi bi-eye"></i> Monitor</span>
@@ -149,7 +151,7 @@
                     <span class="badge bg-success"><i class="bi bi-check-circle"></i> Allowed</span>
                     {% endif %}
                     {% if e.score is not none %}
-                    <br><small class="{% if e.score >= 65 %}text-danger{% elif e.score >= 40 %}text-warning{% else %}text-success{% endif %} fw-semibold">score {{ e.score }}</small>
+                    <br><small class="text-muted fw-semibold">score {{ e.score }}</small>
                     {% endif %}
                   </td>
                   <td class="text-center">
@@ -464,6 +466,13 @@ function updateLastUpdateTime() {
 }
 
 // Parse reasons into styled breakdown items
+// Event fields (domain names, sources, reasons) come from network traffic: escape before building HTML.
+function esc(v) {
+  return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+
 function parseReasons(reasonStr) {
   if (!reasonStr || reasonStr === 'Normal traffic') {
     return '<span class="mf-reason-item reason-default"><i class="bi bi-check-circle"></i> Normal traffic — no threats detected</span>';
@@ -486,13 +495,13 @@ function parseReasons(reasonStr) {
       icon = 'bi-speedometer2'; cls = 'reason-rate';
     } else if (lower.indexOf('asn') !== -1) {
       icon = 'bi-building'; cls = 'reason-asn';
-    } else if (lower.indexOf('tor') !== -1 || lower.indexOf('anonymizer') !== -1) {
+    } else if (lower.indexOf('_tor_') !== -1 || lower.indexOf('anonymizer') !== -1) {
       icon = 'bi-incognito'; cls = 'reason-tor';
     } else {
       icon = 'bi-shield-x'; cls = 'reason-default';
     }
 
-    return '<span class="mf-reason-item ' + cls + '"><i class="bi ' + icon + '"></i> ' + part + '</span>';
+    return '<span class="mf-reason-item ' + cls + '"><i class="bi ' + icon + '"></i> ' + esc(part) + '</span>';
   }).join(' ');
 }
 
@@ -500,30 +509,14 @@ function parseReasons(reasonStr) {
 function viewEventDetails(event) {
   if (!event) return;
 
-  // Score determines the real action taken
+  // The engine's action decides the status; the score is shown for context only.
   var score = (event.score !== undefined && event.score !== null) ? event.score : null;
   var pct = score !== null ? Math.min(score, 100) : 0;
+  var scoreBasedStatus = event.status || 'allowed'; // 'allowed', 'monitor', 'blocked'
   var zoneName, zoneClass;
-  var scoreBasedStatus; // 'allowed', 'monitor', 'blocked'
-
-  if (score !== null) {
-    if (score >= 65) {
-      scoreBasedStatus = 'blocked';
-      zoneName = 'Block'; zoneClass = 'zone-block';
-    } else if (score >= 40) {
-      scoreBasedStatus = 'monitor';
-      zoneName = 'Monitor'; zoneClass = 'zone-monitor';
-    } else {
-      scoreBasedStatus = 'allowed';
-      zoneName = 'Allow'; zoneClass = 'zone-allow';
-    }
-  } else {
-    // Fall back to status field when no score available
-    scoreBasedStatus = event.status || 'allowed';
-    if (scoreBasedStatus === 'blocked') { zoneName = 'Block'; zoneClass = 'zone-block'; }
-    else if (scoreBasedStatus === 'monitor') { zoneName = 'Monitor'; zoneClass = 'zone-monitor'; }
-    else { zoneName = 'Allow'; zoneClass = 'zone-allow'; }
-  }
+  if (scoreBasedStatus === 'blocked') { zoneName = 'Block'; zoneClass = 'zone-block'; }
+  else if (scoreBasedStatus === 'monitor') { zoneName = 'Monitor'; zoneClass = 'zone-monitor'; }
+  else { zoneName = 'Allow'; zoneClass = 'zone-allow'; }
 
   // Determine icon, title color, and status label based on score-derived status
   var iconType, titleColor, statusLabel, statusLabelColor;
@@ -544,17 +537,38 @@ function viewEventDetails(event) {
     statusLabelColor = '#198754';
   }
 
-  // Determine detection method
+  // Determine detection method from the reasons (engine's decision_owner order; real action, not score bands)
   var reason = (event.reason || '').toLowerCase();
+  var blocked = event.status === 'blocked';
   var detectionMethod, detectionBadge, detectionExplain;
-  if (reason.indexOf('hard_threat_gate') !== -1) {
+  if (reason.indexOf('ai_window_rate') !== -1) {
+    detectionMethod = 'AI Engine (client window)';
+    detectionBadge = '<span class="badge mf-badge-ai-block"><i class="bi bi-cpu"></i> AI CLIENT WINDOW</span>';
+    detectionExplain = blocked
+      ? 'AI Engine (client window): isolated 15 min for 39+ new TCP connections to one server:port in 60 s. Does not see passwords or logins.'
+      : 'AI Engine (client window): 39+ new TCP connections to one server:port in 60 s; client not isolated.';
+  } else if (reason.indexOf('tls_version_below_minimum:') !== -1 || reason.indexOf('vpn_tunnel:') !== -1) {
+    detectionMethod = 'Protocol Policy';
+    detectionBadge = '<span class="badge bg-secondary"><i class="bi bi-shield-lock"></i> PROTOCOL POLICY</span>';
+    detectionExplain = 'Protocol policy: TLS version / VPN tunnel rule.';
+  } else if (reason.indexOf('hard_threat_gate') !== -1) {
     detectionMethod = 'Hard Gate';
     detectionBadge = '<span class="badge mf-badge-hardgate"><i class="bi bi-lightning-fill"></i> HARD GATE</span>';
-    detectionExplain = 'Deterministic block — matched a deny list or hard-coded rule. No AI scoring involved.';
-  } else if (scoreBasedStatus === 'blocked' && score > 0) {
-    detectionMethod = 'AI Scored';
-    detectionBadge = '<span class="badge mf-badge-ai-block"><i class="bi bi-cpu"></i> AI SCORED</span>';
-    detectionExplain = 'Probabilistic detection — blocked by MLP threat model and/or YARA rules.';
+    detectionExplain = 'Hard gate: packet rate / burst / port scan. No AI scoring involved.';
+  } else if (reason.indexOf('sector_rule:') !== -1) {
+    detectionMethod = 'Sector Rule';
+    detectionBadge = '<span class="badge bg-secondary"><i class="bi bi-diagram-3"></i> SECTOR RULE</span>';
+    detectionExplain = 'Sector rule (see reasons).';
+  } else if (reason.indexOf('mlp_threat_score') !== -1 || reason.indexOf('yara') !== -1) {
+    detectionMethod = 'Policy Engine (score)';
+    detectionBadge = '<span class="badge bg-secondary"><i class="bi bi-calculator"></i> SCORE + MLP/YARA</span>';
+    detectionExplain = blocked
+      ? 'MLP/YARA added score; block reached with other signals.'
+      : 'MLP/YARA added score (MLP max 30, YARA max 35 points); neither blocks alone.';
+  } else if (blocked) {
+    detectionMethod = 'Policy Engine';
+    detectionBadge = '<span class="badge bg-secondary"><i class="bi bi-shield-x"></i> POLICY</span>';
+    detectionExplain = 'Policy Engine: deny-list / threat-feed score.';
   } else {
     detectionMethod = 'Standard';
     detectionBadge = '<span class="badge bg-secondary">Standard</span>';
@@ -597,7 +611,7 @@ function viewEventDetails(event) {
             <strong><i class="bi bi-clock"></i> Timestamp</strong>
           </div>
           <div class="card-body">
-            <p class="mb-0"><strong>${event.time || 'N/A'}</strong></p>
+            <p class="mb-0"><strong>${esc(event.time || 'N/A')}</strong></p>
           </div>
         </div>
 
@@ -609,7 +623,7 @@ function viewEventDetails(event) {
             <table class="table table-sm">
               <tr>
                 <td style="width: 40%;"><strong>Event Type:</strong></td>
-                <td><span class="badge bg-${event.type_color || 'secondary'}">${event.type || 'Unknown'}</span></td>
+                <td><span class="badge bg-${esc(event.type_color || 'secondary')}">${esc(event.trigger || event.type || 'Unknown')}</span></td>
               </tr>
               <tr>
                 <td><strong>Detection Method:</strong></td>
@@ -647,11 +661,11 @@ function viewEventDetails(event) {
             <table class="table table-sm">
               <tr>
                 <td style="width: 40%;"><strong>Client IP:</strong></td>
-                <td><code>${event.client_ip || 'N/A'}</code></td>
+                <td><code>${esc(event.client_ip || 'N/A')}</code></td>
               </tr>
               <tr>
                 <td><strong>Domain:</strong></td>
-                <td><code>${event.domain || 'N/A'}</code>${piiHtml}</td>
+                <td><code>${esc(event.domain || 'N/A')}</code>${piiHtml}</td>
               </tr>
               <tr>
                 <td><strong>Sector:</strong></td>
@@ -659,7 +673,7 @@ function viewEventDetails(event) {
               </tr>
               <tr>
                 <td><strong>Full Source:</strong></td>
-                <td><small class="text-muted">${event.source || 'N/A'}</small></td>
+                <td><small class="text-muted">${esc(event.source || 'N/A')}</small></td>
               </tr>
             </table>
           </div>

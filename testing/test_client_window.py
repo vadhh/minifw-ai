@@ -62,3 +62,9 @@ def test_may_isolate_requires_exact_approval_segment_and_not_exempt(tmp_path, mo
     assert not cw.may_isolate(m, 0.99, "student", "10.10.0.99", cfg)  # exempt
     assert not cw.may_isolate(m, 0.99, "student", "fd00::1", cfg)  # IPv4-only enforcement
     assert not cw.may_isolate(None, 0.99, "student", "10.10.0.20", cfg)
+
+    assert cw.client_in_scope("student", "10.10.0.20", cfg)
+    assert not cw.client_in_scope("admin", "10.10.0.20", cfg)  # segment not listed
+    assert not cw.client_in_scope("student", "10.10.0.99", cfg)  # exempt
+    assert not cw.client_in_scope("student", "fd00::1", cfg)  # IPv6
+    assert not cw.client_in_scope("student", "10.10.0.20", {})  # policy without ai_enforcement

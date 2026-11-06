@@ -7,7 +7,8 @@ deployment sees 5-second poll times; only counts are used because finer timing i
 The model is a logistic regression stored as JSON (no pickle). It may isolate a client on its own only
 when root-only config (MINIFW_AI_ENFORCE_MODEL_SHA256) names the SHA-256 of this exact file, the
 client's segment is listed in policy ai_enforcement.segments, and the client is not exempt.
-Scope is fast password guessing (roughly 30+ attempts/min to one server); slower guessing is not observable here.
+It sees connections, not passwords or logins: the model isolates at 39 or more new connections to one
+server:port in 60 s; slower rates are not caught, and benign pollers at that rate look identical (exempt them).
 """
 from __future__ import annotations
 
@@ -98,6 +99,11 @@ def may_isolate(model: WindowModel | None, probability: float, segment: str, cli
     """True only for an approved model, high confidence, a listed segment and a non-exempt IPv4 client."""
     if not enforcement_approved(model) or probability < model.block_probability:
         return False
+    return client_in_scope(segment, client_ip, cfg)
+
+
+def client_in_scope(segment: str, client_ip: str, cfg: dict) -> bool:
+    """True for a segment listed in ai_enforcement.segments and a non-exempt IPv4 client."""
     if segment not in cfg.get("segments", ()):
         return False
     try:

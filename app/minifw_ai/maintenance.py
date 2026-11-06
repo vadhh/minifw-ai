@@ -1,4 +1,4 @@
-"""Private, quiesced backups; restore only the same v2.2.10 edition."""
+"""Private, quiesced backups; restore only onto the same version and edition (Financial or Education)."""
 import argparse
 import hashlib
 import io
@@ -29,8 +29,8 @@ def allowed(name):
 
 def package_version():
     version = subprocess.check_output(["dpkg-query", "-W", "-f=${Version}", "minifw-ai"], text=True).strip()
-    if version not in {"2.2.10-finance", "2.2.10-education"}:
-        raise ValueError("Only Financial/Education v2.2.10 is supported")
+    if not version.endswith(("-finance", "-education")):
+        raise ValueError("Only the Financial and Education editions are supported")
     return version
 
 

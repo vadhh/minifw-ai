@@ -28,6 +28,8 @@ class ConntrackFlow:
     packets_in: Optional[int] = None
     bytes_in: Optional[int] = None
     observed_at: Optional[float] = field(default=None, compare=False)
+    # From the collector's first poll: the connection was already open, e.g. when the engine (re)started.
+    initial: bool = field(default=False, compare=False)
 
     @property
     def counters(self):
@@ -80,6 +82,7 @@ class FlowStats:
     packet_timing_available: bool = True
     packet_metadata_only: bool = False
     counter_baseline: Optional[tuple] = None
+    pre_existing: bool = False  # open before the collector's first poll; not a new connection
     counter_started_at: Optional[float] = None
     counter_elapsed: float = 0.0
     tls_version: str = ""
@@ -307,6 +310,9 @@ class FlowTracker:
         is_new = previous is None or reset
         flow = self.update_flow(sample.client_ip, sample.dst_ip, sample.dst_port, sample.proto,
                                 src_port=sample.src_port)
+        if is_new and sample.initial:
+            # A restart (including dashboard Save -> Apply) must not see every open connection as new.
+            flow.pre_existing, is_new = True, False
         flow.packet_timing_available = False
         flow.last_seen = time.time()
         now = sample.observed_at if sample.observed_at is not None else time.monotonic()
@@ -419,7 +425,7 @@ class FlowTracker:
         return {
             flow.dst_port
             for flow in self.flows.values()
-            if flow.client_ip == client_ip
+            if flow.client_ip == client_ip and not flow.pre_existing
         }
 
     def detect_port_scan(
@@ -433,7 +439,8 @@ class FlowTracker:
         return len(ports) >= threshold, len(ports)
 
 
-def parse_conntrack_line(line: str, *, observed_at: Optional[float] = None) -> Optional[ConntrackFlow]:
+def parse_conntrack_line(line: str, *, observed_at: Optional[float] = None,
+                         initial: bool = False) -> Optional[ConntrackFlow]:
     """Parse procfs or conntrack -L TCP/UDP original and reply counters."""
     try:
         parts = line.split()
@@ -463,7 +470,8 @@ def parse_conntrack_line(line: str, *, observed_at: Optional[float] = None) -> O
         if any(value is not None and value < 0 for value in counters):
             return None
         return ConntrackFlow(client_ip, dst_ip, dst_port, proto, src_port, *counters,
-                             observed_at=time.monotonic() if observed_at is None else observed_at)
+                             observed_at=time.monotonic() if observed_at is None else observed_at,
+                             initial=initial)
     except (IndexError, KeyError, ValueError):
         return None
 
@@ -475,6 +483,7 @@ def _stream_conntrack_via_cli(poll_interval: float = 5.0) -> Iterator[tuple]:
     (e.g. Ubuntu 24.04 kernel 6.8 with CONFIG_NF_CONNTRACK_PROCFS=not set).
     Output format is identical to the procfs format — parse_conntrack_line() works unchanged.
     """
+    first = True
     while True:
         try:
             result = subprocess.run(
@@ -486,9 +495,10 @@ def _stream_conntrack_via_cli(poll_interval: float = 5.0) -> Iterator[tuple]:
             )
             snapshot_at = time.monotonic()
             for line in result.stdout.splitlines():
-                parsed = parse_conntrack_line(line.strip(), observed_at=snapshot_at)
+                parsed = parse_conntrack_line(line.strip(), observed_at=snapshot_at, initial=first)
                 if parsed:
                     yield parsed
+            first = False
         except FileNotFoundError:
             logging.warning(
                 "[FLOW] conntrack CLI not found — install with: apt install conntrack"
@@ -522,15 +532,17 @@ def stream_conntrack_flows(
         yield from _stream_conntrack_via_cli()
         return
 
+    first = True
     while True:
         try:
             with p.open("r") as f:
                 lines = f.readlines()
             snapshot_at = time.monotonic()
             for line in lines:
-                parsed = parse_conntrack_line(line.strip(), observed_at=snapshot_at)
+                parsed = parse_conntrack_line(line.strip(), observed_at=snapshot_at, initial=first)
                 if parsed:
                     yield parsed
+            first = False
             time.sleep(5)
         except Exception:
             logging.exception("[FLOW] Conntrack procfs read failed; retrying independently")

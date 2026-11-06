@@ -1,0 +1,24 @@
+# pre-test 2026-11-06T09:37:21+0700
+minifw-ai	2.2.11-finance
+policy_sha256=f51fdb90cdc41db0a1d85fdf5869332f3094ce624dffec5df8e134cb14d27018
+env_sha256=1c420abe3456d0aff05c1c9c9e3f2d5084348231d2de42c0254a180e8e53e613
+env_variable_names=['MINIFW_SECRET_KEY', 'MINIFW_ADMIN_PASSWORD']
+env_approval_lines=0
+state_file_sha256=db908063c504a440d014842577100064c5146635b3f80d1a0239c86948dda3ba
+dnsmasq_log_sha256=b9dfffe4b2e528d885bccac16597175945659ee1e5ccc165a7facb73f9ec4114
+minifw-ai active
+minifw-ai-web active
+dnsmasq failed
+table inet minifw {
+	set minifw_block_v4 {
+		type ipv4_addr
+		timeout 1h
+	}
+
+	chain forward {
+		type filter hook forward priority filter; policy accept;
+		ct state new counter packets 258 bytes 15480 comment "MiniFW-AI-Conntrack"
+		ip saddr @minifw_block_v4 counter packets 122 bytes 6900 drop comment "MiniFW-AI-Blocklist"
+	}
+}
+

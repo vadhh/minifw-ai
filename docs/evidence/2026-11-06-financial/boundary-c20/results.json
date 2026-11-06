@@ -1,0 +1,657 @@
+{
+  "test": "C20 (2.2.11-finance) client-window AI: attack-rate boundary and benign automation",
+  "host": "minifw-monday-financial (lab VM, via jump host minifw-labhost)",
+  "date": "2026-11-06",
+  "model_sha256": "d06ce40ea3276d2cedac9e354075c4aa74aa3987e08b35e40a95451d4e69d6ee",
+  "model_threshold": "p>=0.9 (p(38)=0.887, p(39)=0.902)",
+  "policy_changes": [
+    "segment_subnets.internal += 10.10.0.128/25 (lab clients; more specific than dmz 10.10.0.0/24)",
+    "ai_enforcement.exempt = [\"10.10.0.205/32\"] (case e only)"
+  ],
+  "ai_enforcement_segments_unchanged": [
+    "internal",
+    "guest",
+    "default"
+  ],
+  "env_change": "MINIFW_AI_ENFORCE_MODEL_SHA256=<model sha> appended to /etc/minifw/minifw.env",
+  "protection_state": "AI_ENHANCED_PROTECTION from start (state file removed before each run, as 5 Nov); no [STATE] transition in either run; DNS feeder 10.10.0.70 every 4 s",
+  "duration_s": 150,
+  "conntrack_poll_cadence_s_mean": 5.05,
+  "observed_boundary_per_min": 38,
+  "boundary_summary": "37/min never isolated (max n60 38, p 0.887; 4/4 runs). 38/min always isolated (n60 39, p 0.902; 4/4 runs, 60-88 s).",
+  "runs": {
+    "R1_main": [
+      {
+        "case": "attack_30pm",
+        "ip": "10.10.0.130",
+        "rate_per_min": 30.0,
+        "mode": "new",
+        "isolated": false,
+        "seconds_to_isolation": null,
+        "max_n60": 31,
+        "max_probability": 0.7102,
+        "segment": [
+          "internal"
+        ],
+        "ai_window_modes": [
+          "enforcing",
+          "not_run"
+        ],
+        "nft_element": null,
+        "block_reasons": null,
+        "block_owner": null,
+        "block_event_ts": null,
+        "block_event_n60": null,
+        "attempts": 75,
+        "failed_after_isolation": 0
+      },
+      {
+        "case": "attack_33pm",
+        "ip": "10.10.0.133",
+        "rate_per_min": 33.0,
+        "mode": "new",
+        "isolated": false,
+        "seconds_to_isolation": null,
+        "max_n60": 34,
+        "max_probability": 0.8013,
+        "segment": [
+          "internal"
+        ],
+        "ai_window_modes": [
+          "enforcing",
+          "not_run"
+        ],
+        "nft_element": null,
+        "block_reasons": null,
+        "block_owner": null,
+        "block_event_ts": null,
+        "block_event_n60": null,
+        "attempts": 83,
+        "failed_after_isolation": 0
+      },
+      {
+        "case": "attack_35pm",
+        "ip": "10.10.0.135",
+        "rate_per_min": 35.0,
+        "mode": "new",
+        "isolated": false,
+        "seconds_to_isolation": null,
+        "max_n60": 36,
+        "max_probability": 0.8489,
+        "segment": [
+          "internal"
+        ],
+        "ai_window_modes": [
+          "enforcing",
+          "not_run"
+        ],
+        "nft_element": null,
+        "block_reasons": null,
+        "block_owner": null,
+        "block_event_ts": null,
+        "block_event_n60": null,
+        "attempts": 88,
+        "failed_after_isolation": 0
+      },
+      {
+        "case": "attack_36pm",
+        "ip": "10.10.0.136",
+        "rate_per_min": 36.0,
+        "mode": "new",
+        "isolated": false,
+        "seconds_to_isolation": null,
+        "max_n60": 36,
+        "max_probability": 0.8489,
+        "segment": [
+          "internal"
+        ],
+        "ai_window_modes": [
+          "enforcing",
+          "not_run"
+        ],
+        "nft_element": null,
+        "block_reasons": null,
+        "block_owner": null,
+        "block_event_ts": null,
+        "block_event_n60": null,
+        "attempts": 90,
+        "failed_after_isolation": 0
+      },
+      {
+        "case": "attack_37pm",
+        "ip": "10.10.0.137",
+        "rate_per_min": 37.0,
+        "mode": "new",
+        "isolated": false,
+        "seconds_to_isolation": null,
+        "max_n60": 38,
+        "max_probability": 0.8868,
+        "segment": [
+          "internal"
+        ],
+        "ai_window_modes": [
+          "enforcing",
+          "not_run"
+        ],
+        "nft_element": null,
+        "block_reasons": null,
+        "block_owner": null,
+        "block_event_ts": null,
+        "block_event_n60": null,
+        "attempts": 93,
+        "failed_after_isolation": 0
+      },
+      {
+        "case": "attack_38pm",
+        "ip": "10.10.0.138",
+        "rate_per_min": 38.0,
+        "mode": "new",
+        "isolated": true,
+        "seconds_to_isolation": 84.8,
+        "max_n60": 39,
+        "max_probability": 0.9024,
+        "segment": [
+          "internal"
+        ],
+        "ai_window_modes": [
+          "enforcing",
+          "not_run"
+        ],
+        "nft_element": {
+          "timeout": 900,
+          "expires": 899
+        },
+        "block_reasons": [
+          "ai_window_rate"
+        ],
+        "block_owner": "AI Engine (client window)",
+        "block_event_ts": "2026-11-06T02:39:10.481422+00:00",
+        "block_event_n60": 39,
+        "attempts": 87,
+        "failed_after_isolation": 33
+      },
+      {
+        "case": "attack_39pm",
+        "ip": "10.10.0.139",
+        "rate_per_min": 39.0,
+        "mode": "new",
+        "isolated": true,
+        "seconds_to_isolation": 59.4,
+        "max_n60": 39,
+        "max_probability": 0.9024,
+        "segment": [
+          "internal"
+        ],
+        "ai_window_modes": [
+          "enforcing",
+          "not_run"
+        ],
+        "nft_element": {
+          "timeout": 900,
+          "expires": 899
+        },
+        "block_reasons": [
+          "ai_window_rate"
+        ],
+        "block_owner": "AI Engine (client window)",
+        "block_event_ts": "2026-11-06T02:38:45.155044+00:00",
+        "block_event_n60": 39,
+        "attempts": 84,
+        "failed_after_isolation": 45
+      },
+      {
+        "case": "attack_45pm",
+        "ip": "10.10.0.145",
+        "rate_per_min": 45.0,
+        "mode": "new",
+        "isolated": true,
+        "seconds_to_isolation": 53.9,
+        "max_n60": 39,
+        "max_probability": 0.9024,
+        "segment": [
+          "internal"
+        ],
+        "ai_window_modes": [
+          "enforcing",
+          "not_run"
+        ],
+        "nft_element": {
+          "timeout": 900,
+          "expires": 899
+        },
+        "block_reasons": [
+          "ai_window_rate"
+        ],
+        "block_owner": "AI Engine (client window)",
+        "block_event_ts": "2026-11-06T02:38:39.963763+00:00",
+        "block_event_n60": 39,
+        "attempts": 89,
+        "failed_after_isolation": 48
+      },
+      {
+        "case": "attack_60pm",
+        "ip": "10.10.0.160",
+        "rate_per_min": 60.0,
+        "mode": "new",
+        "isolated": true,
+        "seconds_to_isolation": 39.2,
+        "max_n60": 39,
+        "max_probability": 0.9024,
+        "segment": [
+          "internal"
+        ],
+        "ai_window_modes": [
+          "enforcing",
+          "not_run"
+        ],
+        "nft_element": {
+          "timeout": 900,
+          "expires": 899
+        },
+        "block_reasons": [
+          "ai_window_rate"
+        ],
+        "block_owner": "AI Engine (client window)",
+        "block_event_ts": "2026-11-06T02:38:24.876863+00:00",
+        "block_event_n60": 39,
+        "attempts": 95,
+        "failed_after_isolation": 56
+      },
+      {
+        "case": "a_poller_1s",
+        "ip": "10.10.0.201",
+        "rate_per_min": 60.0,
+        "mode": "new",
+        "isolated": true,
+        "seconds_to_isolation": 43.7,
+        "max_n60": 39,
+        "max_probability": 0.9024,
+        "segment": [
+          "internal"
+        ],
+        "ai_window_modes": [
+          "enforcing",
+          "not_run"
+        ],
+        "nft_element": {
+          "timeout": 900,
+          "expires": 899
+        },
+        "block_reasons": [
+          "ai_window_rate"
+        ],
+        "block_owner": "AI Engine (client window)",
+        "block_event_ts": "2026-11-06T02:38:29.735777+00:00",
+        "block_event_n60": 39,
+        "attempts": 97,
+        "failed_after_isolation": 53
+      },
+      {
+        "case": "b_poller_2s",
+        "ip": "10.10.0.202",
+        "rate_per_min": 30.0,
+        "mode": "new",
+        "isolated": false,
+        "seconds_to_isolation": null,
+        "max_n60": 31,
+        "max_probability": 0.7102,
+        "segment": [
+          "internal"
+        ],
+        "ai_window_modes": [
+          "enforcing",
+          "not_run"
+        ],
+        "nft_element": null,
+        "block_reasons": null,
+        "block_owner": null,
+        "block_event_ts": null,
+        "block_event_n60": null,
+        "attempts": 75,
+        "failed_after_isolation": 0
+      },
+      {
+        "case": "c_monitor_10s",
+        "ip": "10.10.0.203",
+        "rate_per_min": 6.0,
+        "mode": "new",
+        "isolated": false,
+        "seconds_to_isolation": null,
+        "max_n60": 6,
+        "max_probability": 0.0372,
+        "segment": [
+          "internal"
+        ],
+        "ai_window_modes": [
+          "enforcing",
+          "not_run"
+        ],
+        "nft_element": null,
+        "block_reasons": null,
+        "block_owner": null,
+        "block_event_ts": null,
+        "block_event_n60": null,
+        "attempts": 15,
+        "failed_after_isolation": 0
+      },
+      {
+        "case": "d_keepalive_1s",
+        "ip": "10.10.0.204",
+        "rate_per_min": 60.0,
+        "mode": "keepalive",
+        "isolated": false,
+        "seconds_to_isolation": null,
+        "max_n60": 1,
+        "max_probability": 0.0166,
+        "segment": [
+          "internal"
+        ],
+        "ai_window_modes": [
+          "enforcing",
+          "not_run"
+        ],
+        "nft_element": null,
+        "block_reasons": null,
+        "block_owner": null,
+        "block_event_ts": null,
+        "block_event_n60": null,
+        "attempts": 150,
+        "failed_after_isolation": 0
+      },
+      {
+        "case": "e_exempt_poller_1s",
+        "ip": "10.10.0.205",
+        "rate_per_min": 60.0,
+        "mode": "new",
+        "isolated": false,
+        "seconds_to_isolation": null,
+        "max_n60": 61,
+        "max_probability": 0.9972,
+        "segment": [
+          "internal"
+        ],
+        "ai_window_modes": [
+          "enforcing",
+          "not_run"
+        ],
+        "nft_element": null,
+        "block_reasons": null,
+        "block_owner": null,
+        "block_event_ts": null,
+        "block_event_n60": null,
+        "attempts": 150,
+        "failed_after_isolation": 0
+      }
+    ],
+    "R2_replicas_36_37_38": [
+      {
+        "case": "rep_36pm_0",
+        "ip": "10.10.0.170",
+        "rate_per_min": 36.0,
+        "mode": "new",
+        "isolated": false,
+        "seconds_to_isolation": null,
+        "max_n60": 36,
+        "max_probability": 0.8489,
+        "segment": [
+          "internal"
+        ],
+        "ai_window_modes": [
+          "enforcing",
+          "not_run"
+        ],
+        "nft_element": null,
+        "block_reasons": null,
+        "block_owner": null,
+        "block_event_ts": null,
+        "block_event_n60": null,
+        "attempts": 90,
+        "failed_after_isolation": 0
+      },
+      {
+        "case": "rep_36pm_1",
+        "ip": "10.10.0.171",
+        "rate_per_min": 36.0,
+        "mode": "new",
+        "isolated": false,
+        "seconds_to_isolation": null,
+        "max_n60": 36,
+        "max_probability": 0.8489,
+        "segment": [
+          "internal"
+        ],
+        "ai_window_modes": [
+          "enforcing",
+          "not_run"
+        ],
+        "nft_element": null,
+        "block_reasons": null,
+        "block_owner": null,
+        "block_event_ts": null,
+        "block_event_n60": null,
+        "attempts": 90,
+        "failed_after_isolation": 0
+      },
+      {
+        "case": "rep_36pm_2",
+        "ip": "10.10.0.172",
+        "rate_per_min": 36.0,
+        "mode": "new",
+        "isolated": false,
+        "seconds_to_isolation": null,
+        "max_n60": 36,
+        "max_probability": 0.8489,
+        "segment": [
+          "internal"
+        ],
+        "ai_window_modes": [
+          "enforcing",
+          "not_run"
+        ],
+        "nft_element": null,
+        "block_reasons": null,
+        "block_owner": null,
+        "block_event_ts": null,
+        "block_event_n60": null,
+        "attempts": 90,
+        "failed_after_isolation": 0
+      },
+      {
+        "case": "rep_37pm_0",
+        "ip": "10.10.0.173",
+        "rate_per_min": 37.0,
+        "mode": "new",
+        "isolated": false,
+        "seconds_to_isolation": null,
+        "max_n60": 38,
+        "max_probability": 0.8868,
+        "segment": [
+          "internal"
+        ],
+        "ai_window_modes": [
+          "enforcing",
+          "not_run"
+        ],
+        "nft_element": null,
+        "block_reasons": null,
+        "block_owner": null,
+        "block_event_ts": null,
+        "block_event_n60": null,
+        "attempts": 93,
+        "failed_after_isolation": 0
+      },
+      {
+        "case": "rep_37pm_1",
+        "ip": "10.10.0.174",
+        "rate_per_min": 37.0,
+        "mode": "new",
+        "isolated": false,
+        "seconds_to_isolation": null,
+        "max_n60": 38,
+        "max_probability": 0.8868,
+        "segment": [
+          "internal"
+        ],
+        "ai_window_modes": [
+          "enforcing",
+          "not_run"
+        ],
+        "nft_element": null,
+        "block_reasons": null,
+        "block_owner": null,
+        "block_event_ts": null,
+        "block_event_n60": null,
+        "attempts": 93,
+        "failed_after_isolation": 0
+      },
+      {
+        "case": "rep_37pm_2",
+        "ip": "10.10.0.175",
+        "rate_per_min": 37.0,
+        "mode": "new",
+        "isolated": false,
+        "seconds_to_isolation": null,
+        "max_n60": 38,
+        "max_probability": 0.8868,
+        "segment": [
+          "internal"
+        ],
+        "ai_window_modes": [
+          "enforcing",
+          "not_run"
+        ],
+        "nft_element": null,
+        "block_reasons": null,
+        "block_owner": null,
+        "block_event_ts": null,
+        "block_event_n60": null,
+        "attempts": 93,
+        "failed_after_isolation": 0
+      },
+      {
+        "case": "rep_38pm_0",
+        "ip": "10.10.0.176",
+        "rate_per_min": 38.0,
+        "mode": "new",
+        "isolated": true,
+        "seconds_to_isolation": 84.4,
+        "max_n60": 39,
+        "max_probability": 0.9024,
+        "segment": [
+          "internal"
+        ],
+        "ai_window_modes": [
+          "enforcing",
+          "not_run"
+        ],
+        "nft_element": {
+          "timeout": 900,
+          "expires": 899
+        },
+        "block_reasons": [
+          "ai_window_rate"
+        ],
+        "block_owner": "AI Engine (client window)",
+        "block_event_ts": "2026-11-06T02:42:22.312351+00:00",
+        "block_event_n60": 39,
+        "attempts": 87,
+        "failed_after_isolation": 33
+      },
+      {
+        "case": "rep_38pm_1",
+        "ip": "10.10.0.177",
+        "rate_per_min": 38.0,
+        "mode": "new",
+        "isolated": true,
+        "seconds_to_isolation": 87.8,
+        "max_n60": 39,
+        "max_probability": 0.9024,
+        "segment": [
+          "internal"
+        ],
+        "ai_window_modes": [
+          "enforcing",
+          "not_run"
+        ],
+        "nft_element": {
+          "timeout": 900,
+          "expires": 899
+        },
+        "block_reasons": [
+          "ai_window_rate"
+        ],
+        "block_owner": "AI Engine (client window)",
+        "block_event_ts": "2026-11-06T02:42:27.370547+00:00",
+        "block_event_n60": 39,
+        "attempts": 87,
+        "failed_after_isolation": 31
+      },
+      {
+        "case": "rep_38pm_2",
+        "ip": "10.10.0.178",
+        "rate_per_min": 38.0,
+        "mode": "new",
+        "isolated": true,
+        "seconds_to_isolation": 60.7,
+        "max_n60": 39,
+        "max_probability": 0.9024,
+        "segment": [
+          "internal"
+        ],
+        "ai_window_modes": [
+          "enforcing",
+          "not_run"
+        ],
+        "nft_element": {
+          "timeout": 900,
+          "expires": 899
+        },
+        "block_reasons": [
+          "ai_window_rate"
+        ],
+        "block_owner": "AI Engine (client window)",
+        "block_event_ts": "2026-11-06T02:42:01.998253+00:00",
+        "block_event_n60": 39,
+        "attempts": 84,
+        "failed_after_isolation": 45
+      }
+    ]
+  },
+  "run_meta": {
+    "R1": {
+      "started": "2026-11-06 09:37:32",
+      "feeder_dns_events": 295,
+      "state_file_after": "absent (no transition since start)",
+      "state_journal": [
+        "2026-11-06T09:37:34+0700 minifw-monday-financial python[114843]: 2026-11-06 09:37:34,432 - INFO - [STATE] Initial protection state: AI_ENHANCED_PROTECTION",
+        "2026-11-06T09:37:34+0700 minifw-monday-financial python[114843]: 2026-11-06 09:37:34,524 - INFO - [AI_WINDOW] Loaded /opt/minifw_ai/models/client_window_v1.json sha256=d06ce40ea3276d2cedac9e354075c4aa74aa3987e08b35e40a95451d4e69d6ee"
+      ]
+    },
+    "R2": {
+      "started": "2026-11-06 09:40:44",
+      "feeder_dns_events": 303,
+      "state_file_after": "absent (no transition since start)",
+      "state_journal": [
+        "2026-11-06T09:40:46+0700 minifw-monday-financial python[116496]: 2026-11-06 09:40:46,596 - INFO - [STATE] Initial protection state: AI_ENHANCED_PROTECTION",
+        "2026-11-06T09:40:46+0700 minifw-monday-financial python[116496]: 2026-11-06 09:40:46,671 - INFO - [AI_WINDOW] Loaded /opt/minifw_ai/models/client_window_v1.json sha256=d06ce40ea3276d2cedac9e354075c4aa74aa3987e08b35e40a95451d4e69d6ee"
+      ]
+    }
+  },
+  "restore": {
+    "time": "2026-11-06T09:44:01+07:00",
+    "policy_sha256_matches_original": true,
+    "env_sha256_matches_original": true,
+    "approval_lines_in_env": 0,
+    "state_file_sha256_matches_original": true,
+    "dnsmasq_log_sha256_matches_original": true,
+    "services": {
+      "minifw-ai": "active",
+      "minifw-ai-web": "active",
+      "dnsmasq": "failed (as before the test)"
+    },
+    "engine_state_after_restart": "BASELINE_PROTECTION (restored state file, as before)",
+    "test_elements_left_in_set": 0,
+    "lab_netns_and_veths": "removed",
+    "helper_units": "stopped (bc20-*)"
+  }
+}

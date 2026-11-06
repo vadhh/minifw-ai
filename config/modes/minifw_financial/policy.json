@@ -11,7 +11,7 @@
     "trading": {
       "block_threshold": 80,
       "monitor_threshold": 45,
-      "_note": "Trading floor / high-frequency systems — tightest enforcement."
+      "_note": "Trading floor / high-frequency systems. Not in AI isolation scope."
     },
     "internal": {
       "block_threshold": 80,
@@ -51,7 +51,7 @@
     "nft_chain":          "forward"
   },
   "ai_enforcement": {
-    "_note": "Scope is fast password guessing only (roughly 30+ new TCP connections per minute from one client to one server:port); slower guessing is not detected. Before enabling, a site must fill segment_subnets and add servers, proxies and NAT/shared addresses to exempt. Enforcement needs MINIFW_AI_ENFORCE_MODEL_SHA256 in /etc/minifw/minifw.env set to the model file's SHA-256; otherwise the AI scores in shadow only.",
+    "_note": "Counts new TCP connections from one client to one server:port in 60 s and isolates the client for 15 min at 39 or more. It does not see passwords, logins or failed attempts; slower rates are not caught. Benign automation at about 1 request/s (pollers, monitoring) looks identical and will be isolated unless listed in exempt. Runs only in AI-enhanced protection (healthy DNS log). Isolation needs MINIFW_AI_ENFORCE_MODEL_SHA256 in /etc/minifw/minifw.env; otherwise shadow scoring only. Before enabling, fill segment_subnets and exempt (servers, pollers, proxies, shared NAT addresses).",
     "segments": ["internal", "guest", "default"],
     "exempt": [],
     "block_timeout_seconds": 900

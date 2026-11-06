@@ -215,7 +215,7 @@ def client(args):
 def acceptance(edition, package, metadata=False, extended=False, provider_only=False):
     sector = "education" if edition == "education" else "finance"
     installed = subprocess.check_output(["dpkg-query", "-W", "-f=${Version}", "minifw-ai"], text=True).strip()
-    assert installed == "2.2.10-" + sector, "Only v2.2.10 may be tested"
+    assert installed.endswith("-" + sector), "Installed edition does not match"  # version: package check below
     assert subprocess.check_output(["dpkg-deb", "-f", package, "Version"], text=True).strip() == installed
     mode = "minifw_school" if edition == "education" else "minifw_financial"
     sector = "education" if edition == "education" else "finance"
