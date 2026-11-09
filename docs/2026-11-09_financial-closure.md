@@ -1,12 +1,12 @@
 # MiniFW-AI Financial v2.2.13: closure statement
 
-Monday 9 November 2026 · Afridho · status at 10:10 WIB
+Monday 9 November 2026 · Afridho · status at 10:35 WIB
 
-**The software handoff is complete. The package has been sent; delivery stays open until the signed receipt is returned.**
+**Financial is closed. The software handoff and the delivery are complete. What remains is commissioning at the customer site.**
 
 | Item | State |
 | --- | --- |
-| Delivery | Sent Friday 6 November, 16:43 WIB, within the end-of-day deadline, to Patrick; signed receipt outstanding |
+| Delivery | Complete. Sent Friday 6 November, 16:43 WIB, within the end-of-day deadline, to Patrick. Receipt: Patrick's written review, 7 November, 10:47 WIB. |
 | Customer installation | Not started |
 | AI isolation | Off, as approved |
 | Signing control | Applied 9 November |
@@ -19,7 +19,7 @@ Every open item has one owner, Afridho. Ilham returns to RISKIPSO at 11:00.
 | State | Status | Evidence | Next and owner |
 | --- | --- | --- | --- |
 | **Software handoff** | **Complete.** C22, v2.2.13, source `50058d10`, installer `6192bdd7…92c9`, model `d06ce40e…d6ee`. No code change since the freeze. | 6 Nov recommendation; reviewer's package check (zip hash, `SHA256SUMS`, installer version, model and policy match) | None |
-| **Delivery** | **Sent, receipt outstanding.** Package `minifw-ai-financial-2.2.13-handoff.zip`, SHA-256 `9d14ffc34af95e09db95c7d680ddc54d6cd5686fea4ec2954a06b6974544900d`. Sent 6 November 2026, 16:43 WIB, to Patrick, through the vendor's private file share (sydecloud). The SHA-256 was **not** sent separately. The 6 November report was committed at 16:30, before the send, so it still recorded the package as unsent. | Afridho's sent record | Afridho: send the zip's SHA-256 to Patrick through a second channel, so the download can be checked (`SHA256SUMS` inside the zip cannot vouch for the zip itself). Then collect the signed receipt page. |
+| **Delivery** | **Complete.** Package `minifw-ai-financial-2.2.13-handoff.zip`, SHA-256 `9d14ffc34af95e09db95c7d680ddc54d6cd5686fea4ec2954a06b6974544900d`. Sent 6 November 2026, 16:43 WIB, to Patrick, through the vendor's private file share (sydecloud). The 6 November report was committed at 16:30, before the send, so it still recorded the package as unsent. The SHA-256 was not sent separately with the package; it was sent through a second channel on 9 November. | **Receipt:** Patrick's written review, shared 7 November 2026, 10:47 WIB. It records that he checked the package: the zip hash matches, all six `SHA256SUMS` lines match, and the installer, model and policy match. | None |
 | **Customer installation** | **Not started.** It waits for the customer. | None yet | The customer installs and sends the deployment ID privately; Afridho signs the licence (section 4) |
 | **AI activation** | **Off at handover, as approved.** Management approved handover with the connection-rate AI in shadow mode and rule blocks on (6 Nov, 14:37 WIB; confirmed 9 Nov). | Handover document, "State at handover" | After a shadow period of a few days, the customer's security owner approves isolation and records the approval (setup guide, sections 14–15). The first isolation is checked for its 15-minute expiry. |
 
@@ -43,7 +43,7 @@ Every open item has one owner, Afridho. Ilham returns to RISKIPSO at 11:00.
 - **Finding:** until now, signing needed only access to the host account that holds the vendor key. At least one other engineer had that access and used it for lab licences.
 - **Control:** the vendor key is encrypted with a passphrase held only by the authorized signer. The signing tool now takes that passphrase (`scripts/license_tool.py`, with a test). The procedure was dry-run on 9 November with a throwaway key.
 - **Status: applied 9 November.** The vendor key on the signing host is now passphrase-encrypted, and the plaintext copy is deleted. Before the deletion, the encrypted key signed a test licence that verified against the packaged public key. A search of the signing account found no other copy: its only other private keys are unrelated RSA keys.
-- **No key rotation.** The delivered 2.2.13 trusts the current key, and rotating it would need a new build. The other engineer is asked to confirm holding no copy.
+- **No key rotation.** The delivered 2.2.13 trusts the current key, and rotating it would need a new build. The other engineer confirmed on 9 November holding no copy.
 
 ## 4. Customer licence: private procedure
 
@@ -64,7 +64,7 @@ Every open item has one owner, Afridho. Ilham returns to RISKIPSO at 11:00.
 | C22 test guest | Its admin password was changed nine minutes after installation, before the exposure (audit log). Its dashboard listened only inside the guest. Destroyed on 9 November, after its evidence was extracted; its process and directory are gone. |
 
 - **Nothing else live was exposed.** A scan of everything still public in those commits found no application secret key, private key, licence signature or session token.
-- **No reuse.** Each installation generates its own random initial password, so it cannot repeat across installs. The tester is asked to confirm that the passwords set on the guests are not used elsewhere.
+- **No reuse.** Each installation generates its own random initial password, so it cannot repeat across installs. The tester confirmed on 9 November that the passwords set on the guests are not used elsewhere.
 - **Issue #8 history cleaned (9 November).** The original revisions of the three redacted comments held infrastructure details, not passwords. They are deleted, and no remaining revision holds those details.
 - **GitHub cache purge requested** on 9 November (support ticket #4974713, open). GitHub removes data only when rotating the credentials cannot remove the risk. These credentials no longer work, so Support may decline. Containment does not depend on the purge.
 - **Rule from 6 November, unchanged:** test evidence goes to the release owner privately, never to the repository.
@@ -73,14 +73,13 @@ Every open item has one owner, Afridho. Ilham returns to RISKIPSO at 11:00.
 
 | # | Input | From | Needed for |
 | --- | --- | --- | --- |
-| 1 | Signed receipt page | Customer recipient | Delivery record |
-| 2 | Deployment ID, sent privately | Customer gateway administrator | Licence |
-| 3 | Network segments and subnets | Customer network team | Replace the example subnets (setup guide, section 11) |
-| 4 | DNS on the gateway: dnsmasq resolves for the protected clients | Customer network team | AI-enhanced protection |
-| 5 | Exempt list: servers, monitoring and polling systems, proxies, shared NAT addresses | Customer IT, from the shadow review | Before AI isolation is turned on |
-| 6 | Approval to turn AI isolation on, with name and date | Customer security owner | AI activation |
+| 1 | Deployment ID, sent privately | Customer gateway administrator | Licence |
+| 2 | Network segments and subnets | Customer network team | Replace the example subnets (setup guide, section 11) |
+| 3 | DNS on the gateway: dnsmasq resolves for the protected clients | Customer network team | AI-enhanced protection |
+| 4 | Exempt list: servers, monitoring and polling systems, proxies, shared NAT addresses | Customer IT, from the shadow review | Before AI isolation is turned on |
+| 5 | Approval to turn AI isolation on, with name and date | Customer security owner | AI activation |
 
-The vendor contact for all six is Afridho.
+The vendor contact for all five is Afridho.
 
 ## 7. Also recorded
 
@@ -92,10 +91,8 @@ The vendor contact for all six is Afridho.
 
 ## 8. Handback
 
-**Financial blocker owner from 11:00:** Afridho. The items are:
-- the SHA-256 to Patrick by a second channel;
-- the signed receipt;
-- Ilham's two confirmations;
-- following up the GitHub ticket.
+**No Financial blocker remains.**
+- The only open vendor item is the optional GitHub cache ticket. Afridho follows it up.
+- Commissioning starts when the customer sends the inputs in section 6.
 
-None of them blocks Ilham from RISKIPSO. Afridho and Ilham resume RISKIPSO at 11:00.
+Afridho and Ilham resume RISKIPSO at 11:00.
