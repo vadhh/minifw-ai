@@ -1,0 +1,53 @@
+# Read-only extract from guest minifw-friday-c22-financial, captured 2026-11-09T02:09:23Z
+
+## Installed package and model
+ii minifw-ai 2.2.13-finance amd64
+d06ce40ea3276d2cedac9e354075c4aa74aa3987e08b35e40a95451d4e69d6ee  /opt/minifw_ai/models/client_window_v1.json
+
+## Engine and DNS-feeder lifecycle, state transitions (journal, 6 Nov 08:55-09:10 UTC)
+2026-11-06T08:58:25+0000 minifw-friday-c22-financial systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+2026-11-06T08:58:25+0000 minifw-friday-c22-financial systemd[1]: minifw-ai.service: Deactivated successfully.
+2026-11-06T08:58:25+0000 minifw-friday-c22-financial systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+2026-11-06T08:58:25+0000 minifw-friday-c22-financial systemd[1]: minifw-ai.service: Consumed 45.429s CPU time.
+2026-11-06T08:58:26+0000 minifw-friday-c22-financial systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+2026-11-06T08:58:27+0000 minifw-friday-c22-financial python[13658]: 2026-11-06 08:58:27,317 - INFO - [AI_WINDOW] Loaded /opt/minifw_ai/models/client_window_v1.json sha256=d06ce40ea3276d2cedac9e354075c4aa74aa3987e08b35e40a95451d4e69d6ee
+2026-11-06T08:59:40+0000 minifw-friday-c22-financial systemd[1]: Stopping c22-feeder.service - /usr/bin/python3 /home/lab/dns_feeder.py...
+2026-11-06T08:59:40+0000 minifw-friday-c22-financial systemd[1]: c22-feeder.service: Deactivated successfully.
+2026-11-06T08:59:40+0000 minifw-friday-c22-financial systemd[1]: Stopped c22-feeder.service - /usr/bin/python3 /home/lab/dns_feeder.py.
+2026-11-06T09:01:27+0000 minifw-friday-c22-financial python[13658]: 2026-11-06 09:01:27,454 - WARNING - [STATE_TRANSITION] AI_ENHANCED_PROTECTION -> BASELINE_PROTECTION | trigger=telemetry_lost | reason=telemetry_lost_2_consecutive_checks
+2026-11-06T09:01:27+0000 minifw-friday-c22-financial python[13658]: 2026-11-06 09:01:27,455 - WARNING - [STATE_TRANSITION] BASELINE_PROTECTION | MLP=False YARA=False | telemetry_lost_2_consecutive_checks
+2026-11-06T09:06:28+0000 minifw-friday-c22-financial systemd[1]: Started c22-feeder.service - /usr/bin/python3 /home/lab/dns_feeder.py.
+2026-11-06T09:07:29+0000 minifw-friday-c22-financial python[13658]: 2026-11-06 09:07:29,218 - WARNING - [STATE_TRANSITION] BASELINE_PROTECTION -> AI_ENHANCED_PROTECTION | trigger=telemetry_restored | reason=telemetry_healthy_3_consecutive_checks
+2026-11-06T09:07:29+0000 minifw-friday-c22-financial python[13658]: 2026-11-06 09:07:29,221 - WARNING - [STATE_TRANSITION] AI_ENHANCED_PROTECTION | MLP=True YARA=True | telemetry_healthy_3_consecutive_checks
+2026-11-06T09:08:40+0000 minifw-friday-c22-financial systemd[1]: Stopping minifw-ai.service - MiniFW-AI Behavioral Firewall Engine...
+2026-11-06T09:08:40+0000 minifw-friday-c22-financial systemd[1]: minifw-ai.service: Deactivated successfully.
+2026-11-06T09:08:40+0000 minifw-friday-c22-financial systemd[1]: Stopped minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+2026-11-06T09:08:40+0000 minifw-friday-c22-financial systemd[1]: minifw-ai.service: Consumed 12.414s CPU time.
+2026-11-06T09:08:40+0000 minifw-friday-c22-financial systemd[1]: Started minifw-ai.service - MiniFW-AI Behavioral Firewall Engine.
+2026-11-06T09:08:42+0000 minifw-friday-c22-financial python[14978]: 2026-11-06 09:08:42,000 - INFO - [AI_WINDOW] Loaded /opt/minifw_ai/models/client_window_v1.json sha256=d06ce40ea3276d2cedac9e354075c4aa74aa3987e08b35e40a95451d4e69d6ee
+
+## dnsmasq log edges
+Nov 06 08:59:37 dnsmasq[500]: query[A] api.bank.internal from 10.10.0.20
+Nov 06 08:59:37 dnsmasq[500]: reply api.bank.internal is 198.18.0.2
+queries logged 09:00:00-09:05:59: 0
+Nov 06 09:06:28 dnsmasq[500]: query[A] api.bank.internal from 10.10.0.20
+Nov 06 09:06:28 dnsmasq[500]: reply api.bank.internal is 198.18.0.2
+
+## Event log rows for 10.10.0.177 / 10.10.0.178, 6 Nov 09:01-09:09 UTC: every block, and first and last allow per client and mode
+# 10.10.0.177 allow mode=not_run: 168 rows, max n60=59
+# 10.10.0.178 allow mode=not_run: 14 rows, max n60=1
+# 10.10.0.178 block mode=not_run: 2 rows, max n60=1
+# 10.10.0.177 allow mode=enforcing: 38 rows, max n60=38
+# 10.10.0.177 block mode=enforcing: 1 rows, max n60=39
+{"ts": "2026-11-06T09:05:17.451352+00:00", "client_ip": "10.10.0.177", "action": "allow", "score": 0, "reasons": [], "ai_window_n60": 1, "ai_window_probability": null, "ai_window_mode": "not_run", "decision_owner": "Policy Engine"}
+{"ts": "2026-11-06T09:06:22.466996+00:00", "client_ip": "10.10.0.178", "action": "allow", "score": 0, "reasons": [], "ai_window_n60": 1, "ai_window_probability": null, "ai_window_mode": "not_run", "decision_owner": "Policy Engine"}
+{"ts": "2026-11-06T09:06:22.487675+00:00", "client_ip": "10.10.0.178", "action": "allow", "score": 0, "reasons": [], "ai_window_n60": 1, "ai_window_probability": null, "ai_window_mode": "not_run", "decision_owner": "Policy Engine"}
+{"ts": "2026-11-06T09:06:22.501388+00:00", "client_ip": "10.10.0.178", "action": "block", "score": 100, "reasons": ["port_scan", "hard_threat_gate_override"], "ai_window_n60": 1, "ai_window_probability": null, "ai_window_mode": "not_run", "decision_owner": "Hard Gate"}
+{"ts": "2026-11-06T09:06:32.487139+00:00", "client_ip": "10.10.0.178", "action": "block", "score": 100, "reasons": ["port_scan", "hard_threat_gate_override"], "ai_window_n60": null, "ai_window_probability": null, "ai_window_mode": "not_run", "decision_owner": "Hard Gate"}
+{"ts": "2026-11-06T09:08:02.547019+00:00", "client_ip": "10.10.0.177", "action": "allow", "score": 0, "reasons": [], "ai_window_n60": 1, "ai_window_probability": 0.01655920183522907, "ai_window_mode": "enforcing", "decision_owner": "Policy Engine"}
+{"ts": "2026-11-06T09:08:37.571840+00:00", "client_ip": "10.10.0.177", "action": "allow", "score": 0, "reasons": [], "ai_window_n60": 38, "ai_window_probability": 0.8867759082988741, "ai_window_mode": "enforcing", "decision_owner": "Policy Engine"}
+{"ts": "2026-11-06T09:08:37.589002+00:00", "client_ip": "10.10.0.177", "action": "block", "score": 90, "reasons": ["ai_window_rate"], "ai_window_n60": 39, "ai_window_probability": 0.9024045897511963, "ai_window_mode": "enforcing", "decision_owner": "AI Engine (client window)"}
+{"ts": "2026-11-06T09:08:42.012815+00:00", "client_ip": "10.10.0.177", "action": "allow", "score": 0, "reasons": [], "ai_window_n60": null, "ai_window_probability": null, "ai_window_mode": "not_run", "decision_owner": "Policy Engine"}
+
+## Audit: admin password change
+{"ts": "2026-11-06T04:29:43.863017+00:00", "action": "password_change", "actor": "admin"}

@@ -3,6 +3,7 @@
 
 import argparse
 import base64
+import getpass
 import json
 import os
 import uuid
@@ -44,9 +45,12 @@ def generate(args) -> None:
 
 
 def issue(args) -> None:
-    private_key = serialization.load_pem_private_key(
-        Path(args.private_key).read_bytes(), password=None
-    )
+    key_pem = Path(args.private_key).read_bytes()
+    password = None
+    if b"ENCRYPTED" in key_pem:  # passphrase-protected vendor key
+        passphrase = os.environ.get("MINIFW_SIGNING_PASSPHRASE") or getpass.getpass("Signing key passphrase: ")
+        password = passphrase.encode("utf-8")
+    private_key = serialization.load_pem_private_key(key_pem, password=password)
     issued_at = utc_now()
     starts_at = args.starts_at or issued_at
     start_time = datetime.fromisoformat(starts_at.replace("Z", "+00:00"))

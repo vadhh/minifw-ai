@@ -158,7 +158,7 @@ Architecture: ${ARCH}
 Depends: python3 (>= 3.10), python3-venv, nftables, openssl, conntrack, logrotate, adduser
 Recommends: dnsmasq, zeek
 Maintainer: Afridho Ikhsan <afridho@minifw.local>
-Description: MiniFW-AI gateway firewall engine (ARCHANGEL 2.0) [${SECTOR}]
+Description: MiniFW-AI gateway firewall engine [${SECTOR}]
  Gateway firewall: DNS and flow rules, threat feeds, nftables enforcement,
  sector-specific policies, web admin dashboard. Optional connection-rate AI
  isolation (root must approve the exact model); MLP and YARA add score only.
